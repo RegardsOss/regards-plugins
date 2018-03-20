@@ -22,8 +22,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
-	<artifactId>aip-datasource</artifactId>
-	<description>AIP datasource</description>
+	<artifactId>postgresql-datasource</artifactId>
+	<description>PostgreSQL datasource</description>
 	<version>2.0.0-SNAPSHOT</version>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
@@ -59,10 +59,6 @@
 			<artifactId>models-service</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.storage</groupId>
-			<artifactId>storage-client</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
 			<artifactId>plugins-domain</artifactId>
 		</dependency>
@@ -70,9 +66,11 @@
 			<groupId>fr.cnes.regards.modules.datasources</groupId>
 			<artifactId>datasources-domain</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
 		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
+			<groupId>cz.jirutka.spring</groupId>
+			<artifactId>spring-data-jdbc-repository</artifactId>
+			<version>0.5.0</version>
 		</dependency>
 		<!-- Tests -->
 		<dependency>

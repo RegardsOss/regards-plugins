@@ -56,5 +56,6 @@
 	</parent>
 	<modules>
 		<module>aip-datasource</module>
+		<module>postgresql-datasource</module>
 	</modules>
 </project>
