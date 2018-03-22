@@ -21,12 +21,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.plugins</groupId>
-	<artifactId>plugins</artifactId>
+	<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+	<artifactId>postgresql-datasource-it</artifactId>
+	<description>PostgreSQL datasource integration tests</description>
 	<version>2.0.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
 
-	<description>REGARDS official plugins repository</description>
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -49,13 +48,35 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards</groupId>
-		<artifactId>regards-aggregator-parent</artifactId>
+		<groupId>fr.cnes.regards.modules.datasources</groupId>
+		<artifactId>datasource-plugins</artifactId>
 		<version>2.0.0-SNAPSHOT</version>
-		<relativePath />
 	</parent>
-	<modules>
-		<module>datasource-plugins</module>
-		<module>storage-plugins</module>
-	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+			<artifactId>postgresql-datasource</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+			<artifactId>aip-datasource</artifactId>
+		</dependency>
+		<!-- Tests -->
+		<dependency>
+			<groupId>fr.cnes.regards.framework.test</groupId>
+			<artifactId>regards-integration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.crawler</groupId>
+			<artifactId>crawler-service</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.indexer</groupId>
+			<artifactId>indexer-service</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>
