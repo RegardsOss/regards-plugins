@@ -58,7 +58,6 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>1.4.0</version>
 				<executions>
 					<execution>
 						<id>default</id>
@@ -66,6 +65,7 @@
 							<goal>build</goal>
 						</goals>
 						<configuration>
+							<skip>false</skip>
 							<repository>${docker.registry.host}/rs-plugins</repository>
 							<tag>${project.version}</tag>
 						</configuration>
