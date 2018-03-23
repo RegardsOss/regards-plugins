@@ -55,8 +55,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-service</artifactId>
+			<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+			<artifactId>db-datasource-common</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
@@ -66,12 +66,6 @@
 			<groupId>fr.cnes.regards.modules.datasources</groupId>
 			<artifactId>datasources-domain</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
-		<dependency>
-			<groupId>cz.jirutka.spring</groupId>
-			<artifactId>spring-data-jdbc-repository</artifactId>
-			<version>0.5.0</version>
-		</dependency>
 		<!-- Tests -->
 		<dependency>
 			<groupId>fr.cnes.regards.framework.test</groupId>
@@ -79,4 +73,29 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>fr.cnes.regards.modules.datasources.plugins:db-datasource-common</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
