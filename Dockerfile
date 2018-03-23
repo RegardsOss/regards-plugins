@@ -1,4 +1,4 @@
-FROM scratch
+FROM alpine:latest
 ENV REGARDS_HOME /regards
 
 # Copy JARs
