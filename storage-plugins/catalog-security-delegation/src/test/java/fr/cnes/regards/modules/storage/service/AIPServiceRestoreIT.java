@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -102,6 +103,7 @@ import fr.cnes.regards.modules.storage.plugins.security.CatalogSecurityDelegatio
 @TestPropertySource(locations = "classpath:test.properties")
 @ActiveProfiles("testAmqp")
 @DirtiesContext
+@Ignore
 public class AIPServiceRestoreIT extends AbstractRegardsServiceTransactionalIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(AIPServiceRestoreIT.class);
