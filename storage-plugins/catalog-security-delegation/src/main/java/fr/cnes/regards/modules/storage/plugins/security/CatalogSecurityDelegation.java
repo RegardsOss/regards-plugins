@@ -1,3 +1,6 @@
+/*
+ * LICENSE_PLACEHOLDER
+ */
 package fr.cnes.regards.modules.storage.plugins.security;
 
 import java.util.Optional;
@@ -60,8 +63,8 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
             ResponseEntity<Resource<AbstractEntity>> catalogResponse = searchClient
                     .getEntity(UniformResourceName.fromString(ipId));
-            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
-                    .equals(HttpStatus.NOT_FOUND)) {
+            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())
+                    && !catalogResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 // either there was an error or it was forbidden
                 return false;
             }
