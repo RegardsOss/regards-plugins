@@ -65,9 +65,6 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
     @PluginParameter(name = TABLE_PARAM, label = "Table name", description = "Database table name to be requested")
     private String tableName;
 
-    @PluginParameter(name = MODEL_NAME_PARAM, label = "model name", description = "Associated data source model name")
-    private String modelName;
-
     @PluginParameter(name = MODEL_MAPPING_PARAM, label = "model attributes mapping",
             description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;

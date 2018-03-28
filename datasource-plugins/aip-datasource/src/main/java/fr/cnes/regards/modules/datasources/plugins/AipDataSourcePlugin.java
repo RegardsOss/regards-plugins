@@ -46,6 +46,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -79,14 +80,11 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 @Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
         description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
         licence = "LGPLv3.0", owner = "CSSI", url = "https://github.com/RegardsOss")
-public class AipDataSourcePlugin implements IAipDataSourcePlugin {
+public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
     public static final String SUBSETTING_TAGS = "subsettingTags";
-
-    @PluginParameter(name = MODEL_NAME_PARAM, label = "model name", description = "Associated data source model name")
-    private String modelName;
 
     @PluginParameter(name = SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
             description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
