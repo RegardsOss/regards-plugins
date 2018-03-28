@@ -55,23 +55,60 @@
         </developer>
     </developers>
 
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>catalog-security-delegation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <artifactId>aip-datasource</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <artifactId>postgresql-datasource</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <configuration>
-                    <repository>${docker.registry.host}/rs-plugins</repository>
-                    <tag>${project.version}</tag>
-                    <skip>false</skip>
-                </configuration>
+                <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
-                    <!-- Override default execution so devs can work without docker and CI server can call specific goals -->
                     <execution>
-                        <id>default</id>
-                        <goals/>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jars</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <retryPushCount>0</retryPushCount>
+                    <skipDockerBuild>false</skipDockerBuild>
+                    <forceTags>true</forceTags>
+                    <imageName>${docker.registry.host}/rs-plugins</imageName>
+                    <serverId>REGARDS-DockerHub</serverId>
+                    <registryUrl>${docker.registry.host}</registryUrl>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                    </imageTags>
+                    <dockerDirectory>regards-ci/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}/jars</directory>
+                            <include>*</include>
+                        </resource>
+                    </resources>
+                </configuration>
             </plugin>
         </plugins>
     </build>
