@@ -81,7 +81,7 @@ import fr.cnes.regards.modules.models.service.IModelService;
  * <li>the update date of the data
  * @author Christophe Mertz
  */
-public abstract class AbstractDataObjectMapping {
+public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin {
 
     /**
      * The PL/SQL key word AS
