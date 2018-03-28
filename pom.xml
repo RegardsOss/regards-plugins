@@ -69,8 +69,7 @@
                     <!-- Override default execution so devs can work without docker and CI server can call specific goals -->
                     <execution>
                         <id>default</id>
-                        <goals>
-                        </goals>
+                        <goals/>
                     </execution>
                 </executions>
             </plugin>
