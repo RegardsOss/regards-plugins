@@ -70,6 +70,7 @@ import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
 import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
+import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
@@ -258,7 +259,7 @@ public class CrawlerIngestIT {
         pluginService.savePluginConfiguration(dataSourcePluginConf);
 
         // DataSource from Test Plugin Conf
-        dataSourceTestPluginConf = getTestDsPluginDatasource();
+        dataSourceTestPluginConf = this.getTestDsPluginDatasource();
         pluginService.savePluginConfiguration(dataSourceTestPluginConf);
         LOGGER.info("***************************************************************************");
     }
@@ -301,8 +302,9 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(Collections.emptyList(), TestDsPlugin.class,
-                                                  Arrays.asList(PLUGIN_TEST_PACKAGE));
+        return PluginUtils.getPluginConfiguration(
+                Collections.singletonList(new PluginParameter(IDataSourcePlugin.MODEL_NAME_PARAM, dataModel.getName())),
+                TestDsPlugin.class, Arrays.asList(PLUGIN_TEST_PACKAGE));
     }
 
     private void buildModelAttributes() {
@@ -310,8 +312,9 @@ public class CrawlerIngestIT {
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "date"));
+        modelAttrMapping
+                .add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, AttributeType.DATE_ISO8601,
+                                                "date"));
     }
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
@@ -366,21 +369,21 @@ public class CrawlerIngestIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
-                                                            ICriterion.eq("tags", dataset.getIpId().toString()));
+        Page<DataObject> objectsPage = searchService
+                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
         extDataRepos.save(new ExternalData(LocalDate.of(2001, Month.JANUARY, 1)));
 
         // Ingest from 2000/01/01 (strictly after)
-        summary = crawlerService.ingest(dataSourcePluginConf,
-                                        OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
+        summary = crawlerService
+                .ingest(dataSourcePluginConf, OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
-                                           ICriterion.eq("tags", dataset.getIpId().toString()));
+        objectsPage = searchService
+                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
                 .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());

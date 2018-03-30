@@ -16,8 +16,10 @@
  
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.plugins</groupId>
 	<artifactId>plugins</artifactId>
@@ -31,54 +33,89 @@
         <relativePath/>
     </parent>
 
-	<description>REGARDS official plugins repository</description>
-	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
-	<inceptionYear>2016</inceptionYear>
-	<licenses>
-		<license>
-			<name>GNU General Public License (GNU GPL)</name>
-			<url>http://www.gnu.org/licenses/gpl.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<organization>
-		<name>CNES</name>
-		<url>https://cnes.fr/fr</url>
-	</organization>
-	<developers>
-		<developer>
-			<name>REGARDS Team</name>
-			<organization>CS Systèmes d'Information</organization>
-			<organizationUrl>http://www.c-s.fr</organizationUrl>
-		</developer>
-	</developers>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<configuration>
-					<repository>${docker.registry.host}/rs-plugins</repository>
-					<tag>${project.version}</tag>
-					<skip>false</skip>
-				</configuration>
-				<executions>
-					<execution>
-						 <id>default</id>
-						<goals>
-							<goal>build</goal>
-							<goal>push</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-	
-	
-	<modules>
-		<module>datasource-plugins</module>
-		<module>storage-plugins</module>
-  </modules>
+    <description>REGARDS official plugins repository</description>
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Systèmes d'Information</organization>
+            <organizationUrl>http://www.c-s.fr</organizationUrl>
+        </developer>
+    </developers>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>catalog-security-delegation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <artifactId>aip-datasource</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <artifactId>postgresql-datasource</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jars</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <retryPushCount>0</retryPushCount>
+                    <skipDockerBuild>false</skipDockerBuild>
+                    <forceTags>true</forceTags>
+                    <imageName>${docker.registry.host}/rs-plugins</imageName>
+                    <serverId>REGARDS-DockerHub</serverId>
+                    <registryUrl>${docker.registry.host}</registryUrl>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                    </imageTags>
+                    <dockerDirectory>regards-ci/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}/jars</directory>
+                            <include>*</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <modules>
+        <module>datasource-plugins</module>
+        <module>storage-plugins</module>
+    </modules>
 </project>

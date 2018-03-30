@@ -55,6 +55,10 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+			<artifactId>db-datasource-common</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.modules.models</groupId>
 			<artifactId>models-service</artifactId>
 		</dependency>

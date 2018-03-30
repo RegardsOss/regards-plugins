@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
@@ -39,7 +40,7 @@ import fr.cnes.regards.modules.models.domain.Model;
 @Plugin(id = "test-datasource", version = "1.0-SNAPSHOT", description = "Allows invalid data extraction from nothing",
         author = "REGARDS Team", contact = "regards@c-s.fr", licence = "LGPLv3.0", owner = "CSSI",
         url = "https://github.com/RegardsOss")
-public class TestDsPlugin implements IDataSourcePlugin {
+public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourcePlugin {
 
     @Override
     public int getRefreshRate() {
