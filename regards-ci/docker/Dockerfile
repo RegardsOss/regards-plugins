@@ -2,7 +2,7 @@ FROM alpine:latest
 ENV REGARDS_HOME /regards
 
 # Copy JARs
-ADD storage-plugin-2.0.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/storage/
+ADD catalog-security-delegation-2.0.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/storage/
 ADD aip-datasource-2.0.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-2.0.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/dam/
 
