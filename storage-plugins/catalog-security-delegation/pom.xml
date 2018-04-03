@@ -110,6 +110,7 @@
 								<includes>
 									<include>commons-io:commons-io</include>
 									<include>fr.cnes.regards.modules.search:search-client</include>
+									<include>fr.cnes.regards.modules.entities:entities-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
