@@ -102,6 +102,7 @@
 							<artifactSet>
 								<includes>
 									<include>commons-beanutils:commons-beanutils</include>
+									<include>fr.cnes.regards.modules.datasources.plugins:db-datasource-common</include>
 									<include>fr.cnes.regards.modules.storage:storage-client</include>
 								</includes>
 							</artifactSet>
