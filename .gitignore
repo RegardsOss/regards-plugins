@@ -47,3 +47,7 @@ Thumbs.db
 
 
 
+
+datasource-plugins/aip-datasource/dependency-reduced-pom\.xml
+
+storage-plugins/catalog-security-delegation/dependency-reduced-pom\.xml
