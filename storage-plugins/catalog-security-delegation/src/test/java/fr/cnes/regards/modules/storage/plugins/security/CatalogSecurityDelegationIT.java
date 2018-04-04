@@ -100,8 +100,8 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
                 UUID.randomUUID(), 1).toString();
         Mockito.when(searchClient.getEntity(UniformResourceName.fromString(catalogOk)))
                 .thenReturn(new ResponseEntity<>(
-                        new Resource<>(new Collection(Model.build("name", "desc", EntityType.COLLECTION),
-                                DEFAULT_TENANT, "CatalogOK")),
+                        new Collection(Model.build("name", "desc", EntityType.COLLECTION),
+                                DEFAULT_TENANT, "CatalogOK"),
                         HttpStatus.OK));
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an unknown ip id in catalog but known into storage

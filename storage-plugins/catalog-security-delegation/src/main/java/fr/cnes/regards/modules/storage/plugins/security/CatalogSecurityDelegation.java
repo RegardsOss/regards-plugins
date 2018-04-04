@@ -67,7 +67,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     public boolean hasAccess(String ipId) throws EntityNotFoundException {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
-            ResponseEntity<Resource<AbstractEntity>> catalogResponse = searchClient
+            ResponseEntity<AbstractEntity> catalogResponse = searchClient
                     .getEntity(UniformResourceName.fromString(ipId));
             if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
                     .equals(HttpStatus.NOT_FOUND)) {
@@ -76,7 +76,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             }
             // if we could get the entity, then we can access the aip
             if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
-                AbstractEntity entity = catalogResponse.getBody().getContent();
+                AbstractEntity entity = catalogResponse.getBody();
                 // lets check if the AIP is of type DATA, in this case, lets check downloadable attribute
                 if(entity instanceof DataObject) {
                     return ((DataObject) entity).getDownloadable();
