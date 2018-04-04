@@ -62,6 +62,14 @@
 			<groupId>fr.cnes.regards.modules.accessrights</groupId>
 			<artifactId>accessrights-client</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.models</groupId>
+			<artifactId>models-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.entities</groupId>
+			<artifactId>entities-gson</artifactId>
+		</dependency>
 		<!-- Provided: dependencies that are already included by the microservice -->
 		<dependency>
 			<groupId>fr.cnes.regards.framework</groupId>
