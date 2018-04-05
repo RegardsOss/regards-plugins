@@ -106,11 +106,13 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<includes>
 									<include>commons-io:commons-io</include>
 									<include>fr.cnes.regards.modules.search:search-client</include>
 									<include>fr.cnes.regards.modules.entities:entities-domain</include>
+									<include>fr.cnes.regards.modules.indexer:indexer-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
