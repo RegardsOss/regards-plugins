@@ -20,8 +20,10 @@ import fr.cnes.regards.framework.module.rest.utils.HttpUtils;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
+import fr.cnes.regards.modules.entities.domain.Collection;
 import fr.cnes.regards.modules.entities.domain.DataObject;
+import fr.cnes.regards.modules.entities.domain.Dataset;
+import fr.cnes.regards.modules.entities.domain.Document;
 import fr.cnes.regards.modules.search.client.ISearchClient;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
 import fr.cnes.regards.modules.storage.domain.AIP;
@@ -67,35 +69,18 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     public boolean hasAccess(String ipId) throws EntityNotFoundException {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
-            ResponseEntity<AbstractEntity> catalogResponse = searchClient
-                    .getEntity(UniformResourceName.fromString(ipId));
-            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
-                    .equals(HttpStatus.NOT_FOUND)) {
-                // either there was an error or it was forbidden
-                return false;
-            }
-            // if we could get the entity, then we can access the aip
-            if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
-                AbstractEntity entity = catalogResponse.getBody();
-                // lets check if the AIP is of type DATA, in this case, lets check downloadable attribute
-                if(entity instanceof DataObject) {
-                    return ((DataObject) entity).getDownloadable();
-                }
-                // otherwise, we always have access
-                return true;
-            }
-            // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
-            Optional<AIP> aip = aipDao.findOneByIpId(ipId);
-            if (!aip.isPresent()) {
-                throw new EntityNotFoundException(ipId, AIP.class);
-            }
-            ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
-            if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
-                // if no problem occurred then lets give the answer from rs-admin
-                return adminResponse.getBody();
-            } else {
-                // if a problem occurred, we cannot know if current user is an admin or not: lets assume he is not
-                return false;
+            UniformResourceName urn = UniformResourceName.fromString(ipId);
+            switch (urn.getEntityType()) {
+                case DATA:
+                    return checkAccessData(urn);
+                case DATASET:
+                    return checkAccessDataset(urn);
+                case DOCUMENT:
+                    return checkAccessDocument(urn);
+                case COLLECTION:
+                    return checkAccessCollection(urn);
+                default:
+                    return false;
             }
         } catch (FeignException e) {
             LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aip %s", ipId),
@@ -104,6 +89,110 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             return false;
         } finally {
             FeignSecurityManager.reset();
+        }
+    }
+
+    private boolean checkAccessData(UniformResourceName urn) throws EntityNotFoundException {
+        ResponseEntity<Resource<DataObject>> catalogResponse = searchClient.getDataobject(urn);
+        if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
+                .equals(HttpStatus.NOT_FOUND)) {
+            // either there was an error or it was forbidden
+            return false;
+        }
+        // if we could get the entity, then we can access the aip
+        if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
+            return catalogResponse.getBody().getContent().getDownloadable();
+        }
+        // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
+        Optional<AIP> aip = aipDao.findOneByIpId(urn.toString());
+        if (!aip.isPresent()) {
+            throw new EntityNotFoundException(urn.toString(), AIP.class);
+        }
+        ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
+        if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
+            // if no problem occurred then lets give the answer from rs-admin
+            return adminResponse.getBody();
+        } else {
+            // if a problem occurred, we cannot know if current user is an admin or not: lets assume he is not
+            return false;
+        }
+    }
+
+    private boolean checkAccessDataset(UniformResourceName urn) throws EntityNotFoundException {
+        ResponseEntity<Resource<Dataset>> catalogResponse = searchClient.getDataset(urn);
+        if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
+                .equals(HttpStatus.NOT_FOUND)) {
+            // either there was an error or it was forbidden
+            return false;
+        }
+        // if we could get the entity, then we can access the aip
+        if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
+            return true;
+        }
+        // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
+        Optional<AIP> aip = aipDao.findOneByIpId(urn.toString());
+        if (!aip.isPresent()) {
+            throw new EntityNotFoundException(urn.toString(), AIP.class);
+        }
+        ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
+        if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
+            // if no problem occurred then lets give the answer from rs-admin
+            return adminResponse.getBody();
+        } else {
+            // if a problem occurred, we cannot know if current user is an admin or not: lets assume he is not
+            return false;
+        }
+    }
+
+    private boolean checkAccessDocument(UniformResourceName urn) throws EntityNotFoundException {
+        ResponseEntity<Resource<Document>> catalogResponse = searchClient.getDocument(urn);
+        if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
+                .equals(HttpStatus.NOT_FOUND)) {
+            // either there was an error or it was forbidden
+            return false;
+        }
+        // if we could get the entity, then we can access the aip
+        if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
+            return true;
+        }
+        // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
+        Optional<AIP> aip = aipDao.findOneByIpId(urn.toString());
+        if (!aip.isPresent()) {
+            throw new EntityNotFoundException(urn.toString(), AIP.class);
+        }
+        ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
+        if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
+            // if no problem occurred then lets give the answer from rs-admin
+            return adminResponse.getBody();
+        } else {
+            // if a problem occurred, we cannot know if current user is an admin or not: lets assume he is not
+            return false;
+        }
+    }
+
+    private boolean checkAccessCollection(UniformResourceName urn) throws EntityNotFoundException {
+        ResponseEntity<Resource<Collection>> catalogResponse = searchClient.getCollection(urn);
+        if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
+                .equals(HttpStatus.NOT_FOUND)) {
+            // either there was an error or it was forbidden
+            return false;
+        }
+        // if we could get the entity, then we can access the aip
+        if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
+            return true;
+        }
+        // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
+        Optional<AIP> aip = aipDao.findOneByIpId(urn.toString());
+        if (!aip.isPresent()) {
+            throw new EntityNotFoundException(urn.toString(), AIP.class);
+        }
+        ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
+        if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
+            // if no problem occurred then lets give the answer from rs-admin
+            return adminResponse.getBody();
+        } else {
+            // if a problem occurred, we cannot know if current user is an admin or not: lets assume he is not
+            return false;
         }
     }
 
@@ -116,9 +205,13 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 // if no problem occured then lets give the answer from rs-admin
                 return adminResponse.getBody();
             } else {
-                // if a problem occured, we cannot now if current user is an admin or not: lets assume he is not
+                // if a problem occured, we cannot know if current user is an admin or not: lets assume he is not
                 return false;
             }
+        } catch (FeignException e) {
+            LOGGER.error(e.getMessage(), e);
+            // if a problem occured, we cannot know if current user is an admin or not: lets assume he is not
+            return false;
         } finally {
             FeignSecurityManager.reset();
         }
