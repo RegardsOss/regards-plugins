@@ -54,23 +54,27 @@
 	</parent>
 
 	<dependencies>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-service</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
-			<artifactId>plugins-domain</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.datasources</groupId>
-			<artifactId>datasources-domain</artifactId>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
 		<dependency>
 			<groupId>cz.jirutka.spring</groupId>
 			<artifactId>spring-data-jdbc-repository</artifactId>
 			<version>0.5.0</version>
+		</dependency>
+		<!-- Provided: dependencies that are already included by the microservice -->
+		<dependency>
+			<groupId>fr.cnes.regards.modules.models</groupId>
+			<artifactId>models-service</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+			<artifactId>plugins-domain</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.datasources</groupId>
+			<artifactId>datasources-domain</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<!-- Tests -->
 		<dependency>
@@ -79,29 +83,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<includes>
-									<include>cz.jirutka.spring:spring-data-jdbc-repository</include>
-								</includes>
-							</artifactSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 </project>

@@ -59,24 +59,28 @@
 			<artifactId>db-datasource-common</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-service</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>fr.cnes.regards.modules.storage</groupId>
 			<artifactId>storage-client</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+		</dependency>
+		<!-- Provided: dependencies that are already included by the microservice -->
+		<dependency>
+			<groupId>fr.cnes.regards.modules.models</groupId>
+			<artifactId>models-service</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
 			<artifactId>plugins-domain</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.datasources</groupId>
 			<artifactId>datasources-domain</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<!-- Tests -->
 		<dependency>
@@ -85,13 +89,12 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -99,13 +102,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<artifactSet>
-								<includes>
-									<include>commons-beanutils:commons-beanutils</include>
-									<include>fr.cnes.regards.modules.datasources.plugins:db-datasource-common</include>
-									<include>fr.cnes.regards.modules.storage:storage-client</include>
-								</includes>
-							</artifactSet>
+							<minimizeJar>true</minimizeJar>
 						</configuration>
 					</execution>
 				</executions>

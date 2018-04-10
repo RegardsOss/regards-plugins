@@ -55,20 +55,31 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.storage</groupId>
-			<artifactId>storage-plugin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.storage</groupId>
-			<artifactId>storage-dao</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>fr.cnes.regards.modules.search</groupId>
 			<artifactId>search-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.accessrights</groupId>
 			<artifactId>accessrights-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.models</groupId>
+			<artifactId>models-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.entities</groupId>
+			<artifactId>entities-gson</artifactId>
+		</dependency>
+		<!-- Provided: dependencies that are already included by the microservice -->
+		<dependency>
+			<groupId>fr.cnes.regards.framework</groupId>
+			<artifactId>authentication-regards-starter</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.storage</groupId>
+			<artifactId>storage-dao</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<!-- Tests -->
 		<dependency>
@@ -92,13 +103,12 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -106,13 +116,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<artifactSet>
-								<includes>
-									<include>commons-io:commons-io</include>
-									<include>fr.cnes.regards.modules.search:search-client</include>
-									<include>fr.cnes.regards.modules.entities:entities-domain</include>
-								</includes>
-							</artifactSet>
+							<minimizeJar>true</minimizeJar>
 						</configuration>
 					</execution>
 				</executions>

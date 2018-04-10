@@ -7,5 +7,6 @@ ADD aip-datasource-2.0.0-RELEASE.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-2.0.0-RELEASE.jar ${REGARDS_HOME}/plugins/dam/
 
 # Testing purpose : CMD [ "/bin/bash" ]
-CMD cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/
+# first lets create the directory hierarchy if needed (mkdir -p) and then lets copy the jars
+CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/
 # ENTRYPOINT ["/regards/scripts/starter.sh"]
