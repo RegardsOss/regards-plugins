@@ -98,10 +98,8 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an ip id we have right in catalog
         String catalogOk = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.getCollection(UniformResourceName.fromString(catalogOk)))
-                .thenReturn(new ResponseEntity<>(new Resource(
-                        new Collection(Model.build("name", "desc", EntityType.COLLECTION),
-                                DEFAULT_TENANT, "CatalogOK")),
+        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogOk)))
+                .thenReturn(new ResponseEntity<>(Boolean.TRUE,
                         HttpStatus.OK));
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an unknown ip id in catalog but known into storage
@@ -111,7 +109,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         aip.setId(UniformResourceName.fromString(catalogUnknown));
         aip.addEvent(EventType.SUBMISSION.name(), "lets bypass everything");
         aipDao.save(aip);
-        Mockito.when(searchClient.getCollection(UniformResourceName.fromString(catalogUnknown)))
+        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogUnknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Mockito.when(projectUsersClient.isAdmin(authenticationResolver.getUser()))
                 .thenReturn(new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK));
@@ -120,7 +118,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an unknown ip id in storage and catalog
         String unknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.getCollection(UniformResourceName.fromString(unknown)))
+        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(unknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         try {
             toTest.hasAccess(unknown);
@@ -135,7 +133,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an ip id we don't have right in catalog
         String catalogNok = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.getCollection(UniformResourceName.fromString(catalogNok)))
+        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogNok)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.FORBIDDEN));
         Assert.assertFalse("Catalog should not have authorized the access to this aip", toTest.hasAccess(catalogNok));
         // lets test with an unknown ip id in catalog but known into storage
