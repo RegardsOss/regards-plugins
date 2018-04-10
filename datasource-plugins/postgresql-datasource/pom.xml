@@ -24,7 +24,7 @@
     <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
     <artifactId>postgresql-datasource</artifactId>
     <description>PostgreSQL datasource</description>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.0-RELEASE</version>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
     <inceptionYear>2016</inceptionYear>
@@ -50,7 +50,7 @@
     <parent>
         <groupId>fr.cnes.regards.modules.datasources</groupId>
         <artifactId>datasource-plugins</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.0-RELEASE</version>
     </parent>
 
     <dependencies>
