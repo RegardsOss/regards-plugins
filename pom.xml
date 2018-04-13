@@ -60,14 +60,17 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
             <artifactId>catalog-security-delegation</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
             <artifactId>aip-datasource</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
             <artifactId>postgresql-datasource</artifactId>
+            <classifier>shaded</classifier>
         </dependency>
     </dependencies>
 
