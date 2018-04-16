@@ -289,7 +289,7 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
             dataFile.setImageWidth(dataFileDto.getWidth());
             obj.getFiles().put(dataFileDto.getDataType(), dataFile);
 
-            if (dataFileDto.getDataType() == DataType.RAWDATA) {
+            if ((dataFileDto.getDataType() == DataType.RAWDATA) && (dataFileDto.getFileSize() != null)) {
                 rawDataFilesSize += dataFileDto.getFileSize();
             }
         }
