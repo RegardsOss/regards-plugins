@@ -3,15 +3,18 @@
  */
 package fr.cnes.regards.modules.storage.plugins.security;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.google.common.collect.Collections2;
 import feign.FeignException;
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
@@ -20,18 +23,12 @@ import fr.cnes.regards.framework.module.rest.utils.HttpUtils;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.Collection;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.Dataset;
-import fr.cnes.regards.modules.entities.domain.Document;
 import fr.cnes.regards.modules.search.client.ISearchClient;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
-import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.plugin.ISecurityDelegation;
 
 /**
  * Default {@link ISecurityDelegation} implementation using rs-catalog to check access rights
- *
  * @author Sylvain VISSIERE-GUERINET
  */
 @Plugin(author = "REGARDS Team", description = "Plugin handling the security thanks to catalog",
@@ -66,6 +63,39 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     private IAuthenticationResolver authenticationResolver;
 
     @Override
+    public Set<UniformResourceName> hasAccess(Collection<UniformResourceName> urns) {
+        try {
+            FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
+            // If user is admin => return all AIP_ID from storage db
+            ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
+            if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
+                // if no problem occurred then lets give the answer from rs-admin
+                if (adminResponse.getBody()) {
+                    // Return only existing AIPs from given list
+                    return aipDao.findUrnsByIpIdIn(Collections2.transform(urns, UniformResourceName::toString))
+                            .collect(Collectors.toSet());
+                }
+            }
+            // Else, ask catalog for AIP which has access
+            ResponseEntity<Set<UniformResourceName>> catalogResponse = searchClient.hasAccess(urns);
+            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
+                // either there was an error or it was forbidden
+                return Collections.emptySet();
+            } else { // if we could get the entity, then we can access the aip
+                return catalogResponse.getBody();
+            }
+        } catch (FeignException e) {
+            LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aips %s",
+                                       urns.stream().map(UniformResourceName::toString)
+                                               .collect(Collectors.joining(", "))), e);
+            //there was an error, lets assume that we cannot access none of the aips
+            return Collections.emptySet();
+        } finally {
+            FeignSecurityManager.reset();
+        }
+    }
+
+    @Override
     public boolean hasAccess(String ipId) throws EntityNotFoundException {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
@@ -80,11 +110,13 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             if (HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
                 return catalogResponse.getBody();
             }
-            // we now have receive a not found from catalog, lets check if AIP exist in our database and if the user is an admin.
-            Optional<AIP> aip = aipDao.findOneByIpId(urn.toString());
-            if (!aip.isPresent()) {
-                throw new EntityNotFoundException(urn.toString(), AIP.class);
+            // we now have received a not found from catalog, lets check if AIP exists in our database and if the user
+            // is an admin.
+            if (!aipDao.findOneByIpId(urn.toString()).isPresent()) {
+                return false;
             }
+            // AIP hasn't been found => it is not indexed but it is present into storage (ie Aip has been stored but not
+            // yet indexed => it is too soon), only administrator can access it
             ResponseEntity<Boolean> adminResponse = projectUsersClient.isAdmin(authenticationResolver.getUser());
             if (HttpUtils.isSuccess(adminResponse.getStatusCode())) {
                 // if no problem occurred then lets give the answer from rs-admin
