@@ -96,7 +96,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     }
 
     @Override
-    public boolean hasAccess(String ipId) throws EntityNotFoundException {
+    public boolean hasAccess(String ipId) {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
             UniformResourceName urn = UniformResourceName.fromString(ipId);
