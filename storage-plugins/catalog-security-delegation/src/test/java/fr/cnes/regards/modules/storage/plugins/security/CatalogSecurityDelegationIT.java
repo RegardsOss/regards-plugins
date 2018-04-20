@@ -120,12 +120,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
                 UUID.randomUUID(), 1).toString();
         Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(unknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        try {
-            toTest.hasAccess(unknown);
-            Assert.fail("Plugin should have thrown an EntityNotFoundException");
-        } catch (EntityNotFoundException e) {
-            // nothing but it means there was an exception so everything is good!
-        }
+        Assert.assertFalse("Access to unknown aip should not be given", toTest.hasAccess(unknown));
 
         // test while not considered admin
         // lets test with an ip id we have right in catalog
@@ -142,12 +137,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         Assert.assertFalse("Plugin should not have authorize the access to this aip because we are not considered admin",
                            toTest.hasAccess(catalogUnknown));
         // lets test with an unknown ip id in storage and catalog
-        try {
-            toTest.hasAccess(unknown);
-            Assert.fail("Plugin should have thrown an EntityNotFoundException");
-        } catch (EntityNotFoundException e) {
-            // nothing but it means there was an exception so everything is good!
-        }
+        Assert.assertFalse("Access to unknown aip should not be given", toTest.hasAccess(unknown));
     }
 
     private AIP getAipFromFile() throws IOException {

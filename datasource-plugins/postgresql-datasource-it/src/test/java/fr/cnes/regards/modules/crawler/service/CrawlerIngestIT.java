@@ -61,6 +61,8 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
+import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionResult;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
@@ -200,6 +202,9 @@ public class CrawlerIngestIT {
     @Autowired
     private IModelAttrAssocRepository attrAssocRepos;
 
+    @Autowired
+    private IDatasourceIngestionRepository dsiRepos;
+
     @Before
     public void setUp() throws Exception {
         LOGGER.info("********************* setUp CrawlerIngestIT ***********************************");
@@ -333,7 +338,8 @@ public class CrawlerIngestIT {
         extDataRepos.saveAndFlush(new ExternalData(LocalDate.of(2000, Month.JANUARY, 1)));
 
         // Ingest from scratch
-        IngestionResult summary = crawlerService.ingest(dataSourcePluginConf);
+        DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getId());
+        IngestionResult summary = crawlerService.ingest(dataSourcePluginConf, dsi);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         crawlerService.startWork();
@@ -377,8 +383,10 @@ public class CrawlerIngestIT {
         extDataRepos.save(new ExternalData(LocalDate.of(2001, Month.JANUARY, 1)));
 
         // Ingest from 2000/01/01 (strictly after)
+        DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getId());
+        dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
         summary = crawlerService
-                .ingest(dataSourcePluginConf, OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
+                .ingest(dataSourcePluginConf, dsi2);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
@@ -395,7 +403,9 @@ public class CrawlerIngestIT {
     @Test
     public void testDsIngestionWithValidation()
             throws InterruptedException, ExecutionException, DataSourceException, ModuleException {
-        IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf);
+        DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
+        dsiRepos.save(dsi);
+        IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }
 }
