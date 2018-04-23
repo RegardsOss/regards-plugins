@@ -68,6 +68,11 @@
         </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>feign-regards-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.modules.models</groupId>
             <artifactId>models-service</artifactId>
             <scope>provided</scope>
