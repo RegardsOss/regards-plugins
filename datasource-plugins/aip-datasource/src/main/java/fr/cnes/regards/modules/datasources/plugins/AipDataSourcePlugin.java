@@ -46,7 +46,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
+
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -80,11 +80,14 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 @Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
         description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
         licence = "LGPLv3.0", owner = "CSSI", url = "https://github.com/RegardsOss")
-public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAipDataSourcePlugin {
+public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
     public static final String SUBSETTING_TAGS = "subsettingTags";
+
+    @PluginParameter(name = MODEL_NAME_PARAM, label = "model name", description = "Associated data source model name")
+    protected String modelName;
 
     @PluginParameter(name = SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
             description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
@@ -162,8 +165,8 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
                 // Manage dynamic properties
                 if (doPropertyPath.endsWith(LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey()
-                            .substring(0, doPropertyPath.length() - LOWER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0,
+                                                               doPropertyPath.length() - LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -174,8 +177,8 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
                     }
                 } else if (doPropertyPath.endsWith(UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey()
-                            .substring(0, doPropertyPath.length() - UPPER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0,
+                                                               doPropertyPath.length() - UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -220,12 +223,12 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                                          + " has to be mapped to exactly 2 values");
+                                + " has to be mapped to exactly 2 values");
                     }
                 } else {
                     if (entry.getValue().size() != 1) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                                          + " has to be mapped to a single value");
+                                + " has to be mapped to a single value");
                     }
                 }
             }
@@ -326,13 +329,13 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
                     Object lowerBound = getNestedProperty(aip, lowerBoundPropertyPath);
                     String upperBoundPropertyPath = entry.getValue().get(1);
                     Object upperBound = getNestedProperty(aip, upperBoundPropertyPath);
-                    if (lowerBound != null || upperBound != null) {
+                    if ((lowerBound != null) || (upperBound != null)) {
                         try {
                             propAtt = AttributeBuilder.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
-                            String msg = String
-                                    .format("Cannot map %s and to %s (values %s and %s)", lowerBoundPropertyPath,
-                                            upperBoundPropertyPath, propName, lowerBound, upperBound);
+                            String msg = String.format("Cannot map %s and to %s (values %s and %s)",
+                                                       lowerBoundPropertyPath, upperBoundPropertyPath, propName,
+                                                       lowerBound, upperBound);
                             throw new RsRuntimeException(msg, e);
                         }
                     }
@@ -385,6 +388,11 @@ public class AipDataSourcePlugin extends AbstractDataSourcePlugin implements IAi
             LOGGER.debug("Property \"{}\" not found in AIP \"{}\"", propertyJsonPath, aip.getId());
         }
         return value;
+    }
+
+    @Override
+    public String getModelName() {
+        return modelName;
     }
 
 }

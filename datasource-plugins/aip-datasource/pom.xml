@@ -55,10 +55,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
-            <artifactId>db-datasource-common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
             <artifactId>storage-client</artifactId>
         </dependency>
@@ -67,6 +63,11 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>feign-regards-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.models</groupId>
             <artifactId>models-service</artifactId>

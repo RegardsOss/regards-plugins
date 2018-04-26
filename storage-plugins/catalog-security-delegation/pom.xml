@@ -77,6 +77,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>fr.cnes.regards.framework</groupId>
+			<artifactId>feign-regards-starter</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.modules.storage</groupId>
 			<artifactId>storage-dao</artifactId>
 			<scope>provided</scope>
