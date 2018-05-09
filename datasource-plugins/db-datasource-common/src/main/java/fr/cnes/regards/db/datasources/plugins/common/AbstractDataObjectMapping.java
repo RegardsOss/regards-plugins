@@ -247,10 +247,12 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     protected DataObject processResultSet(ResultSet rset, Model model, String tenant)
             throws SQLException, DataSourceException {
-        final DataObject data = new DataObject(model, tenant, null);
+        DataObject data = new DataObject(model, tenant, null);
+        // A DataObject created from an external Database is external (ie not internal)
+        data.setInternal(false);
 
-        final Set<AbstractAttribute<?>> attributes = new HashSet<>();
-        final Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
+        Set<AbstractAttribute<?>> attributes = new HashSet<>();
+        Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
 
         /**
          * Loop the attributes in the mapping
@@ -281,10 +283,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         /**
          * For each name space, add an ObjectAttribute to the list of attribute
          */
-        spaceNames.forEach((pName, pAttrs) -> {
-            attributes
-                    .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()])));
-        });
+        spaceNames.forEach((pName, pAttrs) -> attributes
+                .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()]))));
 
         data.setProperties(attributes);
 
@@ -403,8 +403,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                 // When external mapping, only one file per type is authorized so dataFiles is a singleton or empty
                 DataFile dataFile = dataFiles.isEmpty() ? new DataFile() : dataFiles.iterator().next();
                 dataFile.setUri(new URI(str));
-                // No check that uri is truly available
-                dataFile.setOnline(true);
+                // Online is a concept of Storage. Here, file is not managed by Storage so online is NULL
+                dataFile.setOnline(null);
                 // No need to re-put data file if it already exist
                 if (dataFiles.isEmpty()) {
                     dataObject.getFiles().put(type, dataFile);
@@ -413,17 +413,6 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                 LOG.error(e.getMessage(), e);
             }
         }
-        /*        if (attrMapping.isRawDataSize()) {
-            Long size = ((LongAttribute) attr).getValue();
-            Collection<DataFile> rawDatas = dataObject.getFiles().get(DataType.RAWDATA);
-            // When external mapping, only one file per type is authorized so dataFiles is a singleton or empty
-            DataFile dataFile = rawDatas.isEmpty() ? new DataFile() : rawDatas.iterator().next();
-            dataFile.setSize(size);
-            // No need to re-put data file if it already exist
-            if (rawDatas.isEmpty()) {
-                dataObject.getFiles().put(DataType.RAWDATA, dataFile);
-            }
-        }*/
         if (attrMapping.isLastUpdate()) {
             dataObject.setLastUpdate((OffsetDateTime) attr.getValue());
         }

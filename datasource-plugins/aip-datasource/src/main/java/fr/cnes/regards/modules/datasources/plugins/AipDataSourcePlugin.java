@@ -273,6 +273,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         obj.setModel(this.model);
         obj.setIpId(aip.getId());
         obj.setSipId(aip.getSipId());
+        // A DataObject created from an AIP is internal
+        obj.setInternal(true);
 
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;
