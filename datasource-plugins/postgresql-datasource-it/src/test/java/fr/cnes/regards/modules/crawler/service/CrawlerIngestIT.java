@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,11 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.models.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.models.dao.IModelRepository;
 import fr.cnes.regards.modules.models.domain.Model;
+import fr.cnes.regards.modules.models.domain.ModelAttrAssoc;
+import fr.cnes.regards.modules.models.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.models.domain.attributes.AttributeType;
+import fr.cnes.regards.modules.models.domain.attributes.Fragment;
+import fr.cnes.regards.modules.models.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
@@ -204,6 +209,10 @@ public class CrawlerIngestIT {
 
     @Autowired
     private IDatasourceIngestionRepository dsiRepos;
+
+    @Autowired
+    private IModelAttrAssocService modelAttrAssocService;
+
 
     @Before
     public void setUp() throws Exception {
@@ -385,8 +394,7 @@ public class CrawlerIngestIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService
-                .ingest(dataSourcePluginConf, dsi2);
+        summary = crawlerService.ingest(dataSourcePluginConf, dsi2);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
@@ -400,12 +408,36 @@ public class CrawlerIngestIT {
         LOGGER.info("***************************************************************************");
     }
 
+    public static Model model = new Model();
+
     @Test
     public void testDsIngestionWithValidation()
             throws InterruptedException, ExecutionException, DataSourceException, ModuleException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
         dsiRepos.save(dsi);
+        // First ingestion with a "nude" model
+        try {
+            IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
+            Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
+        } catch (ExecutionException ee) {
+            Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
+            Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
+        }
+
+        model.setId(15000l);
+        List<ModelAttrAssoc> modelAttrAssocs = new ArrayList<>();
+        AttributeModel attTutuToto = new AttributeModel();
+        Fragment fragmentTutu = new Fragment();
+        fragmentTutu.setName("tutu");
+        attTutuToto.setFragment(fragmentTutu);
+        attTutuToto.setName("toto");
+        attTutuToto.setType(AttributeType.STRING);
+        attTutuToto.setOptional(false);
+        ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
+        modelAttrAssocs.add(attrAssocTutuToto);
+        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
         IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
+        // 2 validation errors so nothing saved
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }
 }

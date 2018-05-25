@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.modules.crawler.service.CrawlerIngestIT;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
@@ -51,8 +52,13 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
         List<DataObject> list = new ArrayList<>();
         DataObject o = new DataObject();
-        o.setModel(new Model());
-        o.addProperty(AttributeBuilder.buildString(null, "texte"));
+        o.setModel(CrawlerIngestIT.model);
+        // toto isn't expected by the model
+        o.addProperty(AttributeBuilder.buildString("toto", "texte"));
+        // tutu.titi isn't expected by the model
+        // tutu.toto is expected as mandatory
+        o.addProperty(AttributeBuilder.buildObject("tutu", AttributeBuilder.buildString("titi", "texte"),
+                                                   AttributeBuilder.buildString("toto", "texte")));
         list.add(o);
         return new PageImpl<>(list);
     }
