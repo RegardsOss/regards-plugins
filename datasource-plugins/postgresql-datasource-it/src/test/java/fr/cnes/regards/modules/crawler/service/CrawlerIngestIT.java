@@ -379,7 +379,7 @@ public class CrawlerIngestIT {
             dataset = searchService.get(ipId);
         }
 
-        final SimpleSearchKey<DataObject> objectSearchKey = Searches.onSingleEntity(tenant, EntityType.DATA);
+        final SimpleSearchKey<DataObject> objectSearchKey = Searches.onSingleEntity(EntityType.DATA);
         // Search for DataObjects tagging dataset1
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);

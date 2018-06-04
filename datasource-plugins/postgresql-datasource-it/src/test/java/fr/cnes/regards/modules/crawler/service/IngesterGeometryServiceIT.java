@@ -263,7 +263,7 @@ public class IngesterGeometryServiceIT {
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 20_362));
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
 
-        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(TENANT, EntityType.DATA), 10,
+        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(EntityType.DATA), 10,
                                                           ICriterion.all());
         final List<DataObject> objects = page.getContent();
         Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() != null));
