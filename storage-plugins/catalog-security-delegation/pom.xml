@@ -114,6 +114,39 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
+				<configuration>
+							<minimizeJar>true</minimizeJar>
+							<artifactSet>
+								<excludes>
+									<exclude>org.hibernate.*:*</exclude>
+									<exclude>org.hibernate:*</exclude>
+									<exclude>org.apache:*</exclude>
+									<exclude>org.apache.*:*</exclude>
+									<exclude>fr.cnes.regards.framework.*:*</exclude>
+									<exclude>fr.cnes.regards.framework:*</exclude>
+									<exclude>org.springframework.*:*</exclude>
+									<exclude>org.springframework:*</exclude>
+									<exclude>com.fasterxml:*</exclude>
+									<exclude>antlr:*</exclude>
+									<exclude>org.jboss:*</exclude>
+									<exclude>dom4j:*</exclude>
+									<exclude>org.aspectj:*</exclude>
+									<exclude>com.mchange:*</exclude>
+									<exclude>org.slf4j:*</exclude>
+									<exclude>log4j:*</exclude>
+									<exclude>com.rabbitmq:*</exclude>
+									<exclude>com.fasterxml.*:*</exclude>
+									<exclude>org.glassfish:*</exclude>
+									<exclude>org.flywaydb:*</exclude>
+									<exclude>com.google.*:*</exclude>
+									<exclude>hsqldb:*</exclude>
+									<exclude>org.postgresql:*</exclude>
+									<exclude>javax.servlet:*</exclude>
+									<exclude>ch.qos.logback:*</exclude>
+									<exclude>org.reflections:*</exclude>
+								</excludes>
+							</artifactSet>
+						</configuration>
 			</plugin>
 		</plugins>
 	</build>

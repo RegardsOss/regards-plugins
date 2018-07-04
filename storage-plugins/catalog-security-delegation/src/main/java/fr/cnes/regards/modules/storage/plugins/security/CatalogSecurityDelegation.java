@@ -30,10 +30,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.google.common.collect.Collections2;
+
 import feign.FeignException;
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
-import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.utils.HttpUtils;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
@@ -100,9 +100,10 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 return catalogResponse.getBody();
             }
         } catch (FeignException e) {
-            LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aips %s",
-                                       urns.stream().map(UniformResourceName::toString)
-                                               .collect(Collectors.joining(", "))), e);
+            LOGGER.error(String
+                    .format("Issue with feign while trying to check if the user has access to aips %s",
+                            urns.stream().map(UniformResourceName::toString).collect(Collectors.joining(", "))),
+                         e);
             //there was an error, lets assume that we cannot access none of the aips
             return Collections.emptySet();
         } finally {
@@ -116,8 +117,8 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
             UniformResourceName urn = UniformResourceName.fromString(ipId);
             ResponseEntity<Boolean> catalogResponse = searchClient.hasAccess(urn);
-            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
-                    .equals(HttpStatus.NOT_FOUND)) {
+            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())
+                    && !catalogResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 // either there was an error or it was forbidden
                 return false;
             }
