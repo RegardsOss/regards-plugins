@@ -90,7 +90,7 @@ public class AipDataSourceConfiguration {
                 OffsetDateTime fromLastUpdateDate, int page, int size) {
             List<AipDataFiles> aipDataFiles = new ArrayList<>();
 
-            for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2")) {
+            for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
                 Set<DataFileDto> dataFileDtos = new HashSet<>();
                 DataFileDto dto1 = new DataFileDto();
                 dto1.setAlgorithm("SHA");

@@ -156,7 +156,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         for (int i = 0; i < count; i++) {
             UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA,
                     AipDataSourcePluginTest.TENANT, UUID.randomUUID(), 1);
-            AIPBuilder builder = new AIPBuilder(id, "sipId" + i, EntityType.DATA);
+            AIPBuilder builder = new AIPBuilder(id, "sipId" + i, EntityType.DATA, "session 1");
             builder.addTags(tags);
 
             builder.addDescriptiveInformation("label", "libellé du data object " + i);
