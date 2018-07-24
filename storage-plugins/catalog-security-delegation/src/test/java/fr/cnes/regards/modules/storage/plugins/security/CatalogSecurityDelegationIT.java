@@ -1,8 +1,11 @@
 package fr.cnes.regards.modules.storage.plugins.security;
 
+import fr.cnes.regards.modules.storage.dao.IAIPSessionRepository;
+import fr.cnes.regards.modules.storage.domain.database.AIPSession;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -69,6 +72,9 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
     private IAIPDao aipDao;
 
     @Autowired
+    private IAIPSessionRepository aipSessionRepository;
+
+    @Autowired
     private Gson gson;
 
     @Autowired
@@ -105,10 +111,14 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an unknown ip id in catalog but known into storage
         String catalogUnknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
                 UUID.randomUUID(), 1).toString();
+        AIPSession aipSession = new AIPSession();
+        aipSession.setId("session 1");
+        aipSession.setLastActivationDate(OffsetDateTime.now());
+        aipSession = aipSessionRepository.save(aipSession);
         AIP aip = getAipFromFile();
         aip.setId(UniformResourceName.fromString(catalogUnknown));
         aip.addEvent(EventType.SUBMISSION.name(), "lets bypass everything");
-        aipDao.save(aip);
+        aipDao.save(aip, aipSession);
         Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogUnknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Mockito.when(projectUsersClient.isAdmin(authenticationResolver.getUser()))
