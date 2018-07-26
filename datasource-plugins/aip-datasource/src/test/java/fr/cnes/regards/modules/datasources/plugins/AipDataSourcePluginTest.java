@@ -60,6 +60,7 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
@@ -114,12 +115,13 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
         // Instantiate the data source plugin
         List<PluginParameter> parameters;
-        parameters = PluginParametersFactory.build().addParameter(AipDataSourcePlugin.BINDING_MAP, createBindingMap())
-                .addParameter(AipDataSourcePlugin.SUBSETTING_TAGS, Arrays.asList(MODEL_NAME))
-                .addParameter(AipDataSourcePlugin.MODEL_NAME_PARAM, MODEL_NAME)
-                .addParameter(IDataSourcePlugin.REFRESH_RATE, 1800)
-                .addParameter(IDataSourcePlugin.TAGS, Lists.newArrayList("TOTO", "TITI"))
-                .addParameter(AipDataSourcePlugin.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
+        parameters = PluginParametersFactory.build()
+                .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap())
+                .addParameter(DataSourcePluginConstants.SUBSETTING_TAGS, Arrays.asList(MODEL_NAME))
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
+                .addParameter(DataSourcePluginConstants.TAGS, Lists.newArrayList("TOTO", "TITI"))
+                .addParameter(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
 
         PluginMetaData metadata = PluginUtils.createPluginMetaData(AipDataSourcePlugin.class,
                                                                    IDataSourcePlugin.class.getPackage().getName(),
@@ -170,9 +172,9 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
             builder.addDescriptiveInformation("POUET", "POUET");
 
             Map<String, String> dateBounds = new HashMap<>();
-            dateBounds.put(IDataSourcePlugin.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
+            dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
-            dateBounds.put(IDataSourcePlugin.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
+            dateBounds.put(DataSourcePluginConstants.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             builder.addDescriptiveInformation("range", dateBounds);
 
@@ -200,15 +202,15 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         map.put("properties.history_list", "properties.descriptiveInformation.HISTORY_LIST");
 
         // Date interval
-        map.put("properties.DATE_INTERVAL" + IDataSourcePlugin.LOWER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.range" + IDataSourcePlugin.LOWER_BOUND_SUFFIX);
-        map.put("properties.DATE_INTERVAL" + IDataSourcePlugin.UPPER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.range" + IDataSourcePlugin.UPPER_BOUND_SUFFIX);
+        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX,
+                "properties.descriptiveInformation.range" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX);
+        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX,
+                "properties.descriptiveInformation.range" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX);
 
         // Integer open interval
-        map.put("properties.INT_INTERVAL" + IDataSourcePlugin.LOWER_BOUND_SUFFIX,
+        map.put("properties.INT_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX,
                 "properties.descriptiveInformation.intrange.ilow");
-        map.put("properties.INT_INTERVAL" + IDataSourcePlugin.UPPER_BOUND_SUFFIX,
+        map.put("properties.INT_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX,
                 "properties.descriptiveInformation.intrange.iup");
 
         // FIXME

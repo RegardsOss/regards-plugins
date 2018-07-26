@@ -34,6 +34,7 @@ import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.datasources.domain.Column;
 import fr.cnes.regards.modules.datasources.domain.Table;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBDataSourceFromSingleTablePlugin;

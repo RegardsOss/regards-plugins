@@ -43,6 +43,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.datasources.domain.Column;
 import fr.cnes.regards.modules.datasources.domain.Table;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.utils.PostgreDataSourcePluginTestConfiguration;
 
@@ -80,11 +81,11 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsSer
     @Before
     public void setUp() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         postgreDBConn = PluginUtils.getPlugin(parameters, DefaultPostgreConnectionPlugin.class,
                                               Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());

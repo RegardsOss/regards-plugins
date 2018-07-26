@@ -61,12 +61,15 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.test.IngesterConfiguration;
 import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
 import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.plugins.AipDataSourcePlugin;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
 import fr.cnes.regards.modules.entities.dao.IDatasetRepository;
 import fr.cnes.regards.modules.entities.domain.AbstractEntity;
+import fr.cnes.regards.modules.entities.domain.feature.EntityFeature;
 import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.models.dao.IModelAttrAssocRepository;
@@ -159,7 +162,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     private IModelAttrAssocRepository modelAttrAssocRepos;
 
     @Autowired
-    private IAbstractEntityRepository<AbstractEntity> entityRepos;
+    private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
 
     @Autowired
     private IDatasetRepository datasetRepos;
@@ -181,12 +184,11 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_DATA_1)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, 1)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));
@@ -194,12 +196,11 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_DATA_2)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, 1)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));
@@ -207,12 +208,11 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_DATA_3)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, 10)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));
@@ -220,9 +220,9 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     private PluginConfiguration getAipDataSource() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(AipDataSourcePlugin.MODEL_NAME_PARAM, "model_1")
-                .addParameter(AipDataSourcePlugin.REFRESH_RATE, 10)
-                .addParameter(AipDataSourcePlugin.BINDING_MAP, createBindingMap()).getParameters();
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "model_1")
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
+                .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap()).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, AipDataSourcePlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));
@@ -230,11 +230,11 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));

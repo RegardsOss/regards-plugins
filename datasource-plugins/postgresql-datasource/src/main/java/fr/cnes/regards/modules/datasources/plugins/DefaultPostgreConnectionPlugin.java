@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
 
 /**
@@ -46,31 +47,31 @@ public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
     /**
      * The user to used for the database connection
      */
-    @PluginParameter(name = USER_PARAM, label = "Databse user")
+    @PluginParameter(name = DBConnectionPluginConstants.USER_PARAM, label = "Databse user")
     private String dbUser;
 
     /**
      * The user's password to used for the database connection
      */
-    @PluginParameter(name = PASSWORD_PARAM, label = "Database user password")
+    @PluginParameter(name = DBConnectionPluginConstants.PASSWORD_PARAM, label = "Database user password")
     private String dbPassword;
 
     /**
      * The URL to the database's host
      */
-    @PluginParameter(name = DB_HOST_PARAM, label = "Database host")
+    @PluginParameter(name = DBConnectionPluginConstants.DB_HOST_PARAM, label = "Database host")
     private String dbHost;
 
     /**
      * The PORT to the database's host
      */
-    @PluginParameter(name = DB_PORT_PARAM, label = "Database port")
+    @PluginParameter(name = DBConnectionPluginConstants.DB_PORT_PARAM, label = "Database port")
     private String dbPort;
 
     /**
      * The NAME of the database
      */
-    @PluginParameter(name = DB_NAME_PARAM, label = "Database name")
+    @PluginParameter(name = DBConnectionPluginConstants.DB_NAME_PARAM, label = "Database name")
     private String dbName;
 
     /**

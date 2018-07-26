@@ -15,6 +15,7 @@ import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfigu
 import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.entities.domain.AbstractEntity;
+import fr.cnes.regards.modules.entities.domain.feature.EntityFeature;
 import fr.cnes.regards.modules.entities.service.IEntityService;
 import fr.cnes.regards.modules.models.client.IAttributeModelClient;
 import fr.cnes.regards.modules.models.client.IModelAttrAssocClient;
@@ -36,7 +37,7 @@ public class IngesterConfiguration {
 
     @SuppressWarnings("unchecked")
     @Bean
-    public IEntityService<AbstractEntity> entityService() {
+    public IEntityService<AbstractEntity<EntityFeature>> entityService() {
         return Mockito.mock(IEntityService.class);
     }
 

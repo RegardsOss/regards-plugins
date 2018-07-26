@@ -29,10 +29,13 @@ import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.test.ValidationConfiguration;
 import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
 import fr.cnes.regards.modules.entities.domain.AbstractEntity;
+import fr.cnes.regards.modules.entities.domain.feature.EntityFeature;
 import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.entities.service.ICollectionService;
@@ -130,7 +133,7 @@ public class ValidationIT {
     private IDatasetCrawlerService crawlerService;
 
     @Autowired
-    private IAbstractEntityRepository<AbstractEntity> entityRepos;
+    private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
 
     @Autowired
     private IEsRepository esRepos;
@@ -217,12 +220,11 @@ public class ValidationIT {
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_VIEW)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, "1")
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));
@@ -230,11 +232,11 @@ public class ValidationIT {
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
                                                   Arrays.asList(PLUGIN_CURRENT_PACKAGE));

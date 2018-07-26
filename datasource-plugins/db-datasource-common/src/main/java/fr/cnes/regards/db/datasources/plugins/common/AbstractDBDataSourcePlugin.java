@@ -53,7 +53,6 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     /**
      * By default, the refresh rate is set to 1 day (in ms)
      */
-    @Override
     public int getRefreshRate() {
         return 86400;
     }

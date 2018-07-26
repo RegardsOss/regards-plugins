@@ -81,6 +81,8 @@ public class DataSourceEntity implements IIdentifiable<Long> {
     private String dateStr;
 
     private URL url;
+    
+    private String descr;
 
     @Convert(converter = OffsetDateTimeAttributeConverter.class)
     private OffsetDateTime timeStampWithTimeZone; // Types.TIMESTAMP or Types.TIMESTAMP_WITH_TIMEZONE > JDBC 4.2
@@ -92,7 +94,7 @@ public class DataSourceEntity implements IIdentifiable<Long> {
 
     public DataSourceEntity(String label, int altitude, double latitude, double longitude, LocalDate date,
             LocalTime timeWithoutTimeZone, LocalDateTime timeStampWithoutTimeZone, OffsetDateTime timeStampWithTimeZone,
-            String dateStr, Boolean update, URL url) {
+            String dateStr, Boolean update, URL url, String descr) {
         super();
         this.label = label;
         this.altitude = altitude;
@@ -105,6 +107,7 @@ public class DataSourceEntity implements IIdentifiable<Long> {
         this.dateStr = dateStr;
         this.update = update;
         this.url = url;
+        this.descr = descr;
     }
 
     @Override

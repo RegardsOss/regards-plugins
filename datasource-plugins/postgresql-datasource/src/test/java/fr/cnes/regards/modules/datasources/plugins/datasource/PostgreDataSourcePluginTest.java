@@ -61,7 +61,9 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
 import fr.cnes.regards.modules.datasources.domain.DynamicAttributeMapping;
 import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBDataSourcePlugin;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourcePlugin;
@@ -152,16 +154,16 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         repository.save(new DataSourceEntity("azertyuiop", 12345, 1.10203045607080901234568790123456789, 45.5444544454,
                 LocalDate.now().minusDays(10), LocalTime.now().minusHours(9), LocalDateTime.now(),
                 OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(33),
-                OffsetDateTime.now().minusMinutes(12132125).toString(), true, new URL("file", "localhost", "")));
+                OffsetDateTime.now().minusMinutes(12132125).toString(), true, new URL("file", "localhost", ""), "monday"));
         repository.save(new DataSourceEntity("Toulouse", 110, 3.141592653589793238462643383279, -15.2323654654564654,
                 LocalDate.now().minusMonths(1), LocalTime.now().minusMinutes(10), LocalDateTime.now().plusHours(33),
                 OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusSeconds(22),
-                OffsetDateTime.now().minusSeconds(4464654).toString(), true, new URL("http", "localhost", "")));
+                OffsetDateTime.now().minusSeconds(4464654).toString(), true, new URL("http", "localhost", ""), "saturday"));
         repository.save(new DataSourceEntity("Paris", 350, -3.141592653589793238462643383279502884197169399375105,
                 25.565465465454564654654654, LocalDate.now().minusDays(10), LocalTime.now().minusHours(9),
                 LocalDateTime.now().minusMonths(2),
                 OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusHours(7),
-                OffsetDateTime.now().minusHours(4545).toString(), false, new URL("ftp", "localhost", "")));
+                OffsetDateTime.now().minusHours(4545).toString(), false, new URL("ftp", "localhost", ""), "sunday"));
         nbElements = 3;
 
         /*
@@ -174,10 +176,10 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
          */
         List<PluginParameter> parameters;
         parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourcePlugin.CONNECTION_PARAM, getPostgreConnectionConfiguration())
-                .addParameter(PostgreDataSourcePlugin.MODEL_MAPPING_PARAM, attributesMapping)
-                .addParameter(PostgreDataSourcePlugin.MODEL_NAME_PARAM, MODEL_NAME_TEST)
-                .addParameter(PostgreDataSourcePlugin.FROM_CLAUSE, "from\n\n\nT_TEST_PLUGIN_DATA_SOURCE")
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, getPostgreConnectionConfiguration())
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, attributesMapping)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST)
+                .addParameter(DataSourcePluginConstants.FROM_CLAUSE, "from\n\n\nT_TEST_PLUGIN_DATA_SOURCE")
                 .getParameters();
 
         plgDBDataSource = PluginUtils.getPlugin(parameters, PostgreDataSourcePlugin.class,
@@ -265,11 +267,11 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      */
     private PluginConfiguration getPostgreConnectionConfiguration() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         PluginConfiguration plgConf = PluginUtils.getPluginConfiguration(parameters,
                                                                          DefaultPostgreConnectionPlugin.class,
@@ -293,7 +295,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                 "timeStampWithoutTimeZone"));
         attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", AttributeType.DATE_ISO8601,
                 "timeStampWithoutTimeZone"));
-        attributesMapping.add(new DynamicAttributeMapping("date", "hello", AttributeType.DATE_ISO8601, "date"));
+        attributesMapping.add(new DynamicAttributeMapping("date", "hello", AttributeType.DATE_ISO8601, "date"));        
         attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
                 AttributeType.DATE_ISO8601, "timeStampWithTimeZone"));
         attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", AttributeType.BOOLEAN, "update"));
@@ -301,6 +303,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                 "to_timestamp(dateStr, 'YYYY-MM-DD HH24:MI:SS:US')"));
         attributesMapping
                 .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
+        attributesMapping.add(new DynamicAttributeMapping("select", AttributeType.STRING, "descr"));
     }
 
 }

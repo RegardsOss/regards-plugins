@@ -55,6 +55,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IAipDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
@@ -84,20 +85,20 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
-    public static final String SUBSETTING_TAGS = "subsettingTags";
-
-    @PluginParameter(name = MODEL_NAME_PARAM, label = "model name", description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
+            description = "Associated data source model name")
     protected String modelName;
 
-    @PluginParameter(name = SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
             description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
     private Set<String> subsettingTags;
 
-    @PluginParameter(name = BINDING_MAP, keylabel = "Model property path", label = "AIP property path",
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
+            label = "AIP property path",
             description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
     private Map<String, String> bindingMap;
 
-    @PluginParameter(name = TAGS, label = "data objects common tags", optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
 
@@ -127,12 +128,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     /**
      * Ingestion refresh rate in seconds
      */
-    @PluginParameter(name = REFRESH_RATE, defaultValue = REFRESH_RATE_DEFAULT_VALUE_AS_STRING, optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
             label = "refresh rate",
             description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = MODEL_ATTR_FILE_SIZE, optional = true, label = "Attribute model for RAW DATA files size",
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, optional = true,
+            label = "Attribute model for RAW DATA files size",
             description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
 
@@ -154,19 +156,20 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         List<ModelAttrAssoc> modelAttrAssocs = modelAttrAssocService.getModelAttrAssocs(modelName);
         // Fill map { "properties.titi.tutu", AttributeType.STRING }
         for (ModelAttrAssoc assoc : modelAttrAssocs) {
-            modelMappingMap.put(assoc.getAttribute().buildJsonPath(StaticProperties.PROPERTIES),
+            modelMappingMap.put(assoc.getAttribute().buildJsonPath(StaticProperties.FEATURE_PROPERTIES),
                                 assoc.getAttribute().getType());
         }
 
         // Build binding map considering interval double mapping
         for (Map.Entry<String, String> entry : bindingMap.entrySet()) {
-            if (entry.getKey().startsWith(PROPERTY_PREFIX)) {
+            if (entry.getKey().startsWith(DataSourcePluginConstants.PROPERTY_PREFIX)) {
                 String doPropertyPath = entry.getKey();
                 // Manage dynamic properties
-                if (doPropertyPath.endsWith(LOWER_BOUND_SUFFIX)) {
+                if (doPropertyPath.endsWith(DataSourcePluginConstants.LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey().substring(0,
-                                                               doPropertyPath.length() - LOWER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey()
+                            .substring(0,
+                                       doPropertyPath.length() - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -175,10 +178,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         values.add(entry.getValue());
                         modelBindingMap.put(modelKey, values);
                     }
-                } else if (doPropertyPath.endsWith(UPPER_BOUND_SUFFIX)) {
+                } else if (doPropertyPath.endsWith(DataSourcePluginConstants.UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey().substring(0,
-                                                               doPropertyPath.length() - UPPER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey()
+                            .substring(0,
+                                       doPropertyPath.length() - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -200,8 +204,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         // All bindingMap values should be JSON path properties from model so each of them starting with PROPERTY_PREFIX
         // must exist as a value into modelMappingMap
         Set<String> notInModelProperties = modelBindingMap.keySet().stream()
-                .filter(name -> name.startsWith(PROPERTY_PREFIX)).filter(name -> !modelMappingMap.containsKey(name))
-                .collect(Collectors.toSet());
+                .filter(name -> name.startsWith(DataSourcePluginConstants.PROPERTY_PREFIX))
+                .filter(name -> !modelMappingMap.containsKey(name)).collect(Collectors.toSet());
         if (!notInModelProperties.isEmpty()) {
             throw new ModuleException(
                     "Following properties don't exist into model : " + Joiner.on(", ").join(notInModelProperties));
@@ -209,7 +213,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         DataObject forIntrospection = new DataObject();
         PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
         Set<String> notInModelStaticProperties = modelBindingMap.keySet().stream()
-                .filter(name -> !name.startsWith(PROPERTY_PREFIX))
+                .filter(name -> !name.startsWith(DataSourcePluginConstants.PROPERTY_PREFIX))
                 .filter(name -> !propertyUtilsBean.isWriteable(forIntrospection, name)).collect(Collectors.toSet());
         if (!notInModelStaticProperties.isEmpty()) {
             throw new ModuleException(
@@ -218,7 +222,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
         // Check number of values mapped for each type
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
-            if (entry.getKey().startsWith(PROPERTY_PREFIX)) {
+            if (entry.getKey().startsWith(DataSourcePluginConstants.PROPERTY_PREFIX)) {
                 AttributeType attributeType = modelMappingMap.get(entry.getKey());
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
@@ -251,7 +255,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             List<DataObject> list = new ArrayList<>();
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
                 try {
-                    list.add(createDataObject(aipDataFiles));
+                    list.add(createDataObject(tenant, aipDataFiles));
                 } catch (URISyntaxException e) {
                     throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -265,10 +269,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         }
     }
 
-    private DataObject createDataObject(AipDataFiles aipDataFiles)
+    private DataObject createDataObject(String tenant, AipDataFiles aipDataFiles)
             throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         AIP aip = aipDataFiles.getAip();
-        DataObject obj = new DataObject();
+        DataObject obj = new DataObject(this.model, tenant, "");
         // Mandatory properties
         obj.setModel(this.model);
         obj.setIpId(aip.getId());
@@ -285,8 +289,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             // Cannot use BeanUtils.copyProperty because names or types are different....(thank you)
             dataFile.setUri(dataFileDto.getUrl().toURI());
             dataFile.setOnline(dataFileDto.isOnline());
-            dataFile.setSize(dataFileDto.getFileSize());
-            dataFile.setName(dataFileDto.getName());
+            dataFile.setFilesize(dataFileDto.getFileSize());
+            dataFile.setFilename(dataFileDto.getName());
+            obj.setLabel(dataFileDto.getName());
             dataFile.setMimeType(dataFileDto.getMimeType());
             dataFile.setDigestAlgorithm(dataFileDto.getAlgorithm());
             dataFile.setChecksum(dataFileDto.getChecksum());
@@ -305,15 +310,19 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         }
 
         // Tags
-        obj.getTags().addAll(commonTags);
-        obj.getTags().addAll(aip.getTags());
+        if (commonTags != null && commonTags.size() > 0) {
+            obj.addTags(commonTags.toArray(new String[0]));
+        }
+        if (aip.getTags() != null && aip.getTags().size() > 0) {
+            obj.addTags(aip.getTags().toArray(new String[0]));
+        }
 
         // Binded properties
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
             String doPropertyPath = entry.getKey();
 
             // Does property refers to a dynamic ("properties....") or static property ?
-            if (!doPropertyPath.startsWith(PROPERTY_PREFIX)) {
+            if (!doPropertyPath.startsWith(DataSourcePluginConstants.PROPERTY_PREFIX)) {
                 // Value from AIP
                 Object value = getNestedProperty(aip, entry.getValue().get(0));
                 // Static, use propertyUtilsBean

@@ -19,8 +19,6 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,8 +49,9 @@ import org.springframework.data.domain.Pageable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.Gson;
 
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -65,7 +64,6 @@ import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.entities.domain.attribute.DateAttribute;
 import fr.cnes.regards.modules.entities.domain.attribute.StringAttribute;
 import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
-import fr.cnes.regards.modules.entities.domain.converter.GeometryAdapter;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.models.domain.Model;
 import fr.cnes.regards.modules.models.service.IModelService;
@@ -110,7 +108,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     private static final OffsetDateTime INIT_DATE = OffsetDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    private static final GeometryAdapter<?> GEOMETRY_ADAPTER = new GeometryAdapter<>();
+    @Autowired
+    private static Gson gson;
 
     /**
      * A default value to indicates that the count request should be execute
@@ -289,7 +288,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         data.setProperties(attributes);
 
         // Add common tags
-        data.getTags().addAll(commonTags);
+        if (commonTags != null && commonTags.size() > 0) {
+            data.addTags(commonTags.toArray(new String[0]));
+        }
 
         return data;
     }
@@ -368,7 +369,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             if (isPrimaryKey) {
                 colName = attrDataSourceName;
             } else {
-                colName = attrName;
+                colName = attrName + "_";
             }
         }
 
@@ -421,18 +422,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
         if (attrMapping.isGeometry()) {
             String str = ((StringAttribute) attr).getValue();
-            try {
-                dataObject.setGeometry(GEOMETRY_ADAPTER.read(new JsonReader(new StringReader(str))));
-            } catch (IOException ioe) {
-                LOG.error("Unable to deserialize geometry : " + str, ioe);
-            }
+            dataObject.setGeometry(gson.fromJson(str, IGeometry.class));
         }
     }
 
     /**
      * Build the select clause with the {@link List} of columns used for the mapping.
-     * @param columns the comulns used for the mapping
-     * @return a {@link String} withe the columns separated by a comma
+     * @param columns the columns used for the mapping
+     * @return a {@link String} with the columns separated by a comma
      */
     protected String buildColumnClause(String... columns) {
         StringBuilder clauseStr = new StringBuilder();
@@ -507,7 +504,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
 
         attributesMapping.forEach(d -> {
             if ((0 > d.getNameDS().toLowerCase().lastIndexOf(AS)) && !d.isPrimaryKey()) {
-                columns.add(d.getNameDS() + BLANK + AS + d.getName());
+                columns.add(d.getNameDS() + BLANK + AS + d.getName() + "_");
             } else {
                 columns.add(d.getNameDS());
             }

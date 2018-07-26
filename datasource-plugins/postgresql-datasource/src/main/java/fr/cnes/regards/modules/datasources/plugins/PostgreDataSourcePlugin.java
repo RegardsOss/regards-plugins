@@ -37,6 +37,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
@@ -54,25 +55,26 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePlugin.class);
 
-    @PluginParameter(name = CONNECTION_PARAM, label = "Database connection plugin")
+    @PluginParameter(name = DataSourcePluginConstants.CONNECTION_PARAM, label = "Database connection plugin")
     private IDBConnectionPlugin dbConnection;
 
-    @PluginParameter(name = FROM_CLAUSE, label = "SQL FROM clause")
+    @PluginParameter(name = DataSourcePluginConstants.FROM_CLAUSE, label = "SQL FROM clause")
     private String sqlFromClause;
 
-    @PluginParameter(name = MODEL_NAME_PARAM, label = "model name", description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
+            description = "Associated data source model name")
     private String modelName;
 
-    @PluginParameter(name = MODEL_MAPPING_PARAM, label = "model attributes mapping",
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM, label = "model attributes mapping",
             description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;
 
-    @PluginParameter(name = REFRESH_RATE, defaultValue = REFRESH_RATE_DEFAULT_VALUE_AS_STRING, optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
             label = "refresh rate",
             description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = TAGS, label = "data objects common tags", optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
 
@@ -99,7 +101,6 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
         return sqlFromClause;
     }
 
-    @Override
     public int getRefreshRate() {
         return refreshRate;
     }

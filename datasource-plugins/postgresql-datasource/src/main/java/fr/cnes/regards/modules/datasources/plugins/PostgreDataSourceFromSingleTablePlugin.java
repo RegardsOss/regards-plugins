@@ -40,6 +40,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.datasources.utils.PostgreSqlGenerator;
 import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
@@ -48,7 +49,7 @@ import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilde
 /**
  * Class PostgreDataSourceFromSingleTablePlugin A {@link Plugin} to discover the tables, columns and indexes to a
  * PostgreSQL Database.<br>
- * This {@link Plugin} used a {@link IDBConnectionPlugin} to define to connection to the {@link DataSource}.
+ * This {@link Plugin} used a {@link IDBConnectionPlugin} to define to connection to the dataSource.
  * @author Christophe Mertz
  * @since 1.0-SNAPSHOT
  */
@@ -59,22 +60,23 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourceFromSingleTablePlugin.class);
 
-    @PluginParameter(name = CONNECTION_PARAM, label = "Database connection plugin")
+    @PluginParameter(name = DataSourcePluginConstants.CONNECTION_PARAM, label = "Database connection plugin")
     private IDBConnectionPlugin dbConnection;
 
-    @PluginParameter(name = TABLE_PARAM, label = "Table name", description = "Database table name to be requested")
+    @PluginParameter(name = DataSourcePluginConstants.TABLE_PARAM, label = "Table name",
+            description = "Database table name to be requested")
     private String tableName;
 
-    @PluginParameter(name = MODEL_MAPPING_PARAM, label = "model attributes mapping",
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM, label = "model attributes mapping",
             description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;
 
-    @PluginParameter(name = REFRESH_RATE, defaultValue = REFRESH_RATE_DEFAULT_VALUE_AS_STRING, optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
             label = "refresh rate",
             description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = TAGS, label = "data objects common tags", optional = true,
+    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
 
@@ -144,4 +146,5 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
     public int getRefreshRate() {
         return refreshRate;
     }
+
 }

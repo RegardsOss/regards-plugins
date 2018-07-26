@@ -45,6 +45,7 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.utils.PostgreDataSourcePluginTestConfiguration;
@@ -134,11 +135,11 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     @Test
     public void getMaxPoolSizeWithCloseByThread() throws InterruptedException, SQLException {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, Arrays.asList(PLUGIN_PACKAGE),
@@ -173,11 +174,11 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     @Test
     public void getPostGreSqlConnectionError() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, "unknown")
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, Arrays.asList(PLUGIN_PACKAGE),
@@ -189,11 +190,11 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
 
     private List<PluginParameter> getPostGreSqlParameters() {
         final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         return parameters;
     }
