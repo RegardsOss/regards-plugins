@@ -38,6 +38,7 @@ import fr.cnes.regards.modules.models.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.models.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
+import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 
 @Configuration
@@ -93,4 +94,10 @@ public class CrawlerConfiguration {
     public IModelAttrAssocService modelAttrAssocService() {
         return Mockito.mock(IModelAttrAssocService.class);
     }
+
+    @Bean
+    public IAttributeFinder attributeFinder() {
+        return Mockito.mock(IAttributeFinder.class);
+    }
+
 }

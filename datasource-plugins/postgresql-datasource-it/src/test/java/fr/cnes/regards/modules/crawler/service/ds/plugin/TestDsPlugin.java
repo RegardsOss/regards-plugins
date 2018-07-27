@@ -51,8 +51,7 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     @Override
     public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
         List<DataObject> list = new ArrayList<>();
-        DataObject o = new DataObject();
-        o.setModel(CrawlerIngestIT.model);
+        DataObject o = new DataObject(CrawlerIngestIT.model, tenant, "");
         // toto isn't expected by the model
         o.addProperty(AttributeBuilder.buildString("toto", "texte"));
         // tutu.titi isn't expected by the model
