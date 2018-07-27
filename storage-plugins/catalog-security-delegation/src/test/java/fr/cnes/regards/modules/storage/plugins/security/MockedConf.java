@@ -6,10 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.attribute.IAttribute;
 import fr.cnes.regards.modules.models.client.IAttributeModelClient;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
-import fr.cnes.regards.modules.search.client.ISearchClient;
+import fr.cnes.regards.modules.search.client.IAccessRights;
 
 /**
  * @author Sylvain VISSIERE-GUERINET
@@ -23,8 +22,8 @@ public class MockedConf {
     }
 
     @Bean
-    public ISearchClient searchClient() {
-        return Mockito.mock(ISearchClient.class);
+    public IAccessRights accessRights() {
+        return Mockito.mock(IAccessRights.class);
     }
 
     @Bean

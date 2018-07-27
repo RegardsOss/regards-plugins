@@ -38,7 +38,7 @@ import fr.cnes.regards.framework.module.rest.utils.HttpUtils;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.search.client.ISearchClient;
+import fr.cnes.regards.modules.search.client.IAccessRights;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
 import fr.cnes.regards.modules.storage.domain.plugin.ISecurityDelegation;
 
@@ -56,8 +56,11 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     /**
      * {@link ISearchClient} instance
      */
+    //    @Autowired
+    //    private ISearchClient searchClient;
+
     @Autowired
-    private ISearchClient searchClient;
+    private IAccessRights accessRights;
 
     /**
      * {@link IProjectUsersClient} instance
@@ -92,7 +95,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 }
             }
             // Else, ask catalog for AIP which has access
-            ResponseEntity<Set<UniformResourceName>> catalogResponse = searchClient.hasAccess(urns);
+            ResponseEntity<Set<UniformResourceName>> catalogResponse = accessRights.hasAccess(urns);
             if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
                 // either there was an error or it was forbidden
                 return Collections.emptySet();
@@ -116,7 +119,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
             UniformResourceName urn = UniformResourceName.fromString(ipId);
-            ResponseEntity<Boolean> catalogResponse = searchClient.hasAccess(urn);
+            ResponseEntity<Boolean> catalogResponse = accessRights.hasAccess(urn);
             if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())
                     && !catalogResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 // either there was an error or it was forbidden
