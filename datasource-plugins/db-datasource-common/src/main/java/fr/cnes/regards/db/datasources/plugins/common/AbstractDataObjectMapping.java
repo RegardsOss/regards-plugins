@@ -159,7 +159,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * Get {@link DateAttribute}.
      * @param rs the {@link ResultSet}
      * @param attrName the attribute name
-     * àparam attrDSName the column name in the external data source
+     *            àparam attrDSName the column name in the external data source
      * @param colName the column name in the {@link ResultSet}
      * @return a new {@link DateAttribute}
      * @throws SQLException if an error occurs in the {@link ResultSet}
@@ -288,7 +288,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         data.setProperties(attributes);
 
         // Add common tags
-        if (commonTags != null && commonTags.size() > 0) {
+        if ((commonTags != null) && (commonTags.size() > 0)) {
             data.addTags(commonTags.toArray(new String[0]));
         }
 
@@ -394,7 +394,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             AbstractAttributeMapping attrMapping) {
         if (attrMapping.isPrimaryKey()) {
             String val = attr.getValue().toString();
-            dataObject.setSipId(val);
+            dataObject.setProviderId(val);
         }
         if (attrMapping.isRawData() || attrMapping.isThumbnail()) {
             String str = ((StringAttribute) attr).getValue();

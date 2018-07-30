@@ -55,8 +55,8 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IAipDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
 import fr.cnes.regards.modules.entities.domain.StaticProperties;
@@ -276,7 +276,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         // Mandatory properties
         obj.setModel(this.model);
         obj.setIpId(aip.getId());
-        obj.setSipId(aip.getSipId());
+        obj.setProviderId(aip.getProviderId());
         // A DataObject created from an AIP is internal
         obj.setInternal(true);
 
@@ -310,10 +310,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         }
 
         // Tags
-        if (commonTags != null && commonTags.size() > 0) {
+        if ((commonTags != null) && (commonTags.size() > 0)) {
             obj.addTags(commonTags.toArray(new String[0]));
         }
-        if (aip.getTags() != null && aip.getTags().size() > 0) {
+        if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
             obj.addTags(aip.getTags().toArray(new String[0]));
         }
 

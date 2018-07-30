@@ -211,7 +211,7 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
         });
 
         ll.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getSipId()));
+        ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
 

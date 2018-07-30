@@ -90,8 +90,6 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
 
     private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources";
 
-    private static final String TENANT = DEFAULT_TENANT;
-
     private static final String HELLO = "hello world from ";
 
     private static final String NAME_ATTR = "name";
@@ -157,15 +155,16 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         repository.save(new DataSourceEntity("azertyuiop", 12345, 1.10203045607080901234568790123456789, 45.5444544454,
                 LocalDate.now().minusDays(10), LocalTime.now().minusHours(9), LocalDateTime.now(),
                 OffsetDateTime.now().minusMinutes(33), OffsetDateTime.now().minusDays(5).toString(), true,
-                new URL("file", "localhost", ""),"one"));
+                new URL("file", "localhost", ""), "one"));
         repository.save(new DataSourceEntity("Toulouse", 110, 3.141592653589793238462643383279, -15.2323654654564654,
                 LocalDate.now().minusMonths(1), LocalTime.now().minusMinutes(10), LocalDateTime.now().plusHours(33),
                 OffsetDateTime.now().minusSeconds(22), OffsetDateTime.now().minusMinutes(56565).toString(), true,
-                new URL("http", "localhost", ""),"two"));
+                new URL("http", "localhost", ""), "two"));
         repository.save(new DataSourceEntity("Paris", 350, -3.141592653589793238462643383279502884197169399375105,
                 25.565465465454564654654654, LocalDate.now().minusDays(10), LocalTime.now().minusHours(9),
                 LocalDateTime.now().minusMonths(2), OffsetDateTime.now().minusHours(7),
-                OffsetDateTime.now().minusMinutes(12132125).toString(), false, new URL("ftp", "localhost", ""),"three"));
+                OffsetDateTime.now().minusMinutes(12132125).toString(), false, new URL("ftp", "localhost", ""),
+                "three"));
         nbElements = 3;
 
         /*
@@ -202,7 +201,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         // Get first page
-        Page<DataObject> page = plgDBDataSource.findAll(TENANT, new PageRequest(0, 2));
+        Page<DataObject> page = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 2));
         Assert.assertNotNull(page);
         Assert.assertEquals(2, page.getContent().size());
 
@@ -213,11 +212,11 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         });
 
         page.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getSipId()));
+        page.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
 
         // Get second page
-        page = plgDBDataSource.findAll(TENANT, new PageRequest(1, 2));
+        page = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(1, 2));
         Assert.assertNotNull(page);
         Assert.assertEquals(1, page.getContent().size());
 
@@ -232,7 +231,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         });
 
         page.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getSipId()));
+        page.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
         page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TOTO")));
         page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TITI")));
@@ -245,7 +244,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObject> ll = plgDBDataSource.findAll(TENANT, new PageRequest(0, 10), date);
+        Page<DataObject> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), date);
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.getContent().size());
 
@@ -260,7 +259,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         });
 
         ll.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getSipId()));
+        ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
 
@@ -269,7 +268,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObject> ll = plgDBDataSource.findAll(TENANT, new PageRequest(0, 10), ldt);
+        Page<DataObject> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), ldt);
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.getContent().size());
     }

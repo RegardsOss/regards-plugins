@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,8 +38,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,8 +59,8 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
+import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
 import fr.cnes.regards.modules.entities.domain.attribute.DateIntervalAttribute;
@@ -81,17 +80,15 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
 // @Ignore("Fails sometimes on Jenkins i don't why and i am fed up with")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AipDataSourcePluginTest.class);
-
     private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources.plugins";
-
-    protected static final String TENANT = DEFAULT_TENANT;
 
     private static final String MODEL_FILE_NAME = "model.xml";
 
     private static final String MODEL_NAME = "model_1";
 
     private AipDataSourcePlugin dsPlugin;
+
+    protected static final String TENANT = DEFAULT_TENANT;
 
     @Autowired
     private IModelService modelService;
@@ -101,7 +98,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Before
     public void setUp() throws SQLException, ModuleException {
-        tenantResolver.forceTenant(TENANT);
+        tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
             modelService.getModelByName(MODEL_NAME);
@@ -156,9 +153,9 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA,
-                    AipDataSourcePluginTest.TENANT, UUID.randomUUID(), 1);
-            AIPBuilder builder = new AIPBuilder(id, "sipId" + i, EntityType.DATA, "session 1");
+            UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, TENANT,
+                    UUID.randomUUID(), 1);
+            AIPBuilder builder = new AIPBuilder(id, Optional.empty(), "sipId" + i, EntityType.DATA, "session 1");
             builder.addTags(tags);
 
             builder.addDescriptiveInformation("label", "libellé du data object " + i);
@@ -220,7 +217,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void test() throws DataSourceException {
-        Page<DataObject> page = dsPlugin.findAll(TENANT, new PageRequest(0, 10));
+        Page<DataObject> page = dsPlugin.findAll(getDefaultTenant(), new PageRequest(0, 10));
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.getContent());
         Assert.assertTrue(page.getContent().size() > 0);
