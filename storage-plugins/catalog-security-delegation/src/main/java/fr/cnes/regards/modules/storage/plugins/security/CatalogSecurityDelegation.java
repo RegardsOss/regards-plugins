@@ -56,8 +56,8 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     /**
      * {@link ISearchClient} instance
      */
-    //    @Autowired
-    //    private ISearchClient searchClient;
+    // @Autowired
+    // private ISearchClient searchClient;
 
     @Autowired
     private IAccessRights accessRights;
@@ -90,7 +90,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 // if no problem occurred then lets give the answer from rs-admin
                 if (adminResponse.getBody()) {
                     // Return only existing AIPs from given list
-                    return aipDao.findUrnsByIpIdIn(Collections2.transform(urns, UniformResourceName::toString))
+                    return aipDao.findUrnsByAipIdIn(Collections2.transform(urns, UniformResourceName::toString))
                             .collect(Collectors.toSet());
                 }
             }
@@ -107,7 +107,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                     .format("Issue with feign while trying to check if the user has access to aips %s",
                             urns.stream().map(UniformResourceName::toString).collect(Collectors.joining(", "))),
                          e);
-            //there was an error, lets assume that we cannot access none of the aips
+            // there was an error, lets assume that we cannot access none of the aips
             return Collections.emptySet();
         } finally {
             FeignSecurityManager.reset();
@@ -131,7 +131,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             }
             // we now have received a not found from catalog, lets check if AIP exists in our database and if the user
             // is an admin.
-            if (!aipDao.findOneByIpId(urn.toString()).isPresent()) {
+            if (!aipDao.findOneByAipId(urn.toString()).isPresent()) {
                 return false;
             }
             // AIP hasn't been found => it is not indexed but it is present into storage (ie Aip has been stored but not
@@ -147,7 +147,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
         } catch (FeignException e) {
             LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aip %s", ipId),
                          e);
-            //there was an error, lets assume that we cannot access the aip
+            // there was an error, lets assume that we cannot access the aip
             return false;
         } finally {
             FeignSecurityManager.reset();
