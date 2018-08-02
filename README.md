@@ -1,18 +1,9 @@
 # REGARDS plugins
 
-This is the official REGARDS open source plugins implementation repository.
-
-## Build requirements
-
-Build relies on :
-* Maven 3+
-* OpenJDK 8
-
-Dependencies : 
-* TODO
+This repository brings together some of the REGARDS framework plugins :
+* **AipDataSourcePlugin** : allows data extraction from REGARDS AIP storage
+* **PostgreDataSourcePlugin** : allows data extraction from a PostgreSql database
+* **DefaultPostgreConnectionPlugin** : connection to a PostgreSql database
 
 ## Build
-
-```shell
-mvn clean install -Dmaven.test.skip=true
-```
+The [README](https://github.com/RegardsOss/regards-deployment/blob/master/README.md) of the project [rs-deployment](https://github.com/RegardsOss/regards-deployment) describes how to generate all the REGARDS repositories.
