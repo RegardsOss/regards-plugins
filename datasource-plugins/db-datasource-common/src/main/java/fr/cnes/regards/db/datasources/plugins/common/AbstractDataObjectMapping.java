@@ -20,8 +20,6 @@
 package fr.cnes.regards.db.datasources.plugins.common;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -46,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.util.MimeType;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -396,24 +396,33 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             String val = attr.getValue().toString();
             dataObject.setProviderId(val);
         }
+
+        // Manage files
         if (attrMapping.isRawData() || attrMapping.isThumbnail()) {
             String str = ((StringAttribute) attr).getValue();
-            try {
-                DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
-                Collection<DataFile> dataFiles = dataObject.getFiles().get(type);
-                // When external mapping, only one file per type is authorized so dataFiles is a singleton or empty
-                DataFile dataFile = dataFiles.isEmpty() ? new DataFile() : dataFiles.iterator().next();
-                dataFile.setUri(new URI(str));
-                // Online is a concept of Storage. Here, file is not managed by Storage so online is NULL
-                dataFile.setOnline(null);
-                // No need to re-put data file if it already exist
-                if (dataFiles.isEmpty()) {
-                    dataObject.getFiles().put(type, dataFile);
+            // Compute data type
+            DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
+            // Compute mime type
+            MimeType mimeType;
+            if (attrMapping.isRawData()) {
+                mimeType = MediaType.APPLICATION_OCTET_STREAM;
+            } else {
+                // Detect mime type according to extension for THUMBNAIL
+                if (str.endsWith(".PNG") || str.endsWith(".png")) {
+                    mimeType = MediaType.IMAGE_PNG;
+                } else if (str.endsWith(".GIF") || str.endsWith(".gif")) {
+                    mimeType = MediaType.IMAGE_GIF;
+                } else if (str.endsWith(".JPG") || str.endsWith(".jpg") || str.endsWith(".JPEG")
+                        || str.endsWith(".jpeg")) {
+                    mimeType = MediaType.IMAGE_JPEG;
+                } else {
+                    throw new IllegalArgumentException("Unsupported image extension for " + str);
                 }
-            } catch (URISyntaxException e) {
-                LOG.error(e.getMessage(), e);
             }
+            DataFile dataFile = DataFile.build(type, str, str, mimeType, Boolean.TRUE, Boolean.TRUE);
+            dataObject.getFiles().put(type, dataFile);
         }
+
         if (attrMapping.isLastUpdate()) {
             dataObject.setLastUpdate((OffsetDateTime) attr.getValue());
         }
