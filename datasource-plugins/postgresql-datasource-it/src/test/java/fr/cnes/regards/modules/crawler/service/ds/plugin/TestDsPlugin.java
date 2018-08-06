@@ -33,7 +33,6 @@ import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
 import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.entities.domain.DataObject;
 import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
-import fr.cnes.regards.modules.models.domain.Model;
 
 /**
  * @author oroussel
@@ -51,7 +50,7 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     @Override
     public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
         List<DataObject> list = new ArrayList<>();
-        DataObject o = new DataObject(CrawlerIngestIT.model, tenant, "");
+        DataObject o = new DataObject(CrawlerIngestIT.model, tenant, "DO1", "");
         // toto isn't expected by the model
         o.addProperty(AttributeBuilder.buildString("toto", "texte"));
         // tutu.titi isn't expected by the model

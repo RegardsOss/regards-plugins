@@ -351,7 +351,7 @@ public class CrawlerIngestIT {
 
         crawlerService.startWork();
         // Dataset on all objects
-        dataset = new Dataset(datasetModel, tenant, "dataset label 1");
+        dataset = new Dataset(datasetModel, tenant, "DS1", "dataset label 1");
         dataset.setDataModel(dataModel.getName());
         dataset.setSubsettingClause(ICriterion.all());
         dataset.setLicence("licence");
