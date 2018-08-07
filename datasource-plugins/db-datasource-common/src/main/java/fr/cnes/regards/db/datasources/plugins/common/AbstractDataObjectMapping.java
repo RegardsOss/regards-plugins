@@ -56,17 +56,17 @@ import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.Table;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.DateAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.StringAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.Table;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.DateAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.StringAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
  * This class allows to process a SQL request to a SQL Database.</br>
@@ -246,7 +246,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     protected DataObject processResultSet(ResultSet rset, Model model, String tenant)
             throws SQLException, DataSourceException {
-        DataObject data = new DataObject(model, tenant, null);
+        DataObject data = new DataObject(model, tenant, "providerIdPlaceHolder", "labelPlaceHolder");
         // A DataObject created from an external Database is external (ie not internal)
         data.setInternal(false);
 

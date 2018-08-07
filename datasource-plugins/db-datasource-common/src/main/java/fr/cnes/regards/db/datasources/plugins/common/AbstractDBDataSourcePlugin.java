@@ -29,10 +29,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBDataSourcePlugin;
-import fr.cnes.regards.modules.entities.domain.DataObject;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 
 /**
  * A {@link Plugin} to retrieve the data elements from a SQL Database.</br>

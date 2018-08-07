@@ -38,7 +38,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import fr.cnes.regards.framework.jpa.IIdentifiable;
 import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
-import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.PostgreDataSourcePlugin;
 
 /**
  * A domain used to test the {@link PostgreDataSourcePlugin}

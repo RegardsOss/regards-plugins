@@ -14,11 +14,11 @@ import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfig
 import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
-import fr.cnes.regards.modules.entities.domain.feature.EntityFeature;
-import fr.cnes.regards.modules.entities.service.IEntityService;
-import fr.cnes.regards.modules.models.client.IAttributeModelClient;
-import fr.cnes.regards.modules.models.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
+import fr.cnes.regards.modules.dam.service.entities.IEntityService;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.storage.client.IAipClient;

@@ -41,10 +41,10 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
-import fr.cnes.regards.modules.datasources.domain.Column;
-import fr.cnes.regards.modules.datasources.domain.Table;
-import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
-import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.Column;
+import fr.cnes.regards.modules.dam.domain.datasources.Table;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.datasources.utils.PostgreDataSourcePluginTestConfiguration;
 
 /**

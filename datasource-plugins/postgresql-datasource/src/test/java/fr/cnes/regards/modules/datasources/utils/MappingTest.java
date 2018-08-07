@@ -32,8 +32,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.ModelMappingAdapterFactory;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.ModelMappingAdapterFactory;
 
 /**
  * Test mapping deserialization

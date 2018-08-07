@@ -17,15 +17,15 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.datasources.plugins;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDBConnection;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 
 /**
  * A default {@link Plugin} of type {@link IDBConnectionPlugin}. For the test of the connection :

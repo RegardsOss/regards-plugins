@@ -29,10 +29,10 @@ import org.springframework.data.domain.Pageable;
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.crawler.service.CrawlerIngestIT;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 
 /**
  * @author oroussel

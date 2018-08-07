@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.datasources.plugins;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins;
 
 import java.io.IOException;
 
@@ -31,7 +31,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.datasources.domain.plugins.IConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IConnectionPlugin;
 
 /**
  * Class DefaultESConnectionPlugin A default {@link Plugin} of type {@link IConnectionPlugin}. Allows to

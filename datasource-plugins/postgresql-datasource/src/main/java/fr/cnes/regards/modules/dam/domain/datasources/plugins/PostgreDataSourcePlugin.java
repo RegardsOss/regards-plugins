@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.datasources.plugins;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,11 +36,11 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 
 /**
  * A {@link Plugin} to extract data from a PostgreSQL Database.<br>

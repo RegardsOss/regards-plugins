@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.datasources.plugins;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
@@ -55,20 +55,20 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.IAipDataSourcePlugin;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.StaticProperties;
-import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.ObjectAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IAipDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.domain.ModelAttrAssoc;
-import fr.cnes.regards.modules.models.domain.attributes.AttributeType;
-import fr.cnes.regards.modules.models.service.IModelAttrAssocService;
-import fr.cnes.regards.modules.models.service.IModelService;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.AIPState;
@@ -272,7 +272,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     private DataObject createDataObject(String tenant, AipDataFiles aipDataFiles)
             throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         AIP aip = aipDataFiles.getAip();
-        DataObject obj = new DataObject(this.model, tenant, "");
+        DataObject obj = new DataObject(this.model, tenant, "providerIdPlaceHolder", "labelPlaceHolder");
         // Mandatory properties
         obj.setModel(this.model);
         obj.setIpId(aip.getId());

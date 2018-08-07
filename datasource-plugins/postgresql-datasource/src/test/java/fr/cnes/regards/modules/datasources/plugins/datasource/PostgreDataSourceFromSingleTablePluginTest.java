@@ -60,22 +60,22 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.DynamicAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.plugins.DBConnectionPluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.DynamicAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.datasources.utils.IDataSourceRepositoryTest;
 import fr.cnes.regards.modules.datasources.utils.PostgreDataSourcePluginTestConfiguration;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.domain.attributes.AttributeType;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
  * @author Christophe Mertz
