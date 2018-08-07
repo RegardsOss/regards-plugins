@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.datasources.utils;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins.utils;
 
 import org.springframework.data.domain.Pageable;
 

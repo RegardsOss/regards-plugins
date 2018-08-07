@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.datasources.plugins;
+package fr.cnes.regards.modules.dam.domain.datasources.plugins;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,16 +59,17 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.attribute.DateIntervalAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.IntegerIntervalAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.LongAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.StringArrayAttribute;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.service.IModelService;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.AipDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.AIPBuilder;
 

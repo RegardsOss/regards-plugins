@@ -62,18 +62,13 @@
 		</dependency>
 		<!-- Provided: dependencies that are already included by the microservice -->
 		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-service</artifactId>
+			<groupId>fr.cnes.regards.modules.dam</groupId>
+			<artifactId>dam-service</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
 			<artifactId>plugins-domain</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.datasources</groupId>
-			<artifactId>datasources-domain</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Tests -->
