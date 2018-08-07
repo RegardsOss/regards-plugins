@@ -63,12 +63,12 @@
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>aip-datasource</artifactId>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>postgresql-datasource</artifactId>
             <classifier>shaded</classifier>
         </dependency>

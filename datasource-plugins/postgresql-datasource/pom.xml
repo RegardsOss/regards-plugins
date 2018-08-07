@@ -21,7 +21,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+    <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
     <artifactId>postgresql-datasource</artifactId>
     <description>PostgreSQL datasource</description>
     <version>3.0.0-SNAPSHOT</version>
@@ -48,14 +48,14 @@
     </developers>
 
     <parent>
-        <groupId>fr.cnes.regards.modules.datasources</groupId>
+        <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
         <artifactId>datasource-plugins</artifactId>
         <version>3.0.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>db-datasource-common</artifactId>
         </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->

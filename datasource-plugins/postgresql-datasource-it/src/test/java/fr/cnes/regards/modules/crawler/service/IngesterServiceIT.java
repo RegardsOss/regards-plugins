@@ -65,16 +65,16 @@ import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.AipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.dam.plugins.datasources.AipDataSourcePlugin;
+import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.storage.client.IAipClient;
@@ -83,7 +83,7 @@ import fr.cnes.regards.modules.storage.client.IAipClient;
 @ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
 public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources.plugins";
+    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
 
     // private static final String TENANT = "INGEST";
     private static final String TENANT = DEFAULT_TENANT;
@@ -286,7 +286,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
         pluginConfRepos.deleteAll();
 
-        pluginService.addPluginPackage("fr.cnes.regards.modules.datasources.plugins");
+        pluginService.addPluginPackage("fr.cnes.regards.modules.dam.plugins.datasources");
 
         dataModel = new Model();
         dataModel.setName("model_1");
