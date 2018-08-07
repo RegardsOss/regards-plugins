@@ -41,6 +41,8 @@ import fr.cnes.regards.framework.amqp.IInstanceSubscriber;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.ISubscriber;
 import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.AIPState;
@@ -53,6 +55,16 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 @Configuration
 @EnableAutoConfiguration
 public class AipDataSourceConfiguration {
+
+    @Bean
+    public IAttributeModelClient attributeModelClient() {
+        return Mockito.mock(IAttributeModelClient.class);
+    }
+
+    @Bean
+    public IProjectUsersClient projectUsersClient() {
+        return Mockito.mock(IProjectUsersClient.class);
+    }
 
     @Bean
     public IInstanceSubscriber instanceSubscriber() {

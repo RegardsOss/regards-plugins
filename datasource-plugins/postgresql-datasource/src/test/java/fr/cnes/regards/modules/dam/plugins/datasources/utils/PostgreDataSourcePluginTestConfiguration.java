@@ -18,19 +18,18 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
 
 /**
  *
@@ -41,8 +40,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Christophe Mertz
  */
 @Configuration
-@EnableJpaRepositories(
-        basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils", "fr.cnes.regards.modules.dam.dao.models" })
+@EnableJpaRepositories(basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils",
+        "fr.cnes.regards.modules.dam.dao.models" })
 @EnableTransactionManagement
 public class PostgreDataSourcePluginTestConfiguration {
 
@@ -82,43 +81,17 @@ public class PostgreDataSourcePluginTestConfiguration {
         return dataSource;
     }
 
-    /**
-     * Create an {@link EntityManagerFactory}
-     *
-     * @return the {@link EntityManagerFactory} created
-     */
-    @Bean
-    public EntityManagerFactory entityManagerFactory() {
-
-        final HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setGenerateDdl(true);
-
-        final LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-        factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("fr.cnes.regards.modules.dam.plugins.datasources.utils");
-        factory.setDataSource(dataSource());
-        factory.afterPropertiesSet();
-
-        return factory.getObject();
-    }
-
-    /**
-     *
-     * Create transaction manager
-     *
-     * @return
-     * @since 1.0-SNAPSHOT
-     */
-    @Bean
-    public PlatformTransactionManager transactionManager() {
-
-        final JpaTransactionManager txManager = new JpaTransactionManager();
-        txManager.setEntityManagerFactory(entityManagerFactory());
-        return txManager;
-    }
-
     private String buildUrl() {
         return "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName;
     }
 
+    @Bean
+    public IAttributeModelClient attributeModelClient() {
+        return Mockito.mock(IAttributeModelClient.class);
+    }
+
+    @Bean
+    public IProjectUsersClient projectUsersClient() {
+        return Mockito.mock(IProjectUsersClient.class);
+    }
 }

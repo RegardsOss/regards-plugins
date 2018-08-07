@@ -68,7 +68,6 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttr
 import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
 import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.plugins.datasources.AipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.AIPBuilder;
@@ -81,7 +80,7 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
 // @Ignore("Fails sometimes on Jenkins i don't why and i am fed up with")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.domain.datasources.plugins";
+    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
 
     private static final String MODEL_FILE_NAME = "model.xml";
 

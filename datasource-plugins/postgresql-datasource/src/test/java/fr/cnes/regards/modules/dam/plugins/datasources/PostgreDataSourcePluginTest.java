@@ -52,6 +52,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
@@ -68,8 +69,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugi
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourcePlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreDataSourcePluginTestConfiguration;
@@ -120,6 +119,9 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     @Autowired
     private IModelService modelService;
 
+    @Autowired
+    private IRuntimeTenantResolver tenantResolver;
+
     /**
      * JPA Repository
      */
@@ -134,7 +136,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      */
     @Before
     public void setUp() throws SQLException, ModuleException, MalformedURLException {
-
+        tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
             modelService.getModelByName(MODEL_NAME_TEST);

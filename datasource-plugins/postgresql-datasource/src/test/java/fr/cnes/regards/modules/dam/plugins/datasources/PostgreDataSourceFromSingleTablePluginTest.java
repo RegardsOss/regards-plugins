@@ -54,6 +54,7 @@ import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
@@ -70,8 +71,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromS
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreDataSourcePluginTestConfiguration;
@@ -130,6 +129,9 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
     @Autowired
     private IModelService modelService;
 
+    @Autowired
+    private IRuntimeTenantResolver tenantResolver;
+
     /**
      * Populate the datasource as a legacy catalog
      *
@@ -138,6 +140,8 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
      */
     @Before
     public void setUp() throws SQLException, ModuleException, MalformedURLException {
+
+        tenantResolver.forceTenant(getDefaultTenant());
 
         try {
             // Remove the model if existing
