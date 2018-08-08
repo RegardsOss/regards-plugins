@@ -48,8 +48,6 @@ import com.google.common.collect.Lists;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginMetaData;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
@@ -61,12 +59,11 @@ import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.storage.domain.AIP;
@@ -87,8 +84,6 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     private static final String MODEL_NAME = "model_1";
 
     private AipDataSourcePlugin dsPlugin;
-
-    protected static final String TENANT = DEFAULT_TENANT;
 
     @Autowired
     private IModelService modelService;
@@ -120,13 +115,6 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.TAGS, Lists.newArrayList("TOTO", "TITI"))
                 .addParameter(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
 
-        PluginMetaData metadata = PluginUtils.createPluginMetaData(AipDataSourcePlugin.class,
-                                                                   IDataSourcePlugin.class.getPackage().getName(),
-                                                                   AipDataSourcePlugin.class.getPackage().getName());
-
-        PluginConfiguration aipDs = new PluginConfiguration(metadata, "LABEL", parameters);
-        // FIXME : @svissier Why the fuck is this shit ?
-        String truc = gsonBuilder.create().toJson(aipDs);
         dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, Arrays.asList(PLUGIN_CURRENT_PACKAGE),
                                          pluginCacheMap);
 
@@ -153,7 +141,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, TENANT,
+            UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
                     UUID.randomUUID(), 1);
             AIPBuilder builder = new AIPBuilder(id, Optional.empty(), "sipId" + i, EntityType.DATA, "session 1");
             builder.addTags(tags);
@@ -217,33 +205,33 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void test() throws DataSourceException {
-        Page<DataObject> page = dsPlugin.findAll(getDefaultTenant(), new PageRequest(0, 10));
+        Page<DataObjectFeature> page = dsPlugin.findAll(getDefaultTenant(), new PageRequest(0, 10));
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.getContent());
         Assert.assertTrue(page.getContent().size() > 0);
-        DataObject do1 = page.getContent().get(0);
-        Assert.assertEquals("libellé du data object 0", do1.getLabel());
-        Assert.assertNotNull(do1.getProperty("START_DATE"));
-        Assert.assertNotNull(do1.getProperty("ALTITUDE.MAX"));
-        Assert.assertNull(do1.getProperty("ALTITUDE.MIN"));
-        Assert.assertNotNull(do1.getTags());
-        Assert.assertTrue(do1.getTags().contains("tag1"));
-        Assert.assertTrue(do1.getTags().contains("tag2"));
-        Assert.assertTrue(do1.getProperty("history") instanceof StringArrayAttribute);
-        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) do1.getProperty("history")).getValue(),
+        DataObjectFeature feature = page.getContent().get(0);
+        Assert.assertEquals("libellé du data object 0", feature.getLabel());
+        Assert.assertNotNull(feature.getProperty("START_DATE"));
+        Assert.assertNotNull(feature.getProperty("ALTITUDE.MAX"));
+        Assert.assertNull(feature.getProperty("ALTITUDE.MIN"));
+        Assert.assertNotNull(feature.getTags());
+        Assert.assertTrue(feature.getTags().contains("tag1"));
+        Assert.assertTrue(feature.getTags().contains("tag2"));
+        Assert.assertTrue(feature.getProperty("history") instanceof StringArrayAttribute);
+        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) feature.getProperty("history")).getValue(),
                                               "H1") > -1);
-        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) do1.getProperty("history")).getValue(),
+        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) feature.getProperty("history")).getValue(),
                                               "H2") > -1);
-        Assert.assertTrue(do1.getProperty("DATE_INTERVAL") instanceof DateIntervalAttribute);
-        Assert.assertTrue(do1.getProperty("INT_INTERVAL") instanceof IntegerIntervalAttribute);
-        Assert.assertNotNull(do1.getFiles());
-        Assert.assertEquals(1, do1.getFiles().size());
-        Assert.assertTrue(do1.getFiles().containsKey(DataType.RAWDATA));
+        Assert.assertTrue(feature.getProperty("DATE_INTERVAL") instanceof DateIntervalAttribute);
+        Assert.assertTrue(feature.getProperty("INT_INTERVAL") instanceof IntegerIntervalAttribute);
+        Assert.assertNotNull(feature.getFiles());
+        Assert.assertEquals(1, feature.getFiles().size());
+        Assert.assertTrue(feature.getFiles().containsKey(DataType.RAWDATA));
 
-        Assert.assertTrue(do1.getTags().contains("TOTO"));
-        Assert.assertTrue(do1.getTags().contains("TITI"));
+        Assert.assertTrue(feature.getTags().contains("TOTO"));
+        Assert.assertTrue(feature.getTags().contains("TITI"));
 
-        Assert.assertTrue(do1.getProperty("SIZE") instanceof LongAttribute);
+        Assert.assertTrue(feature.getProperty("SIZE") instanceof LongAttribute);
 
     }
 

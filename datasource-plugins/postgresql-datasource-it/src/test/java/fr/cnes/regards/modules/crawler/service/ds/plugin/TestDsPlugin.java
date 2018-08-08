@@ -28,11 +28,10 @@ import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.modules.crawler.service.CrawlerIngestIT;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 
 /**
  * @author oroussel
@@ -48,9 +47,10 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     }
 
     @Override
-    public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
-        List<DataObject> list = new ArrayList<>();
-        DataObject o = new DataObject(CrawlerIngestIT.model, tenant, "DO1", "");
+    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+            throws DataSourceException {
+        List<DataObjectFeature> list = new ArrayList<>();
+        DataObjectFeature o = new DataObjectFeature(tenant, "DO1", "");
         // toto isn't expected by the model
         o.addProperty(AttributeBuilder.buildString("toto", "texte"));
         // tutu.titi isn't expected by the model

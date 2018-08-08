@@ -32,7 +32,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 
 /**
  * A {@link Plugin} to retrieve the data elements from a SQL Database.</br>
@@ -40,6 +40,7 @@ import fr.cnes.regards.modules.dam.domain.entities.DataObject;
  * @author Christophe Mertz
  */
 public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMapping implements IDBDataSourcePlugin {
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDBDataSourcePlugin.class);
 
     protected static final String SELECT = "SELECT ";
@@ -53,6 +54,7 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     /**
      * By default, the refresh rate is set to 1 day (in ms)
      */
+    @Override
     public int getRefreshRate() {
         return 86400;
     }
@@ -64,8 +66,8 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
             return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + WHERE
                     + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + buildLimitPart(pageable);
         } else {
-            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + buildLimitPart(
-                    pageable);
+            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause()
+                    + buildLimitPart(pageable);
         }
     }
 
@@ -82,7 +84,9 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     /**
      * @param sinceDate can be null
      */
-    public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime sinceDate) throws DataSourceException {
+    @Override
+    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime sinceDate)
+            throws DataSourceException {
         final String selectRequest = getSelectRequest(pageable, sinceDate);
         final String countRequest = getCountRequest(sinceDate);
 

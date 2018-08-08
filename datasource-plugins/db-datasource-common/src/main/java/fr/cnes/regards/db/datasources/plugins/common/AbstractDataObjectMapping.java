@@ -64,6 +64,7 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.DateAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.StringAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
@@ -191,9 +192,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param sinceDate a {@link Date} used to apply returns the {@link DataObject} update or create after this date
      * @return a page of {@link DataObject}
      */
-    protected Page<DataObject> findAll(String tenant, Connection ctx, String inSelectRequest, String inCountRequest,
-            Pageable pageable, OffsetDateTime sinceDate) throws DataSourceException {
-        List<DataObject> dataObjects = new ArrayList<>();
+    protected Page<DataObjectFeature> findAll(String tenant, Connection ctx, String inSelectRequest,
+            String inCountRequest, Pageable pageable, OffsetDateTime sinceDate) throws DataSourceException {
+        List<DataObjectFeature> features = new ArrayList<>();
 
         try (Statement statement = ctx.createStatement()) {
 
@@ -210,7 +211,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             // Execute the request to get the elements
             try (ResultSet rs = statement.executeQuery(selectRequest)) {
                 while (rs.next()) {
-                    dataObjects.add(processResultSet(rs, this.model, tenant));
+                    features.add(processResultSet(rs, this.model, tenant));
                 }
             }
             countItems(statement, countRequest);
@@ -218,7 +219,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             LOG.error("Error while retrieving or counting datasource elements", e);
             throw new DataSourceException("Error while retrieving or counting datasource elements", e);
         }
-        return new PageImpl<>(dataObjects, pageable, nbItems);
+        return new PageImpl<>(features, pageable, nbItems);
     }
 
     /**
@@ -244,11 +245,10 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return the {@link DataObject} created
      * @throws SQLException An SQL error occurred
      */
-    protected DataObject processResultSet(ResultSet rset, Model model, String tenant)
+    protected DataObjectFeature processResultSet(ResultSet rset, Model model, String tenant)
             throws SQLException, DataSourceException {
-        DataObject data = new DataObject(model, tenant, "providerIdPlaceHolder", "labelPlaceHolder");
-        // A DataObject created from an external Database is external (ie not internal)
-        data.setInternal(false);
+
+        DataObjectFeature feature = new DataObjectFeature(tenant, "providerIdPlaceHolder", "labelPlaceHolder");
 
         Set<AbstractAttribute<?>> attributes = new HashSet<>();
         Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
@@ -262,7 +262,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             if (attr != null) {
                 if (attrMapping.isMappedToStaticProperty()) {
                     // static attribute mapping
-                    processStaticAttributes(data, attr, attrMapping);
+                    processStaticAttributes(feature, attr, attrMapping);
                 } else {
                     // dynamic attribute mapping
                     if (!Strings.isNullOrEmpty(attrMapping.getNameSpace())) {
@@ -285,14 +285,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         spaceNames.forEach((pName, pAttrs) -> attributes
                 .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()]))));
 
-        data.setProperties(attributes);
+        feature.setProperties(attributes);
 
         // Add common tags
         if ((commonTags != null) && (commonTags.size() > 0)) {
-            data.addTags(commonTags.toArray(new String[0]));
+            feature.addTags(commonTags.toArray(new String[0]));
         }
 
-        return data;
+        return feature;
     }
 
     /**
@@ -390,7 +390,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param attr the current {@link AbstractAttribute} to analyze
      * @param attrMapping the {@link AbstractAttributeMapping} for the current attribute
      */
-    private void processStaticAttributes(DataObject dataObject, AbstractAttribute<?> attr,
+    private void processStaticAttributes(DataObjectFeature dataObject, AbstractAttribute<?> attr,
             AbstractAttributeMapping attrMapping) {
         if (attrMapping.isPrimaryKey()) {
             String val = attr.getValue().toString();
@@ -423,9 +423,6 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             dataObject.getFiles().put(type, dataFile);
         }
 
-        if (attrMapping.isLastUpdate()) {
-            dataObject.setLastUpdate((OffsetDateTime) attr.getValue());
-        }
         if (attrMapping.isLabel()) {
             dataObject.setLabel(((StringAttribute) attr).getValue());
         }

@@ -408,6 +408,7 @@ public class CrawlerIngestIT {
 
     public static Model model = new Model();
 
+    @Ignore
     @Test
     public void testDsIngestionWithValidation()
             throws InterruptedException, ExecutionException, DataSourceException, ModuleException {

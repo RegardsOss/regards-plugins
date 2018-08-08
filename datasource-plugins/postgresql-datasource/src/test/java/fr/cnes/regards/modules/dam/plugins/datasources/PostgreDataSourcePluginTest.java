@@ -66,7 +66,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPlugin
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
@@ -199,7 +199,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     public void getDataSourceIntrospection() throws SQLException, DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
-        Page<DataObject> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10));
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10));
         Assert.assertNotNull(ll);
         Assert.assertEquals(nbElements, ll.getContent().size());
 
@@ -213,7 +213,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
             });
         });
 
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
+        ll.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
         ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
@@ -226,7 +226,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObject> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), date);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), date);
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.getContent().size());
 
@@ -240,7 +240,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
             });
         });
 
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getIpId()));
+        ll.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
         ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
         ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
@@ -250,7 +250,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObject> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), ldt);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), ldt);
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.getContent().size());
     }

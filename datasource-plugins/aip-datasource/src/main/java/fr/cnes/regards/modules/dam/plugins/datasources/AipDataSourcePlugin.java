@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +53,8 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.oais.ContentInformation;
+import fr.cnes.regards.framework.oais.OAISDataObject;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
@@ -63,6 +66,7 @@ import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
@@ -245,17 +249,18 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     }
 
     @Override
-    public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
+    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+            throws DataSourceException {
         FeignSecurityManager.asSystem();
         ResponseEntity<PagedResources<AipDataFiles>> responseEntity = aipClient
                 .retrieveAipDataFiles(AIPState.STORED, subsettingTags, date, pageable.getPageNumber(),
                                       pageable.getPageSize());
         FeignSecurityManager.reset();
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
-            List<DataObject> list = new ArrayList<>();
+            List<DataObjectFeature> list = new ArrayList<>();
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
                 try {
-                    list.add(createDataObject(tenant, aipDataFiles));
+                    list.add(buildFeature(aipDataFiles));
                 } catch (URISyntaxException e) {
                     throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
                 } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -269,35 +274,45 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         }
     }
 
-    private DataObject createDataObject(String tenant, AipDataFiles aipDataFiles)
+    private DataObjectFeature buildFeature(AipDataFiles aipDataFiles)
             throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
+        // Get raw AIP
         AIP aip = aipDataFiles.getAip();
-        DataObject obj = new DataObject(this.model, tenant, "providerIdPlaceHolder", "labelPlaceHolder");
-        // Mandatory properties
-        obj.setModel(this.model);
-        obj.setIpId(aip.getId());
-        obj.setProviderId(aip.getProviderId());
-        // A DataObject created from an AIP is internal
-        obj.setInternal(true);
+        // Build feature
+        DataObjectFeature feature = new DataObjectFeature(aip.getId(), aip.getProviderId(), "NO_LABEL");
+        // FIXME feature.setLabel(dataFileDto.getName());
 
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;
 
-        // Data files
+        // Add referenced files from raw AIP
+        Iterator<ContentInformation> cis = aip.getProperties().getContentInformations().iterator();
+        while (cis.hasNext()) {
+            ContentInformation ci = cis.next();
+            OAISDataObject oaisDo = ci.getDataObject();
+            if (oaisDo.isReference()) {
+                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(),
+                                                   oaisDo.getUrls().iterator().next().toURI(),
+                                                   ci.getRepresentationInformation().getSyntax().getMimeType(),
+                                                   Boolean.TRUE, Boolean.TRUE);
+                feature.getFiles().put(dataFile.getDataType(), dataFile);
+            }
+        }
+
+        // Add data files
         for (DataFileDto dataFileDto : aipDataFiles.getDataFiles()) {
-            DataFile dataFile = new DataFile();
-            // Cannot use BeanUtils.copyProperty because names or types are different....(thank you)
-            dataFile.setUri(dataFileDto.getUrl().toURI());
-            dataFile.setOnline(dataFileDto.isOnline());
+            DataFile dataFile = DataFile.build(dataFileDto.getDataType(), dataFileDto.getName(),
+                                               dataFileDto.getUrl().toURI(), dataFileDto.getMimeType(),
+                                               dataFileDto.isOnline(), Boolean.FALSE);
+            // Fill optional fields
             dataFile.setFilesize(dataFileDto.getFileSize());
-            dataFile.setFilename(dataFileDto.getName());
-            obj.setLabel(dataFileDto.getName());
-            dataFile.setMimeType(dataFileDto.getMimeType());
             dataFile.setDigestAlgorithm(dataFileDto.getAlgorithm());
             dataFile.setChecksum(dataFileDto.getChecksum());
             dataFile.setImageHeight(dataFileDto.getHeight());
             dataFile.setImageWidth(dataFileDto.getWidth());
-            obj.getFiles().put(dataFileDto.getDataType(), dataFile);
+            // Register file
+            feature.getFiles().put(dataFile.getDataType(), dataFile);
 
             if ((dataFileDto.getDataType() == DataType.RAWDATA) && (dataFileDto.getFileSize() != null)) {
                 rawDataFilesSize += dataFileDto.getFileSize();
@@ -306,15 +321,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
         // Create attribute containing all RAW DATA files size
         if (!Strings.isNullOrEmpty(modelAttrNameFileSize)) {
-            obj.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize, rawDataFilesSize));
+            feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize, rawDataFilesSize));
         }
 
         // Tags
         if ((commonTags != null) && (commonTags.size() > 0)) {
-            obj.addTags(commonTags.toArray(new String[0]));
+            feature.addTags(commonTags.toArray(new String[0]));
         }
         if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
-            obj.addTags(aip.getTags().toArray(new String[0]));
+            feature.addTags(aip.getTags().toArray(new String[0]));
         }
 
         // Binded properties
@@ -326,7 +341,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 // Value from AIP
                 Object value = getNestedProperty(aip, entry.getValue().get(0));
                 // Static, use propertyUtilsBean
-                propertyUtilsBean.setNestedProperty(obj, doPropertyPath, value);
+                propertyUtilsBean.setNestedProperty(feature, doPropertyPath, value);
             } else { // Dynamic
                 String dynamicPropertyPath = doPropertyPath.substring(doPropertyPath.indexOf('.') + 1);
                 // Property name in all cases (fragment or not)
@@ -368,7 +383,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     if (dynamicPropertyPath.contains(".")) {
                         String fragmentName = dynamicPropertyPath.substring(0, dynamicPropertyPath.indexOf('.'));
 
-                        Optional<AbstractAttribute<?>> opt = obj.getProperties().stream()
+                        Optional<AbstractAttribute<?>> opt = feature.getProperties().stream()
                                 .filter(p -> p.getName().equals(fragmentName)).findAny();
                         ObjectAttribute fragmentAtt = opt.isPresent() ? (ObjectAttribute) opt.get() : null;
                         if (fragmentAtt == null) {
@@ -376,15 +391,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         } else {
                             fragmentAtt.getValue().add(propAtt);
                         }
-                        obj.addProperty(fragmentAtt);
+                        feature.addProperty(fragmentAtt);
                     } else {
-                        obj.addProperty(propAtt);
+                        feature.addProperty(propAtt);
                     }
                 }
             }
         }
 
-        return obj;
+        return feature;
     }
 
     /**
