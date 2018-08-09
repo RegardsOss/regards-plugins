@@ -89,33 +89,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-            description = "Associated data source model name")
-    protected String modelName;
-
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
-            description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
-    private Set<String> subsettingTags;
-
-    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
-            label = "AIP property path",
-            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
-    private Map<String, String> bindingMap;
-
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
-
-    @Autowired
-    private IModelService modelService;
-
-    @Autowired
-    private IModelAttrAssocService modelAttrAssocService;
-
-    @Autowired
-    private IAipClient aipClient;
-
-    private Model model;
 
     /**
      * Association table between JSON path property and its type from model
@@ -130,6 +106,35 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     private final Map<String, List<String>> modelBindingMap = new HashMap<>();
 
     /**
+     * Initialize AIP properties resolver
+     */
+    private final PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
+
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
+            description = "Associated data source model name")
+    protected String modelName;
+
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
+            description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
+    private Set<String> subsettingTags;
+
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
+            label = "AIP property path",
+            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
+    private Map<String, String> bindingMap;
+
+    @Autowired
+    private IModelService modelService;
+
+    @Autowired
+    private IModelAttrAssocService modelAttrAssocService;
+
+    @Autowired
+    private IAipClient aipClient;
+
+    private Model model;
+
+    /**
      * Ingestion refresh rate in seconds
      */
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
@@ -141,11 +146,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             label = "Attribute model for RAW DATA files size",
             description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
-
-    /**
-     * Initialize AIP properties resolver
-     */
-    private final PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
 
     /**
      * Init method
@@ -267,7 +267,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     throw new PluginUtilsRuntimeException(e);
                 }
             }
-            return new PageImpl<>(list, pageable, list.size());
+            PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
+            return new PageImpl<>(list,
+                                  new PageRequest(new Long(responsePageMeta.getNumber()).intValue(),
+                                                  new Long(responsePageMeta.getSize()).intValue()),
+                                  responsePageMeta.getTotalElements());
         } else {
             throw new DataSourceException(
                     "Error while calling storage client (HTTP STATUS : " + responseEntity.getStatusCode());
