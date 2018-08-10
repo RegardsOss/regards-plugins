@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -43,13 +42,9 @@ import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAd
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.dam.service.entities.ICollectionService;
-import fr.cnes.regards.modules.dam.service.entities.IDatasetService;
 import fr.cnes.regards.modules.dam.service.models.IAttributeModelService;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
-import fr.cnes.regards.modules.indexer.service.IIndexerService;
-import fr.cnes.regards.modules.indexer.service.ISearchService;
 
 /**
  * Pseudo IT test used for initialisation of Validation
@@ -70,8 +65,6 @@ public class ValidationIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
 
     private static final String T_VIEW = "";
 
@@ -113,18 +106,6 @@ public class ValidationIT {
 
     @Autowired
     private IFragmentRepository fragRepo;
-
-    @Autowired
-    private IDatasetService dsService;
-
-    @Autowired
-    private ICollectionService collService;
-
-    @Autowired
-    private IIndexerService indexerService;
-
-    @Autowired
-    private ISearchService searchService;
 
     @Autowired
     private ICrawlerAndIngesterService datasetCrawlerService;
@@ -226,8 +207,7 @@ public class ValidationIT {
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -238,8 +218,7 @@ public class ValidationIT {
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     // private void buildModelAttributes() {

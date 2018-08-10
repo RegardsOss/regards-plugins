@@ -27,7 +27,6 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +83,6 @@ import fr.cnes.regards.modules.dam.service.models.IModelService;
 public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePluginTest.class);
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
 
     private static final String HELLO = "hello world from ";
 
@@ -183,8 +180,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.FROM_CLAUSE, "from\n\n\nT_TEST_PLUGIN_DATA_SOURCE")
                 .getParameters();
 
-        plgDBDataSource = PluginUtils.getPlugin(parameters, PostgreDataSourcePlugin.class,
-                                                Arrays.asList(PLUGIN_CURRENT_PACKAGE), pluginCacheMap);
+        plgDBDataSource = PluginUtils.getPlugin(parameters, PostgreDataSourcePlugin.class, pluginCacheMap);
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(plgDBDataSource.getDBConnection().testConnection());
@@ -275,11 +271,9 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         PluginConfiguration plgConf = PluginUtils.getPluginConfiguration(parameters,
-                                                                         DefaultPostgreConnectionPlugin.class,
-                                                                         Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+                                                                         DefaultPostgreConnectionPlugin.class);
         pluginCacheMap.put(plgConf.getId(),
-                           PluginUtils.getPlugin(plgConf, plgConf.getPluginClassName(),
-                                                 Arrays.asList(PLUGIN_CURRENT_PACKAGE), pluginCacheMap));
+                           PluginUtils.getPlugin(plgConf, plgConf.getPluginClassName(), pluginCacheMap));
         return plgConf;
     }
 

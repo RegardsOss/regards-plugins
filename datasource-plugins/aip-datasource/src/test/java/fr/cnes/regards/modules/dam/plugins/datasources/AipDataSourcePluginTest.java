@@ -77,8 +77,6 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
 // @Ignore("Fails sometimes on Jenkins i don't why and i am fed up with")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
     private static final String MODEL_FILE_NAME = "model.xml";
 
     private static final String MODEL_NAME = "model_1";
@@ -115,8 +113,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.TAGS, Lists.newArrayList("TOTO", "TITI"))
                 .addParameter(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
 
-        dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, Arrays.asList(PLUGIN_CURRENT_PACKAGE),
-                                         pluginCacheMap);
+        dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, pluginCacheMap);
 
     }
 

@@ -19,12 +19,10 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -58,8 +56,6 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsServiceI
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLConnectionTestWithService.class);
 
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
     @Value("${postgresql.datasource.host}")
     private String dbHost;
 
@@ -77,11 +73,6 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsServiceI
 
     @Autowired
     private IPluginService pluginService;
-
-    @Before
-    public void setUp() {
-        pluginService.addPluginPackage("fr.cnes.regards.modules.dam.plugins.datasources");
-    }
 
     @Test
     public void testPoolConnectionWithGetFirstPluginByType() throws ModuleException {
@@ -149,8 +140,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsServiceI
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(params, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(params, DefaultPostgreConnectionPlugin.class);
 
     }
 

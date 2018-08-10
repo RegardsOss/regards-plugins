@@ -78,17 +78,12 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
 
     @BeforeTransaction
     public void setTenant() {
-        runtimeTenantResolver.forceTenant(DEFAULT_TENANT);
+        runtimeTenantResolver.forceTenant(getDefaultTenant());
     }
 
     @Before
     public void init() throws ModuleException {
-        pluginService.addPluginPackage(ISecurityDelegation.class.getPackage().getName());
-        pluginService.addPluginPackage(CatalogSecurityDelegation.class.getPackage().getName());
-        PluginMetaData catalogSecuDelegMeta = PluginUtils
-                .createPluginMetaData(CatalogSecurityDelegation.class,
-                                      CatalogSecurityDelegation.class.getPackage().getName(),
-                                      ISecurityDelegation.class.getPackage().getName());
+        PluginMetaData catalogSecuDelegMeta = PluginUtils.createPluginMetaData(CatalogSecurityDelegation.class);
         catalogSecuDelegConf = new PluginConfiguration(catalogSecuDelegMeta, CATALOG_SECURITY_DELEGATION_LABEL);
         catalogSecuDelegConf = pluginService.savePluginConfiguration(catalogSecuDelegConf);
     }
@@ -98,13 +93,13 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         ISecurityDelegation toTest = pluginService.getPlugin(catalogSecuDelegConf.getId());
         // test while copnsidered admin
         // lets test with an ip id we have right in catalog
-        String catalogOk = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogOk = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
         Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(catalogOk)))
                 .thenReturn(new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK));
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an unknown ip id in catalog but known into storage
-        String catalogUnknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogUnknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
         AIPSession aipSession = new AIPSession();
         aipSession.setId("session 1");
@@ -121,7 +116,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         Assert.assertTrue("Plugin should have authorize the access to this aip because we are considered admin",
                           toTest.hasAccess(catalogUnknown));
         // lets test with an unknown ip id in storage and catalog
-        String unknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String unknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
         Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(unknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -131,7 +126,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an ip id we have right in catalog
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an ip id we don't have right in catalog
-        String catalogNok = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogNok = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
         Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(catalogNok)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.FORBIDDEN));

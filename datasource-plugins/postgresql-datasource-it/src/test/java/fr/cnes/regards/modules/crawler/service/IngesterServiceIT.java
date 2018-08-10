@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.crawler.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -82,11 +81,6 @@ import fr.cnes.regards.modules.storage.client.IAipClient;
 @ContextConfiguration(classes = { IngesterConfiguration.class })
 @ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
 public class IngesterServiceIT extends AbstractRegardsServiceIT {
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
-    // private static final String TENANT = "INGEST";
-    private static final String TENANT = DEFAULT_TENANT;
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
@@ -190,8 +184,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
@@ -202,8 +195,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
@@ -214,8 +206,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getAipDataSource() {
@@ -224,8 +215,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
                 .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap()).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, AipDataSourcePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, AipDataSourcePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -236,8 +226,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -262,12 +251,12 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(null);
 
-        tenantResolver.forceTenant(TENANT);
+        tenantResolver.forceTenant(getDefaultTenant());
 
-        if (esRepository.indexExists(TENANT)) {
-            esRepository.deleteAll(TENANT);
+        if (esRepository.indexExists(getDefaultTenant())) {
+            esRepository.deleteAll(getDefaultTenant());
         } else {
-            esRepository.createIndex(TENANT);
+            esRepository.createIndex(getDefaultTenant());
         }
 
         crawlerService.setConsumeOnlyMode(true);
@@ -285,8 +274,6 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
         modelRepository.deleteAll();
 
         pluginConfRepos.deleteAll();
-
-        pluginService.addPluginPackage("fr.cnes.regards.modules.dam.plugins.datasources");
 
         dataModel = new Model();
         dataModel.setName("model_1");
@@ -309,7 +296,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf);
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf

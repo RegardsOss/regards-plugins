@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -60,8 +59,6 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlConnectionPluginTest.class);
 
-    private static final String PLUGIN_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
     @Value("${postgresql.datasource.host}")
     private String dbHost;
 
@@ -82,7 +79,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
         IDBConnectionPlugin plgConn;
 
         plgConn = PluginUtils.getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
-                                        Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());
+                                        new HashMap<>());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(plgConn.testConnection());
@@ -93,8 +90,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     @Purpose("The system allows to define a connection to a data source")
     public void getPostGreSqlConnection() {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
-                           Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());
+                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -105,8 +101,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     @Test
     public void getMaxPoolSizeWithClose() throws InterruptedException, SQLException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
-                           Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());
+                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -119,8 +114,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     @Test
     public void getMaxPoolSizeWithoutClose() throws InterruptedException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
-                           Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());
+                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -142,8 +136,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, Arrays.asList(PLUGIN_PACKAGE),
-                           new HashMap<>());
+                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -181,8 +174,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, Arrays.asList(PLUGIN_PACKAGE),
-                           new HashMap<>());
+                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
         Assert.assertFalse(sqlConn.testConnection());

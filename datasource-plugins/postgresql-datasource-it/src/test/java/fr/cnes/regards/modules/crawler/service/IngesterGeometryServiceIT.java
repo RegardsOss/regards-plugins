@@ -19,7 +19,6 @@
 package fr.cnes.regards.modules.crawler.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -74,8 +73,6 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 @ContextConfiguration(classes = { IngesterGeometryConfiguration.class })
 @ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
 public class IngesterGeometryServiceIT {
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
 
     private static final String TENANT = "INGEST_GEO";
 
@@ -156,8 +153,7 @@ public class IngesterGeometryServiceIT {
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping)
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -168,8 +164,7 @@ public class IngesterGeometryServiceIT {
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -205,8 +200,6 @@ public class IngesterGeometryServiceIT {
 
         pluginConfRepos.deleteAll();
 
-        pluginService.addPluginPackage("fr.cnes.regards.modules.dam.plugins.datasources");
-
         dataModel = new Model();
         dataModel.setName("model_geom");
         dataModel.setType(EntityType.DATA);
@@ -228,7 +221,7 @@ public class IngesterGeometryServiceIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf);
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf

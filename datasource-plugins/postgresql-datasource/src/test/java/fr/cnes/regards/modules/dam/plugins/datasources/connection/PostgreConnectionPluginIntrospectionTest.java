@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +56,6 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsSer
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreConnectionPluginIntrospectionTest.class);
 
-    private static final String PLUGIN_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
     private static final String TABLE_NAME_TEST = "t_test_plugin_data_source";
 
     @Value("${postgresql.datasource.host}")
@@ -87,8 +84,7 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsSer
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        postgreDBConn = PluginUtils.getPlugin(parameters, DefaultPostgreConnectionPlugin.class,
-                                              Arrays.asList(PLUGIN_PACKAGE), new HashMap<>());
+        postgreDBConn = PluginUtils.getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(postgreDBConn.testConnection());

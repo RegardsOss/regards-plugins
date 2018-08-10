@@ -24,7 +24,6 @@ import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -49,7 +48,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.amqp.IPublisher;
-import fr.cnes.regards.framework.amqp.configuration.IRabbitVirtualHostAdmin;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -99,7 +97,6 @@ import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.indexer.service.ISearchService;
 import fr.cnes.regards.modules.indexer.service.Searches;
 
@@ -116,10 +113,6 @@ public class CrawlerIngestIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.dam.plugins.datasources";
-
-    private static final String PLUGIN_TEST_PACKAGE = "fr.cnes.regards.modules.crawler.service.ds.plugin";
 
     private static final String TABLE_NAME_TEST = "t_data";
 
@@ -153,9 +146,6 @@ public class CrawlerIngestIT {
     private IDatasetService dsService;
 
     @Autowired
-    private IIndexerService indexerService;
-
-    @Autowired
     private ISearchService searchService;
 
     @Autowired
@@ -180,9 +170,6 @@ public class CrawlerIngestIT {
 
     @Autowired
     private IPluginConfigurationRepository pluginConfRepos;
-
-    @Autowired
-    private IRabbitVirtualHostAdmin rabbitVhostAdmin;
 
     @Autowired
     private IPublisher publisher;
@@ -240,9 +227,6 @@ public class CrawlerIngestIT {
         modelRepository.deleteAll();
         extDataRepos.deleteAll();
 
-        pluginService.addPluginPackage(PLUGIN_CURRENT_PACKAGE);
-        pluginService.addPluginPackage(PLUGIN_TEST_PACKAGE);
-
         // Register model attributes
         dataModel = new Model();
         dataModel.setName("model_1" + System.currentTimeMillis());
@@ -265,7 +249,7 @@ public class CrawlerIngestIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf);
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -298,8 +282,7 @@ public class CrawlerIngestIT {
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -310,14 +293,13 @@ public class CrawlerIngestIT {
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
         return PluginUtils.getPluginConfiguration(Collections
                 .singletonList(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
-                                                  TestDsPlugin.class, Arrays.asList(PLUGIN_TEST_PACKAGE));
+                                                  TestDsPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -416,7 +398,7 @@ public class CrawlerIngestIT {
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
         try {
-            IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
+            crawlerService.ingest(dataSourceTestPluginConf, dsi);
             Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
         } catch (ExecutionException ee) {
             Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
