@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,6 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -89,33 +89,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-            description = "Associated data source model name")
-    protected String modelName;
-
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
-            description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
-    private Set<String> subsettingTags;
-
-    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
-            label = "AIP property path",
-            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
-    private Map<String, String> bindingMap;
-
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
-
-    @Autowired
-    private IModelService modelService;
-
-    @Autowired
-    private IModelAttrAssocService modelAttrAssocService;
-
-    @Autowired
-    private IAipClient aipClient;
-
-    private Model model;
 
     /**
      * Association table between JSON path property and its type from model
@@ -130,6 +106,35 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     private final Map<String, List<String>> modelBindingMap = new HashMap<>();
 
     /**
+     * Initialize AIP properties resolver
+     */
+    private final PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
+
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
+            description = "Associated data source model name")
+    protected String modelName;
+
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
+            description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
+    private Set<String> subsettingTags;
+
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
+            label = "AIP property path",
+            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
+    private Map<String, String> bindingMap;
+
+    @Autowired
+    private IModelService modelService;
+
+    @Autowired
+    private IModelAttrAssocService modelAttrAssocService;
+
+    @Autowired
+    private IAipClient aipClient;
+
+    private Model model;
+
+    /**
      * Ingestion refresh rate in seconds
      */
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
@@ -141,11 +146,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             label = "Attribute model for RAW DATA files size",
             description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
-
-    /**
-     * Initialize AIP properties resolver
-     */
-    private final PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
 
     /**
      * Init method
@@ -171,9 +171,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 // Manage dynamic properties
                 if (doPropertyPath.endsWith(DataSourcePluginConstants.LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey()
-                            .substring(0,
-                                       doPropertyPath.length() - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0,
+                                                               doPropertyPath.length()
+                                                                       - DataSourcePluginConstants.LOWER_BOUND_SUFFIX
+                                                                       .length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -184,9 +185,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     }
                 } else if (doPropertyPath.endsWith(DataSourcePluginConstants.UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey()
-                            .substring(0,
-                                       doPropertyPath.length() - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0,
+                                                               doPropertyPath.length()
+                                                                       - DataSourcePluginConstants.UPPER_BOUND_SUFFIX
+                                                                       .length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -231,12 +233,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                + " has to be mapped to exactly 2 values");
+                                                          + " has to be mapped to exactly 2 values");
                     }
                 } else {
                     if (entry.getValue().size() != 1) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                + " has to be mapped to a single value");
+                                                          + " has to be mapped to a single value");
                     }
                 }
             }
@@ -252,9 +254,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
         FeignSecurityManager.asSystem();
-        ResponseEntity<PagedResources<AipDataFiles>> responseEntity = aipClient
-                .retrieveAipDataFiles(AIPState.STORED, subsettingTags, date, pageable.getPageNumber(),
-                                      pageable.getPageSize());
+        ResponseEntity<PagedResources<AipDataFiles>> responseEntity = aipClient.retrieveAipDataFiles(AIPState.STORED,
+                                                                                                     subsettingTags,
+                                                                                                     date,
+                                                                                                     pageable.getPageNumber(),
+                                                                                                     pageable.getPageSize());
         FeignSecurityManager.reset();
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             List<DataObjectFeature> list = new ArrayList<>();
@@ -267,7 +271,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     throw new PluginUtilsRuntimeException(e);
                 }
             }
-            return new PageImpl<>(list, pageable, list.size());
+            PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
+            int pageSize = new Long(responsePageMeta.getSize()).intValue();
+            return new PageImpl<>(list,
+                                  new PageRequest(new Long(responsePageMeta.getNumber()).intValue(),
+                                                  pageSize == 0 ? 1 : pageSize),
+                                  responsePageMeta.getTotalElements());
         } else {
             throw new DataSourceException(
                     "Error while calling storage client (HTTP STATUS : " + responseEntity.getStatusCode());
@@ -292,19 +301,24 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             ContentInformation ci = cis.next();
             OAISDataObject oaisDo = ci.getDataObject();
             if (oaisDo.isReference()) {
-                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(),
+                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(),
+                                                   oaisDo.getFilename(),
                                                    oaisDo.getUrls().iterator().next().toURI(),
                                                    ci.getRepresentationInformation().getSyntax().getMimeType(),
-                                                   Boolean.TRUE, Boolean.TRUE);
+                                                   Boolean.TRUE,
+                                                   Boolean.TRUE);
                 feature.getFiles().put(dataFile.getDataType(), dataFile);
             }
         }
 
         // Add data files
         for (DataFileDto dataFileDto : aipDataFiles.getDataFiles()) {
-            DataFile dataFile = DataFile.build(dataFileDto.getDataType(), dataFileDto.getName(),
-                                               dataFileDto.getUrl().toURI(), dataFileDto.getMimeType(),
-                                               dataFileDto.isOnline(), Boolean.FALSE);
+            DataFile dataFile = DataFile.build(dataFileDto.getDataType(),
+                                               dataFileDto.getName(),
+                                               dataFileDto.getUrl().toURI(),
+                                               dataFileDto.getMimeType(),
+                                               dataFileDto.isOnline(),
+                                               Boolean.FALSE);
             // Fill optional fields
             dataFile.setFilesize(dataFileDto.getFileSize());
             dataFile.setDigestAlgorithm(dataFileDto.getAlgorithm());
@@ -360,8 +374,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                             propAtt = AttributeBuilder.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
                             String msg = String.format("Cannot map %s and to %s (values %s and %s)",
-                                                       lowerBoundPropertyPath, upperBoundPropertyPath, propName,
-                                                       lowerBound, upperBound);
+                                                       lowerBoundPropertyPath,
+                                                       upperBoundPropertyPath,
+                                                       propName,
+                                                       lowerBound,
+                                                       upperBound);
                             throw new RsRuntimeException(msg, e);
                         }
                     }
