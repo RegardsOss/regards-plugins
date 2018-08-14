@@ -340,10 +340,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
         // Tags
         if ((commonTags != null) && (commonTags.size() > 0)) {
-            feature.addTags(commonTags.toArray(new String[0]));
+            feature.addTags(commonTags.toArray(new String[commonTags.size()]));
         }
         if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
-            feature.addTags(aip.getTags().toArray(new String[0]));
+            feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
         }
         if (aip.getGeometry() != null) {
             feature.setGeometry(aip.getGeometry());
