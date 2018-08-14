@@ -345,6 +345,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
             feature.addTags(aip.getTags().toArray(new String[0]));
         }
+        if (aip.getGeometry() != null) {
+            feature.setGeometry(aip.getGeometry());
+        }
 
         // Binded properties
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
