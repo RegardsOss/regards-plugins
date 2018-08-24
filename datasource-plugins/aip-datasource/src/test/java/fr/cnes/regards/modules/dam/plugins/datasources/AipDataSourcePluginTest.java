@@ -152,6 +152,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
             builder.addDescriptiveInformation("HISTORY_LIST", Arrays
                     .asList("paris", "toulouse", "lyon", "nice", "bordeaux").stream().collect(Collectors.toList()));
             builder.addDescriptiveInformation("POUET", "POUET");
+            builder.addDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
 
             Map<String, String> dateBounds = new HashMap<>();
             dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
@@ -182,6 +183,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         map.put("properties.history", "properties.descriptiveInformation.HISTORY");
         map.put("properties.history_set", "properties.descriptiveInformation.HISTORY_SET");
         map.put("properties.history_list", "properties.descriptiveInformation.HISTORY_LIST");
+        map.put("properties.LINKS", "properties.descriptiveInformation.LINKS");
 
         // Date interval
         map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX,
@@ -209,6 +211,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         DataObjectFeature feature = page.getContent().get(0);
         Assert.assertEquals("libellé du data object 0", feature.getLabel());
         Assert.assertNotNull(feature.getProperty("START_DATE"));
+        Assert.assertNotNull(feature.getProperty("LINKS"));
         Assert.assertNotNull(feature.getProperty("ALTITUDE.MAX"));
         Assert.assertNull(feature.getProperty("ALTITUDE.MIN"));
         Assert.assertNotNull(feature.getTags());

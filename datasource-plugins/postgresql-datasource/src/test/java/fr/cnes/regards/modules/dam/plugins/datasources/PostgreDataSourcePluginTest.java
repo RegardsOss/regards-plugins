@@ -155,8 +155,8 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         repository.save(new DataSourceEntity("Toulouse", 110, 3.141592653589793238462643383279, -15.2323654654564654,
                 LocalDate.now().minusMonths(1), LocalTime.now().minusMinutes(10), LocalDateTime.now().plusHours(33),
                 OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusSeconds(22),
-                OffsetDateTime.now().minusSeconds(4464654).toString(), true, new URL("http", "localhost", ""),
-                "saturday"));
+                OffsetDateTime.now().minusSeconds(4464654).toString(), true,
+                new URL("https", "regardsv2", "html/polder/ADEOS1_POLDER1_L0.html"), "saturday"));
         repository.save(new DataSourceEntity("Paris", 350, -3.141592653589793238462643383279502884197169399375105,
                 25.565465465454564654654654, LocalDate.now().minusDays(10), LocalTime.now().minusHours(9),
                 LocalDateTime.now().minusMonths(2),
@@ -299,6 +299,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         attributesMapping
                 .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
         attributesMapping.add(new DynamicAttributeMapping("select", AttributeType.STRING, "descr"));
+        attributesMapping.add(new DynamicAttributeMapping("link", AttributeType.URL, "url"));
     }
 
 }
