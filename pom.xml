@@ -72,6 +72,11 @@
             <artifactId>postgresql-datasource</artifactId>
             <classifier>shaded</classifier>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
+            <artifactId>enhanced-descriptive-aip-generation</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
     </dependencies>
 
     <build>
