@@ -120,5 +120,6 @@
     <modules>
         <module>datasource-plugins</module>
         <module>storage-plugins</module>
+        <module>ingest-plugins</module>
     </modules>
 </project>
