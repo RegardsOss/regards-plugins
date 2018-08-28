@@ -20,4 +20,5 @@ CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdi
 	rm -f /regards-plugins/dam/postgresql-datasource-2*.jar && \
 	# then lets copy the jars 
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
-	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/
+	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
+	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/
