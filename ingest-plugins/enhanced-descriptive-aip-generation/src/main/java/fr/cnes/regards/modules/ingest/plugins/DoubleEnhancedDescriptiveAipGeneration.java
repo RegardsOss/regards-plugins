@@ -58,7 +58,7 @@ public class DoubleEnhancedDescriptiveAipGeneration implements IAipGeneration {
         COUNTER++;
         if (always || COUNTER % 2 == 0) {
             builder.addDescriptiveInformation("optional",
-                                              ThreadLocalRandom.current().doubles(Double.MIN_VALUE, Double.MAX_VALUE));
+                                              ThreadLocalRandom.current().nextDouble(Double.MIN_VALUE, Double.MAX_VALUE));
         }
         List<AIP> aips = new ArrayList<>();
         aips.add(aip);
