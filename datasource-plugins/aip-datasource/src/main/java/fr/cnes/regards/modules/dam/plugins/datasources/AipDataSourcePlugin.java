@@ -49,6 +49,7 @@ import org.springframework.http.ResponseEntity;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
@@ -72,6 +73,7 @@ import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
+import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 import fr.cnes.regards.modules.storage.domain.AIP;
@@ -346,7 +348,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
         }
         if (aip.getGeometry() != null) {
-            feature.setGeometry(aip.getGeometry());
+            feature.setGeometry(GeoHelper.normalize(aip.getGeometry()));
         }
 
         // Binded properties
