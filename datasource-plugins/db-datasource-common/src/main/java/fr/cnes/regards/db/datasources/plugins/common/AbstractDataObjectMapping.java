@@ -419,7 +419,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                     throw new IllegalArgumentException("Unsupported image extension for " + str);
                 }
             }
-            DataFile dataFile = DataFile.build(type, str, str, mimeType, Boolean.TRUE, Boolean.TRUE);
+            String filename = (str.contains("/")) ? str.substring(str.lastIndexOf('/') + 1): str;
+            DataFile dataFile = DataFile.build(type, filename, str, mimeType, Boolean.TRUE, Boolean.TRUE);
             dataObject.getFiles().put(type, dataFile);
         }
 
