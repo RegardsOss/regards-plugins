@@ -62,6 +62,10 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>spring-utils</artifactId>
+        </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>

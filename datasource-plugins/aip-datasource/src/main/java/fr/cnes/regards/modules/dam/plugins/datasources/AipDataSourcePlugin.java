@@ -347,6 +347,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
             feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
         }
+        // Needs also to normalize intial geometry (for Circle search with another than Wgs84 crs)
         if (aip.getGeometry() != null) {
             feature.setGeometry(GeoHelper.normalize(aip.getGeometry()));
         }
