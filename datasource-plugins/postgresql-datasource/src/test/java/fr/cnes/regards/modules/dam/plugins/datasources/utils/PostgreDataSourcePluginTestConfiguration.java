@@ -25,11 +25,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.hateoas.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 
 /**
  *
@@ -93,5 +97,19 @@ public class PostgreDataSourcePluginTestConfiguration {
     @Bean
     public IProjectUsersClient projectUsersClient() {
         return Mockito.mock(IProjectUsersClient.class);
+    }
+
+    @Bean
+    public IProjectsClient projectsClient() {
+        IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
+        Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
+            String tenant = invocation.getArgumentAt(0, String.class);
+            Project project = new Project();
+            project.setName(tenant);
+            project.setCrs("WGS_84");
+            project.setPoleToBeManaged(Boolean.FALSE);
+            return ResponseEntity.ok(new Resource<>(project));
+        });
+        return projectClient;
     }
 }
