@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 
@@ -43,6 +44,8 @@ import fr.cnes.regards.framework.amqp.ISubscriber;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 import fr.cnes.regards.modules.storage.domain.AIP;
 import fr.cnes.regards.modules.storage.domain.AIPState;
@@ -59,6 +62,20 @@ public class AipDataSourceConfiguration {
     @Bean
     public IAttributeModelClient attributeModelClient() {
         return Mockito.mock(IAttributeModelClient.class);
+    }
+
+    @Bean
+    public IProjectsClient projectsClient() {
+        IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
+        Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
+            String tenant = invocation.getArgumentAt(0, String.class);
+            Project project = new Project();
+            project.setName(tenant);
+            project.setCrs("WGS_84");
+            project.setPoleToBeManaged(Boolean.FALSE);
+            return ResponseEntity.ok(new Resource<Project>(project));
+        });
+        return projectClient;
     }
 
     @Bean
