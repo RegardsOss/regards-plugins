@@ -347,9 +347,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
             feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
         }
-        // Needs also to normalize intial geometry (for Circle search with another than Wgs84 crs)
+        // BEWARE:
+        // Initial geometry needs to be normalized (for Circle search with another than Wgs84 crs)
+        // BUT NOT NOW. Crawler needs to use initial one before transforming it to WGS84, not normalized one (in
+        // some cases, project transformation destroys normalization). This initial geometry will be normalized by
+        // crawler later
         if (aip.getGeometry() != null) {
-            feature.setGeometry(GeoHelper.normalize(aip.getGeometry()));
+            feature.setGeometry(aip.getGeometry());
         }
 
         // Binded properties
