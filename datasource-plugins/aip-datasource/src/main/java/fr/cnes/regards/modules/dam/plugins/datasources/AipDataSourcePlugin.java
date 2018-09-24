@@ -267,7 +267,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             LOGGER.error("AVANT : {}", multimap.get(tenant).size());
             int count = 0;
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
-                LOGGER.error(aipDataFiles.getAip().getId().toString());
                 multimap.put(tenant, aipDataFiles.getAip().getId().toString());
                 count++;
                 try {
