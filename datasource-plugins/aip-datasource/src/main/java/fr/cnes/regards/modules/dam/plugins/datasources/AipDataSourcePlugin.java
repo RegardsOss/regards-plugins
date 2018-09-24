@@ -48,6 +48,9 @@ import org.springframework.http.ResponseEntity;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -173,10 +176,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 // Manage dynamic properties
                 if (doPropertyPath.endsWith(DataSourcePluginConstants.LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey().substring(0,
-                                                               doPropertyPath.length()
-                                                                       - DataSourcePluginConstants.LOWER_BOUND_SUFFIX
-                                                                       .length());
+                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
+                            - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -187,10 +188,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     }
                 } else if (doPropertyPath.endsWith(DataSourcePluginConstants.UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey().substring(0,
-                                                               doPropertyPath.length()
-                                                                       - DataSourcePluginConstants.UPPER_BOUND_SUFFIX
-                                                                       .length());
+                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
+                            - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -252,19 +251,25 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         return refreshRate;
     }
 
+    private Multimap<String, String> multimap = HashMultimap.create();
+
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
         FeignSecurityManager.asSystem();
-        ResponseEntity<PagedResources<AipDataFiles>> responseEntity = aipClient.retrieveAipDataFiles(AIPState.STORED,
-                                                                                                     subsettingTags,
-                                                                                                     date,
-                                                                                                     pageable.getPageNumber(),
-                                                                                                     pageable.getPageSize());
+        ResponseEntity<PagedResources<AipDataFiles>> responseEntity = aipClient
+                .retrieveAipDataFiles(AIPState.STORED, subsettingTags, date, pageable.getPageNumber(),
+                                      pageable.getPageSize());
+
         FeignSecurityManager.reset();
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             List<DataObjectFeature> list = new ArrayList<>();
+            LOGGER.error("AVANT : {}", multimap.get(tenant).size());
+            int count = 0;
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
+                LOGGER.error(aipDataFiles.getAip().getId().toString());
+                multimap.put(tenant, aipDataFiles.getAip().getId().toString());
+                count++;
                 try {
                     list.add(buildFeature(aipDataFiles));
                 } catch (URISyntaxException e) {
@@ -273,11 +278,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     throw new PluginUtilsRuntimeException(e);
                 }
             }
+            LOGGER.error("APRES ajout de {} elements : {}", count, multimap.get(tenant).size());
+
             PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
-            int pageSize = new Long(responsePageMeta.getSize()).intValue();
+            int pageSize = (int) responsePageMeta.getSize();
+            LOGGER.error("PAGE n° {}/{}", responsePageMeta.getNumber(), pageSize);
             return new PageImpl<>(list,
-                                  new PageRequest(new Long(responsePageMeta.getNumber()).intValue(),
-                                                  pageSize == 0 ? 1 : pageSize),
+                                  new PageRequest((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
                                   responsePageMeta.getTotalElements());
         } else {
             throw new DataSourceException(
@@ -298,29 +305,22 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         Long rawDataFilesSize = 0L;
 
         // Add referenced files from raw AIP
-        Iterator<ContentInformation> cis = aip.getProperties().getContentInformations().iterator();
-        while (cis.hasNext()) {
-            ContentInformation ci = cis.next();
+        for (ContentInformation ci : aip.getProperties().getContentInformations()) {
             OAISDataObject oaisDo = ci.getDataObject();
             if (oaisDo.isReference()) {
-                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(),
-                                                   oaisDo.getFilename(),
+                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(),
                                                    oaisDo.getUrls().iterator().next().toURI(),
                                                    ci.getRepresentationInformation().getSyntax().getMimeType(),
-                                                   Boolean.TRUE,
-                                                   Boolean.TRUE);
+                                                   Boolean.TRUE, Boolean.TRUE);
                 feature.getFiles().put(dataFile.getDataType(), dataFile);
             }
         }
 
         // Add data files
         for (DataFileDto dataFileDto : aipDataFiles.getDataFiles()) {
-            DataFile dataFile = DataFile.build(dataFileDto.getDataType(),
-                                               dataFileDto.getName(),
-                                               dataFileDto.getUrl().toURI(),
-                                               dataFileDto.getMimeType(),
-                                               dataFileDto.isOnline(),
-                                               Boolean.FALSE);
+            DataFile dataFile = DataFile
+                    .build(dataFileDto.getDataType(), dataFileDto.getName(), dataFileDto.getUrl().toURI(),
+                           dataFileDto.getMimeType(), dataFileDto.isOnline(), Boolean.FALSE);
             // Fill optional fields
             dataFile.setFilesize(dataFileDto.getFileSize());
             dataFile.setDigestAlgorithm(dataFileDto.getAlgorithm());
@@ -383,12 +383,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         try {
                             propAtt = AttributeBuilder.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
-                            String msg = String.format("Cannot map %s and to %s (values %s and %s)",
-                                                       lowerBoundPropertyPath,
-                                                       upperBoundPropertyPath,
-                                                       propName,
-                                                       lowerBound,
-                                                       upperBound);
+                            String msg = String
+                                    .format("Cannot map %s and to %s (values %s and %s)", lowerBoundPropertyPath,
+                                            upperBoundPropertyPath, propName, lowerBound, upperBound);
                             throw new RsRuntimeException(msg, e);
                         }
                     }
