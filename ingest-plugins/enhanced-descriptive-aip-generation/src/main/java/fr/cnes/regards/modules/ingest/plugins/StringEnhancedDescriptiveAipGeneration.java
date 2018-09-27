@@ -22,8 +22,10 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
     @Override
     protected void addDescriptiveInformation(AIPBuilder builder) {
         builder.addDescriptiveInformation(descriptiveInfoName, value);
-        builder.addDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
-                                          secondDescriptiveInfo.getSecondValue());
+        if(secondDescriptiveInfo != null) {
+            builder.addDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
+                                              secondDescriptiveInfo.getSecondValue());
+        }
     }
 
     private class SecondDescriptiveInformation {
