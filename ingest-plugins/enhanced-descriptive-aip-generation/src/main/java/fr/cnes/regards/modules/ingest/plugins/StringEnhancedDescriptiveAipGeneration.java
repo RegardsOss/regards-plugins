@@ -1,5 +1,6 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
+import com.google.common.base.Strings;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.storage.domain.AIPBuilder;
@@ -22,7 +23,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
     @Override
     protected void addDescriptiveInformation(AIPBuilder builder) {
         builder.addDescriptiveInformation(descriptiveInfoName, value);
-        if(secondDescriptiveInfo != null) {
+        if(secondDescriptiveInfo != null && secondDescriptiveInfo.isInitialized()) {
             builder.addDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
                                               secondDescriptiveInfo.getSecondValue());
         }
@@ -53,6 +54,10 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
 
         public void setSecondValue(String secondValue) {
             this.secondValue = secondValue;
+        }
+
+        public boolean isInitialized() {
+            return !Strings.isNullOrEmpty(secondDescriptiveInfoName) && secondValue != null;
         }
     }
 }
