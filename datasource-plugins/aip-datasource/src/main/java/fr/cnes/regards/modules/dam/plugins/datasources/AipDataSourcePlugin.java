@@ -264,7 +264,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         FeignSecurityManager.reset();
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             List<DataObjectFeature> list = new ArrayList<>();
-            LOGGER.error("AVANT : {}", multimap.get(tenant).size());
             int count = 0;
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
                 multimap.put(tenant, aipDataFiles.getAip().getId().toString());
@@ -277,11 +276,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     throw new PluginUtilsRuntimeException(e);
                 }
             }
-            LOGGER.error("APRES ajout de {} elements : {}", count, multimap.get(tenant).size());
 
             PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
             int pageSize = (int) responsePageMeta.getSize();
-            LOGGER.error("PAGE n° {}/{}", responsePageMeta.getNumber(), pageSize);
             return new PageImpl<>(list,
                                   new PageRequest((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
                                   responsePageMeta.getTotalElements());
