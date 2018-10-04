@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,9 +49,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
-import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
@@ -66,7 +64,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IAipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
@@ -76,7 +73,6 @@ import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
-import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 import fr.cnes.regards.modules.storage.domain.AIP;
@@ -165,8 +161,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         List<ModelAttrAssoc> modelAttrAssocs = modelAttrAssocService.getModelAttrAssocs(modelName);
         // Fill map { "properties.titi.tutu", AttributeType.STRING }
         for (ModelAttrAssoc assoc : modelAttrAssocs) {
-            modelMappingMap.put(assoc.getAttribute().buildJsonPath(StaticProperties.FEATURE_PROPERTIES),
-                                assoc.getAttribute().getType());
+            modelMappingMap.put(assoc.getAttribute().getJsonPath(), assoc.getAttribute().getType());
         }
 
         // Build binding map considering interval double mapping
@@ -176,8 +171,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 // Manage dynamic properties
                 if (doPropertyPath.endsWith(DataSourcePluginConstants.LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
-                            - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey()
+                            .substring(0,
+                                       doPropertyPath.length() - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -188,8 +184,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     }
                 } else if (doPropertyPath.endsWith(DataSourcePluginConstants.UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
-                            - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey()
+                            .substring(0,
+                                       doPropertyPath.length() - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -234,12 +231,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                                          + " has to be mapped to exactly 2 values");
+                                + " has to be mapped to exactly 2 values");
                     }
                 } else {
                     if (entry.getValue().size() != 1) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                                          + " has to be mapped to a single value");
+                                + " has to be mapped to a single value");
                     }
                 }
             }
@@ -251,7 +248,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         return refreshRate;
     }
 
-    private Multimap<String, String> multimap = HashMultimap.create();
+    private final Multimap<String, String> multimap = HashMultimap.create();
 
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
@@ -280,8 +277,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
             int pageSize = (int) responsePageMeta.getSize();
             return new PageImpl<>(list,
-                                  new PageRequest((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
-                                  responsePageMeta.getTotalElements());
+                    new PageRequest((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
+                    responsePageMeta.getTotalElements());
         } else {
             throw new DataSourceException(
                     "Error while calling storage client (HTTP STATUS : " + responseEntity.getStatusCode());
@@ -314,9 +311,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
         // Add data files
         for (DataFileDto dataFileDto : aipDataFiles.getDataFiles()) {
-            DataFile dataFile = DataFile
-                    .build(dataFileDto.getDataType(), dataFileDto.getName(), dataFileDto.getUrl().toURI(),
-                           dataFileDto.getMimeType(), dataFileDto.isOnline(), Boolean.FALSE);
+            DataFile dataFile = DataFile.build(dataFileDto.getDataType(), dataFileDto.getName(),
+                                               dataFileDto.getUrl().toURI(), dataFileDto.getMimeType(),
+                                               dataFileDto.isOnline(), Boolean.FALSE);
             // Fill optional fields
             dataFile.setFilesize(dataFileDto.getFileSize());
             dataFile.setDigestAlgorithm(dataFileDto.getAlgorithm());
@@ -379,9 +376,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         try {
                             propAtt = AttributeBuilder.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
-                            String msg = String
-                                    .format("Cannot map %s and to %s (values %s and %s)", lowerBoundPropertyPath,
-                                            upperBoundPropertyPath, propName, lowerBound, upperBound);
+                            String msg = String.format("Cannot map %s and to %s (values %s and %s)",
+                                                       lowerBoundPropertyPath, upperBoundPropertyPath, propName,
+                                                       lowerBound, upperBound);
                             throw new RsRuntimeException(msg, e);
                         }
                     }
