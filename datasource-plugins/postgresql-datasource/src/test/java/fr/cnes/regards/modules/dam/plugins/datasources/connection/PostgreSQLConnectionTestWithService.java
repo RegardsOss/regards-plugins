@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -133,7 +134,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsServiceI
      * @return the {@link PluginConfiguration}
      */
     private PluginConfiguration getPostGreSqlConnectionConfiguration() {
-        final List<PluginParameter> params = PluginParametersFactory.build()
+        final Set<PluginParameter> params = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)

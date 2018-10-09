@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -104,7 +105,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Map<Long, Object> pluginCacheMap = new HashMap<>();
 
         // Instantiate the data source plugin
-        List<PluginParameter> parameters;
+        Set<PluginParameter> parameters;
         parameters = PluginParametersFactory.build()
                 .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap())
                 .addParameter(DataSourcePluginConstants.SUBSETTING_TAGS, Arrays.asList(MODEL_NAME))

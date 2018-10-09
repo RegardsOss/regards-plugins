@@ -24,8 +24,8 @@ import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.After;
@@ -275,7 +275,7 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
@@ -286,7 +286,7 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
@@ -297,8 +297,8 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(Collections
-                .singletonList(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
+        return PluginUtils.getPluginConfiguration(Sets
+                .newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
                                                   TestDsPlugin.class);
     }
 

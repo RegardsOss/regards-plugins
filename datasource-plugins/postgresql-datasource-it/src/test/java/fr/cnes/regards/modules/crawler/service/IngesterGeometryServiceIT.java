@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.crawler.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -146,7 +147,7 @@ public class IngesterGeometryServiceIT {
     private IEsRepository esRepository;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
@@ -157,7 +158,7 @@ public class IngesterGeometryServiceIT {
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)

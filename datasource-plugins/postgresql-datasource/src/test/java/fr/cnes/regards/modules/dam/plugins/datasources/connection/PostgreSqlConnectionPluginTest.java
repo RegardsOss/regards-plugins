@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -128,7 +128,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void getMaxPoolSizeWithCloseByThread() throws InterruptedException, SQLException {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
@@ -166,7 +166,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void getPostGreSqlConnectionError() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
@@ -180,8 +180,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
         Assert.assertFalse(sqlConn.testConnection());
     }
 
-    private List<PluginParameter> getPostGreSqlParameters() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+    private Set<PluginParameter> getPostGreSqlParameters() {
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)

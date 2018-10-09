@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -177,7 +178,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     private IAipClient aipClient;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
@@ -188,7 +189,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     }
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
@@ -199,7 +200,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     }
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
@@ -210,7 +211,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     }
 
     private PluginConfiguration getAipDataSource() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "model_1")
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
                 .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap()).getParameters();
@@ -219,7 +220,7 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
