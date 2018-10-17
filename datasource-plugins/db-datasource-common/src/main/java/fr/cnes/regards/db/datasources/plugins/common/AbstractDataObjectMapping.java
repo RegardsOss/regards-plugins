@@ -110,7 +110,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
     private static final OffsetDateTime INIT_DATE = OffsetDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     @Autowired
-    private static Gson gson;
+    private Gson gson;
 
     /**
      * A default value to indicates that the count request should be execute
@@ -229,7 +229,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @throws SQLException an SQL error occurred
      */
     private void countItems(Statement pStatement, String pCountRequest) throws SQLException {
-        if ((pCountRequest != null) && !pCountRequest.isEmpty() && (nbItems == RESET_COUNT)) {
+        if (pCountRequest != null && !pCountRequest.isEmpty() && nbItems == RESET_COUNT) {
             // Execute the request to count the elements
             try (ResultSet rsCount = pStatement.executeQuery(pCountRequest)) {
                 if (rsCount.next()) {
@@ -288,7 +288,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         feature.setProperties(attributes);
 
         // Add common tags
-        if ((commonTags != null) && (commonTags.size() > 0)) {
+        if (commonTags != null && commonTags.size() > 0) {
             feature.addTags(commonTags.toArray(new String[0]));
         }
 
@@ -333,8 +333,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             return null;
         }
 
-        if (LOG.isDebugEnabled() && (attr != null)) {
-            if ((attrMapping.getName() != null) && attrMapping.getName().equals(attrMapping.getNameDS())) {
+        if (LOG.isDebugEnabled() && attr != null) {
+            if (attrMapping.getName() != null && attrMapping.getName().equals(attrMapping.getNameDS())) {
                 LOG.debug("the value for <" + attrMapping.getName() + "> of type <" + attrMapping.getType() + "> is :"
                         + attr.getValue());
 
@@ -419,7 +419,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                     throw new IllegalArgumentException("Unsupported image extension for " + str);
                 }
             }
-            String filename = (str.contains("/")) ? str.substring(str.lastIndexOf('/') + 1): str;
+            String filename = str.contains("/") ? str.substring(str.lastIndexOf('/') + 1) : str;
             DataFile dataFile = DataFile.build(type, filename, str, mimeType, Boolean.TRUE, Boolean.TRUE);
             dataObject.getFiles().put(type, dataFile);
         }
@@ -510,7 +510,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         attributesMapping.forEach(d -> {
-            if ((0 > d.getNameDS().toLowerCase().lastIndexOf(AS)) && !d.isPrimaryKey()) {
+            if (0 > d.getNameDS().toLowerCase().lastIndexOf(AS) && !d.isPrimaryKey()) {
                 columns.add(d.getNameDS() + BLANK + AS + d.getName() + "_");
             } else {
                 columns.add(d.getNameDS());
