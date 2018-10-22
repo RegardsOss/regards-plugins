@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -77,7 +77,7 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsSer
 
     @Before
     public void setUp() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -200,7 +201,7 @@ public class ValidationIT {
     // }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
                 .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
@@ -211,7 +212,7 @@ public class ValidationIT {
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
@@ -297,7 +298,7 @@ public class ValidationIT {
         // pluginService.addPluginPackage(IComputedAttribute.class.getPackage().getName());
         // pluginService.addPluginPackage(CountPlugin.class.getPackage().getName());
         // // conf for "count"
-        // final List<PluginParameter> parameters = PluginParametersFactory.build()
+        // final Set<PluginParameter> parameters = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "count").getParameters();
         //
         // // Emulate plugin annotation (user will create an annotation)
@@ -314,7 +315,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confCount);
         //
         // // create a pluginConfiguration with a label for start_date
-        // final List<PluginParameter> parametersMin = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersMin = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "start_date").getParameters();
         // final PluginMetaData metadataMin = new PluginMetaData();
         // metadataMin.setPluginId("MinDateComputePlugin");
@@ -328,7 +329,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confMin);
         //
         // // create a pluginConfiguration with a label for end_date
-        // final List<PluginParameter> parametersMax = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersMax = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "end_date").getParameters();
         // final PluginMetaData metadataMax = new PluginMetaData();
         // metadataMax.setPluginId("MaxDateComputePlugin");
@@ -342,7 +343,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confMax);
         //
         // // create a pluginConfiguration with a label for value_l1
-        // final List<PluginParameter> parametersInteger = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersInteger = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "values_l1_sum").getParameters();
         // final PluginMetaData metadataLong = new PluginMetaData();
         // metadataLong.setPluginId("LongSumComputePlugin");

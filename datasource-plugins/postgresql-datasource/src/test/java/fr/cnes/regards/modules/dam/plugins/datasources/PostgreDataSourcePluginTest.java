@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -172,8 +173,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         /*
          * Instantiate the data source plugin
          */
-        List<PluginParameter> parameters;
-        parameters = PluginParametersFactory.build()
+        Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, getPostgreConnectionConfiguration())
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, attributesMapping)
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST)
@@ -263,7 +263,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      * @return the {@link PluginConfiguration} @
      */
     private PluginConfiguration getPostgreConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
