@@ -75,7 +75,6 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
  */
 @ContextConfiguration(classes = { AipDataSourceConfiguration.class })
 @TestPropertySource("classpath:aip-datasource-test.properties")
-// @Ignore("Fails sometimes on Jenkins i don't why and i am fed up with")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final String MODEL_FILE_NAME = "model.xml";
