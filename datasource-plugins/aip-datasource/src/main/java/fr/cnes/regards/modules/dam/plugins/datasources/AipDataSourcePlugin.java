@@ -261,10 +261,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         FeignSecurityManager.reset();
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             List<DataObjectFeature> list = new ArrayList<>();
-            int count = 0;
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
                 multimap.put(tenant, aipDataFiles.getAip().getId().toString());
-                count++;
                 try {
                     list.add(buildFeature(aipDataFiles));
                 } catch (URISyntaxException e) {
