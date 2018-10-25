@@ -77,6 +77,12 @@
             <artifactId>enhanced-descriptive-aip-generation</artifactId>
             <classifier>shaded</classifier>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.acquisition.plugins</groupId>
+            <artifactId>microscope</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -126,5 +132,6 @@
         <module>datasource-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
+        <module>acquisition-plugins</module>
     </modules>
 </project>
