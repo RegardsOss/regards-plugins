@@ -9,6 +9,8 @@ ADD aip-datasource-3.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-3.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
 ADD enhanced-descriptive-aip-generation-3.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+# Data provider
+ADD microscope-3.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -21,4 +23,5 @@ CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdi
 	# then lets copy the jars 
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
-	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/
+	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/ && \
+	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/
