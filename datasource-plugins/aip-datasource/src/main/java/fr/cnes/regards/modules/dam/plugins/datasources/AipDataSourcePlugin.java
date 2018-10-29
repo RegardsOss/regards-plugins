@@ -58,6 +58,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.ContentInformation;
 import fr.cnes.regards.framework.oais.OAISDataObject;
 import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -263,14 +264,17 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             List<DataObjectFeature> list = new ArrayList<>();
             int count = 0;
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
-                multimap.put(tenant, aipDataFiles.getAip().getId().toString());
-                count++;
-                try {
-                    list.add(buildFeature(aipDataFiles));
-                } catch (URISyntaxException e) {
-                    throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    throw new PluginUtilsRuntimeException(e);
+                // rs-storage stores all kinds of entity, we only want data here.
+                if(aipDataFiles.getAip().getIpType() == EntityType.DATA) {
+                    multimap.put(tenant, aipDataFiles.getAip().getId().toString());
+                    count++;
+                    try {
+                        list.add(buildFeature(aipDataFiles));
+                    } catch (URISyntaxException e) {
+                        throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
+                    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        throw new PluginUtilsRuntimeException(e);
+                    }
                 }
             }
 
