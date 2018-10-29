@@ -29,7 +29,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
         }
     }
 
-    private class SecondDescriptiveInformation {
+    private static class SecondDescriptiveInformation {
 
         @PluginParameter(label = "Second descriptive information to add")
         private String secondDescriptiveInfoName;
