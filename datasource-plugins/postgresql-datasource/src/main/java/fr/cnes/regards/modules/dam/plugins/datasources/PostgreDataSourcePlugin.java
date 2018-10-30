@@ -32,11 +32,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDBDataSourcePlugin;
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
@@ -101,6 +103,7 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
         return sqlFromClause;
     }
 
+    @Override
     public int getRefreshRate() {
         return refreshRate;
     }
@@ -110,5 +113,10 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
             throws SQLException {
         OffsetDateTime date = buildOffsetDateTime(rs, colName);
         return AttributeBuilder.buildDate(attrName, date);
+    }
+
+    @Override
+    protected String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date) throws DataSourceException {
+        return OffsetDateTimeAdapter.format(date);
     }
 }
