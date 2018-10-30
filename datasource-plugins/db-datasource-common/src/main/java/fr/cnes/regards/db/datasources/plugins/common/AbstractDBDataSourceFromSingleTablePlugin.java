@@ -68,17 +68,14 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     /**
      * The description of the {@link Table} used by this {@link Plugin} to requests the database.
      */
-    private TableDescription tableDescription;
+    protected TableDescription tableDescription;
 
     /**
      * Map { column name -> Column}
      */
     private Map<String, Column> columnTypeMap;
 
-    /**
-     *
-     */
-    private SqlGenerator sqlGenerator;
+    protected SqlGenerator sqlGenerator;
 
     protected abstract SqlGenerator buildSqlGenerator();
 
@@ -159,7 +156,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     protected String getSelectRequest(Pageable pPageable, OffsetDateTime pDate) {
         String selectRequest = sqlGenerator.selectAll(tableDescription, pPageable);
 
-        if ((pDate != null) && !getLastUpdateAttributeName().isEmpty()) {
+        if (pDate != null && !getLastUpdateAttributeName().isEmpty()) {
 
             if (selectRequest.contains(WHERE)) {
                 // Add at the beginning of the where clause
@@ -191,7 +188,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     }
 
     protected String getCountRequest(OffsetDateTime pDate) {
-        if ((pDate == null) || getLastUpdateAttributeName().isEmpty()) {
+        if (pDate == null || getLastUpdateAttributeName().isEmpty()) {
             return sqlGenerator.count(tableDescription);
         } else {
             return sqlGenerator.count(tableDescription) + WHERE
@@ -217,7 +214,5 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             LOG.error("Unable to obtain a database connection.", e);
             throw new DataSourceException("Unable to obtain a database connection.", e);
         }
-
     }
-
 }
