@@ -35,11 +35,13 @@ import org.slf4j.LoggerFactory;
 import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDBDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
@@ -140,6 +142,11 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
         }
 
         return AttributeBuilder.buildDate(attrName, ldt);
+    }
+
+    @Override
+    protected String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date) throws DataSourceException {
+        return OffsetDateTimeAdapter.format(date);
     }
 
     @Override

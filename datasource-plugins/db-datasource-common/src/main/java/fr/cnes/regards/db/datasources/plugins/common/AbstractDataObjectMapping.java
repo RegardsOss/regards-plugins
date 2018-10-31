@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -52,7 +51,6 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
-import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.DataType;
@@ -103,11 +101,6 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * A comma used to build the select clause
      */
     private static final String COMMA = ",";
-
-    /**
-     * A default date
-     */
-    private static final OffsetDateTime INIT_DATE = OffsetDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     @Autowired
     private Gson gson;
@@ -452,20 +445,17 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param date the date to be used for building date filter
      * @return the SQL request with a from clause to filter the result since a date
      */
-    private String buildDateStatement(String request, OffsetDateTime date) {
+    private String buildDateStatement(String request, OffsetDateTime date) throws DataSourceException {
         // Any attribute is defined in the mapping for compare the date, return
         if (getLastUpdateAttributeName().isEmpty()) {
             return request;
         }
-
-        // if any date is defined, replace the keyword and used the first existing date
-        if (date == null) {
-            return request.replaceAll(LAST_MODIFICATION_DATE_KEYWORD, OffsetDateTimeAdapter.format(INIT_DATE));
-        } else {
-            return request.replaceAll(LAST_MODIFICATION_DATE_KEYWORD,
-                                      getLastUpdateAttributeName() + "> '" + OffsetDateTimeAdapter.format(date) + "'");
-        }
+        return request.replaceAll(LAST_MODIFICATION_DATE_KEYWORD, getLastUpdateAttributeName() + " > '"
+                + getLastUpdateValue(getLastUpdateAttributeName(), date) + "'");
     }
+
+    protected abstract String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date)
+            throws DataSourceException;
 
     /**
      * This method reset the number of data element from the database.<br>
