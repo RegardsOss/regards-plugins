@@ -35,9 +35,9 @@ public class PostgreSqlGenerator extends SqlGenerator {
      */
     private String orderByTable;
 
-    public PostgreSqlGenerator(String pAllColumnsClause, String pOrderTable) {
-        super(pAllColumnsClause);
-        this.orderByTable = pOrderTable;
+    public PostgreSqlGenerator(String allColumnsClause, String orderTable) {
+        super(allColumnsClause);
+        this.orderByTable = orderTable;
     }
 
     public PostgreSqlGenerator() {
@@ -45,14 +45,14 @@ public class PostgreSqlGenerator extends SqlGenerator {
     }
 
     @Override
-    protected String limitClause(Pageable pPage) {
-        int offset = pPage.getPageNumber() * pPage.getPageSize();
+    protected String limitClause(Pageable page) {
+        int offset = page.getPageNumber() * page.getPageSize();
 
         if (orderByTable != null && !orderByTable.isEmpty()) {
-            return String.format(" ORDER BY %s LIMIT %d OFFSET %d", orderByTable, pPage.getPageSize(), offset);
+            return String.format(" ORDER BY %s LIMIT %d OFFSET %d", orderByTable, page.getPageSize(), offset);
 
         } else {
-            return String.format(" LIMIT %d OFFSET %d", pPage.getPageSize(), offset);
+            return String.format(" LIMIT %d OFFSET %d", page.getPageSize(), offset);
         }
 
     }

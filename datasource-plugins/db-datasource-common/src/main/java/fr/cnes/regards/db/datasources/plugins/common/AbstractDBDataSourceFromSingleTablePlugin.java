@@ -82,19 +82,19 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
 
     protected abstract SqlGenerator buildSqlGenerator();
 
-    protected abstract SqlGenerator buildSqlGenerator(String pAllColumnsClause, String pOrderBy);
+    protected abstract SqlGenerator buildSqlGenerator(String allColumnsClause, String orderBy);
 
     /**
      * This method initialize the {@link SqlGenerator} used to request the database.<br>
-     * @param pTable the table used to requests the database
+     * @param table the table used to requests the database
      */
     @Override
-    public void initializePluginMapping(String pTable) {
+    public void initializePluginMapping(String table) {
 
         // reset the number of data element hosted by the datasource
         this.reset();
 
-        tableDescription = new TableDescription(pTable, null, orderByColumn);
+        tableDescription = new TableDescription(table, null, orderByColumn);
 
         if (columns.isEmpty()) {
             sqlGenerator = buildSqlGenerator();
@@ -156,10 +156,10 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
      * Add the key word "%last_modification_date%" in the WHERE clause.
      * @return the SELECT request
      */
-    protected String getSelectRequest(Pageable pPageable, OffsetDateTime pDate) {
-        String selectRequest = sqlGenerator.selectAll(tableDescription, pPageable);
+    protected String getSelectRequest(Pageable pageable, OffsetDateTime date) {
+        String selectRequest = sqlGenerator.selectAll(tableDescription, pageable);
 
-        if ((pDate != null) && !getLastUpdateAttributeName().isEmpty()) {
+        if ((date != null) && !getLastUpdateAttributeName().isEmpty()) {
 
             if (selectRequest.contains(WHERE)) {
                 // Add at the beginning of the where clause
@@ -190,8 +190,8 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
         return selectRequest;
     }
 
-    protected String getCountRequest(OffsetDateTime pDate) {
-        if ((pDate == null) || getLastUpdateAttributeName().isEmpty()) {
+    protected String getCountRequest(OffsetDateTime date) {
+        if ((date == null) || getLastUpdateAttributeName().isEmpty()) {
             return sqlGenerator.count(tableDescription);
         } else {
             return sqlGenerator.count(tableDescription) + WHERE
