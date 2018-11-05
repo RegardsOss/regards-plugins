@@ -19,11 +19,7 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -48,27 +44,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.util.MimeType;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.Gson;
 
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.Table;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.DateAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.StringAttribute;
-import fr.cnes.regards.modules.entities.domain.attribute.builder.AttributeBuilder;
-import fr.cnes.regards.modules.entities.domain.converter.GeometryAdapter;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.Table;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.DateAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.StringAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
  * This class allows to process a SQL request to a SQL Database.</br>
@@ -110,7 +109,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     private static final OffsetDateTime INIT_DATE = OffsetDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    private static final GeometryAdapter<?> GEOMETRY_ADAPTER = new GeometryAdapter<>();
+    @Autowired
+    private Gson gson;
 
     /**
      * A default value to indicates that the count request should be execute
@@ -160,7 +160,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * Get {@link DateAttribute}.
      * @param rs the {@link ResultSet}
      * @param attrName the attribute name
-     * àparam attrDSName the column name in the external data source
+     *            àparam attrDSName the column name in the external data source
      * @param colName the column name in the {@link ResultSet}
      * @return a new {@link DateAttribute}
      * @throws SQLException if an error occurs in the {@link ResultSet}
@@ -192,9 +192,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param sinceDate a {@link Date} used to apply returns the {@link DataObject} update or create after this date
      * @return a page of {@link DataObject}
      */
-    protected Page<DataObject> findAll(String tenant, Connection ctx, String inSelectRequest, String inCountRequest,
-            Pageable pageable, OffsetDateTime sinceDate) throws DataSourceException {
-        List<DataObject> dataObjects = new ArrayList<>();
+    protected Page<DataObjectFeature> findAll(String tenant, Connection ctx, String inSelectRequest,
+            String inCountRequest, Pageable pageable, OffsetDateTime sinceDate) throws DataSourceException {
+        List<DataObjectFeature> features = new ArrayList<>();
 
         try (Statement statement = ctx.createStatement()) {
 
@@ -211,7 +211,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             // Execute the request to get the elements
             try (ResultSet rs = statement.executeQuery(selectRequest)) {
                 while (rs.next()) {
-                    dataObjects.add(processResultSet(rs, this.model, tenant));
+                    features.add(processResultSet(rs, this.model, tenant));
                 }
             }
             countItems(statement, countRequest);
@@ -219,7 +219,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             LOG.error("Error while retrieving or counting datasource elements", e);
             throw new DataSourceException("Error while retrieving or counting datasource elements", e);
         }
-        return new PageImpl<>(dataObjects, pageable, nbItems);
+        return new PageImpl<>(features, pageable, nbItems);
     }
 
     /**
@@ -229,7 +229,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @throws SQLException an SQL error occurred
      */
     private void countItems(Statement pStatement, String pCountRequest) throws SQLException {
-        if ((pCountRequest != null) && !pCountRequest.isEmpty() && (nbItems == RESET_COUNT)) {
+        if (pCountRequest != null && !pCountRequest.isEmpty() && nbItems == RESET_COUNT) {
             // Execute the request to count the elements
             try (ResultSet rsCount = pStatement.executeQuery(pCountRequest)) {
                 if (rsCount.next()) {
@@ -245,12 +245,13 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return the {@link DataObject} created
      * @throws SQLException An SQL error occurred
      */
-    protected DataObject processResultSet(ResultSet rset, Model model, String tenant)
+    protected DataObjectFeature processResultSet(ResultSet rset, Model model, String tenant)
             throws SQLException, DataSourceException {
-        final DataObject data = new DataObject(model, tenant, null);
 
-        final Set<AbstractAttribute<?>> attributes = new HashSet<>();
-        final Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
+        DataObjectFeature feature = new DataObjectFeature(tenant, "providerIdPlaceHolder", "labelPlaceHolder");
+
+        Set<AbstractAttribute<?>> attributes = new HashSet<>();
+        Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
 
         /**
          * Loop the attributes in the mapping
@@ -261,7 +262,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             if (attr != null) {
                 if (attrMapping.isMappedToStaticProperty()) {
                     // static attribute mapping
-                    processStaticAttributes(data, attr, attrMapping);
+                    processStaticAttributes(feature, attr, attrMapping);
                 } else {
                     // dynamic attribute mapping
                     if (!Strings.isNullOrEmpty(attrMapping.getNameSpace())) {
@@ -281,17 +282,17 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         /**
          * For each name space, add an ObjectAttribute to the list of attribute
          */
-        spaceNames.forEach((pName, pAttrs) -> {
-            attributes
-                    .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()])));
-        });
+        spaceNames.forEach((pName, pAttrs) -> attributes
+                .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()]))));
 
-        data.setProperties(attributes);
+        feature.setProperties(attributes);
 
         // Add common tags
-        data.getTags().addAll(commonTags);
+        if (commonTags != null && commonTags.size() > 0) {
+            feature.addTags(commonTags.toArray(new String[0]));
+        }
 
-        return data;
+        return feature;
     }
 
     /**
@@ -332,8 +333,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             return null;
         }
 
-        if (LOG.isDebugEnabled() && (attr != null)) {
-            if ((attrMapping.getName() != null) && attrMapping.getName().equals(attrMapping.getNameDS())) {
+        if (LOG.isDebugEnabled() && attr != null) {
+            if (attrMapping.getName() != null && attrMapping.getName().equals(attrMapping.getNameDS())) {
                 LOG.debug("the value for <" + attrMapping.getName() + "> of type <" + attrMapping.getType() + "> is :"
                         + attr.getValue());
 
@@ -368,7 +369,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             if (isPrimaryKey) {
                 colName = attrDataSourceName;
             } else {
-                colName = attrName;
+                colName = attrName + "_";
             }
         }
 
@@ -389,61 +390,53 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param attr the current {@link AbstractAttribute} to analyze
      * @param attrMapping the {@link AbstractAttributeMapping} for the current attribute
      */
-    private void processStaticAttributes(DataObject dataObject, AbstractAttribute<?> attr,
+    private void processStaticAttributes(DataObjectFeature dataObject, AbstractAttribute<?> attr,
             AbstractAttributeMapping attrMapping) {
         if (attrMapping.isPrimaryKey()) {
             String val = attr.getValue().toString();
-            dataObject.setSipId(val);
+            dataObject.setProviderId(val);
         }
+
+        // Manage files
         if (attrMapping.isRawData() || attrMapping.isThumbnail()) {
             String str = ((StringAttribute) attr).getValue();
-            try {
-                DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
-                Collection<DataFile> dataFiles = dataObject.getFiles().get(type);
-                // When external mapping, only one file per type is authorized so dataFiles is a singleton or empty
-                DataFile dataFile = dataFiles.isEmpty() ? new DataFile() : dataFiles.iterator().next();
-                dataFile.setUri(new URI(str));
-                // No check that uri is truly available
-                dataFile.setOnline(true);
-                // No need to re-put data file if it already exist
-                if (dataFiles.isEmpty()) {
-                    dataObject.getFiles().put(type, dataFile);
+            // Compute data type
+            DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
+            // Compute mime type
+            MimeType mimeType;
+            if (attrMapping.isRawData()) {
+                mimeType = MediaType.APPLICATION_OCTET_STREAM;
+            } else {
+                // Detect mime type according to extension for THUMBNAIL
+                if (str.endsWith(".PNG") || str.endsWith(".png")) {
+                    mimeType = MediaType.IMAGE_PNG;
+                } else if (str.endsWith(".GIF") || str.endsWith(".gif")) {
+                    mimeType = MediaType.IMAGE_GIF;
+                } else if (str.endsWith(".JPG") || str.endsWith(".jpg") || str.endsWith(".JPEG")
+                        || str.endsWith(".jpeg")) {
+                    mimeType = MediaType.IMAGE_JPEG;
+                } else {
+                    throw new IllegalArgumentException("Unsupported image extension for " + str);
                 }
-            } catch (URISyntaxException e) {
-                LOG.error(e.getMessage(), e);
             }
+            String filename = str.contains("/") ? str.substring(str.lastIndexOf('/') + 1) : str;
+            DataFile dataFile = DataFile.build(type, filename, str, mimeType, Boolean.TRUE, Boolean.TRUE);
+            dataObject.getFiles().put(type, dataFile);
         }
-        /*        if (attrMapping.isRawDataSize()) {
-            Long size = ((LongAttribute) attr).getValue();
-            Collection<DataFile> rawDatas = dataObject.getFiles().get(DataType.RAWDATA);
-            // When external mapping, only one file per type is authorized so dataFiles is a singleton or empty
-            DataFile dataFile = rawDatas.isEmpty() ? new DataFile() : rawDatas.iterator().next();
-            dataFile.setSize(size);
-            // No need to re-put data file if it already exist
-            if (rawDatas.isEmpty()) {
-                dataObject.getFiles().put(DataType.RAWDATA, dataFile);
-            }
-        }*/
-        if (attrMapping.isLastUpdate()) {
-            dataObject.setLastUpdate((OffsetDateTime) attr.getValue());
-        }
+
         if (attrMapping.isLabel()) {
             dataObject.setLabel(((StringAttribute) attr).getValue());
         }
         if (attrMapping.isGeometry()) {
             String str = ((StringAttribute) attr).getValue();
-            try {
-                dataObject.setGeometry(GEOMETRY_ADAPTER.read(new JsonReader(new StringReader(str))));
-            } catch (IOException ioe) {
-                LOG.error("Unable to deserialize geometry : " + str, ioe);
-            }
+            dataObject.setGeometry(gson.fromJson(str, IGeometry.class));
         }
     }
 
     /**
      * Build the select clause with the {@link List} of columns used for the mapping.
-     * @param columns the comulns used for the mapping
-     * @return a {@link String} withe the columns separated by a comma
+     * @param columns the columns used for the mapping
+     * @return a {@link String} with the columns separated by a comma
      */
     protected String buildColumnClause(String... columns) {
         StringBuilder clauseStr = new StringBuilder();
@@ -517,8 +510,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         attributesMapping.forEach(d -> {
-            if ((0 > d.getNameDS().toLowerCase().lastIndexOf(AS)) && !d.isPrimaryKey()) {
-                columns.add(d.getNameDS() + BLANK + AS + d.getName());
+            if (0 > d.getNameDS().toLowerCase().lastIndexOf(AS) && !d.isPrimaryKey()) {
+                columns.add(d.getNameDS() + BLANK + AS + d.getName() + "_");
             } else {
                 columns.add(d.getNameDS());
             }

@@ -31,13 +31,14 @@ import org.springframework.data.domain.Pageable;
 
 import com.nurkiewicz.jdbcrepository.TableDescription;
 import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
+
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.modules.datasources.domain.Column;
-import fr.cnes.regards.modules.datasources.domain.Table;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.entities.domain.DataObject;
+import fr.cnes.regards.modules.dam.domain.datasources.Column;
+import fr.cnes.regards.modules.dam.domain.datasources.Table;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 
 /**
  * A {@link Plugin} to discover the tables and columns of a SQL Database and to retrieve the data elements of a specific
@@ -164,20 +165,20 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
                 // Add at the beginning of the where clause
                 int pos = selectRequest.indexOf(WHERE);
                 selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + AND + selectRequest
-                        .substring(pos + WHERE.length(), selectRequest.length());
+                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + AND
+                        + selectRequest.substring(pos + WHERE.length(), selectRequest.length());
             } else if (selectRequest.contains(ORDER_BY)) {
                 // Add before the order by clause
                 int pos = selectRequest.indexOf(ORDER_BY);
                 selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE + selectRequest
-                        .substring(pos, selectRequest.length());
+                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE
+                        + selectRequest.substring(pos, selectRequest.length());
             } else if (selectRequest.contains(LIMIT)) {
                 // Add before the limit clause
                 int pos = selectRequest.indexOf(LIMIT);
                 selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE + selectRequest
-                        .substring(pos, selectRequest.length());
+                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE
+                        + selectRequest.substring(pos, selectRequest.length());
             } else {
                 // Add at the end of the request
                 StringBuilder buf = new StringBuilder(selectRequest);
@@ -199,12 +200,8 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     }
 
     @Override
-    public Page<DataObject> findAll(String tenant, Pageable pageable) throws DataSourceException {
-        return findAll(tenant, pageable, null);
-    }
-
-    @Override
-    public Page<DataObject> findAll(String tenant, Pageable pageable, OffsetDateTime date) throws DataSourceException {
+    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+            throws DataSourceException {
         if (sqlGenerator == null) {
             throw new DataSourceException("sqlGenerator is null");
         }

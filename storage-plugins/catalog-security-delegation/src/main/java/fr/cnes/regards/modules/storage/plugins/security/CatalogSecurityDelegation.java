@@ -30,15 +30,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.google.common.collect.Collections2;
+
 import feign.FeignException;
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
-import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.utils.HttpUtils;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.search.client.ISearchClient;
+import fr.cnes.regards.modules.search.client.IAccessRights;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
 import fr.cnes.regards.modules.storage.domain.plugin.ISecurityDelegation;
 
@@ -56,8 +56,11 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
     /**
      * {@link ISearchClient} instance
      */
+    // @Autowired
+    // private ISearchClient searchClient;
+
     @Autowired
-    private ISearchClient searchClient;
+    private IAccessRights accessRights;
 
     /**
      * {@link IProjectUsersClient} instance
@@ -87,12 +90,12 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 // if no problem occurred then lets give the answer from rs-admin
                 if (adminResponse.getBody()) {
                     // Return only existing AIPs from given list
-                    return aipDao.findUrnsByIpIdIn(Collections2.transform(urns, UniformResourceName::toString))
+                    return aipDao.findUrnsByAipIdIn(Collections2.transform(urns, UniformResourceName::toString))
                             .collect(Collectors.toSet());
                 }
             }
             // Else, ask catalog for AIP which has access
-            ResponseEntity<Set<UniformResourceName>> catalogResponse = searchClient.hasAccess(urns);
+            ResponseEntity<Set<UniformResourceName>> catalogResponse = accessRights.hasAccess(urns);
             if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())) {
                 // either there was an error or it was forbidden
                 return Collections.emptySet();
@@ -100,10 +103,11 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
                 return catalogResponse.getBody();
             }
         } catch (FeignException e) {
-            LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aips %s",
-                                       urns.stream().map(UniformResourceName::toString)
-                                               .collect(Collectors.joining(", "))), e);
-            //there was an error, lets assume that we cannot access none of the aips
+            LOGGER.error(String
+                    .format("Issue with feign while trying to check if the user has access to aips %s",
+                            urns.stream().map(UniformResourceName::toString).collect(Collectors.joining(", "))),
+                         e);
+            // there was an error, lets assume that we cannot access none of the aips
             return Collections.emptySet();
         } finally {
             FeignSecurityManager.reset();
@@ -115,9 +119,9 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
         try {
             FeignSecurityManager.asUser(authenticationResolver.getUser(), authenticationResolver.getRole());
             UniformResourceName urn = UniformResourceName.fromString(ipId);
-            ResponseEntity<Boolean> catalogResponse = searchClient.hasAccess(urn);
-            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode()) && !catalogResponse.getStatusCode()
-                    .equals(HttpStatus.NOT_FOUND)) {
+            ResponseEntity<Boolean> catalogResponse = accessRights.hasAccess(urn);
+            if (!HttpUtils.isSuccess(catalogResponse.getStatusCode())
+                    && !catalogResponse.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
                 // either there was an error or it was forbidden
                 return false;
             }
@@ -127,7 +131,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
             }
             // we now have received a not found from catalog, lets check if AIP exists in our database and if the user
             // is an admin.
-            if (!aipDao.findOneByIpId(urn.toString()).isPresent()) {
+            if (!aipDao.findOneByAipId(urn.toString()).isPresent()) {
                 return false;
             }
             // AIP hasn't been found => it is not indexed but it is present into storage (ie Aip has been stored but not
@@ -143,7 +147,7 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
         } catch (FeignException e) {
             LOGGER.error(String.format("Issue with feign while trying to check if the user has access to aip %s", ipId),
                          e);
-            //there was an error, lets assume that we cannot access the aip
+            // there was an error, lets assume that we cannot access the aip
             return false;
         } finally {
             FeignSecurityManager.reset();

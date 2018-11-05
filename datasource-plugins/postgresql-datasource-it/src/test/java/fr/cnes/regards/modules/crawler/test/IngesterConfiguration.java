@@ -14,19 +14,19 @@ import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfig
 import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
-import fr.cnes.regards.modules.entities.service.IEntityService;
-import fr.cnes.regards.modules.models.client.IAttributeModelClient;
-import fr.cnes.regards.modules.models.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
+import fr.cnes.regards.modules.dam.service.entities.IEntityService;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 
 @Configuration
 @ComponentScan(basePackages = { "fr.cnes.regards.modules.crawler.service", "fr.cnes.regards.modules.indexer",
-        "fr.cnes.regards.modules.entities", "fr.cnes.regards.modules.models", "fr.cnes.regards.modules.datasources",
-        "fr.cnes.regards.modules.dataaccess", "fr.cnes.regards.modules.search",
-        "fr.cnes.regards.framework.modules.plugins.service" })
+        "fr.cnes.regards.modules.dam", "fr.cnes.regards.modules.dam.plugins.datasources",
+        "fr.cnes.regards.modules.search", "fr.cnes.regards.framework.modules.plugins.service" })
 @EnableAutoConfiguration(
         exclude = { MethodAuthorizationServiceAutoConfiguration.class, MethodSecurityAutoConfiguration.class,
                 SecurityVoterAutoConfiguration.class, WebSecurityAutoConfiguration.class })
@@ -36,7 +36,7 @@ public class IngesterConfiguration {
 
     @SuppressWarnings("unchecked")
     @Bean
-    public IEntityService<AbstractEntity> entityService() {
+    public IEntityService<AbstractEntity<EntityFeature>> entityService() {
         return Mockito.mock(IEntityService.class);
     }
 

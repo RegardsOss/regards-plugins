@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,25 +28,24 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.test.ValidationConfiguration;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
-import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactory;
-import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.entities.service.ICollectionService;
-import fr.cnes.regards.modules.entities.service.IDatasetService;
+import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
+import fr.cnes.regards.modules.dam.dao.models.IAttributeModelRepository;
+import fr.cnes.regards.modules.dam.dao.models.IFragmentRepository;
+import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
+import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactory;
+import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.service.models.IAttributeModelService;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
-import fr.cnes.regards.modules.indexer.service.IIndexerService;
-import fr.cnes.regards.modules.indexer.service.ISearchService;
-import fr.cnes.regards.modules.models.dao.IAttributeModelRepository;
-import fr.cnes.regards.modules.models.dao.IFragmentRepository;
-import fr.cnes.regards.modules.models.dao.IModelAttrAssocRepository;
-import fr.cnes.regards.modules.models.dao.IModelRepository;
-import fr.cnes.regards.modules.models.domain.attributes.AttributeModel;
-import fr.cnes.regards.modules.models.service.IAttributeModelService;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
  * Pseudo IT test used for initialisation of Validation
@@ -67,8 +66,6 @@ public class ValidationIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources.plugins";
 
     private static final String T_VIEW = "";
 
@@ -112,25 +109,13 @@ public class ValidationIT {
     private IFragmentRepository fragRepo;
 
     @Autowired
-    private IDatasetService dsService;
-
-    @Autowired
-    private ICollectionService collService;
-
-    @Autowired
-    private IIndexerService indexerService;
-
-    @Autowired
-    private ISearchService searchService;
-
-    @Autowired
     private ICrawlerAndIngesterService datasetCrawlerService;
 
     @Autowired
     private IDatasetCrawlerService crawlerService;
 
     @Autowired
-    private IAbstractEntityRepository<AbstractEntity> entityRepos;
+    private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
 
     @Autowired
     private IEsRepository esRepos;
@@ -192,7 +177,7 @@ public class ValidationIT {
         attrModelRepo.deleteAll();
         modelRepository.deleteAll();
         fragRepo.deleteAll();
-        // pluginService.addPluginPackage("fr.cnes.regards.modules.datasources.plugins");
+        // pluginService.addPluginPackage("fr.cnes.regards.modules.dam.plugins.datasources");
 
         // Connection PluginConf
         // dBConnectionConf = getPostgresConnectionConfiguration();
@@ -216,28 +201,25 @@ public class ValidationIT {
     // }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_VIEW)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, "1")
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     // private void buildModelAttributes() {
@@ -316,7 +298,7 @@ public class ValidationIT {
         // pluginService.addPluginPackage(IComputedAttribute.class.getPackage().getName());
         // pluginService.addPluginPackage(CountPlugin.class.getPackage().getName());
         // // conf for "count"
-        // final List<PluginParameter> parameters = PluginParametersFactory.build()
+        // final Set<PluginParameter> parameters = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "count").getParameters();
         //
         // // Emulate plugin annotation (user will create an annotation)
@@ -333,7 +315,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confCount);
         //
         // // create a pluginConfiguration with a label for start_date
-        // final List<PluginParameter> parametersMin = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersMin = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "start_date").getParameters();
         // final PluginMetaData metadataMin = new PluginMetaData();
         // metadataMin.setPluginId("MinDateComputePlugin");
@@ -347,7 +329,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confMin);
         //
         // // create a pluginConfiguration with a label for end_date
-        // final List<PluginParameter> parametersMax = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersMax = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "end_date").getParameters();
         // final PluginMetaData metadataMax = new PluginMetaData();
         // metadataMax.setPluginId("MaxDateComputePlugin");
@@ -361,7 +343,7 @@ public class ValidationIT {
         // pluginService.savePluginConfiguration(confMax);
         //
         // // create a pluginConfiguration with a label for value_l1
-        // final List<PluginParameter> parametersInteger = PluginParametersFactory.build()
+        // final Set<PluginParameter> parametersInteger = PluginParametersFactory.build()
         // .addParameter("resultAttributeName", "values_l1_sum").getParameters();
         // final PluginMetaData metadataLong = new PluginMetaData();
         // metadataLong.setPluginId("LongSumComputePlugin");

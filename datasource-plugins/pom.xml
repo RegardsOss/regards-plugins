@@ -21,9 +21,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.datasources</groupId>
+	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 	<artifactId>datasource-plugins</artifactId>
-	<version>2.0.0-RELEASE</version>
+	<version>3.0.0-RELEASE</version>
 	<packaging>pom</packaging>
 	
 	<description>Plugins allowing the system to connect to various datasources, from which will be aspired the data</description>
@@ -51,7 +51,7 @@
 	<parent>
 		<groupId>fr.cnes.regards</groupId>
 		<artifactId>regards-parent</artifactId>
-		<version>2.0.0-RELEASE</version>
+		<version>3.0.0-RELEASE</version>
 		<relativePath />
 	</parent>
 	<modules>

@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.crawler.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -36,6 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
@@ -48,31 +49,31 @@ import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
 import fr.cnes.regards.modules.crawler.test.IngesterGeometryConfiguration;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
-import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
-import fr.cnes.regards.modules.entities.dao.IDatasetRepository;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.geometry.Geometry;
-import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
+import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
+import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.Searches;
-import fr.cnes.regards.modules.models.dao.IModelRepository;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.domain.attributes.AttributeType;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 @Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { IngesterGeometryConfiguration.class })
 @ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
 public class IngesterGeometryServiceIT {
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources.plugins";
 
     private static final String TENANT = "INGEST_GEO";
 
@@ -128,7 +129,7 @@ public class IngesterGeometryServiceIT {
     private IModelRepository modelRepository;
 
     @Autowired
-    private IAbstractEntityRepository<AbstractEntity> entityRepos;
+    private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
 
     @Autowired
     private IDatasetRepository datasetRepos;
@@ -146,28 +147,25 @@ public class IngesterGeometryServiceIT {
     private IEsRepository esRepository;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, T_VIEW)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, 1)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, dataModel.getName())
-                .getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DefaultPostgreConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(DefaultPostgreConnectionPlugin.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(DefaultPostgreConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -203,8 +201,6 @@ public class IngesterGeometryServiceIT {
 
         pluginConfRepos.deleteAll();
 
-        pluginService.addPluginPackage("fr.cnes.regards.modules.datasources.plugins");
-
         dataModel = new Model();
         dataModel.setName("model_geom");
         dataModel.setType(EntityType.DATA);
@@ -226,7 +222,7 @@ public class IngesterGeometryServiceIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf);
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -263,11 +259,11 @@ public class IngesterGeometryServiceIT {
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 20_362));
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
 
-        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(TENANT, EntityType.DATA), 10,
+        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(EntityType.DATA), 10,
                                                           ICriterion.all());
         final List<DataObject> objects = page.getContent();
         Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() != null));
-        Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() instanceof Geometry.Polygon));
+        Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() instanceof Polygon));
 
     }
 }

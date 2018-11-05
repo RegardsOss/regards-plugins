@@ -21,10 +21,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
-	<artifactId>aip-datasource</artifactId>
-	<description>AIP datasource</description>
-	<version>2.0.0-RELEASE</version>
+    <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+    <artifactId>aip-datasource</artifactId>
+    <description>AIP datasource</description>
+    <version>3.0.0-RELEASE</version>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
     <inceptionYear>2016</inceptionYear>
@@ -47,11 +47,11 @@
         </developer>
     </developers>
 
-	<parent>
-		<groupId>fr.cnes.regards.modules.datasources</groupId>
-		<artifactId>datasource-plugins</artifactId>
-		<version>2.0.0-RELEASE</version>
-	</parent>
+    <parent>
+        <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+        <artifactId>datasource-plugins</artifactId>
+        <version>3.0.0-RELEASE</version>
+    </parent>
 
     <dependencies>
         <dependency>
@@ -62,6 +62,10 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>spring-utils</artifactId>
+        </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
@@ -69,18 +73,13 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.models</groupId>
-            <artifactId>models-service</artifactId>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-service</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
             <artifactId>plugins-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.datasources</groupId>
-            <artifactId>datasources-domain</artifactId>
             <scope>provided</scope>
         </dependency>
         <!-- Tests -->

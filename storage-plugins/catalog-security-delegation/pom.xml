@@ -24,7 +24,7 @@
 	<groupId>fr.cnes.regards.modules.storage.plugins</groupId>
 	<artifactId>catalog-security-delegation</artifactId>
 	<description>Catalog security delegation for file access control</description>
-	<version>2.0.0-RELEASE</version>
+	<version>3.0.0-RELEASE</version>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -50,7 +50,7 @@
 	<parent>
 		<groupId>fr.cnes.regards.modules.storage</groupId>
 		<artifactId>storage-plugins</artifactId>
-		<version>2.0.0-RELEASE</version>
+		<version>3.0.0-RELEASE</version>
 	</parent>
 
 	<dependencies>
@@ -63,12 +63,12 @@
 			<artifactId>accessrights-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-client</artifactId>
+			<groupId>fr.cnes.regards.modules.dam</groupId>
+			<artifactId>dam-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.entities</groupId>
-			<artifactId>entities-gson</artifactId>
+			<groupId>fr.cnes.regards.modules.dam</groupId>
+			<artifactId>dam-gson</artifactId>
 		</dependency>
 		<!-- Provided: dependencies that are already included by the microservice -->
 		<dependency>
@@ -114,6 +114,39 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
+				<configuration>
+							<minimizeJar>true</minimizeJar>
+							<artifactSet>
+								<excludes>
+									<exclude>org.hibernate.*:*</exclude>
+									<exclude>org.hibernate:*</exclude>
+									<exclude>org.apache:*</exclude>
+									<exclude>org.apache.*:*</exclude>
+									<exclude>fr.cnes.regards.framework.*:*</exclude>
+									<exclude>fr.cnes.regards.framework:*</exclude>
+									<exclude>org.springframework.*:*</exclude>
+									<exclude>org.springframework:*</exclude>
+									<exclude>com.fasterxml:*</exclude>
+									<exclude>antlr:*</exclude>
+									<exclude>org.jboss:*</exclude>
+									<exclude>dom4j:*</exclude>
+									<exclude>org.aspectj:*</exclude>
+									<exclude>com.mchange:*</exclude>
+									<exclude>org.slf4j:*</exclude>
+									<exclude>log4j:*</exclude>
+									<exclude>com.rabbitmq:*</exclude>
+									<exclude>com.fasterxml.*:*</exclude>
+									<exclude>org.glassfish:*</exclude>
+									<exclude>org.flywaydb:*</exclude>
+									<exclude>com.google.*:*</exclude>
+									<exclude>hsqldb:*</exclude>
+									<exclude>org.postgresql:*</exclude>
+									<exclude>javax.servlet:*</exclude>
+									<exclude>ch.qos.logback:*</exclude>
+									<exclude>org.reflections:*</exclude>
+								</excludes>
+							</artifactSet>
+						</configuration>
 			</plugin>
 		</plugins>
 	</build>

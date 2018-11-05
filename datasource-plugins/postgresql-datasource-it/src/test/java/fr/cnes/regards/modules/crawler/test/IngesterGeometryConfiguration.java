@@ -13,16 +13,15 @@ import fr.cnes.regards.framework.security.autoconfigure.MethodAuthorizationServi
 import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
-import fr.cnes.regards.modules.models.client.IAttributeModelClient;
-import fr.cnes.regards.modules.models.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 
 @Configuration
 @ComponentScan(basePackages = { "fr.cnes.regards.modules.crawler.service", "fr.cnes.regards.modules.indexer",
-        "fr.cnes.regards.modules.entities", "fr.cnes.regards.modules.models", "fr.cnes.regards.modules.datasources",
-        "fr.cnes.regards.modules.dataaccess", "fr.cnes.regards.modules.search",
-        "fr.cnes.regards.framework.modules.plugins.service" })
+        "fr.cnes.regards.modules.dam", "fr.cnes.regards.modules.dam.plugins.datasources",
+        "fr.cnes.regards.modules.search", "fr.cnes.regards.framework.modules.plugins.service" })
 @EnableAutoConfiguration(
         exclude = { MethodAuthorizationServiceAutoConfiguration.class, MethodSecurityAutoConfiguration.class,
                 SecurityVoterAutoConfiguration.class, WebSecurityAutoConfiguration.class })
