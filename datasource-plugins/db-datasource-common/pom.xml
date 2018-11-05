@@ -21,10 +21,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.datasources.plugins</groupId>
+	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 	<artifactId>db-datasource-common</artifactId>
 	<description>PostgreSQL datasource</description>
-	<version>2.0.0-RELEASE</version>
+	<version>3.0.0-RELEASE</version>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -48,9 +48,9 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards.modules.datasources</groupId>
+		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 		<artifactId>datasource-plugins</artifactId>
-		<version>2.0.0-RELEASE</version>
+		<version>3.0.0-RELEASE</version>
 	</parent>
 
 	<dependencies>
@@ -62,18 +62,13 @@
 		</dependency>
 		<!-- Provided: dependencies that are already included by the microservice -->
 		<dependency>
-			<groupId>fr.cnes.regards.modules.models</groupId>
-			<artifactId>models-service</artifactId>
+			<groupId>fr.cnes.regards.modules.dam</groupId>
+			<artifactId>dam-service</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
 			<artifactId>plugins-domain</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.datasources</groupId>
-			<artifactId>datasources-domain</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Tests -->

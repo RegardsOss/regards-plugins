@@ -24,9 +24,8 @@ import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.After;
@@ -36,6 +35,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.amqp.IPublisher;
-import fr.cnes.regards.framework.amqp.configuration.IRabbitVirtualHostAdmin;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -68,34 +67,38 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
 import fr.cnes.regards.modules.crawler.test.CrawlerConfiguration;
-import fr.cnes.regards.modules.datasources.domain.AbstractAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.StaticAttributeMapping;
-import fr.cnes.regards.modules.datasources.domain.plugins.DataSourceException;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.datasources.domain.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.datasources.plugins.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.datasources.plugins.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.entities.dao.IAbstractEntityRepository;
-import fr.cnes.regards.modules.entities.dao.IDatasetRepository;
-import fr.cnes.regards.modules.entities.domain.AbstractEntity;
-import fr.cnes.regards.modules.entities.domain.DataObject;
-import fr.cnes.regards.modules.entities.domain.Dataset;
-import fr.cnes.regards.modules.entities.domain.event.DatasetEvent;
-import fr.cnes.regards.modules.entities.domain.event.NotDatasetEntityEvent;
-import fr.cnes.regards.modules.entities.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.entities.service.IDatasetService;
+import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
+import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
+import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.Dataset;
+import fr.cnes.regards.modules.dam.domain.entities.event.DatasetEvent;
+import fr.cnes.regards.modules.dam.domain.entities.event.NotDatasetEntityEvent;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.dam.domain.models.attributes.Fragment;
+import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
+import fr.cnes.regards.modules.dam.service.entities.IDatasetService;
+import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
+import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.indexer.service.ISearchService;
 import fr.cnes.regards.modules.indexer.service.Searches;
-import fr.cnes.regards.modules.models.dao.IModelAttrAssocRepository;
-import fr.cnes.regards.modules.models.dao.IModelRepository;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.models.domain.attributes.AttributeType;
-import fr.cnes.regards.modules.models.service.IModelService;
 
 /**
  * Crawler ingestion tests
@@ -110,10 +113,6 @@ public class CrawlerIngestIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
-
-    private static final String PLUGIN_CURRENT_PACKAGE = "fr.cnes.regards.modules.datasources.plugins";
-
-    private static final String PLUGIN_TEST_PACKAGE = "fr.cnes.regards.modules.crawler.service.ds.plugin";
 
     private static final String TABLE_NAME_TEST = "t_data";
 
@@ -147,9 +146,6 @@ public class CrawlerIngestIT {
     private IDatasetService dsService;
 
     @Autowired
-    private IIndexerService indexerService;
-
-    @Autowired
     private ISearchService searchService;
 
     @Autowired
@@ -159,7 +155,7 @@ public class CrawlerIngestIT {
     private IIngesterService ingesterService;
 
     @Autowired
-    private IAbstractEntityRepository<AbstractEntity> entityRepos;
+    private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
 
     @Autowired
     private IDatasetRepository datasetRepos;
@@ -174,9 +170,6 @@ public class CrawlerIngestIT {
 
     @Autowired
     private IPluginConfigurationRepository pluginConfRepos;
-
-    @Autowired
-    private IRabbitVirtualHostAdmin rabbitVhostAdmin;
 
     @Autowired
     private IPublisher publisher;
@@ -205,6 +198,9 @@ public class CrawlerIngestIT {
     @Autowired
     private IDatasourceIngestionRepository dsiRepos;
 
+    @Autowired
+    private IModelAttrAssocService modelAttrAssocService;
+
     @Before
     public void setUp() throws Exception {
         LOGGER.info("********************* setUp CrawlerIngestIT ***********************************");
@@ -231,9 +227,6 @@ public class CrawlerIngestIT {
         modelRepository.deleteAll();
         extDataRepos.deleteAll();
 
-        pluginService.addPluginPackage(PLUGIN_CURRENT_PACKAGE);
-        pluginService.addPluginPackage(PLUGIN_TEST_PACKAGE);
-
         // Register model attributes
         dataModel = new Model();
         dataModel.setName("model_1" + System.currentTimeMillis());
@@ -256,7 +249,7 @@ public class CrawlerIngestIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf);
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -282,34 +275,31 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(PostgreDataSourceFromSingleTablePlugin.CONNECTION_PARAM, pluginConf)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.TABLE_PARAM, TABLE_NAME_TEST)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.REFRESH_RATE, 1800)
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(PostgreDataSourceFromSingleTablePlugin.MODEL_MAPPING_PARAM, modelAttrMapping)
-                .getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+                .addParameter(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST)
+                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
+                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
+                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final List<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(IDBConnectionPlugin.USER_PARAM, dbUser)
-                .addParameter(IDBConnectionPlugin.PASSWORD_PARAM, dbPpassword)
-                .addParameter(IDBConnectionPlugin.DB_HOST_PARAM, dbHost)
-                .addParameter(IDBConnectionPlugin.DB_PORT_PARAM, dbPort)
-                .addParameter(IDBConnectionPlugin.DB_NAME_PARAM, dbName).getParameters();
+        final Set<PluginParameter> parameters = PluginParametersFactory.build()
+                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class,
-                                                  Arrays.asList(PLUGIN_CURRENT_PACKAGE));
+        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(
-                Collections.singletonList(new PluginParameter(IDataSourcePlugin.MODEL_NAME_PARAM, dataModel.getName())),
-                TestDsPlugin.class, Arrays.asList(PLUGIN_TEST_PACKAGE));
+        return PluginUtils.getPluginConfiguration(Sets
+                .newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
+                                                  TestDsPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -317,9 +307,8 @@ public class CrawlerIngestIT {
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
-        modelAttrMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, AttributeType.DATE_ISO8601,
-                                                "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
+                AttributeType.DATE_ISO8601, "date"));
     }
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
@@ -344,7 +333,7 @@ public class CrawlerIngestIT {
 
         crawlerService.startWork();
         // Dataset on all objects
-        dataset = new Dataset(datasetModel, tenant, "dataset label 1");
+        dataset = new Dataset(datasetModel, tenant, "DS1", "dataset label 1");
         dataset.setDataModel(dataModel.getName());
         dataset.setSubsettingClause(ICriterion.all());
         dataset.setLicence("licence");
@@ -370,13 +359,13 @@ public class CrawlerIngestIT {
             dataset = searchService.get(ipId);
         }
 
-        final SimpleSearchKey<DataObject> objectSearchKey = Searches.onSingleEntity(tenant, EntityType.DATA);
+        final SimpleSearchKey<DataObject> objectSearchKey = Searches.onSingleEntity(EntityType.DATA);
         // Search for DataObjects tagging dataset1
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-        Page<DataObject> objectsPage = searchService
-                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
+        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+                                                            ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
@@ -385,13 +374,12 @@ public class CrawlerIngestIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService
-                .ingest(dataSourcePluginConf, dsi2);
+        summary = crawlerService.ingest(dataSourcePluginConf, dsi2);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService
-                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
+        objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+                                           ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
                 .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());
@@ -400,12 +388,37 @@ public class CrawlerIngestIT {
         LOGGER.info("***************************************************************************");
     }
 
+    public static Model model = new Model();
+
+    @Ignore
     @Test
     public void testDsIngestionWithValidation()
             throws InterruptedException, ExecutionException, DataSourceException, ModuleException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
         dsiRepos.save(dsi);
+        // First ingestion with a "nude" model
+        try {
+            crawlerService.ingest(dataSourceTestPluginConf, dsi);
+            Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
+        } catch (ExecutionException ee) {
+            Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
+            Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
+        }
+
+        model.setId(15000l);
+        List<ModelAttrAssoc> modelAttrAssocs = new ArrayList<>();
+        AttributeModel attTutuToto = new AttributeModel();
+        Fragment fragmentTutu = new Fragment();
+        fragmentTutu.setName("tutu");
+        attTutuToto.setFragment(fragmentTutu);
+        attTutuToto.setName("toto");
+        attTutuToto.setType(AttributeType.STRING);
+        attTutuToto.setOptional(false);
+        ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
+        modelAttrAssocs.add(attrAssocTutuToto);
+        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
         IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
+        // 2 validation errors so nothing saved
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }
 }

@@ -3,6 +3,7 @@ package fr.cnes.regards.modules.storage.plugins.security;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -10,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,7 +21,6 @@ import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
-import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginMetaData;
@@ -34,11 +33,11 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.entities.domain.Collection;
-import fr.cnes.regards.modules.models.domain.Model;
-import fr.cnes.regards.modules.search.client.ISearchClient;
+import fr.cnes.regards.modules.search.client.IAccessRights;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
+import fr.cnes.regards.modules.storage.dao.IAIPSessionRepository;
 import fr.cnes.regards.modules.storage.domain.AIP;
+import fr.cnes.regards.modules.storage.domain.database.AIPSession;
 import fr.cnes.regards.modules.storage.domain.plugin.ISecurityDelegation;
 
 /**
@@ -60,13 +59,16 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
     private PluginConfiguration catalogSecuDelegConf;
 
     @Autowired
-    private ISearchClient searchClient;
+    private IAccessRights accessRights;
 
     @Autowired
     private IProjectUsersClient projectUsersClient;
 
     @Autowired
     private IAIPDao aipDao;
+
+    @Autowired
+    private IAIPSessionRepository aipSessionRepository;
 
     @Autowired
     private Gson gson;
@@ -76,17 +78,12 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
 
     @BeforeTransaction
     public void setTenant() {
-        runtimeTenantResolver.forceTenant(DEFAULT_TENANT);
+        runtimeTenantResolver.forceTenant(getDefaultTenant());
     }
 
     @Before
     public void init() throws ModuleException {
-        pluginService.addPluginPackage(ISecurityDelegation.class.getPackage().getName());
-        pluginService.addPluginPackage(CatalogSecurityDelegation.class.getPackage().getName());
-        PluginMetaData catalogSecuDelegMeta = PluginUtils
-                .createPluginMetaData(CatalogSecurityDelegation.class,
-                                      CatalogSecurityDelegation.class.getPackage().getName(),
-                                      ISecurityDelegation.class.getPackage().getName());
+        PluginMetaData catalogSecuDelegMeta = PluginUtils.createPluginMetaData(CatalogSecurityDelegation.class);
         catalogSecuDelegConf = new PluginConfiguration(catalogSecuDelegMeta, CATALOG_SECURITY_DELEGATION_LABEL);
         catalogSecuDelegConf = pluginService.savePluginConfiguration(catalogSecuDelegConf);
     }
@@ -96,29 +93,32 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         ISecurityDelegation toTest = pluginService.getPlugin(catalogSecuDelegConf.getId());
         // test while copnsidered admin
         // lets test with an ip id we have right in catalog
-        String catalogOk = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogOk = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogOk)))
-                .thenReturn(new ResponseEntity<>(Boolean.TRUE,
-                        HttpStatus.OK));
+        Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(catalogOk)))
+                .thenReturn(new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK));
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an unknown ip id in catalog but known into storage
-        String catalogUnknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogUnknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
+        AIPSession aipSession = new AIPSession();
+        aipSession.setId("session 1");
+        aipSession.setLastActivationDate(OffsetDateTime.now());
+        aipSession = aipSessionRepository.save(aipSession);
         AIP aip = getAipFromFile();
         aip.setId(UniformResourceName.fromString(catalogUnknown));
         aip.addEvent(EventType.SUBMISSION.name(), "lets bypass everything");
-        aipDao.save(aip);
-        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogUnknown)))
+        aipDao.save(aip, aipSession);
+        Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(catalogUnknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Mockito.when(projectUsersClient.isAdmin(authenticationResolver.getUser()))
                 .thenReturn(new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK));
         Assert.assertTrue("Plugin should have authorize the access to this aip because we are considered admin",
                           toTest.hasAccess(catalogUnknown));
         // lets test with an unknown ip id in storage and catalog
-        String unknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String unknown = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(unknown)))
+        Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(unknown)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Assert.assertFalse("Access to unknown aip should not be given", toTest.hasAccess(unknown));
 
@@ -126,9 +126,9 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
         // lets test with an ip id we have right in catalog
         Assert.assertTrue("Catalog should have authorized the access to this aip", toTest.hasAccess(catalogOk));
         // lets test with an ip id we don't have right in catalog
-        String catalogNok = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, DEFAULT_TENANT,
+        String catalogNok = new UniformResourceName(OAISIdentifier.AIP, EntityType.COLLECTION, getDefaultTenant(),
                 UUID.randomUUID(), 1).toString();
-        Mockito.when(searchClient.hasAccess(UniformResourceName.fromString(catalogNok)))
+        Mockito.when(accessRights.hasAccess(UniformResourceName.fromString(catalogNok)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.FORBIDDEN));
         Assert.assertFalse("Catalog should not have authorized the access to this aip", toTest.hasAccess(catalogNok));
         // lets test with an unknown ip id in catalog but known into storage

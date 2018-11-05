@@ -65,6 +65,11 @@
     	<name>INT_INTERVAL</name>
     	<type>INTEGER_INTERVAL</type>
     </attribute>
+    <attribute>
+    	<label>forTests</label>
+    	<name>LINKS</name>
+    	<type>URL</type>
+    </attribute>
     <fragment>
         <name>ALTITUDE</name>
         <description>Altitude fragment</description>

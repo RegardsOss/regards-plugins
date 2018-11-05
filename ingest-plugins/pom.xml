@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>fr.cnes.regards</groupId>
+        <artifactId>regards-parent</artifactId>
+        <version>3.0.0-RELEASE</version>
+        <relativePath />
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.cnes.regards.modules.ingest</groupId>
+    <artifactId>ingest-plugins</artifactId>
+    <packaging>pom</packaging>
+    <version>3.0.0-RELEASE</version>
+    <modules>
+        <module>enhanced-descriptive-aip-generation</module>
+    </modules>
+
+
+</project>
