@@ -63,6 +63,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionResult;
+import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
@@ -297,9 +298,9 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(Sets
-                .newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
-                                                  TestDsPlugin.class);
+        return PluginUtils.getPluginConfiguration(
+                Sets.newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
+                TestDsPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -307,8 +308,9 @@ public class CrawlerIngestIT {
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "date"));
+        modelAttrMapping
+                .add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, AttributeType.DATE_ISO8601,
+                                                "date"));
     }
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
@@ -317,7 +319,8 @@ public class CrawlerIngestIT {
     @Test
     @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
     public void test()
-            throws ModuleException, IOException, InterruptedException, ExecutionException, DataSourceException {
+            throws ModuleException, IOException, InterruptedException, ExecutionException, DataSourceException,
+            NotFinishedException {
         LOGGER.info("********************* test CrawlerIngestIT ***********************************");
         final String tenant = tenantResolver.getTenant();
         // First delete index if it already exists
@@ -364,8 +367,8 @@ public class CrawlerIngestIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
-                                                            ICriterion.eq("tags", dataset.getIpId().toString()));
+        Page<DataObject> objectsPage = searchService
+                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
@@ -378,8 +381,8 @@ public class CrawlerIngestIT {
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
-                                           ICriterion.eq("tags", dataset.getIpId().toString()));
+        objectsPage = searchService
+                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
                 .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());
@@ -393,7 +396,8 @@ public class CrawlerIngestIT {
     @Ignore
     @Test
     public void testDsIngestionWithValidation()
-            throws InterruptedException, ExecutionException, DataSourceException, ModuleException {
+            throws InterruptedException, ExecutionException, DataSourceException, ModuleException,
+            NotFinishedException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
