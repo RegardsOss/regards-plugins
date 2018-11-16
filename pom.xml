@@ -126,6 +126,5 @@
         <module>datasource-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
-        <module>acquisition-plugins</module>
     </modules>
 </project>
