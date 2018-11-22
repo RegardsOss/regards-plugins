@@ -44,6 +44,7 @@ import fr.cnes.regards.framework.amqp.ISubscriber;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IAipClient;
@@ -58,6 +59,11 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 @Configuration
 @EnableAutoConfiguration
 public class AipDataSourceConfiguration {
+
+    @Bean
+    public INotificationClient getNotificationClient() {
+        return Mockito.mock(INotificationClient.class);
+    }
 
     @Bean
     public IAttributeModelClient attributeModelClient() {
@@ -115,6 +121,7 @@ public class AipDataSourceConfiguration {
 
     private class AipClientProxy {
 
+        @SuppressWarnings("unused")
         public ResponseEntity<PagedResources<AipDataFiles>> retrieveAipDataFiles(AIPState state, Set<String> tags,
                 OffsetDateTime fromLastUpdateDate, int page, int size) {
             List<AipDataFiles> aipDataFiles = new ArrayList<>();

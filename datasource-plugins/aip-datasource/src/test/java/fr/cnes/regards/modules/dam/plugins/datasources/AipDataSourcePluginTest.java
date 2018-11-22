@@ -120,7 +120,6 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     /**
      * Import model definition file from resources directory
      * @param filename filename
-     * @return list of created model attributes
      * @throws ModuleException if error occurs
      */
     private void importModel(final String filename) throws ModuleException {
