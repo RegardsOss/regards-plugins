@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 
@@ -87,6 +88,11 @@ public class PostgreDataSourcePluginTestConfiguration {
 
     private String buildUrl() {
         return "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName;
+    }
+
+    @Bean
+    public INotificationClient getNotificationClient() {
+        return Mockito.mock(INotificationClient.class);
     }
 
     @Bean
