@@ -61,6 +61,11 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 public class AipDataSourceConfiguration {
 
     @Bean
+    public INotificationClient getNotificationClient() {
+        return Mockito.mock(INotificationClient.class);
+    }
+
+    @Bean
     public IAttributeModelClient attributeModelClient() {
         return Mockito.mock(IAttributeModelClient.class);
     }
@@ -121,6 +126,7 @@ public class AipDataSourceConfiguration {
 
     private class AipClientProxy {
 
+        @SuppressWarnings("unused")
         public ResponseEntity<PagedResources<AipDataFiles>> retrieveAipDataFiles(AIPState state, Set<String> tags,
                 OffsetDateTime fromLastUpdateDate, int page, int size) {
             List<AipDataFiles> aipDataFiles = new ArrayList<>();
