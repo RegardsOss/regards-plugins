@@ -44,6 +44,7 @@ import fr.cnes.regards.framework.amqp.ISubscriber;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IAipClient;
@@ -96,6 +97,11 @@ public class AipDataSourceConfiguration {
     @Bean
     public ISubscriber subscriber() {
         return Mockito.mock(ISubscriber.class);
+    }
+
+    @Bean
+    public INotificationClient notificationClient() {
+        return Mockito.mock(INotificationClient.class);
     }
 
     @Bean
