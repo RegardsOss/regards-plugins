@@ -36,6 +36,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,6 +78,8 @@ import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionP
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 
 @ContextConfiguration(classes = { IngesterConfiguration.class })
@@ -176,6 +179,9 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
 
     @Autowired
     private IAipClient aipClient;
+
+    @Autowired
+    private IProjectsClient projectsClient;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
@@ -348,13 +354,18 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                                                     Mockito.anyInt()))
                 .thenReturn(ResponseEntity.ok(new PagedResources<>(Collections.emptyList(),
                         new PagedResources.PageMetadata(0, 0, 0, 1))));
+        Project project = new Project("Desc", "Icon", true, "Name");
+        Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant())).thenReturn(ResponseEntity.ok(new Resource(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 
         List<DatasourceIngestion> dsIngestions = dsIngestionRepos.findAll();
-        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
-        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 0));
-        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
+        for(DatasourceIngestion dsi : dsIngestions) {
+            System.out.print(dsi.getStackTrace());
+            Assert.assertEquals(IngestionStatus.FINISHED, dsi.getStatus());
+            Assert.assertEquals(new Integer(0), dsi.getSavedObjectsCount());
+            Assert.assertNotNull("Datasource ingest last ingest date should not be null", dsi.getLastIngestDate());
+        }
 
         // Add a ExternalData
         final LocalDate today = LocalDate.now();
