@@ -203,7 +203,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void test() throws DataSourceException {
-        Page<DataObjectFeature> page = dsPlugin.findAll(getDefaultTenant(), new PageRequest(0, 10));
+        Page<DataObjectFeature> page = dsPlugin.findAll(getDefaultTenant(), PageRequest.of(0, 10));
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.getContent());
         Assert.assertTrue(page.getContent().size() > 0);
