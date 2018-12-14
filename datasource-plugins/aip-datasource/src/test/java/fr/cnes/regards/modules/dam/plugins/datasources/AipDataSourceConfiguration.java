@@ -74,7 +74,7 @@ public class AipDataSourceConfiguration {
     public IProjectsClient projectsClient() {
         IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
         Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
-            String tenant = invocation.getArgumentAt(0, String.class);
+            String tenant = invocation.getArgument(0);
             Project project = new Project();
             project.setName(tenant);
             project.setCrs("WGS_84");

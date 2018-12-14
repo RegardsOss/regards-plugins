@@ -264,7 +264,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             List<DataObjectFeature> list = new ArrayList<>();
             for (AipDataFiles aipDataFiles : responseEntity.getBody().getContent()) {
                 // rs-storage stores all kinds of entity, we only want data here.
-                if(aipDataFiles.getAip().getIpType() == EntityType.DATA) {
+                if (aipDataFiles.getAip().getIpType() == EntityType.DATA) {
                     multimap.put(tenant, aipDataFiles.getAip().getId().toString());
                     try {
                         list.add(buildFeature(aipDataFiles));
@@ -279,7 +279,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             PagedResources.PageMetadata responsePageMeta = responseEntity.getBody().getMetadata();
             int pageSize = (int) responsePageMeta.getSize();
             return new PageImpl<>(list,
-                    new PageRequest((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
+                    PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
                     responsePageMeta.getTotalElements());
         } else {
             throw new DataSourceException(
