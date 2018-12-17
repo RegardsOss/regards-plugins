@@ -37,17 +37,13 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.common.collect.Sets;
 
@@ -56,7 +52,7 @@ import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
@@ -73,17 +69,14 @@ import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
-import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreDataSourcePluginTestConfiguration;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 
 /**
  * @author Christophe Mertz
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { PostgreDataSourcePluginTestConfiguration.class })
-@TestPropertySource("classpath:datasource-test.properties")
-@EnableAutoConfiguration
-public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsServiceIT {
+@TestPropertySource(locations = { "classpath:datasource-test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourceFromSingleTablePluginTest.class);
 
@@ -133,8 +126,9 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
     /**
      * Populate the datasource as a legacy catalog
      *
-     * @throws DataSourcesPluginException
      * @throws SQLException
+     * @throws ModuleException
+     * @throws MalformedURLException
      */
     @Before
     public void setUp() throws SQLException, ModuleException, MalformedURLException {
@@ -203,7 +197,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         // Get first page
-        Page<DataObjectFeature> page = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 2));
+        Page<DataObjectFeature> page = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 2));
         Assert.assertNotNull(page);
         Assert.assertEquals(2, page.getContent().size());
 
@@ -218,7 +212,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
 
         // Get second page
-        page = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(1, 2));
+        page = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(1, 2));
         Assert.assertNotNull(page);
         Assert.assertEquals(1, page.getContent().size());
 
@@ -237,6 +231,8 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
         page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TOTO")));
         page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TITI")));
+
+        plgDBDataSource.getDBConnection().closeConnection();
     }
 
     @Test
@@ -246,7 +242,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), date);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), date);
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.getContent().size());
 
@@ -270,7 +266,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), ldt);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), ldt);
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.getContent().size());
     }
@@ -289,7 +285,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsS
     private PluginConfiguration getPostgreConnectionConfiguration() {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();

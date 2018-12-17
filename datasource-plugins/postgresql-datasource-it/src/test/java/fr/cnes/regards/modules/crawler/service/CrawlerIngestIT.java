@@ -34,7 +34,6 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 
 import com.google.common.collect.Sets;
 
@@ -56,6 +54,7 @@ import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
@@ -63,11 +62,10 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionResult;
-import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
-import fr.cnes.regards.modules.crawler.test.CrawlerConfiguration;
+import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
@@ -104,11 +102,9 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 /**
  * Crawler ingestion tests
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { CrawlerConfiguration.class })
-@ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
-// @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
-public class CrawlerIngestIT {
+@ActiveProfiles({ "noschedule", "CrawlerTest", "test", "testAmqp" }) // Disable scheduling, this will activate IngesterService during all tests
+@TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+public class CrawlerIngestIT extends AbstractRegardsIT {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CrawlerIngestIT.class);
 
@@ -116,8 +112,6 @@ public class CrawlerIngestIT {
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
 
     private static final String TABLE_NAME_TEST = "t_data";
-
-    private static final String TENANT = "INGEST";
 
     @Value("${postgresql.datasource.host}")
     private String dbHost;
@@ -208,18 +202,21 @@ public class CrawlerIngestIT {
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(null);
 
-        if (esRepos.indexExists(TENANT)) {
-            esRepos.deleteAll(TENANT);
+        tenantResolver.forceTenant(getDefaultTenant());
+
+        if (esRepos.indexExists(getDefaultTenant())) {
+            esRepos.deleteAll(getDefaultTenant());
         } else {
-            esRepos.createIndex(TENANT);
+            esRepos.createIndex(getDefaultTenant());
         }
-        tenantResolver.forceTenant(TENANT);
 
         crawlerService.setConsumeOnlyMode(false);
         ingesterService.setConsumeOnlyMode(true);
 
         publisher.purgeQueue(DatasetEvent.class);
         publisher.purgeQueue(NotDatasetEntityEvent.class);
+
+        tenantResolver.forceTenant(getDefaultTenant());
 
         attrAssocRepos.deleteAll();
         datasetRepos.deleteAll();
@@ -266,6 +263,7 @@ public class CrawlerIngestIT {
     @After
     public void clean() {
         LOGGER.info("********************* clean CrawlerIngestIT ***********************************");
+        tenantResolver.forceTenant(getDefaultTenant());
         attrAssocRepos.deleteAll();
         datasetRepos.deleteAll();
         entityRepos.deleteAll();
@@ -298,9 +296,9 @@ public class CrawlerIngestIT {
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(
-                Sets.newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
-                TestDsPlugin.class);
+        return PluginUtils.getPluginConfiguration(Sets
+                .newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
+                                                  TestDsPlugin.class);
     }
 
     private void buildModelAttributes() {
@@ -308,9 +306,8 @@ public class CrawlerIngestIT {
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
-        modelAttrMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, AttributeType.DATE_ISO8601,
-                                                "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
+                AttributeType.DATE_ISO8601, "date"));
     }
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
@@ -318,9 +315,8 @@ public class CrawlerIngestIT {
             + "(ajout d'un tag sur l'AIP de données).")
     @Test
     @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
-    public void test()
-            throws ModuleException, IOException, InterruptedException, ExecutionException, DataSourceException,
-            NotFinishedException {
+    public void test() throws ModuleException, IOException, InterruptedException, ExecutionException,
+            DataSourceException, NotFinishedException {
         LOGGER.info("********************* test CrawlerIngestIT ***********************************");
         final String tenant = tenantResolver.getTenant();
         // First delete index if it already exists
@@ -341,7 +337,7 @@ public class CrawlerIngestIT {
         dataset.setSubsettingClause(ICriterion.all());
         dataset.setLicence("licence");
         dataset.setDataSource(dataSourcePluginConf);
-        dataset.setTags(Sets.newHashSet("BULLSHIT"));
+        dataset.setTags(Sets.newHashSet("empty_tag"));
         dataset.setGroups(Sets.newHashSet("group0", "group11"));
         LOGGER.info("Creating dataset....");
         dsService.create(dataset);
@@ -367,8 +363,8 @@ public class CrawlerIngestIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-        Page<DataObject> objectsPage = searchService
-                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
+        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+                                                            ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
@@ -381,8 +377,8 @@ public class CrawlerIngestIT {
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService
-                .search(objectSearchKey, IEsRepository.BULK_SIZE, ICriterion.eq("tags", dataset.getIpId().toString()));
+        objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+                                           ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
                 .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());
@@ -395,9 +391,8 @@ public class CrawlerIngestIT {
 
     @Ignore
     @Test
-    public void testDsIngestionWithValidation()
-            throws InterruptedException, ExecutionException, DataSourceException, ModuleException,
-            NotFinishedException {
+    public void testDsIngestionWithValidation() throws InterruptedException, ExecutionException, DataSourceException,
+            ModuleException, NotFinishedException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model

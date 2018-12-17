@@ -32,7 +32,7 @@
 	<logger name="org.hibernate" level="INFO" />
 	<logger name="com.mchange" level="INFO" />
 
-	<root level="debug">
+	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>

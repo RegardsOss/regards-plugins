@@ -30,16 +30,13 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
-import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
@@ -47,15 +44,13 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreDataSourcePluginTestConfiguration;
 
 /**
  * @author Christophe Mertz
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { PostgreDataSourcePluginTestConfiguration.class })
-@TestPropertySource(locations = { "classpath:datasource-test.properties" })
-public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
+@TestPropertySource(locations = { "classpath:datasource-test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlConnectionPluginTest.class);
 
@@ -130,7 +125,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     public void getMaxPoolSizeWithCloseByThread() throws InterruptedException, SQLException {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
@@ -168,7 +163,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     public void getPostGreSqlConnectionError() {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")
+                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
@@ -183,7 +178,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsServiceIT {
     private Set<PluginParameter> getPostGreSqlParameters() {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();

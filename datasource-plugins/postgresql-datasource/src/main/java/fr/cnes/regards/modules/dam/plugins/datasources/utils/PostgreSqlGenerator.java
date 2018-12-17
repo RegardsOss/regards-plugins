@@ -20,11 +20,12 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
 
 /**
- * 
+ *
  * @author Christophe Mertz
  *
  */
@@ -48,7 +49,7 @@ public class PostgreSqlGenerator extends SqlGenerator {
     protected String limitClause(Pageable page) {
         int offset = page.getPageNumber() * page.getPageSize();
 
-        if (orderByTable != null && !orderByTable.isEmpty()) {
+        if ((orderByTable != null) && !orderByTable.isEmpty()) {
             return String.format(" ORDER BY %s LIMIT %d OFFSET %d", orderByTable, page.getPageSize(), offset);
 
         } else {
@@ -56,4 +57,13 @@ public class PostgreSqlGenerator extends SqlGenerator {
         }
 
     }
+
+    @Override
+    protected String sortingClauseIfRequired(Sort sort) {
+        if ((sort == null) || sort.isUnsorted()) {
+            return "";
+        }
+        return super.sortingClauseIfRequired(sort);
+    }
+
 }

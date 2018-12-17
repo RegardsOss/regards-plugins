@@ -18,8 +18,11 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,18 +40,15 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import fr.cnes.regards.framework.encryption.exception.EncryptionException;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
@@ -71,16 +71,13 @@ import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
-import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreDataSourcePluginTestConfiguration;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 
 /**
  * @author Christophe Mertz
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { PostgreDataSourcePluginTestConfiguration.class })
-@TestPropertySource("classpath:datasource-test.properties")
-@ComponentScan(basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils" })
+@TestPropertySource(locations = { "classpath:datasource-test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePluginTest.class);
@@ -129,11 +126,13 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     /**
      * Populate the datasource as a legacy catalog
      *
-     * @throws DataSourcesPluginException
      * @throws SQLException
+     * @throws ModuleException
+     * @throws MalformedURLException
      */
     @Before
     public void setUp() throws SQLException, ModuleException, MalformedURLException {
+
         tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
@@ -195,7 +194,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     public void getDataSourceIntrospection() throws SQLException, DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10));
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10));
         Assert.assertNotNull(ll);
         Assert.assertEquals(nbElements, ll.getContent().size());
 
@@ -222,7 +221,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), date);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), date);
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.getContent().size());
 
@@ -246,7 +245,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new PageRequest(0, 10), ldt);
+        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), ldt);
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.getContent().size());
     }
@@ -261,11 +260,15 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      * database
      *
      * @return the {@link PluginConfiguration} @
+     * @throws EncryptionException
+     * @throws IOException
+     * @throws InvalidAlgorithmParameterException
+     * @throws InvalidKeyException
      */
-    private PluginConfiguration getPostgreConnectionConfiguration() {
+    private PluginConfiguration getPostgreConnectionConfiguration() throws EncryptionException {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
+                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();

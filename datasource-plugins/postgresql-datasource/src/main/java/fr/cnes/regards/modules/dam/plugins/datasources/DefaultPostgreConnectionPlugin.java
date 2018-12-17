@@ -53,7 +53,8 @@ public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
     /**
      * The user's password to used for the database connection
      */
-    @PluginParameter(name = DBConnectionPluginConstants.PASSWORD_PARAM, label = "Database user password", sensitive = true)
+    @PluginParameter(name = DBConnectionPluginConstants.PASSWORD_PARAM, label = "Database user password",
+            sensitive = true)
     private String dbPassword;
 
     /**

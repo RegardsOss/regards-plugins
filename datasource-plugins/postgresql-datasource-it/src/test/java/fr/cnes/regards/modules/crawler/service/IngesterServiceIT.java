@@ -39,7 +39,7 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -47,7 +47,7 @@ import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
@@ -59,7 +59,6 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalData2Repository;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData3;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData3Repository;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
-import fr.cnes.regards.modules.crawler.test.IngesterConfiguration;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
@@ -82,9 +81,9 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IAipClient;
 
-@ContextConfiguration(classes = { IngesterConfiguration.class })
-@ActiveProfiles("noschedule") // Disable scheduling, this will activate IngesterService during all tests
-public class IngesterServiceIT extends AbstractRegardsServiceIT {
+@ActiveProfiles({ "noschedule", "IngesterTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
+@TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
+public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
@@ -355,12 +354,13 @@ public class IngesterServiceIT extends AbstractRegardsServiceIT {
                 .thenReturn(ResponseEntity.ok(new PagedResources<>(Collections.emptyList(),
                         new PagedResources.PageMetadata(0, 0, 0, 1))));
         Project project = new Project("Desc", "Icon", true, "Name");
-        Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant())).thenReturn(ResponseEntity.ok(new Resource(project)));
+        Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
+                .thenReturn(ResponseEntity.ok(new Resource<>(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 
         List<DatasourceIngestion> dsIngestions = dsIngestionRepos.findAll();
-        for(DatasourceIngestion dsi : dsIngestions) {
+        for (DatasourceIngestion dsi : dsIngestions) {
             System.out.print(dsi.getStackTrace());
             Assert.assertEquals(IngestionStatus.FINISHED, dsi.getStatus());
             Assert.assertEquals(new Integer(0), dsi.getSavedObjectsCount());

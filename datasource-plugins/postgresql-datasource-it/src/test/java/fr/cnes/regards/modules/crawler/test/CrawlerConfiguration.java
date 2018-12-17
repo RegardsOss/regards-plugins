@@ -19,35 +19,26 @@
 package fr.cnes.regards.modules.crawler.test;
 
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.hateoas.Resource;
+import org.springframework.http.ResponseEntity;
 
 import fr.cnes.regards.framework.hateoas.IResourceService;
-import fr.cnes.regards.framework.security.autoconfigure.MethodAuthorizationServiceAutoConfiguration;
-import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfiguration;
-import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfiguration;
-import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
+import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
-import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
-import fr.cnes.regards.modules.dam.service.dataaccess.AccessRightService;
 import fr.cnes.regards.modules.dam.service.dataaccess.IAccessRightService;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
-import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 
+@Profile("CrawlerTest")
 @Configuration
-@ComponentScan(basePackages = { "fr.cnes.regards.modules.crawler.service", "fr.cnes.regards.modules.indexer",
-        "fr.cnes.regards.modules.dam", "fr.cnes.regards.modules.dam.plugins.datasources", "fr.cnes.regards.modules.search",
-        "fr.cnes.regards.framework.modules.plugins.service" })
-@EnableAutoConfiguration(
-        exclude = { MethodAuthorizationServiceAutoConfiguration.class, MethodSecurityAutoConfiguration.class,
-                SecurityVoterAutoConfiguration.class, WebSecurityAutoConfiguration.class })
 @PropertySource(value = { "classpath:test.properties", "classpath:test_${user.name}.properties" },
         ignoreResourceNotFound = true)
 public class CrawlerConfiguration {
@@ -57,7 +48,7 @@ public class CrawlerConfiguration {
         return Mockito.mock(IAttributeModelClient.class);
     }
 
-    @Bean
+    @Bean(name = "osService")
     @Primary
     public IOpenSearchService openSearchService() {
         return Mockito.mock(IOpenSearchService.class);
@@ -65,20 +56,29 @@ public class CrawlerConfiguration {
 
     @Bean
     public IAccessRightService getAccessRightsService() {
-        return Mockito.mock(AccessRightService.class);
+        return Mockito.mock(IAccessRightService.class);
     }
 
     @Bean
     public IProjectsClient projectsClient() {
-        return Mockito.mock(IProjectsClient.class);
+        IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
+        Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
+            String tenant = invocation.getArgument(0);
+            Project project = new Project();
+            project.setName(tenant);
+            project.setCrs("WGS_84");
+            project.setPoleToBeManaged(Boolean.FALSE);
+            return ResponseEntity.ok(new Resource<Project>(project));
+        });
+        return projectClient;
     }
 
     @Bean
-    public IModelAttrAssocClient modelAttrAssocClient() {
-        return Mockito.mock(IModelAttrAssocClient.class);
+    public IProjectUsersClient projectUsersClient() {
+        return Mockito.mock(IProjectUsersClient.class);
     }
 
-    @Bean
+    @Bean(name = "rService")
     public IResourceService getResourceService() {
         return Mockito.mock(IResourceService.class);
     }
@@ -92,11 +92,6 @@ public class CrawlerConfiguration {
     @Primary
     public IModelAttrAssocService modelAttrAssocService() {
         return Mockito.mock(IModelAttrAssocService.class);
-    }
-
-    @Bean
-    public IAttributeFinder attributeFinder() {
-        return Mockito.mock(IAttributeFinder.class);
     }
 
 }
