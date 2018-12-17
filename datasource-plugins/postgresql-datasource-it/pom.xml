@@ -57,12 +57,13 @@
 		<dependency>
 			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 			<artifactId>postgresql-datasource</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 			<artifactId>aip-datasource</artifactId>
+			<scope>test</scope>
 		</dependency>
-		<!-- Tests -->
 		<dependency>
 			<groupId>fr.cnes.regards.framework.test</groupId>
 			<artifactId>regards-integration-test</artifactId>

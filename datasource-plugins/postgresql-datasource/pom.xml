@@ -64,16 +64,6 @@
             <artifactId>dam-service</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.indexer</groupId>
-            <artifactId>indexer-dao</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
-            <artifactId>plugins-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- Tests -->
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
