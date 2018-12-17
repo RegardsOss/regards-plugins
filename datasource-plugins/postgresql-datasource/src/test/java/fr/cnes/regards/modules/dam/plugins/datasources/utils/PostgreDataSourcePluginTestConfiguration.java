@@ -24,11 +24,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
@@ -45,9 +43,10 @@ import fr.cnes.regards.modules.project.domain.Project;
  * @author Christophe Mertz
  */
 @Configuration
+/**
 @EnableJpaRepositories(basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils",
         "fr.cnes.regards.modules.dam.dao.models" })
-@EnableTransactionManagement
+@EnableTransactionManagement**/
 public class PostgreDataSourcePluginTestConfiguration {
 
     /**

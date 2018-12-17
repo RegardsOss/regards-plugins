@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2018 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ *
+ * This file is part of REGARDS.
+ *
+ * REGARDS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * REGARDS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.cnes.regards.modules.crawler.service;
 
 import java.io.IOException;
@@ -5,7 +23,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -21,28 +38,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
-import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
-import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.test.ValidationConfiguration;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.models.IAttributeModelRepository;
 import fr.cnes.regards.modules.dam.dao.models.IFragmentRepository;
 import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
-import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
-import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.models.IAttributeModelService;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
@@ -66,8 +73,6 @@ public class ValidationIT {
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
-
-    private static final String T_VIEW = "";
 
     @Value("${regards.tenant}")
     private String tenant;
@@ -123,11 +128,6 @@ public class ValidationIT {
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
 
-    private List<AbstractAttributeMapping> modelAttrMapping;
-
-    @Autowired
-    private IPluginService pluginService;
-
     @Autowired
     private IPluginConfigurationRepository pluginConfRepo;
 
@@ -141,15 +141,11 @@ public class ValidationIT {
     //
     // private Model datasetModel;
 
-    private PluginConfiguration dataSourcePluginConf;
-
     // private Dataset dataset1;
     //
     // private Dataset dataset2;
     //
     // private Dataset dataset3;
-
-    private PluginConfiguration dBConnectionConf;
 
     @Before
     public void setUp() throws Exception {
@@ -200,6 +196,7 @@ public class ValidationIT {
     // fragRepo.deleteAll();
     // }
 
+    /**
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
@@ -221,6 +218,7 @@ public class ValidationIT {
 
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
+    */
 
     // private void buildModelAttributes() {
     // List<AbstractAttributeMapping> attributes = new ArrayList<AbstractAttributeMapping>();
@@ -267,6 +265,11 @@ public class ValidationIT {
     // dataSourceModelMapping = new DataSourceModelMapping(dataModel.getId(), attributes);
     // }
 
+    /**
+     *
+     * @throws IOException
+     * @throws ModuleException
+     */
     @Test
     public void validationInserts() throws IOException, ModuleException {
         this.initPluginConfForValidation();
