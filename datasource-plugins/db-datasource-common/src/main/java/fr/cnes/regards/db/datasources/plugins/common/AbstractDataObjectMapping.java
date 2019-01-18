@@ -222,7 +222,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @throws SQLException an SQL error occurred
      */
     private void countItems(Statement pStatement, String pCountRequest) throws SQLException {
-        if (pCountRequest != null && !pCountRequest.isEmpty() && nbItems == RESET_COUNT) {
+        if ((pCountRequest != null) && !pCountRequest.isEmpty() && (nbItems == RESET_COUNT)) {
             // Execute the request to count the elements
             try (ResultSet rsCount = pStatement.executeQuery(pCountRequest)) {
                 if (rsCount.next()) {
@@ -281,7 +281,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         feature.setProperties(attributes);
 
         // Add common tags
-        if (commonTags != null && commonTags.size() > 0) {
+        if ((commonTags != null) && (commonTags.size() > 0)) {
             feature.addTags(commonTags.toArray(new String[0]));
         }
 
@@ -326,8 +326,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             return null;
         }
 
-        if (LOG.isDebugEnabled() && attr != null) {
-            if (attrMapping.getName() != null && attrMapping.getName().equals(attrMapping.getNameDS())) {
+        if (LOG.isDebugEnabled() && (attr != null)) {
+            if ((attrMapping.getName() != null) && attrMapping.getName().equals(attrMapping.getNameDS())) {
                 LOG.debug("the value for <" + attrMapping.getName() + "> of type <" + attrMapping.getType() + "> is :"
                         + attr.getValue());
 
@@ -393,28 +393,37 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         // Manage files
         if (attrMapping.isRawData() || attrMapping.isThumbnail()) {
             String str = ((StringAttribute) attr).getValue();
-            // Compute data type
-            DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
-            // Compute mime type
-            MimeType mimeType;
-            if (attrMapping.isRawData()) {
-                mimeType = MediaType.APPLICATION_OCTET_STREAM;
-            } else {
-                // Detect mime type according to extension for THUMBNAIL
-                if (str.endsWith(".PNG") || str.endsWith(".png")) {
-                    mimeType = MediaType.IMAGE_PNG;
-                } else if (str.endsWith(".GIF") || str.endsWith(".gif")) {
-                    mimeType = MediaType.IMAGE_GIF;
-                } else if (str.endsWith(".JPG") || str.endsWith(".jpg") || str.endsWith(".JPEG")
-                        || str.endsWith(".jpeg")) {
-                    mimeType = MediaType.IMAGE_JPEG;
+
+            try {
+                // Check if attribute is a valid URL
+                new URL(str);
+                // Compute data type
+                DataType type = attrMapping.isRawData() ? DataType.RAWDATA : DataType.THUMBNAIL;
+                // Compute mime type
+                MimeType mimeType;
+                if (attrMapping.isRawData()) {
+                    mimeType = MediaType.APPLICATION_OCTET_STREAM;
                 } else {
-                    throw new IllegalArgumentException("Unsupported image extension for " + str);
+                    // Detect mime type according to extension for THUMBNAIL
+                    if (str.endsWith(".PNG") || str.endsWith(".png")) {
+                        mimeType = MediaType.IMAGE_PNG;
+                    } else if (str.endsWith(".GIF") || str.endsWith(".gif")) {
+                        mimeType = MediaType.IMAGE_GIF;
+                    } else if (str.endsWith(".JPG") || str.endsWith(".jpg") || str.endsWith(".JPEG")
+                            || str.endsWith(".jpeg")) {
+                        mimeType = MediaType.IMAGE_JPEG;
+                    } else {
+                        throw new IllegalArgumentException("Unsupported image extension for " + str);
+                    }
                 }
+                String filename = str.contains("/") ? str.substring(str.lastIndexOf('/') + 1) : str;
+                DataFile dataFile = DataFile.build(type, filename, str, mimeType, Boolean.TRUE, Boolean.TRUE);
+                dataObject.getFiles().put(type, dataFile);
+            } catch (MalformedURLException e) {
+                LOG.warn(String.format("Invalid URL mapped from database for dataobject %s. Value=%s",
+                                       dataObject.getProviderId(), str),
+                         e);
             }
-            String filename = str.contains("/") ? str.substring(str.lastIndexOf('/') + 1) : str;
-            DataFile dataFile = DataFile.build(type, filename, str, mimeType, Boolean.TRUE, Boolean.TRUE);
-            dataObject.getFiles().put(type, dataFile);
         }
 
         if (attrMapping.isLabel()) {
@@ -500,7 +509,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         attributesMapping.forEach(d -> {
-            if (0 > d.getNameDS().toLowerCase().lastIndexOf(AS) && !d.isPrimaryKey()) {
+            if ((0 > d.getNameDS().toLowerCase().lastIndexOf(AS)) && !d.isPrimaryKey()) {
                 columns.add(d.getNameDS() + BLANK + AS + d.getName() + "_");
             } else {
                 columns.add(d.getNameDS());
