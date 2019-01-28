@@ -32,7 +32,6 @@ import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
 import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
-import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.storage.client.IAipClient;
@@ -42,11 +41,6 @@ import fr.cnes.regards.modules.storage.client.IAipClient;
 @PropertySource(value = { "classpath:test2.properties", "classpath:test2_${user.name}.properties" },
         ignoreResourceNotFound = true)
 public class IngesterConfiguration {
-
-    @Bean
-    public INotificationClient notifClient() {
-        return Mockito.mock(INotificationClient.class);
-    }
 
     @Bean
     public IPoller getPoller() {
