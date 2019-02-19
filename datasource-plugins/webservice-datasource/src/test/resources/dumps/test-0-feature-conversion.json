@@ -1,0 +1,9 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "myTotalResults": 5884,
+    "myPageSize": 45
+  },
+  "links": [],
+  "features": []
+}
