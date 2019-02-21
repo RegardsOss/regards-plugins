@@ -6,6 +6,7 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.notification.NotificationLevel;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
@@ -17,7 +18,6 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.ConversionReport;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
-import fr.cnes.regards.modules.notification.domain.NotificationLevel;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +166,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      * @param page   page information (crawl process advancement)
      * @param date   last crawling date, null when first crawling
      * @return converted page
-     * @throws DataSourceException
+     * @throws DataSourceException when conversion was not possible
      */
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable page, OffsetDateTime date) throws DataSourceException {
