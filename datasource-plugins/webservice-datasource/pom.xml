@@ -40,6 +40,7 @@
         <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>spring-utils</artifactId>
+            <scope>provided</scope>
         </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
@@ -76,7 +77,6 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <scope>provided</scope>
         </dependency>
         <!-- Tests -->
         <dependency>
@@ -91,6 +91,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.freemarker:*</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
