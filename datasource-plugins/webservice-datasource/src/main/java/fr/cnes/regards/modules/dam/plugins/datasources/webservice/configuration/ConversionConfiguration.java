@@ -118,23 +118,11 @@ public class ConversionConfiguration {
      * @throws ModuleException when an invalid value is found
      */
     public void checkValidity() throws ModuleException {
-        if(Strings.isNullOrEmpty(modelName)){
-            throw new ModuleException("Invalid conversion configuration: model name is null");
-        }
-        if (attributeToJSonField == null){
-            throw new ModuleException("Invalid conversion configuration: map of name is null");
-        }
         if(Strings.isNullOrEmpty(attributeToJSonField.get(StaticProperties.FEATURE_LABEL))){
             throw new ModuleException("Invalid webservice data source plugin configuration: features label path is missing");
         }
         if(Strings.isNullOrEmpty(attributeToJSonField.get(StaticProperties.FEATURE_PROVIDER_ID))){
             throw new ModuleException("Invalid webservice data source plugin configuration: features providerId path is missing");
-        }
-        if (Strings.isNullOrEmpty(totalResultsField)){
-            throw new ModuleException("Invalid webservice data source plugin configuration: total results field is missing");
-        }
-        if (Strings.isNullOrEmpty(pageSizeField)){
-            throw new ModuleException("Invalid webservice data source plugin configuration: page size field is missing");
         }
     }
 }

@@ -1,6 +1,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
 import com.google.gson.Gson;
+import feign.FeignException;
 import feign.Target;
 import feign.httpclient.ApacheHttpClient;
 import fr.cnes.regards.framework.feign.FeignClientBuilder;
@@ -82,8 +83,9 @@ public class OpenSearchFetcher {
         // 2.1 - page index
         int servicePageIndex = page.getPageNumber() + webserviceConfiguration.getStartPageIndex();
         addedParameters.add(Pair.of(webserviceConfiguration.getPageIndexParam(), String.valueOf(servicePageIndex)));
-        // 2.2 - page size
-        addedParameters.add(Pair.of(webserviceConfiguration.getPageSizeParam(), String.valueOf(page.getPageSize())));
+        // 2.2 - page size: from configuration when provided, from caller page otherwise
+        int pageSize = this.webserviceConfiguration.getPagesSize() != null ? this.webserviceConfiguration.getPagesSize() : page.getPageSize();
+        addedParameters.add(Pair.of(webserviceConfiguration.getPageSizeParam(), String.valueOf(pageSize)));
         // 3.3 - lastUpdate if any is required and user provided it
         String lastUpdateParam = webserviceConfiguration.getLastUpdateParam();
         if (lastUpdate != null && lastUpdateParam != null) {
@@ -123,13 +125,13 @@ public class OpenSearchFetcher {
         Target<GEOJsonWebservice> target = new Target.HardCodedTarget<>(GEOJsonWebservice.class, lastPageURL);
         ApacheHttpClient client = new ApacheHttpClient(httpClient);
         try {
-            ResponseEntity<FeatureWithPropertiesCollection> retrievedFeatures = FeignClientBuilder.build(target, client, gson).get();
-            if (retrievedFeatures.getStatusCode() != HttpStatus.OK) {
+            ResponseEntity<FeatureWithPropertiesCollection> lastRetrievedFeatures = FeignClientBuilder.build(target, client, gson).get();
+            if (lastRetrievedFeatures.getStatusCode() != HttpStatus.OK) {
                 throw new DataSourceException(String.format("Could not get features to convert from URL '%s' (returned code: %d)",
-                        lastPageURL, retrievedFeatures.getStatusCodeValue()));
+                        lastPageURL, lastRetrievedFeatures.getStatusCodeValue()));
             }
-            return retrievedFeatures;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return lastRetrievedFeatures;
+        } catch (HttpClientErrorException | HttpServerErrorException | FeignException e) {
             throw new DataSourceException(String.format("Could not get features to convert from URL '%s' (HTTP error)", lastPageURL), e);
         }
     }
@@ -137,4 +139,5 @@ public class OpenSearchFetcher {
     public String getLastPageURL() {
         return lastPageURL;
     }
+
 }

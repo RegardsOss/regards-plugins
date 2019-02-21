@@ -1,7 +1,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
 
-import fr.cnes.regards.modules.notification.domain.NotificationLevel;
+import fr.cnes.regards.framework.notification.NotificationLevel;
 
 import java.util.SortedMap;
 import java.util.TreeMap;

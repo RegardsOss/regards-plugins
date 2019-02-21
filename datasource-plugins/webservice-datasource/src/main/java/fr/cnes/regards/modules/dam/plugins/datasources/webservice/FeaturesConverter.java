@@ -171,7 +171,7 @@ public class FeaturesConverter {
         LOGGER.trace(String.format("Webservice data source plugin: Converted %d/%d elements", webserviceFeatures.size(), convertedFeatures.size()));
 
         // Build page.
-        // XXX-Worakound Workaround for servers returning wrong total count like THEIA:
+        // XXX-Workaround for servers returning wrong total count like THEIA:
         // If less features than page size were returned, cut down total results count
         if (webserviceFeatures.size() < pageSize) {
             totalResults = page.getPageNumber() * pageSize + webserviceFeatures.size();

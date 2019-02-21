@@ -1,6 +1,5 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration;
 
-import com.google.common.base.Strings;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 
@@ -41,6 +40,15 @@ public class WebserviceConfiguration {
     private Integer startPageIndex;
 
     /**
+     * Server page size (not mandatory, defaults to crawler provided size). Support for THEIA like servers
+     * that send errors when requesting a first page larger than where they expect (twisted behavior...)
+     *
+     */
+    @PluginParameter(name = "pagesSize", label = "Page sizes", optional = true,
+            description = "Server pages size (for servers sending errors when page size is too large)")
+    private Integer pagesSize;
+
+    /**
      * Constructor for reflexion instantiation
      */
     public WebserviceConfiguration() {
@@ -54,12 +62,13 @@ public class WebserviceConfiguration {
      * @param lastUpdateParam -
      * @param startPageIndex -
      */
-    public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex) {
+    public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize) {
         this.webserviceURL = webserviceURL;
         this.pageIndexParam = pageIndexParam;
         this.pageSizeParam = pageSizeParam;
         this.lastUpdateParam = lastUpdateParam;
         this.startPageIndex = startPageIndex;
+        this.pagesSize = pagesSize;
     }
 
     public String getWebserviceURL() {
@@ -82,25 +91,8 @@ public class WebserviceConfiguration {
         return startPageIndex;
     }
 
-    /**
-     * @return true when webservice URL is set
-     */
-    private boolean hasWebserviceURL() {
-        return !Strings.isNullOrEmpty(this.webserviceURL);
-    }
-
-    /**
-     * @return true when page index is set
-     */
-    private boolean hasPageIndexParam() {
-        return Strings.isNullOrEmpty(this.pageIndexParam);
-    }
-
-    /**
-     * @return true when page size param is set
-     */
-    private boolean hasPageSizeParam() {
-        return Strings.isNullOrEmpty(this.pageSizeParam);
+    public Integer getPagesSize() {
+        return pagesSize;
     }
 
     /**
@@ -110,15 +102,6 @@ public class WebserviceConfiguration {
      * @throws ModuleException when an invalid value is found
      */
     public void checkValidity() throws ModuleException {
-        if (!this.hasWebserviceURL()) {
-            throw new ModuleException("Invalid webservice data source plugin configuration: URL is missing");
-        }
-        if (!this.hasPageIndexParam()) {
-            throw new ModuleException("Invalid webservice data source plugin configuration: page index parameter name is missing");
-        }
-        if (!this.hasPageSizeParam()) {
-            throw new ModuleException("Invalid webservice data source plugin configuration: page size parameter name is missing");
-        }
         try {
             new URL(this.webserviceURL);
         } catch (MalformedURLException e) {
