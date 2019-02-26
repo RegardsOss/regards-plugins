@@ -42,7 +42,6 @@ public class WebserviceConfiguration {
     /**
      * Server page size (not mandatory, defaults to crawler provided size). Support for THEIA like servers
      * that send errors when requesting a first page larger than where they expect (twisted behavior...)
-     *
      */
     @PluginParameter(name = "pagesSize", label = "Page sizes", optional = true,
             description = "Server pages size (for servers sending errors when page size is too large)")
@@ -56,11 +55,12 @@ public class WebserviceConfiguration {
 
     /**
      * Constructor for tests
-     * @param webserviceURL -
-     * @param pageIndexParam -
-     * @param pageSizeParam -
+     *
+     * @param webserviceURL   -
+     * @param pageIndexParam  -
+     * @param pageSizeParam   -
      * @param lastUpdateParam -
-     * @param startPageIndex -
+     * @param startPageIndex  -
      */
     public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize) {
         this.webserviceURL = webserviceURL;

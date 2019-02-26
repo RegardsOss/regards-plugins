@@ -42,12 +42,12 @@ public class FeaturesConverter {
     /**
      * List of files data types that should be handled as images
      */
-    private static List<DataType> imagesDataTypes = Arrays.asList(DataType.QUICKLOOK_HD, DataType.QUICKLOOK_MD, DataType.QUICKLOOK_SD, DataType.THUMBNAIL);
+    private static final List<DataType> imagesDataTypes = Arrays.asList(DataType.QUICKLOOK_HD, DataType.QUICKLOOK_MD, DataType.QUICKLOOK_SD, DataType.THUMBNAIL);
 
     /**
      * Allowed MIME types types for images files
      */
-    private static List<String> imagesAllowedMimeTypes = Arrays.asList(MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
+    private static final List<String> imagesAllowedMimeTypes = Arrays.asList(MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
 
     /**
      * Conversion configuration
@@ -157,7 +157,17 @@ public class FeaturesConverter {
 
         // Compute page data (breaks conversion if not found)
         int totalResults = retrieveMandatoryIntField(featureCollection, conversionConfiguration.getTotalResultsField());
-        int pageSize = retrieveMandatoryIntField(featureCollection, conversionConfiguration.getPageSizeField());
+        int pageSize = page.getPageSize();
+        if (page.getPageNumber() == 0) {
+            // Allowing page size setting changes only on first results page
+            pageSize = retrieveMandatoryIntField(featureCollection, conversionConfiguration.getPageSizeField());
+        }
+        if (webserviceFeatures.isEmpty()) {
+            // XXX - workaround for THEIA: total results is wrong, recompute it to let parent caller stop current indexation
+            LOGGER.info(String.format("Webservice data source plugin: No results found at page #%d, stopping indexation.", page.getPageNumber()));
+            totalResults = page.getPageNumber() * pageSize; // total count: sum of previous pages elements
+        }
+
         LOGGER.trace(String.format("Webservice data source plugin: Found page size %d and total results %d", pageSize, totalResults));
 
         // Convert each element. Remove null elements (impossible conversions due to missing mandatory property
@@ -168,16 +178,8 @@ public class FeaturesConverter {
                 convertedFeatures.add(convertedElement);
             }
         }
-        LOGGER.trace(String.format("Webservice data source plugin: Converted %d/%d elements", webserviceFeatures.size(), convertedFeatures.size()));
-
-        // Build page.
-        // XXX-Workaround for servers returning wrong total count like THEIA:
-        // If less features than page size were returned, cut down total results count
-        if (webserviceFeatures.size() < pageSize) {
-            totalResults = page.getPageNumber() * pageSize + webserviceFeatures.size();
-        }
         convertedPage = new PageImpl<>(convertedFeatures, PageRequest.of(page.getPageNumber(), pageSize), totalResults);
-        LOGGER.trace(String.format("Finished converting page %d", page.getPageNumber()));
+        LOGGER.info(String.format("Finished converting page %d (converted %d / %d elements)", page.getPageNumber(), convertedFeatures.size(), webserviceFeatures.size()));
     }
 
     /**

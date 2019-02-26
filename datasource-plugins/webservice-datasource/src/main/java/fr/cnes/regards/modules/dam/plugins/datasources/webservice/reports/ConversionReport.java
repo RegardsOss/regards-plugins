@@ -2,7 +2,13 @@ package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
 
 import fr.cnes.regards.framework.notification.NotificationLevel;
+import fr.cnes.regards.modules.templates.service.TemplateService;
+import freemarker.template.TemplateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -14,18 +20,18 @@ import java.util.TreeMap;
 public class ConversionReport {
 
     /**
-     * Notification template render delegate
+     * Class logger
      */
-    private static final NotificationTemplateRender notificationTemplateRender = new NotificationTemplateRender();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionReport.class);
 
     /**
      * Maps feature index to corresponding feature errors (bloking)
      */
-    private SortedMap<Integer, FeatureErrors> blockingErrors = new TreeMap<>();
+    private final SortedMap<Integer, FeatureErrors> blockingErrors = new TreeMap<>();
     /**
      * Maps feature index to corresponding feature errors (non blocking)
      */
-    private SortedMap<Integer, FeatureErrors> nonBlockingErrors = new TreeMap<>();
+    private final SortedMap<Integer, FeatureErrors> nonBlockingErrors = new TreeMap<>();
 
     /**
      * Adds a feature conversion error
@@ -109,11 +115,22 @@ public class ConversionReport {
     /**
      * Returns notification text for current report
      *
+     * @param pageURL         page of the webservice for which the conversion report is emitted
+     * @param templateService template service for rendering
      * @return produced textual report for notification or null if any error happened
-     * @param pageURL page of the webservice for which the conversion report is emitted
      */
-    public String buildNotificationReport(String pageURL) {
-        return notificationTemplateRender.renderNotificationTemplate(pageURL, blockingErrors.values(), nonBlockingErrors.values());
+    public String buildNotificationReport(String pageURL, TemplateService templateService) {
+        // create template values
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("pageURL", pageURL);
+        dataModel.put("blockingErrors", blockingErrors.values());
+        dataModel.put("nonBlockingErrors", nonBlockingErrors.values());
+        try {
+            return templateService.render(ReportTemplateConfiguration.CONVERSION_REPORT_KEY, dataModel);
+        } catch (TemplateException e) {
+            LOGGER.error("Error during notification template render", e);
+        }
+        return null;
     }
 
 }
