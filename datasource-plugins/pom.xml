@@ -59,5 +59,6 @@
 		<module>db-datasource-common</module>
 		<module>postgresql-datasource</module>
 		<module>postgresql-datasource-it</module>
-	</modules>
+        <module>webservice-datasource</module>
+    </modules>
 </project>
