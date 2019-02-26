@@ -10,8 +10,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.HttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +25,6 @@ import java.util.List;
  * Fetches an open search data source
  */
 public class OpenSearchFetcher {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenSearchFetcher.class);
     /**
      * URL query start char
      */
@@ -89,7 +86,7 @@ public class OpenSearchFetcher {
         // 3.3 - lastUpdate if any is required and user provided it
         String lastUpdateParam = webserviceConfiguration.getLastUpdateParam();
         if (lastUpdate != null && lastUpdateParam != null) {
-            addedParameters.add(Pair.of(lastUpdateParam, DateTimeFormatter.ISO_DATE_TIME.format(lastUpdate)));
+            addedParameters.add(Pair.of(lastUpdateParam, DateTimeFormatter.ISO_INSTANT.format(lastUpdate)));
         }
 
         // 2 - prepare next parameter separator
@@ -118,7 +115,7 @@ public class OpenSearchFetcher {
      * @param page       page
      * @param lastUpdate data last update date
      * @return found features
-     * @Throws DataSourceException when content could not be retrieved
+     * @throws DataSourceException when content could not be retrieved
      */
     public ResponseEntity<FeatureWithPropertiesCollection> fetchFeatures(Pageable page, OffsetDateTime lastUpdate) throws DataSourceException {
         lastPageURL = this.getFetchURL(page, lastUpdate);

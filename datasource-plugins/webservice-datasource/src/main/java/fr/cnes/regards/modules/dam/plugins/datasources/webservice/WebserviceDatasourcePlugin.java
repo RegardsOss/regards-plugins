@@ -18,6 +18,7 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.ConversionReport;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
+import fr.cnes.regards.modules.templates.service.TemplateService;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
     private INotificationClient notificationClient;
 
     /**
-     * HTTP client for external request
+     * HTTP client for external API requests
      */
     @Autowired
     private HttpClient httpClient;
@@ -80,6 +81,12 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      */
     @Autowired
     private Gson gson;
+
+    /**
+     * Templates service for conversion errors notification rendering
+     */
+    @Autowired
+    private TemplateService templateService;
 
     /**
      * Delegate features converter
@@ -160,6 +167,22 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
     }
 
     /**
+     * Converter delegate getter, opened for tests
+     * @return -
+     */
+    public FeaturesConverter getConverter() {
+        return converter;
+    }
+
+    /**
+     * Fetcher delegate getter, opened for tests
+     * @return -
+     */
+    public OpenSearchFetcher getFetcher() {
+        return fetcher;
+    }
+
+    /**
      * Main implementation: retrieves elements and convert them, taking date in account if it is not null
      *
      * @param tenant Tenant
@@ -191,7 +214,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
         ConversionReport conversionReport = converter.getReport();
         if (conversionReport.hasErrors()) {
             NotificationLevel notificationLevel = conversionReport.getNotificationLevel();
-            String notificationReport = conversionReport.buildNotificationReport(fetcher.getLastPageURL());
+            String notificationReport = conversionReport.buildNotificationReport(fetcher.getLastPageURL(), templateService);
             if (notificationReport == null) {
                 notificationReport = "No error report could be produced (inner plugin error)";
             }

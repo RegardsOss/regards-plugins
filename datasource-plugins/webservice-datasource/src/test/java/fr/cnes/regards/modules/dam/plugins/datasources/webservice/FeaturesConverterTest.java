@@ -3,9 +3,10 @@ package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
+import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
@@ -21,13 +22,11 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.Featur
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -36,9 +35,10 @@ import java.util.*;
 /**
  * Tests features conversion with results files
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@TestPropertySource(locations = {"classpath:test.properties"})
-public class FeaturesConverterTest extends AbstractRegardsServiceIT {
+@TestPropertySource(locations = {"classpath:test.properties"},
+        properties = {"spring.jpa.properties.hibernate.default_schema=public"})
+@RegardsTransactional
+public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT {
 
     @Autowired
     private Gson gson;
@@ -174,7 +174,7 @@ public class FeaturesConverterTest extends AbstractRegardsServiceIT {
         Assert.assertFalse("No non blocking error should have occurred", report.hasNonBlockingErrors());
         // Check converted page
         Page<DataObjectFeature> convertedPage = converter.getConvertedPage();
-        Assert.assertEquals("Total results should have been correctly retrieved and cut down to 2 as there were only 2 features", 2, convertedPage.getTotalElements());
+        Assert.assertEquals("Total results should have been correctly retrieved", 50, convertedPage.getTotalElements());
         Assert.assertEquals("Page size should have been correctly retrieved", 50, convertedPage.getSize());
 
         List<DataObjectFeature> content = convertedPage.getContent();
@@ -308,7 +308,7 @@ public class FeaturesConverterTest extends AbstractRegardsServiceIT {
         // Check features content
         Page<DataObjectFeature> convertedPage = converter.getConvertedPage();
         Assert.assertEquals(50, convertedPage.getSize());
-        Assert.assertEquals(2, convertedPage.getTotalElements());
+        Assert.assertEquals(50, convertedPage.getTotalElements());
         List<DataObjectFeature> features = convertedPage.getContent();
         Assert.assertEquals("There should be 2 converted features", 2, features.size());
 

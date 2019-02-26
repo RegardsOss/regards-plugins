@@ -25,14 +25,14 @@ public class OpenSearchFetcherTest {
                 null, null).getFetchURL(PageRequest.of(0, 20), OffsetDateTime.now()));
 
         // init page = 0, config size = 50, update date OK, already some query (but not & parameter)
-        Assert.assertEquals("https://server2.fr:3616/somewhere/here?a=abc&b=bcd&index=0&count=50&update=2019-02-18T15:30:44.372+01:00", new OpenSearchFetcher(
+        Assert.assertEquals("https://server2.fr:3616/somewhere/here?a=abc&b=bcd&index=0&count=50&update=2019-02-18T15:30:44.372Z", new OpenSearchFetcher(
                 new WebserviceConfiguration("https://server2.fr:3616/somewhere/here?a=abc&b=bcd", "index", "count", "update", 0, 50),
-                null, null).getFetchURL(PageRequest.of(0, 20), OffsetDateTime.parse("2019-02-18T15:30:44.372+01:00")));
+                null, null).getFetchURL(PageRequest.of(0, 20), OffsetDateTime.parse("2019-02-18T15:30:44.372Z")));
 
         // init page = 1, no config page size, update date OK, already some query ending with &
-        Assert.assertEquals("http://server1.fr/here?a=abc&page=9&size=40&from=2019-02-18T15:30:44.372+01:00", new OpenSearchFetcher(
+        Assert.assertEquals("http://server1.fr/here?a=abc&page=9&size=40&from=2019-02-18T15:30:44.372Z", new OpenSearchFetcher(
                 new WebserviceConfiguration("http://server1.fr/here?a=abc&", "page", "size", "from", 1, null),
-                null, null).getFetchURL(PageRequest.of(8, 40), OffsetDateTime.parse("2019-02-18T15:30:44.372+01:00")));
+                null, null).getFetchURL(PageRequest.of(8, 40), OffsetDateTime.parse("2019-02-18T15:30:44.372Z")));
     }
 
 }

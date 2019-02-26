@@ -1,7 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 
 /**
@@ -44,10 +43,10 @@ public class FeatureConversionError {
      * Builds an error for an invalid input value (blocks feature conversion only when that attribute is mandatory)
      *
      * @param attributeJsonPath JSON path of the attribute to convert
-     * @param type type of the attribute to convert
-     * @param mandatory is attribute mandatory?
-     * @param resultsJsonPath JSON path in webservice results
-     * @param resultsValue    found value in results, not null
+     * @param type              type of the attribute to convert
+     * @param mandatory         is attribute mandatory?
+     * @param resultsJsonPath   JSON path in webservice results
+     * @param resultsValue      found value in results, not null
      * @return built error with corresponding message
      */
     public static FeatureConversionError getValueNotConvertibleError(String attributeJsonPath, AttributeType type, boolean mandatory, String resultsJsonPath, Object resultsValue) {
@@ -59,10 +58,10 @@ public class FeatureConversionError {
      * Builds an error for an invalid element on value path (blocks feature conversion only when that attribute is mandatory)
      *
      * @param attributeJsonPath JSON path of the attribute to convert
-     * @param mandatory is attribute to convert mandatory?
-     * @param resultsJsonPath JSON path in webservice results
-     * @param errorLevel level name, in JSON path, where the error occurred
-     * @param resultsValue    found value in results, not null
+     * @param mandatory         is attribute to convert mandatory?
+     * @param resultsJsonPath   JSON path in webservice results
+     * @param errorLevel        level name, in JSON path, where the error occurred
+     * @param resultsValue      found value in results, not null
      * @return built error with corresponding message
      */
     public static FeatureConversionError getInvalidValueOnPathError(String attributeJsonPath, boolean mandatory, String resultsJsonPath, String errorLevel, Object resultsValue) {
@@ -72,8 +71,9 @@ public class FeatureConversionError {
 
     /**
      * Returns a non blocking error corresponding to invalid URL for file
-     * @param fileURL found file URL
-     * @param fileType corresponding file type
+     *
+     * @param fileURL         found file URL
+     * @param fileType        corresponding file type
      * @param resultsJsonPath path in JSON results
      * @return corresponding error
      */
@@ -83,8 +83,9 @@ public class FeatureConversionError {
 
     /**
      * Returns a non blocking error corresponding to missing extending on URL for file
-     * @param fileURL found file URL
-     * @param fileType corresponding file type
+     *
+     * @param fileURL         found file URL
+     * @param fileType        corresponding file type
      * @param resultsJsonPath path in JSON results
      * @return corresponding error
      */
@@ -94,10 +95,11 @@ public class FeatureConversionError {
 
     /**
      * Returns a non blocking error corresponding to missing extending on URL for file
-     * @param fileURL found file URL
-     * @param fileType corresponding file type
+     *
+     * @param fileURL         found file URL
+     * @param fileType        corresponding file type
      * @param resultsJsonPath path in JSON results
-     * @param mimeType found mime type
+     * @param mimeType        found mime type
      * @return corresponding error
      */
     public static FeatureConversionError getInvalidImageMimeTypeFound(String fileURL, DataType fileType, String resultsJsonPath, String mimeType) {

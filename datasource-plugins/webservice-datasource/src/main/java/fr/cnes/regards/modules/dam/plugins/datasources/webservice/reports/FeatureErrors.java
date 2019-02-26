@@ -13,19 +13,19 @@ public class FeatureErrors {
     /**
      * Feature index
      */
-    private int index;
+    private final int index;
     /**
      * Feature label if found
      */
-    private String label;
+    private final String label;
     /**
      * Feature  provider Id if found
      */
-    private String providerId;
+    private final String providerId;
     /**
      * Feature errors
      */
-    private List<FeatureConversionError> errors = new ArrayList<>();
+    private final List<FeatureConversionError> errors = new ArrayList<>();
 
     /**
      * Constructor
