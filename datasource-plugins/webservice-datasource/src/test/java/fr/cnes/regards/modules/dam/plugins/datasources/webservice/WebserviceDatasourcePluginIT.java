@@ -102,8 +102,10 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         attributeToJSonField.put("properties.measurement.meas_resolution", "resolution");
         attributeToJSonField.put("properties.measurement.meas_sensor_mode", "sensorMode");
 
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("cloudCover", 30);
         WebserviceDatasourcePlugin pl = new WebserviceDatasourcePlugin(
-                new WebserviceConfiguration("https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json", "page", "maxRecords", "updated", 1, 500),
+                new WebserviceConfiguration("https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json", "page", "maxRecords", "updated", 1, 500, parameters),
                 new ConversionConfiguration("PATATO", attributeToJSonField, "thumbnail", "services.download.url", "quicklook", "totalResults", "itemsPerPage"), 90000,
                 modelAttrAssocService, notificationClient, httpClient, gson);
         pl.initialize();

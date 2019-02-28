@@ -20,6 +20,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Fetches an open search data source
@@ -105,6 +106,16 @@ public class OpenSearchFetcher {
         for (Pair<String, String> p : addedParameters) {
             builtURL.append(currentParameterSeparator).append(p.getKey()).append(parameterValueSeparator).append(p.getValue());
             currentParameterSeparator = nextParameterMarker;
+        }
+        // 4 - Append configuration parameters
+        Map<String, Object> webserviceParameters = webserviceConfiguration.getWebserviceParameters();
+        if (webserviceParameters != null) {
+            for (Map.Entry<String, Object> parameter : webserviceParameters.entrySet()) {
+                if (parameter.getValue() != null) {
+                    builtURL.append(currentParameterSeparator).append(parameter.getKey()).append(parameterValueSeparator).append(parameter.getValue());
+                    currentParameterSeparator = nextParameterMarker;
+                }
+            }
         }
         return builtURL.toString();
     }
