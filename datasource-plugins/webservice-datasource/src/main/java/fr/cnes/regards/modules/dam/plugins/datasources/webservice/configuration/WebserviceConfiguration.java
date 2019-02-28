@@ -5,6 +5,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * Holds webservice configuration, that describes OpenSearch webservice access with pagination feature
@@ -16,6 +17,10 @@ public class WebserviceConfiguration {
     @PluginParameter(name = "webserviceURL", label = "Webservice URL",
             description = "OpenSearch webservice URL")
     private String webserviceURL;
+
+    @PluginParameter(name = "webserviceParameters", label = "Webservice query parameters", optional = true,
+            description = "Webservice query parameters, restricting results set", keylabel = "parameter name")
+    private Map<String, Object> webserviceParameters;
 
     @PluginParameter(name = "pageIndexParam", label = "Page index parameter",
             description = "Name of the parameter to use in query in order to specify the page index")
@@ -55,24 +60,23 @@ public class WebserviceConfiguration {
 
     /**
      * Constructor for tests
-     *
-     * @param webserviceURL   -
-     * @param pageIndexParam  -
-     * @param pageSizeParam   -
-     * @param lastUpdateParam -
-     * @param startPageIndex  -
      */
-    public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize) {
+    public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize, Map<String, Object> webserviceParameters) {
         this.webserviceURL = webserviceURL;
         this.pageIndexParam = pageIndexParam;
         this.pageSizeParam = pageSizeParam;
         this.lastUpdateParam = lastUpdateParam;
         this.startPageIndex = startPageIndex;
         this.pagesSize = pagesSize;
+        this.webserviceParameters = webserviceParameters;
     }
 
     public String getWebserviceURL() {
         return webserviceURL;
+    }
+
+    public Map<String, Object> getWebserviceParameters() {
+        return webserviceParameters;
     }
 
     public String getPageIndexParam() {
