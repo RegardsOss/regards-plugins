@@ -49,7 +49,7 @@
 
 	<parent>
 		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-		<artifactId>datasource-plugins</artifactId>
+		<artifactId>dam-plugins</artifactId>
 		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 
