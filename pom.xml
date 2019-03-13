@@ -123,7 +123,10 @@
 
 
     <modules>
-        <module>datasource-plugins</module>
+    	<module>authentication-plugins</module>
+    	<module>catalog-plugins</module>
+    	<module>dataprovider-plugins</module>
+        <module>dam-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
     </modules>
