@@ -22,11 +22,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-	<artifactId>datasource-plugins</artifactId>
+	<artifactId>postgresql-datasource-it</artifactId>
+	<description>PostgreSQL datasource integration tests</description>
 	<version>4.0.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	
-	<description>Plugins allowing the system to connect to various datasources, from which will be aspired the data</description>
+
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -49,16 +48,36 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards</groupId>
-		<artifactId>regards-parent</artifactId>
+		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+		<artifactId>dam-plugins</artifactId>
 		<version>4.0.0-SNAPSHOT</version>
-		<relativePath />
 	</parent>
-	<modules>
-		<module>aip-datasource</module>
-		<module>db-datasource-common</module>
-		<module>postgresql-datasource</module>
-		<module>postgresql-datasource-it</module>
-        <module>webservice-datasource</module>
-    </modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+			<artifactId>postgresql-datasource</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+			<artifactId>aip-datasource</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.test</groupId>
+			<artifactId>regards-integration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.crawler</groupId>
+			<artifactId>crawler-service</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.indexer</groupId>
+			<artifactId>indexer-service</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>
