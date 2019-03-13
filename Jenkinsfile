@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-
 /**
  * Declaratve Jenkinsfile. The language is Groovy.
  * Contains the definition of a Jenkins Pipeline, is checked into source control
