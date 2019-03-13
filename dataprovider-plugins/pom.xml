@@ -16,16 +16,15 @@
  
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-	<artifactId>postgresql-datasource-it</artifactId>
-	<description>PostgreSQL datasource integration tests</description>
+	<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
+	<artifactId>dataprovider-plugins</artifactId>
 	<version>3.1.0-RC</version>
-
+	<packaging>pom</packaging>
+	
+	<description>Catalog plugins</description>
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -48,35 +47,11 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-		<artifactId>datasource-plugins</artifactId>
+		<groupId>fr.cnes.regards</groupId>
+		<artifactId>regards-parent</artifactId>
 		<version>3.1.0-RC</version>
+		<relativePath/>
 	</parent>
-
-	<dependencies>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-			<artifactId>postgresql-datasource</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-			<artifactId>aip-datasource</artifactId>
-		</dependency>
-		<!-- Tests -->
-		<dependency>
-			<groupId>fr.cnes.regards.framework.test</groupId>
-			<artifactId>regards-integration-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.crawler</groupId>
-			<artifactId>crawler-service</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.indexer</groupId>
-			<artifactId>indexer-service</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+	<modules>
+    </modules>
 </project>

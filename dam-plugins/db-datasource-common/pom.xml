@@ -22,11 +22,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-	<artifactId>datasource-plugins</artifactId>
+	<artifactId>db-datasource-common</artifactId>
+	<description>PostgreSQL datasource</description>
 	<version>3.1.0-RC</version>
-	<packaging>pom</packaging>
-	
-	<description>Plugins allowing the system to connect to various datasources, from which will be aspired the data</description>
+
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -49,15 +48,34 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards</groupId>
-		<artifactId>regards-parent</artifactId>
+		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+		<artifactId>dam-plugins</artifactId>
 		<version>3.1.0-RC</version>
-		<relativePath />
 	</parent>
-	<modules>
-		<module>aip-datasource</module>
-		<module>db-datasource-common</module>
-		<module>postgresql-datasource</module>
-		<module>postgresql-datasource-it</module>
-	</modules>
+
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
+		<dependency>
+			<groupId>cz.jirutka.spring</groupId>
+			<artifactId>spring-data-jdbc-repository</artifactId>
+			<version>0.5.0</version>
+		</dependency>
+		<!-- Provided: dependencies that are already included by the microservice -->
+		<dependency>
+			<groupId>fr.cnes.regards.modules.dam</groupId>
+			<artifactId>dam-service</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+			<artifactId>plugins-domain</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Tests -->
+		<dependency>
+			<groupId>fr.cnes.regards.framework.test</groupId>
+			<artifactId>regards-integration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>
