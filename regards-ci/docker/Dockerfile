@@ -3,12 +3,12 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD catalog-security-delegation-4.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD catalog-security-delegation-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-4.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-4.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-4.0.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
