@@ -1,11 +1,11 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration;
 
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 
 /**
  * Holds webservice configuration, that describes OpenSearch webservice access with pagination feature
@@ -14,9 +14,16 @@ import java.util.Map;
  */
 public class WebserviceConfiguration {
 
-    @PluginParameter(name = "webserviceURL", label = "Webservice URL",
-            description = "OpenSearch webservice URL")
+    @PluginParameter(name = "webserviceURL", label = "Webservice URL", description = "OpenSearch webservice URL")
     private String webserviceURL;
+
+    /**
+     * This parameter is only stored to be useful for plugin callers.
+     * This URL allows users to get information about opensearch parameters.
+     * For example, this parameter is used by REGARDS frontend to determine which attributes can be requested by the opensearch service
+     */
+    @PluginParameter(name = "opensearchDescriptorURL", label = "Opensearch descriptor URL")
+    private String opensearchDescriptorURL;
 
     @PluginParameter(name = "webserviceParameters", label = "Webservice query parameters", optional = true,
             description = "Webservice query parameters, restricting results set", keylabel = "parameter name")
@@ -40,8 +47,8 @@ public class WebserviceConfiguration {
     /**
      * Server start page index (1 when not provided)
      */
-    @PluginParameter(name = "startPageIndex", label = "Start page index", optional = true,
-            defaultValue = "1", description = "Server start page index")
+    @PluginParameter(name = "startPageIndex", label = "Start page index", optional = true, defaultValue = "1",
+            description = "Server start page index")
     private Integer startPageIndex;
 
     /**
@@ -61,8 +68,11 @@ public class WebserviceConfiguration {
     /**
      * Constructor for tests
      */
-    public WebserviceConfiguration(String webserviceURL, String pageIndexParam, String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize, Map<String, Object> webserviceParameters) {
+    public WebserviceConfiguration(String webserviceURL, String opensearchDescriptorURL, String pageIndexParam,
+            String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize,
+            Map<String, Object> webserviceParameters) {
         this.webserviceURL = webserviceURL;
+        this.opensearchDescriptorURL = opensearchDescriptorURL;
         this.pageIndexParam = pageIndexParam;
         this.pageSizeParam = pageSizeParam;
         this.lastUpdateParam = lastUpdateParam;
@@ -97,6 +107,10 @@ public class WebserviceConfiguration {
 
     public Integer getPagesSize() {
         return pagesSize;
+    }
+
+    public String getOpensearchDescriptorURL() {
+        return opensearchDescriptorURL;
     }
 
     /**
