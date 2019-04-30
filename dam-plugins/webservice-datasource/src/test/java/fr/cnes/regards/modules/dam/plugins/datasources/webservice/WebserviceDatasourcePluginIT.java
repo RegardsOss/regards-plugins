@@ -1,6 +1,25 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
 import com.google.gson.Gson;
+
 import fr.cnes.httpclient.HttpClient;
 import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -22,21 +41,9 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.TestPropertySource;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Collectors;
-
-@TestPropertySource(locations = {"classpath:test.properties"},
-        properties = {"spring.jpa.properties.hibernate.default_schema=public"})
+@TestPropertySource(locations = { "classpath:test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 @RegardsTransactional
 public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransactionalIT {
 
@@ -56,7 +63,6 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         model.setName("PATATO");
         model.setType(EntityType.DATA);
         modelAttrAssoc.setModel(model);
-
 
         AttributeModel attribute = new AttributeModel();
         attribute.setName(name);
@@ -78,15 +84,16 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
     public void testTheiaLike() throws DataSourceException, ModuleException {
         // 1 - Mock returned model
         IModelAttrAssocService modelAttrAssocService = Mockito.mock(IModelAttrAssocService.class);
-        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(Arrays.asList(
-                buildAttributeAssoc("start_date", null, AttributeType.DATE_ISO8601, false),
-                buildAttributeAssoc("end_date", null, AttributeType.DATE_ISO8601, false),
-                buildAttributeAssoc("product", null, AttributeType.STRING, true),
-                buildAttributeAssoc("coordinates", null, AttributeType.INTEGER_ARRAY, true),
-                buildAttributeAssoc("mission", null, AttributeType.STRING, false),
-                buildAttributeAssoc("meas_instr", "measurement", AttributeType.STRING, true),
-                buildAttributeAssoc("meas_resolution", "measurement", AttributeType.STRING, true),
-                buildAttributeAssoc("meas_sensor_mode", "measurement", AttributeType.STRING, true)));
+        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString()))
+                .thenReturn(Arrays
+                        .asList(buildAttributeAssoc("start_date", null, AttributeType.DATE_ISO8601, false),
+                                buildAttributeAssoc("end_date", null, AttributeType.DATE_ISO8601, false),
+                                buildAttributeAssoc("product", null, AttributeType.STRING, true),
+                                buildAttributeAssoc("coordinates", null, AttributeType.INTEGER_ARRAY, true),
+                                buildAttributeAssoc("mission", null, AttributeType.STRING, false),
+                                buildAttributeAssoc("meas_instr", "measurement", AttributeType.STRING, true),
+                                buildAttributeAssoc("meas_resolution", "measurement", AttributeType.STRING, true),
+                                buildAttributeAssoc("meas_sensor_mode", "measurement", AttributeType.STRING, true)));
 
         // 2 - Create plugin configuration
         HashMap<String, String> attributeToJSonField = new HashMap<>();
@@ -105,14 +112,18 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("cloudCover", 30);
         WebserviceDatasourcePlugin pl = new WebserviceDatasourcePlugin(
-                new WebserviceConfiguration("https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json", "page", "maxRecords", "updated", 1, 500, parameters),
-                new ConversionConfiguration("PATATO", attributeToJSonField, "thumbnail", "services.download.url", "quicklook", "totalResults", "itemsPerPage"), 90000,
-                modelAttrAssocService, notificationClient, httpClient, gson);
+                new WebserviceConfiguration(
+                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json",
+                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/describe.xml", "page", "maxRecords",
+                        "updated", 1, 500, parameters),
+                new ConversionConfiguration("PATATO", attributeToJSonField, "thumbnail", "services.download.url",
+                        "quicklook", "totalResults", "itemsPerPage"),
+                90000, modelAttrAssocService, notificationClient, httpClient, gson);
         pl.initialize();
 
-
-        List<AttributeModel> expectedProps = modelAttrAssocService.getModelAttrAssocs("PATATO").stream().map(ModelAttrAssoc::getAttribute).collect(Collectors.toList());
-        DataType[] expectedFileTypes = new DataType[]{DataType.RAWDATA, DataType.QUICKLOOK_SD, DataType.THUMBNAIL};
+        List<AttributeModel> expectedProps = modelAttrAssocService.getModelAttrAssocs("PATATO").stream()
+                .map(ModelAttrAssoc::getAttribute).collect(Collectors.toList());
+        DataType[] expectedFileTypes = new DataType[] { DataType.RAWDATA, DataType.QUICKLOOK_SD, DataType.THUMBNAIL };
 
         // Fetch all pages and check conversion is successful
         Page<DataObjectFeature> result;
@@ -131,22 +142,29 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
                     if (prop.hasFragment()) {
                         // in fragment prop
                         AbstractAttribute<?> fragment = f.getProperty(prop.getFragment().getName());
-                        Assert.assertTrue("Fragment '" + prop.getFragment().getName() + "' should be present with the right type in feature " + f.getLabel(), fragment instanceof ObjectAttribute);
-                        Optional<AbstractAttribute<?>> optionalAttr = ((ObjectAttribute) fragment).getValue().stream().filter(fragAttr -> fragAttr.getName().equals(prop.getName())).findFirst();
-                        Assert.assertTrue("Fragment '" + prop.getFragment().getName() + "' should contain property " + prop.getName() + " in feature " + f.getLabel(), optionalAttr.isPresent());
+                        Assert.assertTrue("Fragment '" + prop.getFragment().getName()
+                                + "' should be present with the right type in feature " + f.getLabel(),
+                                          fragment instanceof ObjectAttribute);
+                        Optional<AbstractAttribute<?>> optionalAttr = ((ObjectAttribute) fragment).getValue().stream()
+                                .filter(fragAttr -> fragAttr.getName().equals(prop.getName())).findFirst();
+                        Assert.assertTrue("Fragment '" + prop.getFragment().getName() + "' should contain property "
+                                + prop.getName() + " in feature " + f.getLabel(), optionalAttr.isPresent());
                         attr = optionalAttr.get();
                     } else {
                         // root prop
                         attr = f.getProperty(prop.getName());
                         Assert.assertNotNull("Property '" + "' should be present in feature " + f.getLabel(), attr);
                     }
-                    Assert.assertNotNull("Property '" + "' value should not be null in feature " + f.getLabel(), attr.getValue());
+                    Assert.assertNotNull("Property '" + "' value should not be null in feature " + f.getLabel(),
+                                         attr.getValue());
                 }
                 // Files
                 for (DataType type : expectedFileTypes) {
                     Collection<DataFile> dataFiles = f.getFiles().get(type);
-                    Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(), 1, dataFiles.size());
-                    Assert.assertNotNull("Data file path for " + type + " in " + f.getProviderId() + " should not be null", dataFiles.iterator().next());
+                    Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(), 1,
+                                        dataFiles.size());
+                    Assert.assertNotNull("Data file path for " + type + " in " + f.getProviderId()
+                            + " should not be null", dataFiles.iterator().next());
                 }
             }
 
@@ -154,6 +172,5 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
             currentPage = PageRequest.of(result.getNumber() + 1, result.getSize());
         } while (result.hasNext());
     }
-
 
 }
