@@ -147,7 +147,7 @@ public class AipDataSourceConfiguration {
                     throw new RuntimeException(e);
                 }
                 dataFileDtos.add(dto1);
-                AipDataFiles oneAipDataFiles = new AipDataFiles(aip);
+                AipDataFiles oneAipDataFiles = new AipDataFiles(aip, new ArrayList<>());
                 oneAipDataFiles.setDataFiles(dataFileDtos);
                 aipDataFiles.add(oneAipDataFiles);
 
