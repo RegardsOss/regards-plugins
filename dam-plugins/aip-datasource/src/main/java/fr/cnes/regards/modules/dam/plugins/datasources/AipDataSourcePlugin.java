@@ -86,7 +86,7 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
  */
 @Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
         description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
-        licence = "LGPLv3.0", owner = "CSSI", url = "https://github.com/RegardsOss")
+        license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
