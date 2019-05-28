@@ -52,7 +52,7 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBu
  */
 @Plugin(id = "postgresql-datasource", version = "2.0-SNAPSHOT",
         description = "Allows data extraction to a PostgreSql database", author = "REGARDS Team",
-        contact = "regards@c-s.fr", licence = "LGPLv3.0", owner = "CSSI", url = "https://github.com/RegardsOss")
+        contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePlugin.class);

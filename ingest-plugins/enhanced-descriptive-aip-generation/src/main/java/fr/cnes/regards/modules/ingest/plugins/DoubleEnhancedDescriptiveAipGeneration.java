@@ -10,7 +10,7 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
  * @author Sylvain VISSIERE-GUERINET
  */
 @Plugin(author = "REGARDS Team", description = "Add random double value to the AIP generated",
-        id = "DoubleEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr", licence = "GPLv3",
+        id = "DoubleEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class DoubleEnhancedDescriptiveAipGeneration extends AbstractEnhancedDescriptiveAipGeneration {
 

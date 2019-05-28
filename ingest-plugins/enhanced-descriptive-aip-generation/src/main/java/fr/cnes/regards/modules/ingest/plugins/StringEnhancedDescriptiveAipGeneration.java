@@ -1,6 +1,7 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
 import com.google.common.base.Strings;
+
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.storage.domain.AIPBuilder;
@@ -10,7 +11,7 @@ import fr.cnes.regards.modules.storage.domain.AIPBuilder;
  * @author Sylvain VISSIERE-GUERINET
  */
 @Plugin(author = "REGARDS Team", description = "Add two given string value to generated AIP",
-        id = "StringEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr", licence = "GPLv3",
+        id = "StringEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDescriptiveAipGeneration {
 
@@ -23,7 +24,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
     @Override
     protected void addDescriptiveInformation(AIPBuilder builder) {
         builder.addDescriptiveInformation(descriptiveInfoName, value);
-        if(secondDescriptiveInfo != null && secondDescriptiveInfo.isInitialized()) {
+        if ((secondDescriptiveInfo != null) && secondDescriptiveInfo.isInitialized()) {
             builder.addDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
                                               secondDescriptiveInfo.getSecondValue());
         }
@@ -57,7 +58,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
         }
 
         public boolean isInitialized() {
-            return !Strings.isNullOrEmpty(secondDescriptiveInfoName) && secondValue != null;
+            return !Strings.isNullOrEmpty(secondDescriptiveInfoName) && (secondValue != null);
         }
     }
 }
