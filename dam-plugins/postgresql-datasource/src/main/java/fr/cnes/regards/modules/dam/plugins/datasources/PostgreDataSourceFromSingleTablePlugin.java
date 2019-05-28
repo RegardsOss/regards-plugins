@@ -57,7 +57,7 @@ import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreSqlGenerator
  */
 @Plugin(id = "postgresql-datasource-single-table", version = "2.0-SNAPSHOT",
         description = "Allows introspection and data extraction to a PostgreSql database", author = "REGARDS Team",
-        contact = "regards@c-s.fr", licence = "LGPLv3.0", owner = "CSSI", url = "https://github.com/RegardsOss")
+        contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSourceFromSingleTablePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourceFromSingleTablePlugin.class);
