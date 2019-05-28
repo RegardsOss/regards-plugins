@@ -35,7 +35,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugi
  * @since 1.0-SNAPSHOT
  */
 @Plugin(id = "postgresql-db-connection", version = "1.0-SNAPSHOT", description = "Connection to a PostgreSql database",
-        author = "REGARDS Team", contact = "regards@c-s.fr", licence = "LGPLv3.0", owner = "CSSI",
+        author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
         url = "https://github.com/RegardsOss")
 public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
 
