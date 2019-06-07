@@ -7,6 +7,7 @@ ADD catalog-security-delegation-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/storage
 # Dam
 ADD aip-datasource-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
 ADD enhanced-descriptive-aip-generation-0.4.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
