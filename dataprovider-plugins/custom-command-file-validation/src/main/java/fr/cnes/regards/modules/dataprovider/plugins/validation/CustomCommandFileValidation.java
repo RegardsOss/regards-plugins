@@ -53,7 +53,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     private String initCommand;
 
     @PluginParameter(label = "File validation command",
-            description = "Custom command to execute to valid each file. Full path to file to validate is added at the end of the command.",
+            description = "Custom command to execute to valid each file. Use token ${file} in your command to add the absolute file path to validate.",
             name = "customCommand", optional = false)
     private String customCommand;
 
@@ -85,9 +85,9 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     @Override
     public boolean validate(Path filePath) throws ModuleException {
         try {
+            String command = customCommand.replaceAll("${file}", filePath.toString());
             Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-            Process p = Runtime.getRuntime().exec(String.format("%s %s", customCommand, filePath.toString()), null,
-                                                  commandWorkspace.toFile());
+            Process p = Runtime.getRuntime().exec(command, null, commandWorkspace.toFile());
             p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             if (expectedCommandResults.contains(p.exitValue())) {
                 return true;
