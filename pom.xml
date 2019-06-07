@@ -73,6 +73,12 @@
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+            <artifactId>webservice-datasource</artifactId>
+            <version>0.4.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
             <artifactId>enhanced-descriptive-aip-generation</artifactId>
             <classifier>shaded</classifier>
