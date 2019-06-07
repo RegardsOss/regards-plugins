@@ -72,10 +72,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
         if (this.initCommand != null) {
             try {
                 Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-                ProcessBuilder pb = new ProcessBuilder(initCommand);
-                pb.inheritIO();
-                pb.directory(commandWorkspace.toFile());
-                Process p = pb.start();
+                Process p = Runtime.getRuntime().exec(initCommand, new String[0], commandWorkspace.toFile());
                 p.wait(commandTimeout);
             } catch (IOException | InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
@@ -87,10 +84,8 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     public boolean validate(Path filePath) throws ModuleException {
         try {
             Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-            ProcessBuilder pb = new ProcessBuilder(String.format("%s %s", customCommand, filePath.toString()));
-            pb.inheritIO();
-            pb.directory(commandWorkspace.toFile());
-            Process p = pb.start();
+            Process p = Runtime.getRuntime().exec(String.format("%s %s", customCommand, filePath.toString()),
+                                                  new String[0], commandWorkspace.toFile());
             p.wait(commandTimeout);
             if (expectedCommandResults.contains(p.exitValue())) {
                 return true;
