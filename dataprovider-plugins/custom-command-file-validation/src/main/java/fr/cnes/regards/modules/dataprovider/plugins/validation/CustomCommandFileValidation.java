@@ -40,7 +40,7 @@ import fr.cnes.regards.modules.acquisition.plugins.IValidationPlugin;
  * Acquisition plugin to validate files to acquire by executing a custom system command.
  * @author sbinda
  */
-@Plugin(id = "custom-command-file-validation", version = "0.4.0",
+@Plugin(id = "CustomCommandFileValidationPlugin", version = "0.4.0",
         description = "Plugin to validate file to acquire by running a custom command", author = "REGARDS Team",
         contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class CustomCommandFileValidation implements IValidationPlugin {
