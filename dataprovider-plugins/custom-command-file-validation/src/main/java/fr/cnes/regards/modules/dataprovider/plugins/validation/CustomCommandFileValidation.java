@@ -72,7 +72,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
         if (this.initCommand != null) {
             try {
                 Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-                ProcessBuilder pb = new ProcessBuilder(customCommand);
+                ProcessBuilder pb = new ProcessBuilder(initCommand);
                 pb.inheritIO();
                 pb.directory(commandWorkspace.toFile());
                 Process p = pb.start();
@@ -87,7 +87,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     public boolean validate(Path filePath) throws ModuleException {
         try {
             Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-            ProcessBuilder pb = new ProcessBuilder(customCommand);
+            ProcessBuilder pb = new ProcessBuilder(String.format("%s %s", customCommand, filePath.toString()));
             pb.inheritIO();
             pb.directory(commandWorkspace.toFile());
             Process p = pb.start();
