@@ -85,7 +85,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     @Override
     public boolean validate(Path filePath) throws ModuleException {
         try {
-            String command = customCommand.replaceAll("${file}", filePath.toString());
+            String command = customCommand.replaceAll("\\$\\{file\\}", filePath.toString());
             Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
             Process p = Runtime.getRuntime().exec(command, null, commandWorkspace.toFile());
             p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
