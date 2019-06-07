@@ -47,7 +47,7 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomCommandFileValidation.class);
 
     @PluginParameter(label = "Initialization command",
-            description = "An optional command to execute before files validation process.", name = "customCommand",
+            description = "An optional command to execute before files validation process.", name = "initCommand",
             optional = true)
     private String initCommand;
 
