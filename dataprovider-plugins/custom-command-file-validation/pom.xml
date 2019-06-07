@@ -16,15 +16,16 @@
  
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
-	<artifactId>authentication-plugins</artifactId>
+	<groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
+	<artifactId>custom-command-file-validation</artifactId>
+	<description>Plugin to validate file to acquire by running a custom command</description>
 	<version>0.4.0</version>
-	<packaging>pom</packaging>
-	
-	<description>Catalog plugins</description>
+
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -47,11 +48,29 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards</groupId>
-		<artifactId>regards-parent</artifactId>
-		<version>3.1.0-RC</version>
-		<relativePath/>
+		<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
+		<artifactId>dataprovider-plugins</artifactId>
+		<version>0.4.0</version>
 	</parent>
-	<modules>
-    </modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.acquisition</groupId>
+			<artifactId>acquisition-domain</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.modules.workspace</groupId>
+			<artifactId>workspace-service</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
