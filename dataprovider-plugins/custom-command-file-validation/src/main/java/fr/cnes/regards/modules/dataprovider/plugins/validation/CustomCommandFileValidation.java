@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.dataprovider.plugins.validation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,8 @@ public class CustomCommandFileValidation implements IValidationPlugin {
             optional = true)
     private String initCommand;
 
-    @PluginParameter(label = "File validation command", description = "Custom command to execute to valid each file",
+    @PluginParameter(label = "File validation command",
+            description = "Custom command to execute to valid each file. Full path to file to validate is added at the end of the command.",
             name = "customCommand", optional = false)
     private String customCommand;
 
@@ -72,8 +74,8 @@ public class CustomCommandFileValidation implements IValidationPlugin {
         if (this.initCommand != null) {
             try {
                 Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-                Process p = Runtime.getRuntime().exec(initCommand, new String[0], commandWorkspace.toFile());
-                p.wait(commandTimeout);
+                Process p = Runtime.getRuntime().exec(initCommand, null, commandWorkspace.toFile());
+                p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             } catch (IOException | InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
             }
@@ -84,9 +86,9 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     public boolean validate(Path filePath) throws ModuleException {
         try {
             Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
-            Process p = Runtime.getRuntime().exec(String.format("%s %s", customCommand, filePath.toString()),
-                                                  new String[0], commandWorkspace.toFile());
-            p.wait(commandTimeout);
+            Process p = Runtime.getRuntime().exec(String.format("%s %s", customCommand, filePath.toString()), null,
+                                                  commandWorkspace.toFile());
+            p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             if (expectedCommandResults.contains(p.exitValue())) {
                 return true;
             } else {
