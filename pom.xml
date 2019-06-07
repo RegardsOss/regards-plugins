@@ -77,6 +77,12 @@
             <artifactId>enhanced-descriptive-aip-generation</artifactId>
             <classifier>shaded</classifier>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
+            <artifactId>custom-command-file-validation</artifactId>
+            <version>0.4.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
     </dependencies>
 
     <build>
