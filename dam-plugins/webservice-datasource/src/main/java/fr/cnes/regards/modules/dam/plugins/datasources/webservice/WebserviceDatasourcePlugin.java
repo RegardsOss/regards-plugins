@@ -31,6 +31,7 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.Conver
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.templates.service.TemplateService;
+import org.springframework.util.MimeTypeUtils;
 
 /**
  * Plugin to use an OpenSearch compliant webservice as a REGARDS datasource. Fetches data then converts it into REGARDS data to be be indexed.
@@ -213,7 +214,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
         } catch (DataSourceException e) {
             // catch exception to notify administrator, then let it through
             notificationClient.notify(e.getMessage(), "Webservice data source plugin", NotificationLevel.ERROR,
-                                      DefaultRole.ADMIN);
+                    MimeTypeUtils.TEXT_PLAIN, DefaultRole.ADMIN);
             throw e;
         }
 
@@ -230,7 +231,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
                 notificationReport = "No error report could be produced (inner plugin error)";
             }
             notificationClient.notify(notificationReport, "Webservice data source plugin", notificationLevel,
-                                      DefaultRole.ADMIN);
+                    MimeTypeUtils.TEXT_HTML, DefaultRole.ADMIN);
         }
 
         return converter.getConvertedPage();
