@@ -117,7 +117,7 @@ public class ConversionReport {
      *
      * @param pageURL         page of the webservice for which the conversion report is emitted
      * @param templateService template service for rendering
-     * @return produced textual report for notification or null if any error happened
+     * @return produced textual report for notification or null if any error happened (should be considered HTML text)
      */
     public String buildNotificationReport(String pageURL, TemplateService templateService) {
         // create template values
