@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import feign.FeignException;
 import feign.Target;
 import feign.httpclient.ApacheHttpClient;
+import fr.cnes.regards.framework.feign.ExternalTarget;
 import fr.cnes.regards.framework.feign.FeignClientBuilder;
 import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -130,7 +131,7 @@ public class OpenSearchFetcher {
      */
     public ResponseEntity<FeatureWithPropertiesCollection> fetchFeatures(Pageable page, OffsetDateTime lastUpdate) throws DataSourceException {
         lastPageURL = this.getFetchURL(page, lastUpdate);
-        Target<GEOJsonWebservice> target = new Target.HardCodedTarget<>(GEOJsonWebservice.class, lastPageURL);
+        @SuppressWarnings("unchecked") Target<GEOJsonWebservice> target = new ExternalTarget<>(GEOJsonWebservice.class, lastPageURL);
         ApacheHttpClient client = new ApacheHttpClient(httpClient);
         try {
             ResponseEntity<FeatureWithPropertiesCollection> lastRetrievedFeatures = FeignClientBuilder.build(target, client, gson).get();
