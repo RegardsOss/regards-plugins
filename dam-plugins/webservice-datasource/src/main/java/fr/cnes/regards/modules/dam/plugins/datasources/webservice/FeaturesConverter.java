@@ -262,28 +262,21 @@ public class FeaturesConverter {
         }
 
         // C - add the converted attribute in or in fragment if any
-        if(convertedAttribute.getValue() != null) {
-            if (targetAttributeModel.hasFragment()) {
-                // D.2.a - Retrieve or add corresponding fragment and property inside it
-                String fragmentName = targetAttributeModel.getFragment().getName();
-                ObjectAttribute fragment = (ObjectAttribute) targetFeature.getProperty(fragmentName);
-                if (fragment == null) {
-                    fragment = AttributeBuilder.buildObject(fragmentName);
-                    targetFeature.addProperty(fragment);
-                    LOGGER.trace(String.format("Webservice data source plugin: added fragment %s in feature",
-                                               fragmentName));
-                }
-                fragment.addAttribute(convertedAttribute);
-                LOGGER.trace(String.format("Webservice data source plugin: added converted attribute %s in fragment %s",
-                                           targetAttributeModel.getJsonPath(),
-                                           fragmentName));
-            } else {
-                // D.2.b - Add attribute as entity root element (not in a fragment)
-                targetFeature.addProperty(convertedAttribute);
-                LOGGER.trace(String.format(
-                        "Webservice data source plugin: added converted attribute %s in feature properties",
-                        targetAttributeModel.getJsonPath()));
+        if (targetAttributeModel.hasFragment()) {
+            // D.2.a - Retrieve or add corresponding fragment and property inside it
+            String fragmentName = targetAttributeModel.getFragment().getName();
+            ObjectAttribute fragment = (ObjectAttribute) targetFeature.getProperty(fragmentName);
+            if (fragment == null) {
+                fragment = AttributeBuilder.buildObject(fragmentName);
+                targetFeature.addProperty(fragment);
+                LOGGER.trace(String.format("Webservice data source plugin: added fragment %s in feature", fragmentName));
             }
+            fragment.addAttribute(convertedAttribute);
+            LOGGER.trace(String.format("Webservice data source plugin: added converted attribute %s in fragment %s", targetAttributeModel.getJsonPath(), fragmentName));
+        } else {
+            // D.2.b - Add attribute as entity root element (not in a fragment)
+            targetFeature.addProperty(convertedAttribute);
+            LOGGER.trace(String.format("Webservice data source plugin: added converted attribute %s in feature properties", targetAttributeModel.getJsonPath()));
         }
 
     }
