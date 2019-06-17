@@ -18,7 +18,9 @@
  */
 package fr.cnes.regards.modules.dataprovider.plugins.validation;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +77,12 @@ public class CustomCommandFileValidation implements IValidationPlugin {
             try {
                 Path commandWorkspace = workspaceService.getMicroserviceWorkspace();
                 Process p = Runtime.getRuntime().exec(initCommand, null, commandWorkspace.toFile());
+                // Because some native platforms only provide limited buffer size for standard input and output streams,
+                // failure to promptly write the input stream or read the output stream of the subprocess may cause the subprocess to block,
+                // and even deadlock.
+                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((reader.readLine()) != null) {
+                }
                 p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             } catch (IOException | InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
