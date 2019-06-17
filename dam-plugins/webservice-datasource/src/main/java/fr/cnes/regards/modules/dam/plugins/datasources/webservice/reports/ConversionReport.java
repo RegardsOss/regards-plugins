@@ -7,10 +7,7 @@ import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Holds conversion errors by feature. It produces a notification based on freemarker templating
@@ -23,6 +20,11 @@ public class ConversionReport {
      * Class logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionReport.class);
+
+    /**
+     * Maximal number of features to show by error type
+     */
+    private static final int MAX_FEATURES_BY_TYPE = 5;
 
     /**
      * Maps feature index to corresponding feature errors (bloking)
@@ -123,8 +125,28 @@ public class ConversionReport {
         // create template values
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("pageURL", pageURL);
-        dataModel.put("blockingErrors", blockingErrors.values());
-        dataModel.put("nonBlockingErrors", nonBlockingErrors.values());
+
+        // provide only the N first errors of each type
+        Collection<FeatureErrors> allBlockingErrors = blockingErrors.values();
+        Collection<FeatureErrors> displayedBlockingErrors = allBlockingErrors;
+        int hiddenBlockingErrorsCount = 0;
+        if (allBlockingErrors.size() > MAX_FEATURES_BY_TYPE) {
+            displayedBlockingErrors = new ArrayList<>(allBlockingErrors).subList(0, MAX_FEATURES_BY_TYPE);
+            hiddenBlockingErrorsCount = allBlockingErrors.size() - MAX_FEATURES_BY_TYPE;
+        }
+        dataModel.put("blockingErrors", displayedBlockingErrors);
+        dataModel.put("hiddenBlockingErrorsCount", hiddenBlockingErrorsCount);
+
+        Collection<FeatureErrors> allNonBlockingErrors = nonBlockingErrors.values();
+        Collection<FeatureErrors> displayedNonBlockingErrors = allNonBlockingErrors;
+        int hiddenNonBlockingErrorsCount = 0;
+        if (allNonBlockingErrors.size() > MAX_FEATURES_BY_TYPE) {
+            displayedNonBlockingErrors = new ArrayList<>(allNonBlockingErrors).subList(0, MAX_FEATURES_BY_TYPE);
+            hiddenNonBlockingErrorsCount = allNonBlockingErrors.size() - MAX_FEATURES_BY_TYPE;
+        }
+        dataModel.put("nonBlockingErrors", displayedNonBlockingErrors);
+        dataModel.put("hiddenNonBlockingErrorsCount", hiddenNonBlockingErrorsCount);
+
         try {
             return templateService.render(ReportTemplateConfiguration.CONVERSION_REPORT_KEY, dataModel);
         } catch (TemplateException e) {
