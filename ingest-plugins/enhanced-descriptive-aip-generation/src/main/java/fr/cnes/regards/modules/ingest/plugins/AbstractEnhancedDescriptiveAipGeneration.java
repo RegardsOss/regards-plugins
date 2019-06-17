@@ -3,6 +3,7 @@ package fr.cnes.regards.modules.ingest.plugins;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.EntityType;
@@ -23,7 +24,7 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     /**
      * Integer counter used to know if AIP should receive the new information
      */
-    private static int COUNTER = 0;
+    private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
     @PluginParameter(label = "Name of descriptive information to add")
     protected String descriptiveInfoName;
@@ -49,11 +50,11 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
         // Propagate properties
         AIP aip = builder.build(sip.getProperties());
         builder = new AIPBuilder(aip);
-        if (COUNTER == Integer.MAX_VALUE) {
-            COUNTER = Integer.MIN_VALUE;
+        if (COUNTER.get() == Integer.MAX_VALUE) {
+            COUNTER.set(Integer.MIN_VALUE);
         }
-        COUNTER++;
-        if (always || COUNTER % 2 == 0) {
+        COUNTER.incrementAndGet();
+        if (always || COUNTER.get() % 2 == 0) {
             addDescriptiveInformation(builder);
         }
         List<AIP> aips = new ArrayList<>();

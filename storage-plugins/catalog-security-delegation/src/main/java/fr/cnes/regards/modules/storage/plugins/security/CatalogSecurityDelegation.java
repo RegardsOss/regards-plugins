@@ -47,7 +47,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.ISecurityDelegation;
  * @author Sylvain VISSIERE-GUERINET
  */
 @Plugin(author = "REGARDS Team", description = "Plugin handling the security thanks to catalog",
-        id = "CatalogSecurityDelegation", version = "1.0", contact = "regards@c-s.fr", licence = "GPLv3",
+        id = "CatalogSecurityDelegation", version = "1.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class CatalogSecurityDelegation implements ISecurityDelegation {
 

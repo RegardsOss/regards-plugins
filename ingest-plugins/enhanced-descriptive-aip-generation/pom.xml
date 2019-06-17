@@ -5,13 +5,13 @@
     <parent>
         <groupId>fr.cnes.regards.modules.ingest</groupId>
         <artifactId>ingest-plugins</artifactId>
-        <version>3.0.0-RELEASE</version>
+        <version>0.4.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
     <artifactId>enhanced-descriptive-aip-generation</artifactId>
-    <version>3.0.0-RELEASE</version>
+    <version>0.4.0</version>
 
 
     <dependencies>
