@@ -1,5 +1,6 @@
 package fr.cnes.regards.modules.storage.plugins.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,6 @@ public class CatalogSecurityDelegationAttributeHelper implements IAttributeHelpe
             runtimeTenantResolver.clearTenant();
             FeignSecurityManager.reset();
         }
-        return null;
+        return new ArrayList<>();
     }
 }

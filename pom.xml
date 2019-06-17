@@ -23,13 +23,13 @@
 
     <groupId>fr.cnes.regards.plugins</groupId>
     <artifactId>plugins</artifactId>
-    <version>3.0.0-RELEASE</version>
+    <version>0.4.0</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-parent</artifactId>
-        <version>3.0.0-RELEASE</version>
+        <version>0.4.0</version>
         <relativePath/>
     </parent>
 
@@ -73,8 +73,20 @@
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+            <artifactId>webservice-datasource</artifactId>
+            <version>0.4.0</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
             <artifactId>enhanced-descriptive-aip-generation</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
+            <artifactId>custom-command-file-validation</artifactId>
+            <version>0.4.0</version>
             <classifier>shaded</classifier>
         </dependency>
     </dependencies>
@@ -123,7 +135,10 @@
 
 
     <modules>
-        <module>datasource-plugins</module>
+    	<module>authentication-plugins</module>
+    	<module>catalog-plugins</module>
+    	<module>dataprovider-plugins</module>
+        <module>dam-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
     </modules>
