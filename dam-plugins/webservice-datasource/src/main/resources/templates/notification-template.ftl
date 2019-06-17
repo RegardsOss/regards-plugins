@@ -8,6 +8,8 @@ The Opensearch webservice datasource plugin encountered errors while converting 
         <ul>
             <@renderFeatureIssues features=blockingErrors />
         </ul>
+        <#-- Add hidden message if any hidden -->
+        <@renderHiddenErrorsCount hiddenCount=hiddenBlockingErrorsCount />
     </p>
 </#if>
 <#if (nonBlockingErrors?size > 0)>
@@ -15,6 +17,8 @@ The Opensearch webservice datasource plugin encountered errors while converting 
         <ul>
             <@renderFeatureIssues features=nonBlockingErrors />
         </ul>
+        <#-- Add hidden message if any hidden -->
+        <@renderHiddenErrorsCount hiddenCount=hiddenNonBlockingErrorsCount />
     </p>
 </#if>
 
@@ -50,4 +54,11 @@ The Opensearch webservice datasource plugin encountered errors while converting 
         (label: <b>${featureErrors.label}</b>)
     </#if>
     <#-- Nota: we know here that providerId cannot be set as label is not -->
+</#macro>
+
+<#-- Renders hidden errors count -->
+<#macro renderHiddenErrorsCount hiddenCount>
+    <#if (hiddenCount > 0)>
+        + ${hiddenCount} hidden features errors.
+    </#if>
 </#macro>
