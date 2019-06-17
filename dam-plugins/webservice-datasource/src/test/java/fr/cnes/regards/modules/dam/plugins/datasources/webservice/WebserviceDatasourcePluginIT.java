@@ -1,0 +1,176 @@
+package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
+import com.google.gson.Gson;
+
+import fr.cnes.httpclient.HttpClient;
+import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.dam.domain.models.Model;
+import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
+import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.dam.domain.models.attributes.Fragment;
+import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.ConversionConfiguration;
+import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
+import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
+import fr.cnes.regards.modules.indexer.domain.DataFile;
+import fr.cnes.regards.modules.notification.client.INotificationClient;
+
+@TestPropertySource(locations = { "classpath:test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+@RegardsTransactional
+public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransactionalIT {
+
+    @Autowired
+    private INotificationClient notificationClient;
+
+    @Autowired
+    private HttpClient httpClient;
+
+    @Autowired
+    private Gson gson;
+
+    private ModelAttrAssoc buildAttributeAssoc(String name, String fragmentName, AttributeType type, boolean optional) {
+        ModelAttrAssoc modelAttrAssoc = new ModelAttrAssoc();
+
+        Model model = new Model();
+        model.setName("PATATO");
+        model.setType(EntityType.DATA);
+        modelAttrAssoc.setModel(model);
+
+        AttributeModel attribute = new AttributeModel();
+        attribute.setName(name);
+        attribute.setType(type);
+        attribute.setOptional(optional);
+        if (fragmentName != null) {
+            Fragment fragment = new Fragment();
+            fragment.setName(fragmentName);
+            attribute.setFragment(fragment);
+        }
+        modelAttrAssoc.setAttribute(attribute);
+        return modelAttrAssoc;
+    }
+
+    /**
+     * Tests theia like conversion. Nota: It is not a TU, but it helps here to know when the configuration does not work anymore
+     */
+    @Test
+    public void testTheiaLike() throws DataSourceException, ModuleException {
+        // 1 - Mock returned model
+        IModelAttrAssocService modelAttrAssocService = Mockito.mock(IModelAttrAssocService.class);
+        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString()))
+                .thenReturn(Arrays
+                        .asList(buildAttributeAssoc("start_date", null, AttributeType.DATE_ISO8601, false),
+                                buildAttributeAssoc("end_date", null, AttributeType.DATE_ISO8601, false),
+                                buildAttributeAssoc("product", null, AttributeType.STRING, true),
+                                buildAttributeAssoc("coordinates", null, AttributeType.INTEGER_ARRAY, true),
+                                buildAttributeAssoc("mission", null, AttributeType.STRING, false),
+                                buildAttributeAssoc("meas_instr", "measurement", AttributeType.STRING, true),
+                                buildAttributeAssoc("meas_resolution", "measurement", AttributeType.STRING, true),
+                                buildAttributeAssoc("meas_sensor_mode", "measurement", AttributeType.STRING, true)));
+
+        // 2 - Create plugin configuration
+        HashMap<String, String> attributeToJSonField = new HashMap<>();
+        attributeToJSonField.put(StaticProperties.FEATURE_LABEL, "title");
+        attributeToJSonField.put(StaticProperties.FEATURE_PROVIDER_ID, "productIdentifier");
+        // dynamic model attributes
+        attributeToJSonField.put("properties.start_date", "startDate");
+        attributeToJSonField.put("properties.end_date", "completionDate");
+        attributeToJSonField.put("properties.product", "productType");
+        attributeToJSonField.put("properties.coordinates", "centroid.coordinates");
+        attributeToJSonField.put("properties.mission", "collection");
+        attributeToJSonField.put("properties.measurement.meas_instr", "instrument");
+        attributeToJSonField.put("properties.measurement.meas_resolution", "resolution");
+        attributeToJSonField.put("properties.measurement.meas_sensor_mode", "sensorMode");
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("cloudCover", 30);
+        WebserviceDatasourcePlugin pl = new WebserviceDatasourcePlugin(
+                new WebserviceConfiguration(
+                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json",
+                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/describe.xml", "page", "maxRecords",
+                        "updated", 1, 500, parameters),
+                new ConversionConfiguration("PATATO", attributeToJSonField, "thumbnail", "services.download.url",
+                        "quicklook", "totalResults", "itemsPerPage"),
+                90000, modelAttrAssocService, notificationClient, httpClient, gson);
+        pl.initialize();
+
+        List<AttributeModel> expectedProps = modelAttrAssocService.getModelAttrAssocs("PATATO").stream()
+                .map(ModelAttrAssoc::getAttribute).collect(Collectors.toList());
+        DataType[] expectedFileTypes = new DataType[] { DataType.RAWDATA, DataType.QUICKLOOK_SD, DataType.THUMBNAIL };
+
+        // Fetch all pages and check conversion is successful
+        Page<DataObjectFeature> result;
+        PageRequest currentPage = PageRequest.of(0, 100);
+        OffsetDateTime updateDate = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        do {
+            result = pl.findAll("myTenant", currentPage, updateDate);
+            // No error to report
+            Assert.assertFalse("There should be no error in report", pl.getConverter().getReport().hasErrors());
+            // Check that each feature has been fully converted
+            List<DataObjectFeature> features = result.getContent();
+            for (DataObjectFeature f : features) {
+                // Properties
+                for (AttributeModel prop : expectedProps) {
+                    AbstractAttribute<?> attr;
+                    if (prop.hasFragment()) {
+                        // in fragment prop
+                        AbstractAttribute<?> fragment = f.getProperty(prop.getFragment().getName());
+                        Assert.assertTrue("Fragment '" + prop.getFragment().getName()
+                                + "' should be present with the right type in feature " + f.getLabel(),
+                                          fragment instanceof ObjectAttribute);
+                        Optional<AbstractAttribute<?>> optionalAttr = ((ObjectAttribute) fragment).getValue().stream()
+                                .filter(fragAttr -> fragAttr.getName().equals(prop.getName())).findFirst();
+                        Assert.assertTrue("Fragment '" + prop.getFragment().getName() + "' should contain property "
+                                + prop.getName() + " in feature " + f.getLabel(), optionalAttr.isPresent());
+                        attr = optionalAttr.get();
+                    } else {
+                        // root prop
+                        attr = f.getProperty(prop.getName());
+                        Assert.assertNotNull("Property '" + "' should be present in feature " + f.getLabel(), attr);
+                    }
+                    Assert.assertNotNull("Property '" + "' value should not be null in feature " + f.getLabel(),
+                                         attr.getValue());
+                }
+                // Files
+                for (DataType type : expectedFileTypes) {
+                    Collection<DataFile> dataFiles = f.getFiles().get(type);
+                    Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(), 1,
+                                        dataFiles.size());
+                    Assert.assertNotNull("Data file path for " + type + " in " + f.getProviderId()
+                            + " should not be null", dataFiles.iterator().next());
+                }
+            }
+
+            // prepare for next page
+            currentPage = PageRequest.of(result.getNumber() + 1, result.getSize());
+        } while (result.hasNext());
+    }
+
+}
