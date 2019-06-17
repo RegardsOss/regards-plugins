@@ -1,0 +1,91 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "id": "24df77da-1b59-5578-8789-4ad0ecb530dc",
+    "totalResults": 50,
+    "exactCount": false,
+    "startIndex": 1,
+    "itemsPerPage": 50,
+    "query": {
+      "originalFilters": {
+        "collection": "LANDSAT"
+      },
+      "appliedFilters": {
+        "collection": "LANDSAT"
+      },
+      "analysis": {
+        "query": null,
+        "language": "en",
+        "analyze": {
+          "What": [],
+          "When": [],
+          "Where": [],
+          "Errors": [],
+          "Explained": []
+        },
+        "processingTime": 9.0599060058594e-6
+      },
+      "processingTime": 0.23222017288208
+    },
+    "links": []
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "Feature1",
+      "properties": {
+        "label": "Feature 1",
+        "productIdentifier": "ProviderId1",
+        "someIntValue": 1,
+        "frag": {
+          "val1": true,
+          "val2": "anyVal1",
+          "subfrag": {
+            "val3": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "files": {
+          "invalid": {
+            "rawdata": "hccc://idonwork:80:80/~&nop/noway",
+            "thumbnail": "http://valid.com/but-no-mime-type",
+            "quicklook": "http://valid.com/but-invalid-mime-type.pdf"
+          },
+          "valid": {
+            "rawdata": "http://valid.com/rawdata.pdf",
+            "thumbnail": "http://valid.com/thumbnail.png",
+            "quicklook": "http://valid.com/quicklook.jpg"
+          }
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "Feature2",
+      "properties": {
+        "label": "Feature 2",
+        "productIdentifier": "ProviderId2",
+        "someIntValue": 2,
+        "frag": {
+          "val1": false,
+          "val2": "anyVal2"
+        },
+        "files": {
+          "invalid": {
+            "rawdata": "hccc://idonwork:80:80/~&nop/noway",
+            "thumbnail": "http://valid.com/but-no-mime-type",
+            "quicklook": "http://valid.com/but-invalid-mime-type.pdf"
+          },
+          "valid": {
+            "rawdata": "http://valid.com/rawdata2.xls",
+            "thumbnail": "http://valid.com/thumbnail2.gif",
+            "quicklook": "http://valid.com/quicklook2.jpg"
+          }
+        }
+      }
+    }
+  ]
+}
