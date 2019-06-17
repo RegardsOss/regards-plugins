@@ -1,9 +1,11 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
 import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
+import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.templates.dao.ITemplateRepository;
 import fr.cnes.regards.modules.templates.service.TemplateService;
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,7 +49,6 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
         String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
         Assert.assertTrue("URL must be displayed", notification.contains("http://i.dont.exit.com/features"));
     }
-
 
     @Test
     public void testOnlyBlockingIssues() {
@@ -167,6 +168,34 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
         Assert.assertTrue("URL must be displayed", notification.contains("http://i.dont.exit.com/features"));
         Assert.assertTrue("Blocking errors must be displayed", notification.contains("Major conversion issues"));
         Assert.assertTrue("Non blocking errors should be displayed", notification.contains("Minor conversion issues"));
+    }
+
+    @Test
+    public void testTenOnlyFeatureErrorsByTypeDisplayed() {
+        ConversionReport report = new ConversionReport();
+        for (int i = 0; i < 100; i++) {
+            // Blocking error
+            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1),
+                    FeatureConversionError.getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
+            // Non blocking error
+            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1),
+                    FeatureConversionError.getInvalidImageMimeTypeFound("http://www.myImageStock.com/image.tiff", DataType.QUICKLOOK_MD,
+                            "source.test.quicklook", "image/tiff"));
+        }
+        String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
+        // check some blocking and some minor are shown
+        Assert.assertTrue("Some blocking errors should be shown", notification.contains("my.attr1"));
+        Assert.assertTrue("Some minor errors should be shown", notification.contains("QUICKLOOK_MD"));
+        // check only the first five features are shown
+        for (int i = 0; i < 100; i++) {
+            if (i < 5) {
+                Assert.assertTrue("Feature at " + i + "should be shown", notification.contains("Feat" + (i + 1)));
+            } else {
+                Assert.assertFalse("Feature at " + i + "should be hidden", notification.contains("Feat" + (i + 1)));
+            }
+        }
+        // Check hidden count is displayed
+        Assert.assertTrue("Hidden errors count should be shown", notification.contains("95"));
     }
 
 }
