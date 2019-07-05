@@ -37,6 +37,7 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
@@ -71,7 +72,7 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
     private DefaultPostgreConnectionPlugin postgreDBConn;
 
     @Before
-    public void setUp() {
+    public void setUp() throws NotAvailablePluginConfigurationException {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
