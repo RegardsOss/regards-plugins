@@ -41,6 +41,7 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
@@ -70,7 +71,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     private String dbPassword;
 
     @Before
-    public void setUp() throws SQLException {
+    public void setUp() throws SQLException, NotAvailablePluginConfigurationException {
         IDBConnectionPlugin plgConn;
 
         plgConn = PluginUtils.getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
@@ -83,7 +84,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     @Test
     @Requirement("REGARDS_DSL_DAM_ARC_100")
     @Purpose("The system allows to define a connection to a data source")
-    public void getPostGreSqlConnection() {
+    public void getPostGreSqlConnection() throws NotAvailablePluginConfigurationException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
@@ -94,7 +95,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getMaxPoolSizeWithClose() throws InterruptedException, SQLException {
+    public void getMaxPoolSizeWithClose()
+            throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
@@ -107,7 +109,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getMaxPoolSizeWithoutClose() throws InterruptedException {
+    public void getMaxPoolSizeWithoutClose() throws InterruptedException, NotAvailablePluginConfigurationException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
@@ -122,7 +124,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getMaxPoolSizeWithCloseByThread() throws InterruptedException, SQLException {
+    public void getMaxPoolSizeWithCloseByThread()
+            throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
@@ -160,7 +163,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getPostGreSqlConnectionError() {
+    public void getPostGreSqlConnectionError() throws NotAvailablePluginConfigurationException {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
                 .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")

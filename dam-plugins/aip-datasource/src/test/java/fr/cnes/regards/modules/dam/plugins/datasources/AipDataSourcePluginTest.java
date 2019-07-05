@@ -58,6 +58,7 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
@@ -90,7 +91,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     private IRuntimeTenantResolver tenantResolver;
 
     @Before
-    public void setUp() throws SQLException, ModuleException {
+    public void setUp() throws SQLException, ModuleException, NotAvailablePluginConfigurationException {
         tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
