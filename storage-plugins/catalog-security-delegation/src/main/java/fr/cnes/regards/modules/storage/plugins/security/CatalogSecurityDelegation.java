@@ -53,12 +53,6 @@ public class CatalogSecurityDelegation implements ISecurityDelegation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CatalogSecurityDelegation.class);
 
-    /**
-     * {@link ISearchClient} instance
-     */
-    // @Autowired
-    // private ISearchClient searchClient;
-
     @Autowired
     private IAccessRights accessRights;
 

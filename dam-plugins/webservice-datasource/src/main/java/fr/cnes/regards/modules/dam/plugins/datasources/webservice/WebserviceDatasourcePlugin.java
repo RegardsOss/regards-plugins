@@ -19,6 +19,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.notification.NotificationLevel;
+import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
@@ -29,7 +30,6 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.ConversionReport;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
-import fr.cnes.regards.modules.notification.client.INotificationClient;
 import fr.cnes.regards.modules.templates.service.TemplateService;
 import org.springframework.util.MimeTypeUtils;
 
