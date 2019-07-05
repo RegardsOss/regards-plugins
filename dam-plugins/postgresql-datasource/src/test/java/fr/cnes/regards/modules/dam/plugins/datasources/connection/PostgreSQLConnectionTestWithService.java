@@ -38,6 +38,7 @@ import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
@@ -71,7 +72,8 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
     private IPluginService pluginService;
 
     @Test
-    public void testPoolConnectionWithGetFirstPluginByType() throws ModuleException {
+    public void testPoolConnectionWithGetFirstPluginByType()
+            throws ModuleException, NotAvailablePluginConfigurationException {
         // Save a PluginConfiguration
         final PluginConfiguration aPluginConfiguration = getPostGreSqlConnectionConfiguration();
         pluginService.savePluginConfiguration(aPluginConfiguration);
@@ -94,7 +96,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
     }
 
     @Test
-    public void testPoolConnectionWithGetPlugin() throws ModuleException {
+    public void testPoolConnectionWithGetPlugin() throws ModuleException, NotAvailablePluginConfigurationException {
         // Save a PluginConfiguration
         PluginConfiguration aPluginConfiguration = getPostGreSqlConnectionConfiguration();
         pluginService.savePluginConfiguration(aPluginConfiguration);
