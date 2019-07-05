@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import fr.cnes.httpclient.HttpClient;
 import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
@@ -40,7 +41,6 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.notification.client.INotificationClient;
 
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "spring.jpa.properties.hibernate.default_schema=public" })
