@@ -54,6 +54,7 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.DynamicAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
@@ -129,9 +130,11 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
      * @throws SQLException
      * @throws ModuleException
      * @throws MalformedURLException
+     * @throws NotAvailablePluginConfigurationException
      */
     @Before
-    public void setUp() throws SQLException, ModuleException, MalformedURLException {
+    public void setUp()
+            throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
         tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
