@@ -36,8 +36,4 @@ public class MockedConf {
         return Mockito.mock(IResourceService.class);
     }
 
-    @Bean
-    public INotificationClient notificationClient() {
-        return Mockito.mock(INotificationClient.class);
-    }
 }
