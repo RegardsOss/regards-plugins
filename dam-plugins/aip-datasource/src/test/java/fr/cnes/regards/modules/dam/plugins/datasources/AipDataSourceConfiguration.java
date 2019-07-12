@@ -41,7 +41,6 @@ import org.springframework.util.MimeType;
 import fr.cnes.regards.framework.amqp.IInstanceSubscriber;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.ISubscriber;
-import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
@@ -59,11 +58,6 @@ import fr.cnes.regards.modules.storage.domain.DataFileDto;
 @Configuration
 @EnableAutoConfiguration
 public class AipDataSourceConfiguration {
-
-    @Bean
-    public INotificationClient getNotificationClient() {
-        return Mockito.mock(INotificationClient.class);
-    }
 
     @Bean
     public IAttributeModelClient attributeModelClient() {
@@ -105,11 +99,6 @@ public class AipDataSourceConfiguration {
     }
 
     @Bean
-    public INotificationClient notificationClient() {
-        return Mockito.mock(INotificationClient.class);
-    }
-
-    @Bean
     public IAipClient aipClient() {
         AipClientProxy aipClientProxy = new AipClientProxy();
         InvocationHandler handler = (proxy, method, args) -> {
@@ -120,8 +109,8 @@ public class AipDataSourceConfiguration {
             }
             return null;
         };
-        return (IAipClient) Proxy.newProxyInstance(IAipClient.class.getClassLoader(),
-                                                   new Class<?>[] { IAipClient.class }, handler);
+        return (IAipClient) Proxy
+                .newProxyInstance(IAipClient.class.getClassLoader(), new Class<?>[] { IAipClient.class }, handler);
     }
 
     private class AipClientProxy {
@@ -153,7 +142,10 @@ public class AipDataSourceConfiguration {
 
             }
             return ResponseEntity.ok(new PagedResources<>(aipDataFiles,
-                    new PagedResources.PageMetadata(aipDataFiles.size(), 0, aipDataFiles.size(), 1)));
+                                                          new PagedResources.PageMetadata(aipDataFiles.size(),
+                                                                                          0,
+                                                                                          aipDataFiles.size(),
+                                                                                          1)));
         }
 
     }
