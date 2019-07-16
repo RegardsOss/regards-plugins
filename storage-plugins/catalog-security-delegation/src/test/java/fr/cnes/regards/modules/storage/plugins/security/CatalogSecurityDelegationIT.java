@@ -32,6 +32,7 @@ import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.search.client.IAccessRights;
 import fr.cnes.regards.modules.storage.dao.IAIPDao;
@@ -89,7 +90,7 @@ public class CatalogSecurityDelegationIT extends AbstractRegardsServiceIT {
     }
 
     @Test
-    public void testHasAccess() throws ModuleException, IOException {
+    public void testHasAccess() throws ModuleException, IOException, NotAvailablePluginConfigurationException {
         ISecurityDelegation toTest = pluginService.getPlugin(catalogSecuDelegConf.getId());
         // test while copnsidered admin
         // lets test with an ip id we have right in catalog
