@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -57,6 +57,7 @@ import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.DynamicAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
@@ -129,9 +130,11 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
      * @throws SQLException
      * @throws ModuleException
      * @throws MalformedURLException
+     * @throws NotAvailablePluginConfigurationException
      */
     @Before
-    public void setUp() throws SQLException, ModuleException, MalformedURLException {
+    public void setUp()
+            throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
 
         tenantResolver.forceTenant(getDefaultTenant());
 
