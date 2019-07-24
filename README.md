@@ -1,5 +1,7 @@
 # REGARDS plugins
 
+REGARDS is still under development. **This version is a beta version**.
+
 This repository brings together some of the REGARDS framework plugins :
 * **AipDataSourcePlugin** : this plugin allows data extraction from REGARDS AIP storage
 * **DefaultPostgreConnectionPlugin** : this plugin allows the connection to a PostgreSql database
