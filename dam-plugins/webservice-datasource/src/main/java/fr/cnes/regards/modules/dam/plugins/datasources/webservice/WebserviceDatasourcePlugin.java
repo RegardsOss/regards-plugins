@@ -38,7 +38,7 @@ import org.springframework.util.MimeTypeUtils;
  *
  * @author Raphaël Mechali
  */
-@Plugin(id = "webservice-datasource", version = "1.0-SNAPSHOT",
+@Plugin(id = "webservice-datasource", version = "0.4.0",
         description = "Extracts data objects from an OpenSearch webservice", author = "REGARDS Team",
         contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
