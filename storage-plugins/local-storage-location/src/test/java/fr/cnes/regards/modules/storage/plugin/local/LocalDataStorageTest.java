@@ -18,12 +18,206 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.http.MediaType;
+
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
+import fr.cnes.regards.modules.storagelight.domain.database.FileLocation;
+import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
+import fr.cnes.regards.modules.storagelight.domain.database.FileReferenceMetaInfo;
+import fr.cnes.regards.modules.storagelight.domain.database.request.FileDeletionRequest;
+import fr.cnes.regards.modules.storagelight.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storagelight.domain.plugin.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.storagelight.domain.plugin.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.storagelight.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.storagelight.domain.plugin.IStorageProgressManager;
+
 /**
  * @author sbinda
  *
  */
 public class LocalDataStorageTest {
 
-    // TODO
+    private LocalDataStorage plugin;
+
+    private final IStorageProgressManager storageProgress = Mockito.mock(IStorageProgressManager.class);
+
+    private final IDeletionProgressManager deletionProgress = Mockito.mock(IDeletionProgressManager.class);
+
+    @Before
+    public void init() throws NotAvailablePluginConfigurationException, IOException {
+        PluginUtils.setup();
+        Set<IPluginParam> params = Sets.newHashSet();
+        params.add(IPluginParam.build(LocalDataStorage.BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME,
+                                      "target/local-storage"));
+        params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_DELETE_OPTION, true));
+        params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_TOTAL_SPACE, 10_000_000L));
+        plugin = PluginUtils.getPlugin(params, LocalDataStorage.class, Maps.newHashMap());
+
+        Mockito.reset(storageProgress);
+
+        if (Files.exists(Paths.get("target/local-storage"))) {
+            Files.walk(Paths.get("target/local-storage")).forEach(d -> {
+                d.toFile().setExecutable(true);
+                d.toFile().setWritable(true);
+                d.toFile().setReadable(true);
+            });
+            FileUtils.deleteDirectory(Paths.get("target/local-storage").toFile());
+        }
+    }
+
+    @Test
+    public void store() throws MalformedURLException {
+        Set<FileStorageRequest> files = Sets.newHashSet();
+        FileStorageRequest storageRequest = new FileStorageRequest("owner",
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
+                        MediaType.APPLICATION_OCTET_STREAM),
+                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+
+        files.add(storageRequest);
+        FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        plugin.store(ws, storageProgress);
+        Mockito.verify(storageProgress, Mockito.times(1)).storageSucceed(Mockito.eq(storageRequest), Mockito.any(),
+                                                                         Mockito.any());
+    }
+
+    @Test
+    public void store_file_exists() throws IOException {
+        Set<FileStorageRequest> files = Sets.newHashSet();
+        FileStorageRequest storageRequest = new FileStorageRequest("owner",
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
+                        MediaType.APPLICATION_OCTET_STREAM),
+                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+        files.add(storageRequest);
+        Files.copy(Paths.get("src/test/resources/file.test"),
+                   Paths.get(plugin.getStorageLocation(files.iterator().next())));
+        FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        plugin.store(ws, storageProgress);
+        Mockito.verify(storageProgress, Mockito.times(1)).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void store_error_missing_file() throws MalformedURLException {
+        Set<FileStorageRequest> files = Sets.newHashSet();
+        FileStorageRequest storageRequest = new FileStorageRequest("owner",
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
+                        MediaType.APPLICATION_OCTET_STREAM),
+                new URL("file", null, "src/test/resources/unknown.test"), "localStorage", Optional.empty(), "group");
+        files.add(storageRequest);
+        FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        plugin.store(ws, storageProgress);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(storageProgress, Mockito.times(1)).storageFailed(Mockito.eq(storageRequest), Mockito.any());
+    }
+
+    @Test
+    public void store_error_invalid_md5() throws MalformedURLException {
+        Set<FileStorageRequest> files = Sets.newHashSet();
+        FileStorageRequest storageRequest = new FileStorageRequest("owner",
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f10c", "MD5", "file.name", null,
+                        MediaType.APPLICATION_OCTET_STREAM),
+                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+        files.add(storageRequest);
+        FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        plugin.store(ws, storageProgress);
+        Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(storageProgress, Mockito.times(1)).storageFailed(Mockito.eq(storageRequest), Mockito.any());
+    }
+
+    @Test
+    public void delete() throws IOException {
+        URL urlToDelete = new URL("file", null, "target/local-storage/test/huhu/fileToDelete.test");
+        Set<FileDeletionRequest> files = Sets.newHashSet();
+        FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
+                "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
+                new FileLocation("local-storage", urlToDelete.toString()));
+        fileRef.setId(1L);
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        files.add(deletionRequest);
+        FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
+
+        Files.createDirectories(Paths.get(urlToDelete.getPath()).getParent());
+        Files.copy(Paths.get("src/test/resources/file.test"), Paths.get(urlToDelete.getPath()));
+        Assert.assertTrue("", Files.exists(Paths.get(urlToDelete.getPath())));
+
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionFailed(Mockito.eq(deletionRequest),
+                                                                         Mockito.anyString());
+        plugin.delete(ws, deletionProgress);
+        Mockito.verify(deletionProgress, Mockito.times(1)).deletionSucceed(deletionRequest);
+        Mockito.verify(deletionProgress, Mockito.never()).deletionFailed(Mockito.eq(deletionRequest),
+                                                                         Mockito.anyString());
+    }
+
+    @Test
+    public void delete_missing_file() throws IOException {
+        URL urlToDelete = new URL("file", null, "target/local-storage/test/fileToDelete.test");
+        Set<FileDeletionRequest> files = Sets.newHashSet();
+        FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
+                "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
+                new FileLocation("local-storage", urlToDelete.toString()));
+        fileRef.setId(1L);
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        files.add(deletionRequest);
+        FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
+
+        Assert.assertFalse("", Files.exists(Paths.get(urlToDelete.getPath())));
+
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionFailed(Mockito.eq(deletionRequest),
+                                                                         Mockito.anyString());
+        plugin.delete(ws, deletionProgress);
+        Mockito.verify(deletionProgress, Mockito.times(1)).deletionSucceed(deletionRequest);
+        Mockito.verify(deletionProgress, Mockito.never()).deletionFailed(Mockito.eq(deletionRequest),
+                                                                         Mockito.anyString());
+    }
+
+    @Test
+    public void delete_error() throws IOException {
+        URL urlToDelete = new URL("file", null, "target/local-storage/test/fileToDelete.test");
+        Set<FileDeletionRequest> files = Sets.newHashSet();
+        FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
+                "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
+                new FileLocation("local-storage", urlToDelete.toString()));
+        fileRef.setId(1L);
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        files.add(deletionRequest);
+        FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
+
+        Files.createDirectories(Paths.get(urlToDelete.getPath()).getParent());
+        Files.copy(Paths.get("src/test/resources/file.test"), Paths.get(urlToDelete.getPath()));
+        Assert.assertTrue("", Files.exists(Paths.get(urlToDelete.getPath())));
+        Paths.get(urlToDelete.getPath()).getParent().toFile().setWritable(false);
+        Assert.assertFalse("", Files.isWritable(Paths.get(urlToDelete.getPath()).getParent()));
+
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionFailed(Mockito.eq(deletionRequest),
+                                                                         Mockito.anyString());
+        plugin.delete(ws, deletionProgress);
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
+        Mockito.verify(deletionProgress, Mockito.times(1)).deletionFailed(Mockito.eq(deletionRequest),
+                                                                          Mockito.anyString());
+    }
 
 }

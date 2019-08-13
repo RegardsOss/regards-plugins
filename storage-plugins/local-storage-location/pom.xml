@@ -27,5 +27,10 @@
 			<artifactId>regards-integration-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+	        <groupId>fr.cnes.regards.framework.utils</groupId>
+	        <artifactId>plugin-utils</artifactId>
+	        <scope>test</scope>
+      </dependency>
 	</dependencies>
 </project>
