@@ -32,16 +32,13 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
 import fr.cnes.regards.modules.storagelight.domain.database.request.FileCacheRequest;
@@ -85,12 +82,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     private static final Logger LOG = LoggerFactory.getLogger(LocalDataStorage.class);
 
     /**
-     * {@link IRuntimeTenantResolver} instance
-     */
-    @Autowired
-    private IRuntimeTenantResolver runtimeTenantResolver;
-
-    /**
      * Base storage location url
      */
     @PluginParameter(name = BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME, description = "Base storage location url to use",
@@ -110,19 +101,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     @PluginParameter(name = LOCAL_STORAGE_TOTAL_SPACE,
             description = "Total space, in byte, this data storage is allowed to use", label = "Total allocated space")
     private Long totalSpace;
-
-    /**
-     * storage base location as url
-     */
-    private URL baseStorageLocation;
-
-    /**
-     * Plugin init method
-     */
-    @PluginInit
-    public void init() throws MalformedURLException {
-        baseStorageLocation = new URL(baseStorageLocationAsString);
-    }
 
     @Override
     public Collection<FileStorageWorkingSubset> prepareForStorage(
@@ -149,10 +127,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public void store(FileStorageWorkingSubset workingSubset, IStorageProgressManager progressManager) {
-        // because we use a parallel stream, we need to get the tenant now and force it before each doStore call
-        String tenant = runtimeTenantResolver.getTenant();
         workingSubset.getFileReferenceRequests().stream().forEach(data -> {
-            runtimeTenantResolver.forceTenant(tenant);
             doStore(progressManager, data);
         });
     }
@@ -174,9 +149,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             Long fileSize = Paths.get(fullPathToFile).toFile().length();
             //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
             try {
+                LOG.debug("File {} already exists, no replacement.", fullPathToFile);
                 progressManager.storageSucceed(request, new URL("file", "", fullPathToFile), fileSize);
             } catch (MalformedURLException e) {
                 LOG.error(e.getMessage(), e);
+                String failureCause = String.format("Invalid URL creation for file {}.", fullPathToFile);
+                progressManager.storageFailed(request, failureCause);
             }
             return;
         }
@@ -201,10 +179,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 progressManager.storageSucceed(request, new URL("file", "", fullPathToFile), fileSize);
             }
         } catch (NoSuchAlgorithmException e) {
-            RuntimeException re = new RuntimeException(e);
-            LOG.error("This is a development exception, if you see it in production, go get your dev(s) and spank them!!!!",
-                      re);
-            throw re;
+            LOG.error(e.getMessage(), e);
+            String failureCause = String
+                    .format("Invalid checksum algorithm {}. Unable to determine if the file is well formed.",
+                            request.getMetaInfo().getChecksum());
+            progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
             String failureCause = String
                     .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
@@ -215,9 +194,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private String getStorageLocation(FileStorageRequest request) throws IOException {
+    public String getStorageLocation(FileStorageRequest request) throws IOException {
         String checksum = request.getMetaInfo().getChecksum();
-        String storageLocation = baseStorageLocation.getPath() + "/";
+        String storageLocation = Paths.get(baseStorageLocationAsString).toString();
         if (request.getStorageSubDirectory() != null) {
             // Storage directory is provider. use it
             storageLocation = storageLocation + request.getStorageSubDirectory();
@@ -227,11 +206,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             int subFolders = 0;
             String subDir = "";
             String fileChecksum = request.getMetaInfo().getChecksum();
-            while ((idx < fileChecksum.length()) && (subFolders < 6)) {
+            while ((idx < fileChecksum.length()) && (subFolders < 5)) {
                 subDir = Paths.get(subDir, fileChecksum.substring(idx, idx + 2)).toString();
                 idx = idx + 2;
+                subFolders++;
             }
-            storageLocation = storageLocation + subDir;
+            storageLocation = Paths.get(storageLocation, subDir).toString();
         }
         if (Files.notExists(Paths.get(storageLocation))) {
             Files.createDirectories(Paths.get(storageLocation));
@@ -246,7 +226,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             try {
                 URL url = new URL(request.getFileReference().getLocation().getUrl());
                 Path location = Paths.get(url.getPath());
-                Files.deleteIfExists(location);
+                if (Files.deleteIfExists(location)) {
+                    LOG.debug("File {} deleted", location.toAbsolutePath().toString());
+                } else {
+                    LOG.debug("File {} not deleted as it does not exists", location.toAbsolutePath().toString());
+                }
                 progressManager.deletionSucceed(request);
             } catch (IOException ioe) {
                 String failureCause = String
