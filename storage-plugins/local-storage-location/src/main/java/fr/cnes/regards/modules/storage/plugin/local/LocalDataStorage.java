@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,8 +91,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
      * can this data storage delete files or not?
      */
     @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "true",
-            description = "Can this data storage delete files or not?", label = "Deletion option")
-    private Boolean canDelete;
+            label = "Enable physical deletion of files",
+            description = "If deletion is allowed, files are physically deleted else files are only removed from references")
+    private Boolean allowPhysicalDeletion;
 
     /**
      * Total space, in byte, this data storage is allowed to use
@@ -119,7 +119,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public Collection<FileRestorationWorkingSubset> prepareForRestoration(List<FileCacheRequest> requests) {
+    public Collection<FileRestorationWorkingSubset> prepareForRestoration(Collection<FileCacheRequest> requests) {
         Collection<FileRestorationWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileRestorationWorkingSubset(Sets.newHashSet(requests)));
         return workingSubSets;
@@ -254,8 +254,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public boolean canDelete() {
-        return canDelete;
+    public boolean allowPhysicalDeletion() {
+        return allowPhysicalDeletion;
     }
 
     @Override
