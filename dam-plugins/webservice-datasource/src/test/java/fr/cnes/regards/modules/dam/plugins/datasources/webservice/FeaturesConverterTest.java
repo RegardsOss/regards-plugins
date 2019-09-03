@@ -286,7 +286,7 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Map<String, String> attrMap = new HashMap<>();
         attrMap.put(StaticProperties.FEATURE_LABEL, "label");
         attrMap.put(StaticProperties.FEATURE_PROVIDER_ID, "productIdentifier");
-        attrMap.put("intAttr", "someIntValue");
+        attrMap.put("intAttr", "#255"); // constant input value
         attrMap.put("f1.attrA", "frag.val1");
         attrMap.put("f1.attrB", "frag.val2");
         attrMap.put("attrC", "frag.subfrag.val3");
@@ -318,7 +318,7 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Assert.assertEquals("Feat1: provider ID should be correctly converted", "ProviderId1", feat1.getProviderId());
 
         Assert.assertNotNull("Feat1: intAttr should be present", feat1.getProperty("intAttr"));
-        Assert.assertEquals("Feat1: intAttr should be correctly converted", 1, feat1.getProperty("intAttr").getValue());
+        Assert.assertEquals("Feat1: intAttr should be correctly converted (constant)", 255, feat1.getProperty("intAttr").getValue());
 
         ObjectAttribute f1 = (ObjectAttribute) feat1.getProperty("f1");
         Assert.assertNotNull("Feat1: Fragment f1 should have been created", f1);
@@ -355,7 +355,7 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Assert.assertEquals("Feat2: provider ID should be correctly converted", "ProviderId2", feat2.getProviderId());
 
         Assert.assertNotNull("Feat2: intAttr should be present", feat2.getProperty("intAttr"));
-        Assert.assertEquals("Feat2: intAttr should be correctly converted", 2, feat2.getProperty("intAttr").getValue());
+        Assert.assertEquals("Feat2: intAttr should be correctly converted (constant)", 255, feat2.getProperty("intAttr").getValue());
 
         f1 = (ObjectAttribute) feat2.getProperty("f1");
         Assert.assertNotNull("Feat2: Fragment f1 should have been created", f1);
