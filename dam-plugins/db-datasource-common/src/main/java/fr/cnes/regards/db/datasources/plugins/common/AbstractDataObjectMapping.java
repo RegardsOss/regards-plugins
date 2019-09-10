@@ -60,6 +60,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.DateAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.MarkdownURL;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.StringAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
@@ -305,7 +306,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             // lets handle touchy cases by hand
             case URL:
                 try {
-                    attr = AttributeBuilder.buildUrl(attrMapping.getName(), new URL(rset.getString(colName)));
+                    attr = AttributeBuilder.buildUrl(attrMapping.getName(), MarkdownURL.build(rset.getString(colName)));
                 } catch (MalformedURLException e) {
                     String message = String
                             .format("Given url into database (column %s) could not be processed as a URL", colName);
