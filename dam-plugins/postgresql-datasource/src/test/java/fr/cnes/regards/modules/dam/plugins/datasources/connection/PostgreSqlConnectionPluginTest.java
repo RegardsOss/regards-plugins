@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
@@ -126,15 +126,9 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     @Test
     public void getMaxPoolSizeWithCloseByThread()
             throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
+                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -164,12 +158,15 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
 
     @Test
     public void getPostGreSqlConnectionError() throws NotAvailablePluginConfigurationException {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown")
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
+
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown");
+        passwordParam.setDecryptedValue("unknown");
+        parameters.add(passwordParam);
 
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
                 .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
@@ -178,14 +175,15 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         Assert.assertFalse(sqlConn.testConnection());
     }
 
-    private Set<PluginParameter> getPostGreSqlParameters() {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addSensitiveParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword)
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
-
+    private Set<IPluginParam> getPostGreSqlParameters() {
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
+        passwordParam.setDecryptedValue(dbPassword);
+        parameters.add(passwordParam);
         return parameters;
     }
 
