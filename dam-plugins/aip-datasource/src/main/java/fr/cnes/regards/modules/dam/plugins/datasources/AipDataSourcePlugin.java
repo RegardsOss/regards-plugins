@@ -302,13 +302,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         // Add referenced files from raw AIP
         for (ContentInformation ci : aip.getProperties().getContentInformations()) {
             OAISDataObject oaisDo = ci.getDataObject();
+            // TODO : Use new OAIS model format
+            /**
             if (oaisDo.isReference()) {
                 DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(),
                                                    oaisDo.getUrls().iterator().next().toURI(),
                                                    ci.getRepresentationInformation().getSyntax().getMimeType(),
                                                    Boolean.TRUE, Boolean.TRUE);
                 feature.getFiles().put(dataFile.getDataType(), dataFile);
-            }
+            } */
         }
 
         // Add data files
