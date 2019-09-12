@@ -6,12 +6,10 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
-import fr.cnes.regards.modules.ingest.domain.SIP;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
-import fr.cnes.regards.modules.storage.domain.AIP;
-import fr.cnes.regards.modules.storage.domain.AIPBuilder;
+import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 
 /**
  *
@@ -36,32 +34,19 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     @Override
     public List<AIP> generate(SIP sip, UniformResourceName aipId, UniformResourceName sipId, String providerId) {
 
-        AIPBuilder builder = new AIPBuilder(aipId,
-                                            Optional.of(sipId),
-                                            providerId,
-                                            EntityType.DATA,
-                                            sip.getProperties().getPdi().getProvenanceInformation().getSession());
-        // Propagate BBOX
-        if (sip.getBbox().isPresent()) {
-            builder.setBbox(sip.getBbox().get(), sip.getCrs().orElse(null));
-        }
-        // Propagate geometry
-        builder.setGeometry(sip.getGeometry());
-        // Propagate properties
-        AIP aip = builder.build(sip.getProperties());
-        builder = new AIPBuilder(aip);
+        AIP aip = AIP.build(sip, aipId, Optional.ofNullable(sipId), providerId);
         if (COUNTER.get() == Integer.MAX_VALUE) {
             COUNTER.set(Integer.MIN_VALUE);
         }
         COUNTER.incrementAndGet();
-        if (always || COUNTER.get() % 2 == 0) {
-            addDescriptiveInformation(builder);
+        if (always || ((COUNTER.get() % 2) == 0)) {
+            addDescriptiveInformation(aip);
         }
         List<AIP> aips = new ArrayList<>();
         aips.add(aip);
         return aips;
     }
 
-    protected abstract void addDescriptiveInformation(AIPBuilder builder);
+    protected abstract void addDescriptiveInformation(AIP aip);
 
 }
