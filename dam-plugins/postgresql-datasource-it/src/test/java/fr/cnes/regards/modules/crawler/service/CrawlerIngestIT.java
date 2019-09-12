@@ -49,7 +49,8 @@ import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
@@ -57,7 +58,7 @@ import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
+import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
@@ -274,31 +275,35 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
-                .addParameter(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
+                                        PluginParameterTransformer.toJson(pluginConf)),
+                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                        PluginParameterTransformer.toJson(modelAttrMapping)));
 
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
+        passwordParam.setDecryptedValue(dbPpassword);
+        parameters.add(passwordParam);
 
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        return PluginUtils.getPluginConfiguration(Sets
-                .newHashSet(new PluginParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())),
-                                                  TestDsPlugin.class);
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()));
+        return PluginUtils.getPluginConfiguration(parameters, TestDsPlugin.class);
     }
 
     private void buildModelAttributes() {

@@ -89,7 +89,8 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+                new URL("file", null, "src/test/resources/file.test").toString(), "localStorage", Optional.empty(),
+                "group");
 
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
@@ -105,7 +106,8 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+                new URL("file", null, "src/test/resources/file.test").toString(), "localStorage", Optional.empty(),
+                "group");
         files.add(storageRequest);
         Files.copy(Paths.get("src/test/resources/file.test"),
                    Paths.get(plugin.getStorageLocation(files.iterator().next())));
@@ -121,7 +123,8 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new URL("file", null, "src/test/resources/unknown.test"), "localStorage", Optional.empty(), "group");
+                new URL("file", null, "src/test/resources/unknown.test").toString(), "localStorage", Optional.empty(),
+                "group");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
@@ -136,7 +139,8 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f10c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new URL("file", null, "src/test/resources/file.test"), "localStorage", Optional.empty(), "group");
+                new URL("file", null, "src/test/resources/file.test").toString(), "localStorage", Optional.empty(),
+                "group");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());

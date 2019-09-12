@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.storage.domain.AIPBuilder;
+import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
 /**
  * Allows to add two given String to generated AIPs.
@@ -22,11 +22,11 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
     private String value;
 
     @Override
-    protected void addDescriptiveInformation(AIPBuilder builder) {
-        builder.addDescriptiveInformation(descriptiveInfoName, value);
+    protected void addDescriptiveInformation(AIP aip) {
+        aip.withDescriptiveInformation(descriptiveInfoName, value);
         if ((secondDescriptiveInfo != null) && secondDescriptiveInfo.isInitialized()) {
-            builder.addDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
-                                              secondDescriptiveInfo.getSecondValue());
+            aip.withDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),
+                                           secondDescriptiveInfo.getSecondValue());
         }
     }
 

@@ -46,17 +46,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
+import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -102,17 +103,18 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         }
         importModel(MODEL_FILE_NAME);
 
-        Map<Long, Object> pluginCacheMap = new HashMap<>();
+        Map<String, Object> pluginCacheMap = new HashMap<>();
 
         // Instantiate the data source plugin
-        Set<PluginParameter> parameters;
-        parameters = PluginParametersFactory.build()
-                .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap())
-                .addParameter(DataSourcePluginConstants.SUBSETTING_TAGS, Arrays.asList(MODEL_NAME))
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
-                .addParameter(DataSourcePluginConstants.TAGS, Lists.newArrayList("TOTO", "TITI"))
-                .addParameter(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP, createBindingMap()),
+                     IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
+                                        PluginParameterTransformer.toJson(Arrays.asList(MODEL_NAME))),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
+                     IPluginParam.build(DataSourcePluginConstants.TAGS,
+                                        PluginParameterTransformer.toJson(Lists.newArrayList("TOTO", "TITI"))),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE"));
 
         dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, pluginCacheMap);
 
@@ -174,28 +176,33 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     /**
      * Binding map from AIP (key) properties and associated model attributes (value)
      */
-    private Map<String, String> createBindingMap() {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("label", "properties.descriptiveInformation.label");
-        map.put("properties.START_DATE", "properties.descriptiveInformation.START_DATE");
-        map.put("properties.ALTITUDE.MAX", "properties.descriptiveInformation.ALT_MAX");
-        map.put("properties.ALTITUDE.MIN", "properties.descriptiveInformation.ALT_MIN");
-        map.put("properties.history", "properties.descriptiveInformation.HISTORY");
-        map.put("properties.history_set", "properties.descriptiveInformation.HISTORY_SET");
-        map.put("properties.history_list", "properties.descriptiveInformation.HISTORY_LIST");
-        map.put("properties.LINKS", "properties.descriptiveInformation.LINKS");
+    private Map<String, JsonElement> createBindingMap() {
+        HashMap<String, JsonElement> map = new HashMap<>();
+        map.put("label", PluginParameterTransformer.toJson("properties.descriptiveInformation.label"));
+        map.put("properties.START_DATE",
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.START_DATE"));
+        map.put("properties.ALTITUDE.MAX",
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.ALT_MAX"));
+        map.put("properties.ALTITUDE.MIN",
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.ALT_MIN"));
+        map.put("properties.history", PluginParameterTransformer.toJson("properties.descriptiveInformation.HISTORY"));
+        map.put("properties.history_set",
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.HISTORY_SET"));
+        map.put("properties.history_list",
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.HISTORY_LIST"));
+        map.put("properties.LINKS", PluginParameterTransformer.toJson("properties.descriptiveInformation.LINKS"));
 
         // Date interval
-        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.range" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX);
-        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.range" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX);
+        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX, PluginParameterTransformer
+                .toJson("properties.descriptiveInformation.range" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX));
+        map.put("properties.DATE_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX, PluginParameterTransformer
+                .toJson("properties.descriptiveInformation.range" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX));
 
         // Integer open interval
         map.put("properties.INT_INTERVAL" + DataSourcePluginConstants.LOWER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.intrange.ilow");
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.intrange.ilow"));
         map.put("properties.INT_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX,
-                "properties.descriptiveInformation.intrange.iup");
+                PluginParameterTransformer.toJson("properties.descriptiveInformation.intrange.iup"));
 
         // FIXME
         // map.put("properties.history", "properties.descriptiveInformation.NIMP");
