@@ -23,17 +23,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -42,20 +35,15 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 
-import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -69,13 +57,10 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribut
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
-import fr.cnes.regards.modules.storage.domain.AIP;
-import fr.cnes.regards.modules.storage.domain.AIPBuilder;
 
 /**
  * @author oroussel
  */
-@ContextConfiguration(classes = { AipDataSourceConfiguration.class })
 @TestPropertySource("classpath:aip-datasource-test.properties")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
@@ -137,6 +122,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     // This method is called by Aip client proxy (from AipDataSourceConfiguration) to provide some AIPs when calling
     // aip client method
+    /**
+     * TODO : Use new storage and Ingest manager
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -144,7 +131,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                     UUID.randomUUID(), 1);
             AIPBuilder builder = new AIPBuilder(id, Optional.empty(), "sipId" + i, EntityType.DATA, "session 1");
             builder.addTags(tags);
-
+    
             builder.addDescriptiveInformation("label", "libellé du data object " + i);
             builder.addDescriptiveInformation("START_DATE", OffsetDateTime.now());
             builder.addDescriptiveInformation("ALT_MAX", 1500 + i);
@@ -155,23 +142,24 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                     .asList("paris", "toulouse", "lyon", "nice", "bordeaux").stream().collect(Collectors.toList()));
             builder.addDescriptiveInformation("POUET", "POUET");
             builder.addDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
-
+    
             Map<String, String> dateBounds = new HashMap<>();
             dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             dateBounds.put(DataSourcePluginConstants.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             builder.addDescriptiveInformation("range", dateBounds);
-
+    
             Map<String, Integer> intBounds = new HashMap<>();
             intBounds.put("ilow", 100);
             intBounds.put("iup", null);
             builder.addDescriptiveInformation("intrange", intBounds);
-
+    
             aips.add(builder.build());
         }
         return aips;
     }
+    */
 
     /**
      * Binding map from AIP (key) properties and associated model attributes (value)
