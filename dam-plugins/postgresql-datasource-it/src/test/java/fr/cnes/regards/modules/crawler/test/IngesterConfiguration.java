@@ -34,7 +34,6 @@ import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
 import fr.cnes.regards.modules.dam.client.models.IModelAttrAssocClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
-import fr.cnes.regards.modules.storage.client.IAipClient;
 
 @Profile("IngesterTest")
 @Configuration
@@ -81,11 +80,6 @@ public class IngesterConfiguration {
     @Bean(name = "rService")
     public IResourceService getResourceService() {
         return Mockito.mock(IResourceService.class);
-    }
-
-    @Bean
-    public IAipClient aipClient() {
-        return Mockito.mock(IAipClient.class);
     }
 
     @Bean
