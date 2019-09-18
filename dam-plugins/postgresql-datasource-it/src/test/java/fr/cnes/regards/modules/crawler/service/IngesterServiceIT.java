@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.crawler.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -82,7 +80,6 @@ import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IAipClient;
 
 @ActiveProfiles({ "noschedule", "IngesterTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
@@ -178,9 +175,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Autowired
     private IEsRepository esRepository;
-
-    @Autowired
-    private IAipClient aipClient;
 
     @Autowired
     private IProjectsClient projectsClient;
@@ -314,7 +308,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getBusinessId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -361,10 +355,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Test
     public void test() throws InterruptedException {
-        Mockito.when(aipClient.retrieveAipDataFiles(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(),
-                                                    Mockito.anyInt()))
-                .thenReturn(ResponseEntity.ok(new PagedResources<>(Collections.emptyList(),
-                        new PagedResources.PageMetadata(0, 0, 0, 1))));
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
                 .thenReturn(ResponseEntity.ok(new Resource<>(project)));
