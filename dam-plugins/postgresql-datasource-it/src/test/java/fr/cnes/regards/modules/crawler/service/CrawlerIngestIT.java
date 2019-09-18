@@ -331,7 +331,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         extDataRepos.saveAndFlush(new ExternalData(LocalDate.of(2000, Month.JANUARY, 1)));
 
         // Ingest from scratch
-        DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getId());
+        DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         IngestionResult summary = crawlerService.ingest(dataSourcePluginConf, dsi);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
@@ -376,7 +376,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         extDataRepos.save(new ExternalData(LocalDate.of(2001, Month.JANUARY, 1)));
 
         // Ingest from 2000/01/01 (strictly after)
-        DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getId());
+        DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
         summary = crawlerService.ingest(dataSourcePluginConf, dsi2);
         Assert.assertEquals(1, summary.getSavedObjectsCount());
@@ -398,7 +398,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     @Test
     public void testDsIngestionWithValidation() throws InterruptedException, ExecutionException, DataSourceException,
             ModuleException, NotFinishedException {
-        DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getId());
+        DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getBusinessId());
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
         try {
