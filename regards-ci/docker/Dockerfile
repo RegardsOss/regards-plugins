@@ -3,7 +3,7 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD local-storage-location-0.5.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
 ADD aip-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
