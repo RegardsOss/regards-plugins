@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -47,6 +48,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
+
+import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.encryption.exception.EncryptionException;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -123,7 +126,10 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      * JPA Repository
      */
     @Autowired
-    IDataSourceRepositoryTest repository;
+    private IDataSourceRepositoryTest repository;
+
+    @Autowired
+    private Gson gson;
 
     /**
      * Populate the datasource as a legacy catalog
@@ -137,6 +143,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     public void setUp()
             throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
 
+        PluginUtils.setup(Lists.newArrayList(), gson);
         tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
@@ -177,8 +184,8 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
          * Instantiate the data source plugin
          */
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(getPostgreConnectionConfiguration())),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                         getPostgreConnectionConfiguration().getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(attributesMapping)),

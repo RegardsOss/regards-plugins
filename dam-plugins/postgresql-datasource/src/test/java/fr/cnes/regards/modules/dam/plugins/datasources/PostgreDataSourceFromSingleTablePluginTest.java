@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -45,7 +46,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
-import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -125,6 +126,9 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
 
+    @Autowired
+    private Gson gson;
+
     /**
      * Populate the datasource as a legacy catalog
      *
@@ -137,6 +141,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
     public void setUp()
             throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
 
+        PluginUtils.setup(Lists.newArrayList(), gson);
         tenantResolver.forceTenant(getDefaultTenant());
 
         try {
@@ -175,16 +180,18 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
         /*
          * Instantiate the data source plugin
          */
+        List<String> tags = new ArrayList<String>();
+        tags.add("TOTO");
+        tags.add("TITI");
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(getPostgreConnectionConfiguration())),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                         getPostgreConnectionConfiguration().getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(attributesMapping)),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
-                     IPluginParam.build(DataSourcePluginConstants.TAGS,
-                                        PluginParameterTransformer.toJson(Sets.newHashSet("TOTO", "TITI"))));
+                     IPluginParam.build(DataSourcePluginConstants.TAGS, PluginParameterTransformer.toJson(tags)));
 
         plgDBDataSource = PluginUtils.getPlugin(parameters, PostgreDataSourceFromSingleTablePlugin.class,
                                                 pluginCacheMap);
