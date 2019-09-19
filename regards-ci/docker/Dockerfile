@@ -3,7 +3,7 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD catalog-security-delegation-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-0.5.0-SNAPSHOT.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
 ADD aip-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
@@ -17,10 +17,10 @@ ADD custom-command-file-validation-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plu
 # first lets create the directory hierarchy if needed (mkdir -p) 
 CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdir -p /regards-plugins/ingest/ && \
 	# Remove old storage plugins
-	rm -f /regards-plugins/storage/catalog-security-delegation-2*.jar && \
+	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
 	# Remove old dam plugins
-	rm -f /regards-plugins/dam/aip-datasource-2*.jar && \
-	rm -f /regards-plugins/dam/postgresql-datasource-2*.jar && \
+	rm -f /regards-plugins/dam/aip-datasource-*.jar && \
+	rm -f /regards-plugins/dam/postgresql-datasource-*.jar && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
 	# then lets copy the jars 
