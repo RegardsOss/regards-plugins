@@ -181,8 +181,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(pluginConf)),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
@@ -194,8 +193,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(pluginConf)),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
@@ -207,8 +205,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(pluginConf)),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),

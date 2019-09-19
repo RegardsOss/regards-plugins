@@ -25,7 +25,6 @@ import java.sql.Types;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,7 +79,7 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
 
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
-    private final Collection<String> commonTags = Collections.emptyList();
+    private final List<String> commonTags = Collections.emptyList();
 
     /**
      * Init method
