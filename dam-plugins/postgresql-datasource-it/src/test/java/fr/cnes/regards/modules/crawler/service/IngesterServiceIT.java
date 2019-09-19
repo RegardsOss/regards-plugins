@@ -21,11 +21,10 @@ package fr.cnes.regards.modules.crawler.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -39,7 +38,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -73,7 +72,6 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.dam.plugins.datasources.AipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
@@ -179,6 +177,9 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     @Autowired
     private IProjectsClient projectsClient;
 
+    @Autowired
+    private Gson gson;
+
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
                 .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
@@ -188,7 +189,11 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf1");
+        conf.setBusinessId("pluginConf1");
+        return conf;
     }
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
@@ -200,29 +205,27 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf2");
+        conf.setBusinessId("pluginConf2");
+        return conf;
     }
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
                 .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 10),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
-    }
-
-    private PluginConfiguration getAipDataSource() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, "model_1"),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 10),
-                     IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
-                                        PluginParameterTransformer.toJson(createBindingMap())));
-
-        return PluginUtils.getPluginConfiguration(parameters, AipDataSourcePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf3");
+        conf.setBusinessId("pluginConf3");
+        return conf;
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -246,16 +249,10 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                 AttributeType.DATE_ISO8601, "date"));
     }
 
-    /**
-     * No binding with dynamic values, only mandatory ones
-     */
-    private Map<String, JsonElement> createBindingMap() {
-        Map<String, JsonElement> map = new HashMap<>();
-        return map;
-    }
-
     @Before
     public void setUp() throws Exception {
+
+        PluginUtils.setup(Lists.newArrayList(), gson);
 
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(null);
@@ -317,9 +314,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
         dataSourcePluginConf3 = getPostgresDataSource3(dBConnectionConf);
         pluginService.savePluginConfiguration(dataSourcePluginConf3);
-
-        dataSourcePluginConf4 = getAipDataSource();
-        pluginService.savePluginConfiguration(dataSourcePluginConf4);
 
     }
 
