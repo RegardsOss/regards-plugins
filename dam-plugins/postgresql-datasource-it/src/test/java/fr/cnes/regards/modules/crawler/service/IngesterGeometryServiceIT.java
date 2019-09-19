@@ -145,8 +145,7 @@ public class IngesterGeometryServiceIT {
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(pluginConf)),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_VIEW),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
