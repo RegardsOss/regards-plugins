@@ -276,8 +276,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.CONNECTION_PARAM,
-                                        PluginParameterTransformer.toJson(pluginConf)),
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
                      IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),

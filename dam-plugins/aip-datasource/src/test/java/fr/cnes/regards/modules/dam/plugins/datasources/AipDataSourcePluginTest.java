@@ -31,6 +31,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -59,8 +60,11 @@ import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 
 /**
+ * TODO : New plugin AIP
+ *
  * @author oroussel
  */
+@Ignore("TODO !!!!")
 @TestPropertySource("classpath:aip-datasource-test.properties")
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
@@ -131,7 +135,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                     UUID.randomUUID(), 1);
             AIPBuilder builder = new AIPBuilder(id, Optional.empty(), "sipId" + i, EntityType.DATA, "session 1");
             builder.addTags(tags);
-    
+
             builder.addDescriptiveInformation("label", "libellé du data object " + i);
             builder.addDescriptiveInformation("START_DATE", OffsetDateTime.now());
             builder.addDescriptiveInformation("ALT_MAX", 1500 + i);
@@ -142,19 +146,19 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                     .asList("paris", "toulouse", "lyon", "nice", "bordeaux").stream().collect(Collectors.toList()));
             builder.addDescriptiveInformation("POUET", "POUET");
             builder.addDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
-    
+
             Map<String, String> dateBounds = new HashMap<>();
             dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             dateBounds.put(DataSourcePluginConstants.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             builder.addDescriptiveInformation("range", dateBounds);
-    
+
             Map<String, Integer> intBounds = new HashMap<>();
             intBounds.put("ilow", 100);
             intBounds.put("iup", null);
             builder.addDescriptiveInformation("intrange", intBounds);
-    
+
             aips.add(builder.build());
         }
         return aips;
