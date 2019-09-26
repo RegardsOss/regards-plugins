@@ -49,7 +49,6 @@ import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
@@ -62,7 +61,6 @@ import fr.cnes.regards.modules.storagelight.domain.plugin.FileStorageWorkingSubs
 import fr.cnes.regards.modules.storagelight.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storagelight.domain.plugin.IOnlineStorageLocation;
 import fr.cnes.regards.modules.storagelight.domain.plugin.IStorageProgressManager;
-import fr.cnes.regards.modules.storagelight.domain.plugin.PluginConfUpdatable;
 
 /**
  * @author Sylvain Vissiere-Guerinet
@@ -496,12 +494,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             Path pathInZip = zipFs.getPath(checksum);
             return Files.newInputStream(pathInZip);
         }
-    }
-
-    @Override
-    public PluginConfUpdatable allowConfigurationUpdate(PluginConfiguration newConfiguration,
-            PluginConfiguration currentConfiguration, boolean filesAlreadyStored) {
-        return PluginConfUpdatable.allowUpdate();
     }
 
     @Override
