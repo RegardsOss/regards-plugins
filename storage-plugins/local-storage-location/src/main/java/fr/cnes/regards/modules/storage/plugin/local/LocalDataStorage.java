@@ -432,7 +432,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public InputStream retrieve(FileReference fileRef) throws IOException {
-        if (fileRef.getLocation().getUrl().matches("regards_.*\\.zip")) {
+        if (fileRef.getLocation().getUrl().matches(".*regards_.*\\.zip")) {
             return retrieveFromZip(fileRef);
         } else {
             return (new URL(fileRef.getLocation().getUrl())).openStream();
