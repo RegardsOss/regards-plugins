@@ -49,7 +49,6 @@ import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
 import fr.cnes.regards.modules.storagelight.domain.database.request.FileCacheRequest;
@@ -109,20 +108,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             label = "Base storage location url")
     private String baseStorageLocationAsString;
 
-    /**
-     * can this data storage delete files or not?
-     */
     @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "true",
             label = "Enable physical deletion of files",
             description = "If deletion is allowed, files are physically deleted else files are only removed from references")
     private Boolean allowPhysicalDeletion;
-
-    /**
-     * Total space, in byte, this data storage is allowed to use
-     */
-    @PluginParameter(name = LOCAL_STORAGE_TOTAL_SPACE,
-            description = "Total space, in byte, this data storage is allowed to use", label = "Total allocated space")
-    private Long totalSpace;
 
     @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP, label = "Maximum file size for zip",
             description = "Maximum size, in bytes, for a file to be put in a zip", defaultValue = "10000")
@@ -161,128 +150,129 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) {
-    	Path fullPathToFile;
-    	try {
-    		fullPathToFile = getStorageLocation(request);
-    	} catch (IOException ioe) {
-    		String failureCause = String
-    				.format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-    						request.getMetaInfo().getChecksum(), ioe.toString());
-    		LOG.error(failureCause, ioe);
-    		progressManager.storageFailed(request, failureCause);
-    		return;
-    	}
-    	//check if file is already at the right place or not. Unless we are instructed not to(for updates for example)
-    	if (Files.exists(fullPathToFile)) {
-    		Long fileSize = fullPathToFile.toFile().length();
-    		//if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
-    		try {
-    			LOG.debug("File {} already exists, no replacement.", fullPathToFile);
-    			progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
-    		} catch (MalformedURLException e) {
-    			LOG.error(e.getMessage(), e);
-    			String failureCause = String.format("Invalid URL creation for file %s.", fullPathToFile);
-    			progressManager.storageFailed(request, failureCause);
-    		}
-    		return;
-    	}
-    	try {
-    		URL sourceUrl = new URL(request.getOriginUrl());
-    		boolean downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
-    				request.getMetaInfo().getAlgorithm(),
-    				request.getMetaInfo().getChecksum());
-    		if (downloadOk) {
-    			File file = fullPathToFile.toFile();
-    			if (file.canWrite()) {
-    				file.setReadOnly();
-    			}
-    			Long fileSize = file.length();
-    			if (fileSize < maxFileSizeForZip) {
-    				doStoreInZip(progressManager, request,  file);
-    			} else {
-    				progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
-    			}
-    		} else {
-    			String failureCause = String
-    					.format("Storage of StorageDataFile(%s) failed at the following location: %s. Its checksum once stored does not match with expected one",
-    							request.getMetaInfo().getChecksum(), fullPathToFile);
-    			Files.deleteIfExists(fullPathToFile);
-    			progressManager.storageFailed(request, failureCause);
-    		}
-    	} catch (NoSuchAlgorithmException e) {
-    			LOG.error(e.getMessage(), e);
-    			String failureCause = String
-    					.format("Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
-    							request.getMetaInfo().getChecksum());
-    		progressManager.storageFailed(request, failureCause);
-    	} catch (IOException ioe) {
-    		String failureCause = String
-    				.format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-    						request.getMetaInfo().getChecksum(), ioe.toString());
-    		LOG.error(failureCause, ioe);
-    		fullPathToFile.toFile().delete();
-    		progressManager.storageFailed(request, failureCause);
-    	}
+        Path fullPathToFile;
+        try {
+            fullPathToFile = getStorageLocation(request);
+        } catch (IOException ioe) {
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
+            LOG.error(failureCause, ioe);
+            progressManager.storageFailed(request, failureCause);
+            return;
+        }
+        //check if file is already at the right place or not. Unless we are instructed not to(for updates for example)
+        if (Files.exists(fullPathToFile)) {
+            Long fileSize = fullPathToFile.toFile().length();
+            //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
+            try {
+                LOG.debug("File {} already exists, no replacement.", fullPathToFile);
+                progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
+            } catch (MalformedURLException e) {
+                LOG.error(e.getMessage(), e);
+                String failureCause = String.format("Invalid URL creation for file %s.", fullPathToFile);
+                progressManager.storageFailed(request, failureCause);
+            }
+            return;
+        }
+        try {
+            URL sourceUrl = new URL(request.getOriginUrl());
+            boolean downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
+                                                                        request.getMetaInfo().getAlgorithm(),
+                                                                        request.getMetaInfo().getChecksum());
+            if (downloadOk) {
+                File file = fullPathToFile.toFile();
+                if (file.canWrite()) {
+                    file.setReadOnly();
+                }
+                Long fileSize = file.length();
+                if (fileSize < maxFileSizeForZip) {
+                    doStoreInZip(progressManager, request, file);
+                } else {
+                    progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
+                }
+            } else {
+                String failureCause = String
+                        .format("Storage of StorageDataFile(%s) failed at the following location: %s. Its checksum once stored does not match with expected one",
+                                request.getMetaInfo().getChecksum(), fullPathToFile);
+                Files.deleteIfExists(fullPathToFile);
+                progressManager.storageFailed(request, failureCause);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error(e.getMessage(), e);
+            String failureCause = String
+                    .format("Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
+                            request.getMetaInfo().getChecksum());
+            progressManager.storageFailed(request, failureCause);
+        } catch (IOException ioe) {
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
+            LOG.error(failureCause, ioe);
+            fullPathToFile.toFile().delete();
+            progressManager.storageFailed(request, failureCause);
+        }
     }
-    
+
     private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file) {
-    	try {
-    		Path zipPath = getStorageLocationForZip(request);
-	        // check if file is already in zip
-	        Map<String, String> env = new HashMap<>(1);
-	        env.put("create", "true");
-	        String checksum = request.getMetaInfo().getChecksum();
-	        boolean downloadOk = false;
-	        try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-	            FileLock zipLock = zipFC.lock();
-	            try (FileSystem zipFs = FileSystems
-	                    .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
-	                Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
-	                if (Files.exists(pathInZip)) {
-	                    //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
-	                	LOG.debug("File {} already exists in zip, no replacement.", pathInZip);
-	                	try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-	                		Long fileSize = zipFile.getEntry(checksum).getSize();
-	                		progressManager.storageSucceed(request, zipPath.toUri().toURL(), fileSize);
-	                	}
-	                } else {
-		                // add the file into the zip
-	                	URL sourceUrl = new URL("file", null,file.getPath());
-	                	downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, pathInZip,
-	                			request.getMetaInfo().getAlgorithm(), checksum);
-	                	// download issues are handled right here
-	                	// while download success has to be handle after the zip file system has been closed
-	                	// for zip entries to be detected correctly
-	                	if (!downloadOk) {
-	                		String failureCause = String
-	                				.format("Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with expected one",
-	                						checksum, pathInZip, zipPath);
-	                		Files.deleteIfExists(pathInZip);
-	                		progressManager.storageFailed(request, failureCause);
-	                	}
-	                }
-	            } finally {
-	                zipLock.release();
-	            }
-	        }
-	        if (downloadOk) {
-	            try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-	                Long fileSize = zipFile.getEntry(checksum).getSize();
-	                progressManager.storageSucceed(request, zipPath.toUri().toURL(), fileSize);
-	            }
-	        }
-    	} catch (MalformedURLException | NoSuchAlgorithmException e) {
+        try {
+            Path zipPath = getStorageLocationForZip(request);
+            // check if file is already in zip
+            Map<String, String> env = new HashMap<>(1);
+            env.put("create", "true");
+            String checksum = request.getMetaInfo().getChecksum();
+            boolean downloadOk = false;
+            try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+                FileLock zipLock = zipFC.lock();
+                try (FileSystem zipFs = FileSystems
+                        .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
+                    Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
+                    if (Files.exists(pathInZip)) {
+                        //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
+                        LOG.debug("File {} already exists in zip, no replacement.", pathInZip);
+                        try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                            Long fileSize = zipFile.getEntry(checksum).getSize();
+                            progressManager.storageSucceed(request, zipPath.toUri().toURL(), fileSize);
+                        }
+                    } else {
+                        // add the file into the zip
+                        URL sourceUrl = new URL("file", null, file.getPath());
+                        downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, pathInZip,
+                                                                            request.getMetaInfo().getAlgorithm(),
+                                                                            checksum);
+                        // download issues are handled right here
+                        // while download success has to be handle after the zip file system has been closed
+                        // for zip entries to be detected correctly
+                        if (!downloadOk) {
+                            String failureCause = String
+                                    .format("Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with expected one",
+                                            checksum, pathInZip, zipPath);
+                            Files.deleteIfExists(pathInZip);
+                            progressManager.storageFailed(request, failureCause);
+                        }
+                    }
+                } finally {
+                    zipLock.release();
+                }
+            }
+            if (downloadOk) {
+                try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                    Long fileSize = zipFile.getEntry(checksum).getSize();
+                    progressManager.storageSucceed(request, zipPath.toUri().toURL(), fileSize);
+                }
+            }
+        } catch (MalformedURLException | NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
             String failureCause = String.format("Invalid URL creation for file. %s", e.getMessage());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-    		String failureCause = String
-    				.format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-    						request.getMetaInfo().getChecksum(), ioe.toString());
-    		LOG.error(failureCause, ioe);
-    		progressManager.storageFailed(request, failureCause);
-    	} finally {
-        	file.delete();
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
+            LOG.error(failureCause, ioe);
+            progressManager.storageFailed(request, failureCause);
+        } finally {
+            file.delete();
         }
     }
 
@@ -300,7 +290,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             String fileChecksum = request.getMetaInfo().getChecksum();
             String subDir = fileChecksum.length() > 2 ? fileChecksum.substring(0, 2) : fileChecksum;
             int idx = 2;
-            while (((idx+2) < fileChecksum.length()) && (subFolders < 3)) {
+            while (((idx + 2) < fileChecksum.length()) && (subFolders < 3)) {
                 subDir = Paths.get(subDir, fileChecksum.substring(idx, idx + 2)).toString();
                 idx = idx + 2;
                 subFolders++;
