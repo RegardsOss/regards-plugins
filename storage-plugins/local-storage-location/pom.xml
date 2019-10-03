@@ -40,6 +40,10 @@
 			<groupId>fr.cnes.regards.framework.utils</groupId>
 			<artifactId>file-utils</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.modules.locks</groupId>
+			<artifactId>locks-service</artifactId>
+		</dependency>
 
 		<!-- TEST dependencies -->
 		<dependency>
