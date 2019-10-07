@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.modules.locks.service.ILockService;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -105,7 +106,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final Semaphore zipAccessSemaphore = new Semaphore(1, true);
 
-    private static final String GET_CURRENT_ZIP_PATH_LOCK_NAME = LocalDataStorage.class.getName() + "#getCurrentZipPath";
+    private static final String GET_CURRENT_ZIP_PATH_LOCK_NAME = LocalDataStorage.class.getName()
+            + "#getCurrentZipPath";
 
     /**
      * Base storage location url
@@ -163,10 +165,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         try {
             fullPathToFile = getStorageLocation(request);
         } catch (IOException ioe) {
-            String failureCause = String.format(
-                    "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                    request.getMetaInfo().getChecksum(),
-                    ioe.toString());
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
             LOG.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
             return;
@@ -187,8 +188,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
-            boolean downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
-                                                                        fullPathToFile,
+            boolean downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
                                                                         request.getMetaInfo().getAlgorithm(),
                                                                         request.getMetaInfo().getChecksum());
             if (downloadOk) {
@@ -203,24 +203,22 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
                 }
             } else {
-                String failureCause = String.format(
-                        "Storage of StorageDataFile(%s) failed at the following location: %s. Its checksum once stored does not match with expected one",
-                        request.getMetaInfo().getChecksum(),
-                        fullPathToFile);
+                String failureCause = String
+                        .format("Storage of StorageDataFile(%s) failed at the following location: %s. Its checksum once stored does not match with expected one",
+                                request.getMetaInfo().getChecksum(), fullPathToFile);
                 Files.deleteIfExists(fullPathToFile);
                 progressManager.storageFailed(request, failureCause);
             }
         } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
-            String failureCause = String.format(
-                    "Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
-                    request.getMetaInfo().getChecksum());
+            String failureCause = String
+                    .format("Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
+                            request.getMetaInfo().getChecksum());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-            String failureCause = String.format(
-                    "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                    request.getMetaInfo().getChecksum(),
-                    ioe.toString());
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
             LOG.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, failureCause);
@@ -251,19 +249,16 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     } else {
                         // add the file into the zip
                         URL sourceUrl = new URL("file", null, file.getPath());
-                        downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
-                                                                            pathInZip,
+                        downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, pathInZip,
                                                                             request.getMetaInfo().getAlgorithm(),
                                                                             checksum);
                         // download issues are handled right here
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
                         if (!downloadOk) {
-                            String failureCause = String.format(
-                                    "Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with expected one",
-                                    checksum,
-                                    pathInZip,
-                                    zipPath);
+                            String failureCause = String
+                                    .format("Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with expected one",
+                                            checksum, pathInZip, zipPath);
                             Files.deleteIfExists(pathInZip);
                             progressManager.storageFailed(request, failureCause);
                         }
@@ -287,10 +282,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             String failureCause = String.format("Invalid URL creation for file. %s", e.getMessage());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-            String failureCause = String.format(
-                    "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                    request.getMetaInfo().getChecksum(),
-                    ioe.toString());
+            String failureCause = String
+                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getMetaInfo().getChecksum(), ioe.toString());
             LOG.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
         } finally {
@@ -342,8 +336,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     private Path getCurrentZipPath(Path storageLocation) throws IOException {
-        if(!lockService.waitForlock(GET_CURRENT_ZIP_PATH_LOCK_NAME, this, 3600, 100)) {
-            throw new IOException("A file should have been put into a zip but we could not ensure that it could be done properly so the process was aborted");
+        if (!lockService.waitForlock(GET_CURRENT_ZIP_PATH_LOCK_NAME, this, 3600, 100)) {
+            throw new IOException(
+                    "A file should have been put into a zip but we could not ensure that it could be done properly so the process was aborted");
         }
         try {
             // To avoid issue with knowing which zip is the right one, lets have a symlink on the current zip
@@ -353,8 +348,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 // Lets create the first one
                 Map<String, String> env = new HashMap<>(1);
                 env.put("create", "true");
-                Path zipPath = storageLocation.resolve(
-                        "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
+                Path zipPath = storageLocation.resolve("regards_"
+                        + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
                 try (FileSystem zipFs = FileSystems
                         .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
                     // now that zip has been created, lets create the link.
@@ -368,16 +363,15 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 Path targetPath = Files.readSymbolicLink(linkPath);
                 if (targetPath.toFile().length() > maxZipSize) {
                     // we have to create a new one
-                    try (FileChannel targetFC = FileChannel
-                            .open(targetPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+                    try (FileChannel targetFC = FileChannel.open(targetPath, StandardOpenOption.WRITE,
+                                                                 StandardOpenOption.READ)) {
                         FileLock targetLock = targetFC.lock();
                         try {
                             // create a new zip and make the link points to the new zip
                             Map<String, String> env = new HashMap<>(1);
                             env.put("create", "true");
-                            Path newZipPath = storageLocation.resolve(
-                                    "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
-                                            + ".zip");
+                            Path newZipPath = storageLocation.resolve("regards_"
+                                    + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
                             try (FileSystem zipFs = FileSystems
                                     .newFileSystem(URI.create("jar:file:" + newZipPath.toAbsolutePath().toString()),
                                                    env)) {
@@ -401,13 +395,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-        @Override public void delete (FileDeletionWorkingSubset workingSubset, IDeletionProgressManager progressManager)
-        {
-            for (FileDeletionRequest request : workingSubset.getFileDeletionRequests()) {
-                if (request.getFileReference().getLocation().getUrl().matches(".*regards_.*\\.zip")) {
-                    deleteFromZip(request, progressManager);
-                    return;
-                }
+    @Override
+    public void delete(FileDeletionWorkingSubset workingSubset, IDeletionProgressManager progressManager) {
+        for (FileDeletionRequest request : workingSubset.getFileDeletionRequests()) {
+            if (request.getFileReference().getLocation().getUrl().matches(".*regards_.*\\.zip")) {
+                deleteFromZip(request, progressManager);
+            } else {
                 try {
                     URL url = new URL(request.getFileReference().getLocation().getUrl());
                     Path location = Paths.get(url.getPath());
@@ -418,15 +411,15 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     }
                     progressManager.deletionSucceed(request);
                 } catch (IOException ioe) {
-                    String failureCause = String.format(
-                            "Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
-                            request.getFileReference().getMetaInfo().getChecksum(),
-                            ioe.getMessage());
+                    String failureCause = String
+                            .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
+                                    request.getFileReference().getMetaInfo().getChecksum(), ioe.getMessage());
                     LOG.error(failureCause, ioe);
                     progressManager.deletionFailed(request, failureCause);
                 }
             }
         }
+    }
 
     private void deleteFromZip(FileDeletionRequest request, IDeletionProgressManager progressManager) {
         Map<String, String> env = new HashMap<>(1);
@@ -458,10 +451,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
             }
         } catch (IOException e) {
-            String failureCause = String.format(
-                    "Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
-                    request.getFileReference().getMetaInfo().getChecksum(),
-                    e.getMessage());
+            String failureCause = String
+                    .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
+                            request.getFileReference().getMetaInfo().getChecksum(), e.getMessage());
             LOG.error(failureCause, e);
             progressManager.deletionFailed(request, failureCause);
         }
@@ -488,8 +480,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         try {
             zipAccessSemaphore.acquire();
             FileLock zipLock = zipFC.lock();
-            FileSystem zipFs = FileSystems
-                    .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env);
+            FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()),
+                                                         env);
             Path pathInZip = zipFs.getPath(checksum);
             return new RegardsIS(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, zipAccessSemaphore);
         } catch (InterruptedException e) {
