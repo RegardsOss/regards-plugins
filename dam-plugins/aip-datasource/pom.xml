@@ -74,6 +74,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-plugins</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
             <artifactId>plugins-domain</artifactId>
             <scope>provided</scope>
@@ -84,8 +89,19 @@
             <artifactId>regards-integration-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-domain</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-client</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
-
 	<build>
         <plugins>
             <plugin>
