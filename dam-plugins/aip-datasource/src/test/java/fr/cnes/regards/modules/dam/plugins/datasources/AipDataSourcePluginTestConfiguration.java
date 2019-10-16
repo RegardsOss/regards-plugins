@@ -1,40 +1,5 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import com.google.common.collect.Sets;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginMetaData;
-import fr.cnes.regards.framework.oais.ContentInformation;
-import fr.cnes.regards.framework.oais.OAISDataObject;
-import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
-import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
-import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
-import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
-import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
-import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
-import fr.cnes.regards.modules.ingest.domain.sip.SIPState;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
-import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
-import fr.cnes.regards.modules.ingest.dto.sip.SIP;
-import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
-import fr.cnes.regards.modules.storagelight.client.IStorageClient;
-import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
-import fr.cnes.regards.modules.storagelight.domain.database.StorageLocationConfiguration;
-import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storagelight.domain.plugin.StorageType;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeTypeUtils;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -42,12 +7,42 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
+
+import com.google.common.collect.Sets;
+
+import fr.cnes.regards.framework.oais.ContentInformation;
+import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
+import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
+import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
+import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
+import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
+import fr.cnes.regards.modules.ingest.domain.sip.SIPState;
+import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
+import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
+import fr.cnes.regards.modules.ingest.dto.sip.SIP;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
+import fr.cnes.regards.modules.storagelight.domain.database.StorageLocationConfiguration;
+import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
+import fr.cnes.regards.modules.storagelight.domain.plugin.StorageType;
 
 @Configuration
 public class AipDataSourcePluginTestConfiguration {
+
     @Bean
     public IAttributeModelClient modelClient() {
         return Mockito.mock(IAttributeModelClient.class);
@@ -74,40 +69,44 @@ public class AipDataSourcePluginTestConfiguration {
             }
             return null;
         };
-        return (IAIPRestClient) Proxy
-                .newProxyInstance(IAIPRestClient.class.getClassLoader(), new Class<?>[] { IAIPRestClient.class }, handler);
+        return (IAIPRestClient) Proxy.newProxyInstance(IAIPRestClient.class.getClassLoader(),
+                                                       new Class<?>[] { IAIPRestClient.class }, handler);
     }
 
     private class AipClientProxy {
 
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedResources<Resource<AIPEntity>>> searchAIPs(AIPState state, Set<String> tags,
-                                                                    OffsetDateTime fromLastUpdateDate, int page, int size) {
+        public ResponseEntity<PagedResources<Resource<AIPEntity>>> searchAIPs(SearchAIPsParameters filters, int page,
+                int size) {
             List<AIPEntity> aipEntities = new ArrayList<>();
 
             for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
-                aip.getProperties().withDataObject(DataType.RAWDATA, "Name", "SHA", "Checksum",
-                        1000L, OAISDataObjectLocation.build("http://perdu.com", "AWS")).withSyntax(MimeTypeUtils.IMAGE_JPEG);
+                aip.getProperties()
+                        .withDataObject(DataType.RAWDATA, "Name", "SHA", "Checksum", 1000L,
+                                        OAISDataObjectLocation.build("http://perdu.com", "AWS"))
+                        .withSyntax(MimeTypeUtils.IMAGE_JPEG);
                 aip.getProperties().registerContentInformation();
-                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax().setHeight(1500);
-                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax().setWidth(1000);
+                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
+                        .setHeight(1500);
+                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
+                        .setWidth(1000);
                 ContentInformation ci = aip.getProperties().getContentInformations().get(0);
                 SIP sip = SIP.build(EntityType.DATA, "sipId");
-                SIPEntity sipEntity = SIPEntity.build("PROJECT1",
-                        IngestMetadata.build("NASA", OffsetDateTime.now().toString(), "defaultChain",
-                            Sets.newHashSet("Cat!"), StorageMetadata.build("AWS")),
-                        sip, 1, SIPState.STORED);
+                SIPEntity sipEntity = SIPEntity
+                        .build("PROJECT1",
+                               IngestMetadata.build("NASA", OffsetDateTime.now().toString(), "defaultChain",
+                                                    Sets.newHashSet("Cat!"), StorageMetadata.build("AWS")),
+                               sip, 1, SIPState.STORED);
 
-                aipEntities.add(AIPEntity.build(sipEntity,  state, aip));
+                aipEntities.add(AIPEntity.build(sipEntity, filters.getState(), aip));
 
             }
 
-            List<Resource<AIPEntity>> list = aipEntities.stream().map(n -> {return new Resource<AIPEntity>(n);}).collect(Collectors.toList());
+            List<Resource<AIPEntity>> list = aipEntities.stream().map(n -> {
+                return new Resource<AIPEntity>(n);
+            }).collect(Collectors.toList());
             return ResponseEntity.ok(new PagedResources<Resource<AIPEntity>>(list,
-                    new PagedResources.PageMetadata(aipEntities.size(),
-                            0,
-                            aipEntities.size(),
-                            1)));
+                    new PagedResources.PageMetadata(aipEntities.size(), 0, aipEntities.size(), 1)));
         }
 
     }
