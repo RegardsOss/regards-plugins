@@ -25,16 +25,16 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
-import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
-import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.UniformResourceName;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
-import fr.cnes.regards.modules.ingest.dto.aip.AIPBuilder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,10 +47,14 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.google.common.collect.Lists;
 
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -64,16 +68,17 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribut
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
+import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.modules.ingest.dto.aip.AIPBuilder;
 
 /**
- * TODO : New plugin AIP
+ * {@link AipDataSourcePlugin} test class
  *
- * @author oroussel
+ * @author Simon Milhau
  */
 @TestPropertySource("classpath:aip-datasource-test.properties")
 @ContextConfiguration(classes = { AipDataSourcePluginTestConfiguration.class })
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
-
 
     private static final String MODEL_FILE_NAME = "model.xml";
 
@@ -104,7 +109,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
         // Instantiate the data source plugin
         Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP, PluginParameterTransformer.toJson(createBindingMap())),
+                .set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
+                                        PluginParameterTransformer.toJson(createBindingMap())),
                      IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
                                         PluginParameterTransformer.toJson(Arrays.asList(MODEL_NAME))),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME),
