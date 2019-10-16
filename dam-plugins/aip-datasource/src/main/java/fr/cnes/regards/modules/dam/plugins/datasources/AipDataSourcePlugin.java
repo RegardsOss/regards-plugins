@@ -323,7 +323,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         AIP aip = aipEntity.getAip();
         // Build feature
         DataObjectFeature feature = new DataObjectFeature(aip.getId(), aip.getProviderId(), "NO_LABEL");
-        // FIXME feature.setLabel(dataFileDto.getName());
 
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;
