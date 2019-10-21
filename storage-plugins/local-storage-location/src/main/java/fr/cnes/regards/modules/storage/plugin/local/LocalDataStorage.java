@@ -49,6 +49,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.locks.service.ILockService;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -160,7 +161,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         workingSubset.getFileReferenceRequests().forEach(data -> doStore(progressManager, data));
     }
 
-    private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) {
+    private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) throws ModuleException {
         Path fullPathToFile;
         try {
             fullPathToFile = getStorageLocation(request);
@@ -188,9 +189,15 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
-            boolean downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
-                                                                        request.getMetaInfo().getAlgorithm(),
-                                                                        request.getMetaInfo().getChecksum());
+            boolean downloadOk = false;
+            try {
+                downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
+                                                                    request.getMetaInfo().getAlgorithm(),
+                                                                    request.getMetaInfo().getChecksum());
+            } catch (IOException e) {
+                throw new ModuleException(
+                        String.format("Download error for file %s. Cause : ", request.getOriginUrl(), e.getMessage()));
+            }
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
                 if (file.canWrite()) {
@@ -222,6 +229,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             LOG.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, failureCause);
+        } catch (ModuleException e) {
+            LOG.error(e.getMessage(), e);
+            fullPathToFile.toFile().delete();
+            progressManager.storageFailed(request, e.getMessage());
         }
     }
 
