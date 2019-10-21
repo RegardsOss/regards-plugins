@@ -272,6 +272,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
         try {
+            FeignSecurityManager.asSystem();
             ResponseEntity<List<Resource<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
@@ -310,6 +311,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             }
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage());
+        } finally {
+            FeignSecurityManager.reset();
         }
     }
 
