@@ -161,7 +161,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         workingSubset.getFileReferenceRequests().forEach(data -> doStore(progressManager, data));
     }
 
-    private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) throws ModuleException {
+    private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) {
         Path fullPathToFile;
         try {
             fullPathToFile = getStorageLocation(request);
