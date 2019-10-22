@@ -20,6 +20,8 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +48,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.util.UriUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -62,6 +66,7 @@ import fr.cnes.regards.framework.oais.OAISDataObject;
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -83,6 +88,8 @@ import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
 import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storagelight.domain.plugin.StorageType;
@@ -100,11 +107,16 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
+    private static final String CATALOG_DOWNLOAD_PATH = "/downloads/{aip_id}/files/{checksum}";
+
     @Autowired
     private IAIPRestClient aipClient;
 
     @Autowired
     private IStorageRestClient storageRestClient;
+
+    @Autowired
+    private IProjectsClient projectClient;
 
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
@@ -114,6 +126,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      * Association table between JSON path property and its type from model
      */
     private final Map<String, AttributeType> modelMappingMap = new HashMap<>();
+
+    private final Map<String, Project> projects = new HashMap();
 
     /**
      * Association table between JSON path property and its mapping values.<br/>
@@ -150,6 +164,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
     @Autowired
     private IModelAttrAssocService modelAttrAssocService;
+
+    @Value("${zuul.prefix}")
+    private String urlPrefix;
 
     private Model model;
 
@@ -289,7 +306,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     if (aipEntity.getAip().getIpType() == EntityType.DATA) {
                         multimap.put(tenant, aipEntity.getAip().getId().toString());
                         try {
-                            list.add(buildFeature(aipEntity, storages));
+                            list.add(buildFeature(aipEntity, storages, tenant));
                         } catch (URISyntaxException e) {
                             throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
                         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -319,7 +336,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      * @param aipEntity
      * @param storages
      */
-    private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages)
+    private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages, String tenant)
             throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         AIP aip = aipEntity.getAip();
         // Build feature
@@ -335,14 +352,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 LOGGER.warn("No location inside the AIP's content informations {}", aipEntity.getAipId());
             } else {
                 Boolean online = checkOnline(oaisDo, storages);
-                Boolean reference = false;
+                Optional<String> referenceUrl = Optional.empty();
                 if (!online) {
-                    reference = checkReference(oaisDo, storages);
+                    referenceUrl = checkReference(oaisDo, storages);
                 }
-                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(),
-                                                   oaisDo.getLocations().iterator().next().getStorage(),
+
+                String downloadUrl = referenceUrl.orElse(getDownloadUrl(aip.getId(), oaisDo.getChecksum(), tenant));
+                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(), downloadUrl,
                                                    ci.getRepresentationInformation().getSyntax().getMimeType(), online,
-                                                   reference);
+                                                   referenceUrl.isPresent());
                 feature.getFiles().put(dataFile.getDataType(), dataFile);
                 dataFile.setFilesize(oaisDo.getFileSize());
                 dataFile.setDigestAlgorithm(oaisDo.getAlgorithm());
@@ -448,17 +466,35 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         return feature;
     }
 
-    private Boolean checkReference(OAISDataObject oaisDo, Storages storages) {
-        Boolean isReference = false;
+    /**
+     * Generate URL to access file from REGARDS system thanks to is checksum
+     *
+     * @param checksum
+     * @return
+     */
+    private String getDownloadUrl(UniformResourceName uniformResourceName, String checksum, String tenant) {
+        Project project = projects.get(tenant);
+        if (project == null) {
+            FeignSecurityManager.asSystem();
+            project = projectClient.retrieveProject(tenant).getBody().getContent();
+            projects.put(tenant, project);
+            FeignSecurityManager.reset();
+        }
+        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH
+                .replace("{aip_id}", uniformResourceName.toString()).replace("{checksum}", checksum);
+    }
+
+    private Optional<String> checkReference(OAISDataObject oaisDo, Storages storages) {
+        Optional<String> referenceUrl = Optional.empty();
         for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
             Boolean isOffline = storages.getOfflines().contains(oaisDataObjectLocation.getStorage())
                     || !storages.getAll().contains(oaisDataObjectLocation.getStorage());
             if (isOffline && oaisDataObjectLocation.getUrl().startsWith("http")) {
-                isReference = true;
+                referenceUrl = Optional.of(oaisDataObjectLocation.getUrl());
                 break;
             }
         }
-        return isReference;
+        return referenceUrl;
     }
 
     private Boolean checkOnline(OAISDataObject oaisDo, Storages storageLocationDTOList) {
@@ -490,6 +526,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     @Override
     public String getModelName() {
         return modelName;
+    }
+
+    private static String encode4Uri(String str) {
+        return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
     }
 
     private class Storages {
