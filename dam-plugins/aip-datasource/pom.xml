@@ -110,6 +110,7 @@
 									<include>fr.cnes.regards.framework.utils:spring-utils</include>
 									<include>commons-beanutils:commons-beanutils</include>
 									<include>fr.cnes.regards.modules.ingest:ingest-client</include>
+									<include>fr.cnes.regards.modules.ingest:ingest-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
