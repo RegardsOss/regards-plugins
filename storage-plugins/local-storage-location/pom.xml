@@ -35,10 +35,12 @@
 		<dependency>
 			<groupId>fr.cnes.regards.modules.storage-light</groupId>
 			<artifactId>storage-light-domain</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework.utils</groupId>
 			<artifactId>file-utils</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework.modules.locks</groupId>
@@ -62,6 +64,22 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>true</minimizeJar>
+							<artifactSet>
+								<includes>
+									<include>fr.cnes.regards.framework.modules.locks:*</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
