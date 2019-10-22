@@ -276,7 +276,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             ResponseEntity<List<Resource<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
-            FeignSecurityManager.asSystem();
             ResponseEntity<PagedResources<Resource<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
                             .withCategories(categories).withFrom(date), pageable.getPageNumber(),
