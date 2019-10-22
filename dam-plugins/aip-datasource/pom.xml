@@ -85,6 +85,14 @@
             <groupId>fr.cnes.regards.modules.ingest</groupId>
             <artifactId>ingest-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage-light</groupId>
+            <artifactId>storage-light-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.project</groupId>
+            <artifactId>project-client</artifactId>
+        </dependency>
         <!-- Tests -->
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
@@ -111,6 +119,10 @@
 									<include>commons-beanutils:commons-beanutils</include>
 									<include>fr.cnes.regards.modules.ingest:ingest-client</include>
 									<include>fr.cnes.regards.modules.ingest:ingest-domain</include>
+									<include>fr.cnes.regards.modules.storage-light:storage-light-client</include>
+									<include>fr.cnes.regards.modules.storage-light:storage-light-domain</include>
+									<include>fr.cnes.regards.modules.project:project-client</include>
+									<include>fr.cnes.regards.modules.project:project-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
