@@ -127,7 +127,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      */
     private final Map<String, AttributeType> modelMappingMap = new HashMap<>();
 
-    private final Map<String, Project> projects = new HashMap();
+    /**
+     * Map of {@link Project}s by tenant
+     */
+    private final Map<String, Project> projects = new HashMap<>();
 
     /**
      * Association table between JSON path property and its mapping values.<br/>
