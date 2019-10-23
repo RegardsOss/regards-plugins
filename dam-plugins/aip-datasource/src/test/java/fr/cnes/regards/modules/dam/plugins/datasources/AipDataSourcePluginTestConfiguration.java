@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 
@@ -35,6 +36,7 @@ import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
 import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
 import fr.cnes.regards.modules.storagelight.domain.database.StorageLocationConfiguration;
 import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
@@ -55,7 +57,13 @@ public class AipDataSourcePluginTestConfiguration {
 
     @Bean
     public IProjectsClient projectsClientMock() {
-        return Mockito.mock(IProjectsClient.class);
+        IProjectsClient client = Mockito.mock(IProjectsClient.class);
+        Project project = new Project("desc", null, true, "test-project");
+        project.setHost("http://test.com");
+        Resource<Project> resource = new Resource<Project>(project);
+        ResponseEntity<Resource<Project>> response = new ResponseEntity<Resource<Project>>(resource, HttpStatus.OK);
+        Mockito.when(client.retrieveProject(Mockito.anyString())).thenReturn(response);
+        return client;
     }
 
     @Bean
