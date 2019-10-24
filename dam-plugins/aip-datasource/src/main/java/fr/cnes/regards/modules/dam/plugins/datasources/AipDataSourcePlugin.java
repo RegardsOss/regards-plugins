@@ -298,7 +298,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     .map(n -> n.getContent()).collect(Collectors.toList());
             ResponseEntity<PagedResources<Resource<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
-                            .withCategories(categories).withFrom(date), pageable.getPageNumber(),
+                            .withCategories(categories).withLastUpdateFrom(date), pageable.getPageNumber(),
                                 pageable.getPageSize());
             Storages storages = new Storages(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
