@@ -3,15 +3,15 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD local-storage-location-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-GEODE-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD webservice-datasource-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-GEODE-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-GEODE-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-GEODE-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-GEODE-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
-ADD custom-command-file-validation-0.5.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+ADD custom-command-file-validation-GEODE-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
