@@ -95,9 +95,9 @@ public class AipDataSourcePluginTestConfiguration {
                         .withSyntax(MimeTypeUtils.IMAGE_JPEG);
                 aip.getProperties().registerContentInformation();
                 aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
-                        .setHeight(1500);
+                        .setHeight(1500d);
                 aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
-                        .setWidth(1000);
+                        .setWidth(1000d);
                 ContentInformation ci = aip.getProperties().getContentInformations().get(0);
                 SIP sip = SIP.build(EntityType.DATA, "sipId");
                 SIPEntity sipEntity = SIPEntity
