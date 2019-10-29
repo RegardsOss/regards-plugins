@@ -107,7 +107,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final Semaphore zipAccessSemaphore = new Semaphore(1, true);
 
-    private static final String GET_CURRENT_ZIP_PATH_LOCK_NAME = "getCurrentZipPath#";
+    private static final String ZIP_LOCK = "getCurrentZipPath#";
 
     /**
      * Base storage location url
@@ -235,12 +235,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file) {
-        Path zipPath = null;
+    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file)
+            throws IOException {
+        Path zipDirPath = getStorageLocationForZip(request);
+        lockZip(zipDirPath);
         try {
-            zipPath = getStorageLocationForZip(request);
-            ;
-            lockZip(zipPath);
+            Path zipPath = getCurrentZipPath(zipDirPath);
             // check if file is already in zip
             Map<String, String> env = new HashMap<>(1);
             env.put("create", "true");
@@ -304,8 +304,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             try {
                 file.delete();
             } finally {
-                if (zipPath != null) {
-                    unlockZip(zipPath);
+                if (zipDirPath != null) {
+                    unlockZip(zipDirPath);
                 }
             }
         }
@@ -340,7 +340,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return storageLocation.resolve(checksum);
     }
 
-    // this method is public because of tests
     public Path getStorageLocationForZip(FileStorageRequest request) throws IOException {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if (!Strings.isNullOrEmpty(request.getStorageSubDirectory())) {
@@ -350,19 +349,18 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // add "zips" to the storage location to get all zips in the same subdirectory
             storageLocation = storageLocation.resolve(ZIP_DIR_NAME);
         }
-        Files.createDirectories(storageLocation);
-        return getCurrentZipPath(storageLocation);
+        return Files.createDirectories(storageLocation);
     }
 
     private void lockZip(Path zipToLock) throws IOException {
-        if (!lockService.waitForlock(GET_CURRENT_ZIP_PATH_LOCK_NAME + zipToLock.toString(), this, 3600, 100)) {
+        if (!lockService.waitForlock(ZIP_LOCK + zipToLock.toString(), this, 3600, 100)) {
             throw new IOException(
                     "A file should have been put into a zip but we could not ensure that it could be done properly so the process was aborted");
         }
     }
 
     private void unlockZip(Path zipToLock) {
-        lockService.releaseLock(GET_CURRENT_ZIP_PATH_LOCK_NAME + zipToLock.toString(), this);
+        lockService.releaseLock(ZIP_LOCK + zipToLock.toString(), this);
     }
 
     private Path getCurrentZipPath(Path storageLocation) throws IOException {
@@ -446,10 +444,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Map<String, String> env = new HashMap<>(1);
         env.put("create", "false");
         String checksum = request.getFileReference().getMetaInfo().getChecksum();
-        Path zipPath = null;
         try {
-            zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
-            lockZip(zipPath);
+            Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                 zipAccessSemaphore.acquire();
                 FileLock zipLock = zipFC.lock();
@@ -465,7 +461,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                             Files.deleteIfExists(zipPath);
                             // Check if it is the current zip file. If it is, delete the symlink
                             Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
-                            if (Files.exists(linkPath) && zipPath.equals(linkPath.toRealPath())) {
+                            if (Files.exists(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
                                 Files.delete(linkPath);
                             }
                         }
@@ -477,10 +473,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
-            } finally {
-                if (zipPath != null) {
-                    unlockZip(zipPath);
-                }
             }
         } catch (IOException e) {
             String failureCause = String
