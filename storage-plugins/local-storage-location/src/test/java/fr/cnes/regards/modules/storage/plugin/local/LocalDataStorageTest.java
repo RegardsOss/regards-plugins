@@ -172,7 +172,7 @@ public class LocalDataStorageTest {
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
-        Path zipPath = plugin.getStorageLocationForZip(storageRequest);
+        Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> files = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
@@ -216,7 +216,7 @@ public class LocalDataStorageTest {
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
-        Path zipPath = plugin.getStorageLocationForZip(storageRequest);
+        Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> fileDeletionRequests = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,

@@ -342,7 +342,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return Files.createDirectories(storageLocation);
     }
 
-    private Path getCurrentZipPath(Path storageLocation) throws IOException {
+    public Path getCurrentZipPath(Path storageLocation) throws IOException {
         // To avoid issue with knowing which zip is the right one, lets have a symlink on the current zip
         Path linkPath = storageLocation.resolve(CURRENT_ZIP_NAME);
         if (!Files.isSymbolicLink(linkPath)) {
@@ -428,33 +428,39 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         String checksum = request.getFileReference().getMetaInfo().getChecksum();
         try {
             Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
-            try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                zipAccessSemaphore.acquire();
-                FileLock zipLock = zipFC.lock();
-                try {
-                    try (FileSystem zipFs = FileSystems
-                            .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
-                        Path pathInZip = zipFs.getPath(checksum);
-                        Files.deleteIfExists(pathInZip);
-                        progressManager.deletionSucceed(request);
-                    }
-                    try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-                        if (!zipFile.entries().hasMoreElements()) {
-                            Files.deleteIfExists(zipPath);
-                            // Check if it is the current zip file. If it is, delete the symlink
-                            Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
-                            if (Files.exists(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
-                                Files.delete(linkPath);
+            if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
+                try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+                    zipAccessSemaphore.acquire();
+                    FileLock zipLock = zipFC.lock();
+                    try {
+                        try (FileSystem zipFs = FileSystems
+                                .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
+                            Path pathInZip = zipFs.getPath(checksum);
+                            Files.deleteIfExists(pathInZip);
+                            progressManager.deletionSucceed(request);
+                        }
+                        try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                            if (!zipFile.entries().hasMoreElements()) {
+                                Files.deleteIfExists(zipPath);
+                                // Check if it is the current zip file. If it is, delete the symlink
+                                Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
+                                if (Files.exists(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                    Files.delete(linkPath);
+                                }
                             }
                         }
+                    } finally {
+                        zipLock.release();
+                        zipAccessSemaphore.release();
                     }
-                } finally {
-                    zipLock.release();
-                    zipAccessSemaphore.release();
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
+            } else {
+                LOG.debug("File to delete from a zip file {} but zip file does not exists.", zipPath.toString());
+                progressManager.deletionSucceed(request);
             }
         } catch (IOException e) {
             String failureCause = String
