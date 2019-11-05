@@ -42,7 +42,6 @@ import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -50,7 +49,6 @@ import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.locks.service.ILockService;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
@@ -107,8 +105,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final Semaphore zipAccessSemaphore = new Semaphore(1, true);
 
-    private static final String GET_CURRENT_ZIP_PATH_LOCK_NAME = LocalDataStorage.class.getName()
-            + "#getCurrentZipPath";
+    private static final Integer maxFileInZip = 1000;
 
     /**
      * Base storage location url
@@ -129,9 +126,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size",
             description = "Maximum zip size, in bytes", defaultValue = "500000000")
     private Long maxZipSize;
-
-    @Autowired
-    private ILockService lockService;
 
     @Override
     public Collection<FileStorageWorkingSubset> prepareForStorage(
@@ -236,16 +230,20 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file) {
+    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file)
+            throws IOException {
+        long start = System.currentTimeMillis();
+        Path zipDirPath = getStorageLocationForZip(request);
         try {
-            Path zipPath = getStorageLocationForZip(request);
+            LOG.trace("Store in zip ....");
+            zipAccessSemaphore.acquire();
+            Path zipPath = getCurrentZipPath(zipDirPath);
             // check if file is already in zip
             Map<String, String> env = new HashMap<>(1);
             env.put("create", "true");
             String checksum = request.getMetaInfo().getChecksum();
             boolean downloadOk = false;
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                zipAccessSemaphore.acquire();
                 FileLock zipLock = zipFC.lock();
                 try (FileSystem zipFs = FileSystems
                         .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
@@ -276,11 +274,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     }
                 } finally {
                     zipLock.release();
-                    zipAccessSemaphore.release();
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                LOG.error("Storage into zip has been interrupted while acquiring semaphore.", e);
             }
             if (downloadOk) {
                 try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
@@ -288,6 +282,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     progressManager.storageSucceed(request, zipPath.toUri().toURL(), fileSize);
                 }
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Storage into zip has been interrupted while acquiring semaphore.", e);
         } catch (MalformedURLException | NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
             String failureCause = String.format("Invalid URL creation for file. %s", e.getMessage());
@@ -299,12 +296,13 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             LOG.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
         } finally {
+            LOG.trace("Store in zip done in {}ms", System.currentTimeMillis() - start);
+            zipAccessSemaphore.release();
             file.delete();
         }
     }
 
     // this method is public because of tests
-
     public Path getStorageLocation(FileStorageRequest request) throws IOException {
         String checksum = request.getMetaInfo().getChecksum();
         Path storageLocation = Paths.get(baseStorageLocationAsString);
@@ -332,7 +330,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return storageLocation.resolve(checksum);
     }
 
-    // this method is public because of tests
     public Path getStorageLocationForZip(FileStorageRequest request) throws IOException {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if (!Strings.isNullOrEmpty(request.getStorageSubDirectory())) {
@@ -342,37 +339,32 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // add "zips" to the storage location to get all zips in the same subdirectory
             storageLocation = storageLocation.resolve(ZIP_DIR_NAME);
         }
-        Files.createDirectories(storageLocation);
-        return getCurrentZipPath(storageLocation);
+        return Files.createDirectories(storageLocation);
     }
 
-    private Path getCurrentZipPath(Path storageLocation) throws IOException {
-        if (!lockService.waitForlock(GET_CURRENT_ZIP_PATH_LOCK_NAME, this, 3600, 100)) {
-            throw new IOException(
-                    "A file should have been put into a zip but we could not ensure that it could be done properly so the process was aborted");
-        }
-        try {
-            // To avoid issue with knowing which zip is the right one, lets have a symlink on the current zip
-            Path linkPath = storageLocation.resolve(CURRENT_ZIP_NAME);
-            if (!Files.isSymbolicLink(linkPath)) {
-                // If the link does not exist it means that no zip has been created yet
-                // Lets create the first one
-                Map<String, String> env = new HashMap<>(1);
-                env.put("create", "true");
-                Path zipPath = storageLocation.resolve("regards_"
-                        + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
-                try (FileSystem zipFs = FileSystems
-                        .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
-                    // now that zip has been created, lets create the link.
-                    Files.createSymbolicLink(linkPath, zipPath);
-                }
-                return zipPath;
+    public Path getCurrentZipPath(Path storageLocation) throws IOException {
+        // To avoid issue with knowing which zip is the right one, lets have a symlink on the current zip
+        Path linkPath = storageLocation.resolve(CURRENT_ZIP_NAME);
+        if (!Files.isSymbolicLink(linkPath)) {
+            // If the link does not exist it means that no zip has been created yet
+            // Lets create the first one
+            Map<String, String> env = new HashMap<>(1);
+            env.put("create", "true");
+            Path zipPath = storageLocation.resolve("regards_"
+                    + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
+            try (FileSystem zipFs = FileSystems
+                    .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
+                // now that zip has been created, lets create the link.
+                Files.createSymbolicLink(linkPath, zipPath);
             }
-            if (Files.isSymbolicLink(linkPath)) {
-                // if the link does exist, it means that a zip has already been created
-                // in this case, we have to check its size to be sure we can still add files to it
-                Path targetPath = Files.readSymbolicLink(linkPath);
-                if (targetPath.toFile().length() > maxZipSize) {
+            return zipPath;
+        }
+        if (Files.isSymbolicLink(linkPath)) {
+            // if the link does exist, it means that a zip has already been created
+            // in this case, we have to check its size to be sure we can still add files to it
+            Path targetPath = Files.readSymbolicLink(linkPath);
+            try (ZipFile zip = new ZipFile(targetPath.toFile())) {
+                if ((targetPath.toFile().length() > maxZipSize) || (zip.size() > maxFileInZip)) {
                     // we have to create a new one
                     try (FileChannel targetFC = FileChannel.open(targetPath, StandardOpenOption.WRITE,
                                                                  StandardOpenOption.READ)) {
@@ -399,11 +391,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     return targetPath;
                 }
             }
-            throw new IOException(
-                    "A file should have been put into a zip but we could not create nor retrieve the zip in which it should have been added");
-        } finally {
-            lockService.releaseLock(GET_CURRENT_ZIP_PATH_LOCK_NAME, this);
         }
+        throw new IOException(
+                "A file should have been put into a zip but we could not create nor retrieve the zip in which it should have been added");
     }
 
     @Override
@@ -438,33 +428,39 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         String checksum = request.getFileReference().getMetaInfo().getChecksum();
         try {
             Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
-            try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                zipAccessSemaphore.acquire();
-                FileLock zipLock = zipFC.lock();
-                try {
-                    try (FileSystem zipFs = FileSystems
-                            .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
-                        Path pathInZip = zipFs.getPath(checksum);
-                        Files.deleteIfExists(pathInZip);
-                        progressManager.deletionSucceed(request);
-                    }
-                    try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-                        if (!zipFile.entries().hasMoreElements()) {
-                            Files.deleteIfExists(zipPath);
-                            // Check if it is the current zip file. If it is, delete the symlink
-                            Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
-                            if (Files.exists(linkPath) && zipPath.equals(linkPath.toRealPath())) {
-                                Files.delete(linkPath);
+            if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
+                try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+                    zipAccessSemaphore.acquire();
+                    FileLock zipLock = zipFC.lock();
+                    try {
+                        try (FileSystem zipFs = FileSystems
+                                .newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()), env)) {
+                            Path pathInZip = zipFs.getPath(checksum);
+                            Files.deleteIfExists(pathInZip);
+                            progressManager.deletionSucceed(request);
+                        }
+                        try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                            if (!zipFile.entries().hasMoreElements()) {
+                                Files.deleteIfExists(zipPath);
+                                // Check if it is the current zip file. If it is, delete the symlink
+                                Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
+                                if (Files.exists(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                    Files.delete(linkPath);
+                                }
                             }
                         }
+                    } finally {
+                        zipLock.release();
+                        zipAccessSemaphore.release();
                     }
-                } finally {
-                    zipLock.release();
-                    zipAccessSemaphore.release();
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                LOG.error("Deletion from zip has been interrupted while acquiring semaphore.", e);
+            } else {
+                LOG.debug("File to delete from a zip file {} but zip file does not exists.", zipPath.toString());
+                progressManager.deletionSucceed(request);
             }
         } catch (IOException e) {
             String failureCause = String
