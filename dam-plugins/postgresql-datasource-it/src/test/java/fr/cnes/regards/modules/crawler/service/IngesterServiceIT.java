@@ -61,21 +61,21 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalData3Repository;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.model.dao.IModelRepository;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 
@@ -243,10 +243,9 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     private void buildModelAttributes() {
         modelAttrMapping = new ArrayList<>();
-        modelAttrMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, PropertyType.DATE_ISO8601,
+                "date"));
     }
 
     @Before
