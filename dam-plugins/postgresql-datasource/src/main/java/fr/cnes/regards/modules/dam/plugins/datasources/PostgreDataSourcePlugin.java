@@ -41,8 +41,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 
 /**
  * A {@link Plugin} to extract data from a PostgreSQL Database.<br>
@@ -109,10 +108,10 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
     }
 
     @Override
-    protected AbstractAttribute<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
+    protected IProperty<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
             throws SQLException {
         OffsetDateTime date = buildOffsetDateTime(rs, colName);
-        return AttributeBuilder.buildDate(attrName, date);
+        return IProperty.buildDate(attrName, date);
     }
 
     @Override

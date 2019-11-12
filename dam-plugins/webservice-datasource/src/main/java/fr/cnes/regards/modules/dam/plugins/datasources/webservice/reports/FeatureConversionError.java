@@ -1,7 +1,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
 import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 
 /**
  * Holds a feature conversion error description for report.
@@ -15,6 +15,7 @@ public class FeatureConversionError {
      * Is this error blocking feature conversion?
      */
     private final boolean blocking;
+
     private final String message;
 
     /**
@@ -35,8 +36,11 @@ public class FeatureConversionError {
      * @param resultsJsonPath   JSON path in webservice results
      * @return built error with corresponding message
      */
-    public static FeatureConversionError getMandatoryAttributeNotFoundError(String attributeJsonPath, String resultsJsonPath) {
-        return new FeatureConversionError(true, String.format("mandatory attribute '%s' value was not found at path '%s'", attributeJsonPath, resultsJsonPath));
+    public static FeatureConversionError getMandatoryAttributeNotFoundError(String attributeJsonPath,
+            String resultsJsonPath) {
+        return new FeatureConversionError(true,
+                String.format("mandatory attribute '%s' value was not found at path '%s'", attributeJsonPath,
+                              resultsJsonPath));
     }
 
     /**
@@ -49,9 +53,12 @@ public class FeatureConversionError {
      * @param resultsValue      found value in results, not null
      * @return built error with corresponding message
      */
-    public static FeatureConversionError getValueNotConvertibleError(String attributeJsonPath, AttributeType type, boolean mandatory, String resultsJsonPath, Object resultsValue) {
-        return new FeatureConversionError(mandatory, String.format("%s attribute '%s' value, of type %s, could not be converted from path '%s' value (%s)",
-                mandatory ? "mandatory" : "optional", attributeJsonPath, type, resultsJsonPath, resultsValue));
+    public static FeatureConversionError getValueNotConvertibleError(String attributeJsonPath, PropertyType type,
+            boolean mandatory, String resultsJsonPath, Object resultsValue) {
+        return new FeatureConversionError(mandatory,
+                String.format("%s attribute '%s' value, of type %s, could not be converted from path '%s' value (%s)",
+                              mandatory ? "mandatory" : "optional", attributeJsonPath, type, resultsJsonPath,
+                              resultsValue));
     }
 
     /**
@@ -64,9 +71,12 @@ public class FeatureConversionError {
      * @param resultsValue      found value in results, not null
      * @return built error with corresponding message
      */
-    public static FeatureConversionError getInvalidValueOnPathError(String attributeJsonPath, boolean mandatory, String resultsJsonPath, String errorLevel, Object resultsValue) {
-        return new FeatureConversionError(mandatory, String.format("%s attribute '%s' value could not be retrieved from path '%s' as element at '%s' (%s) is not a JSON object",
-                mandatory ? "mandatory" : "optional", attributeJsonPath, resultsJsonPath, errorLevel, resultsValue));
+    public static FeatureConversionError getInvalidValueOnPathError(String attributeJsonPath, boolean mandatory,
+            String resultsJsonPath, String errorLevel, Object resultsValue) {
+        return new FeatureConversionError(mandatory, String
+                .format("%s attribute '%s' value could not be retrieved from path '%s' as element at '%s' (%s) is not a JSON object",
+                        mandatory ? "mandatory" : "optional", attributeJsonPath, resultsJsonPath, errorLevel,
+                        resultsValue));
     }
 
     /**
@@ -77,8 +87,11 @@ public class FeatureConversionError {
      * @param resultsJsonPath path in JSON results
      * @return corresponding error
      */
-    public static FeatureConversionError getInvalidFileURLError(String fileURL, DataType fileType, String resultsJsonPath) {
-        return new FeatureConversionError(false, String.format("%s file URL, '%s', found at path '%s', is invalid. File was discarded.", fileType, fileURL, resultsJsonPath));
+    public static FeatureConversionError getInvalidFileURLError(String fileURL, DataType fileType,
+            String resultsJsonPath) {
+        return new FeatureConversionError(false,
+                String.format("%s file URL, '%s', found at path '%s', is invalid. File was discarded.", fileType,
+                              fileURL, resultsJsonPath));
     }
 
     /**
@@ -89,8 +102,11 @@ public class FeatureConversionError {
      * @param resultsJsonPath path in JSON results
      * @return corresponding error
      */
-    public static FeatureConversionError getMimeTypeNotFoundError(String fileURL, DataType fileType, String resultsJsonPath) {
-        return new FeatureConversionError(false, String.format("%s file MIME type could not be inferred from URL '%s', found at path '%s'. File was discarded.", fileType, fileURL, resultsJsonPath));
+    public static FeatureConversionError getMimeTypeNotFoundError(String fileURL, DataType fileType,
+            String resultsJsonPath) {
+        return new FeatureConversionError(false, String
+                .format("%s file MIME type could not be inferred from URL '%s', found at path '%s'. File was discarded.",
+                        fileType, fileURL, resultsJsonPath));
     }
 
     /**
@@ -102,8 +118,11 @@ public class FeatureConversionError {
      * @param mimeType        found mime type
      * @return corresponding error
      */
-    public static FeatureConversionError getInvalidImageMimeTypeFound(String fileURL, DataType fileType, String resultsJsonPath, String mimeType) {
-        return new FeatureConversionError(false, String.format("%s file MIME type, '%s', is not a supported picture file type (URL '%s', found at path '%s'). File was discarded.", fileType, mimeType, fileURL, resultsJsonPath));
+    public static FeatureConversionError getInvalidImageMimeTypeFound(String fileURL, DataType fileType,
+            String resultsJsonPath, String mimeType) {
+        return new FeatureConversionError(false, String
+                .format("%s file MIME type, '%s', is not a supported picture file type (URL '%s', found at path '%s'). File was discarded.",
+                        fileType, mimeType, fileURL, resultsJsonPath));
     }
 
     public boolean isBlocking() {

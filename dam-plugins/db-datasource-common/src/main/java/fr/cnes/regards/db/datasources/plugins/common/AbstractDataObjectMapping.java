@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.dom4j.tree.AbstractAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,15 +59,13 @@ import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.DateAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.MarkdownURL;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.StringAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.AbstractProperty;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.MarkdownURL;
+import fr.cnes.regards.modules.model.service.IModelService;
 
 /**
  * This class allows to process a SQL request to a SQL Database.</br>
@@ -159,8 +158,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return a new {@link DateAttribute}
      * @throws SQLException if an error occurs in the {@link ResultSet}
      */
-    protected abstract AbstractAttribute<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName,
-            String colName) throws SQLException;
+    protected abstract IProperty<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
+            throws SQLException;
 
     /**
      * Get a {@link LocalDateTime} value from a {@link ResultSet} for a {@link AbstractAttributeMapping}.
@@ -244,14 +243,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
 
         DataObjectFeature feature = new DataObjectFeature(tenant, "providerIdPlaceHolder", "labelPlaceHolder");
 
-        Set<AbstractAttribute<?>> attributes = new HashSet<>();
-        Map<String, List<AbstractAttribute<?>>> spaceNames = Maps.newHashMap();
+        Set<IProperty<?>> attributes = new HashSet<>();
+        Map<String, List<IProperty<?>>> spaceNames = Maps.newHashMap();
 
         /**
          * Loop the attributes in the mapping
          */
         for (AbstractAttributeMapping attrMapping : attributesMapping) {
-            AbstractAttribute<?> attr = buildAttribute(rset, attrMapping);
+            IProperty<?> attr = buildAttribute(rset, attrMapping);
 
             if (attr != null) {
                 if (attrMapping.isMappedToStaticProperty()) {
@@ -277,7 +276,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
          * For each name space, add an ObjectAttribute to the list of attribute
          */
         spaceNames.forEach((pName, pAttrs) -> attributes
-                .add(AttributeBuilder.buildObject(pName, pAttrs.toArray(new AbstractAttribute<?>[pAttrs.size()]))));
+                .add(IProperty.buildObject(pName, pAttrs.toArray(new AbstractProperty<?>[pAttrs.size()]))));
 
         feature.setProperties(attributes);
 
@@ -296,9 +295,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return a new {@link AbstractAttribute}
      * @throws SQLException if an error occurs in the {@link ResultSet}
      */
-    private AbstractAttribute<?> buildAttribute(ResultSet rset, AbstractAttributeMapping attrMapping)
+    private IProperty<?> buildAttribute(ResultSet rset, AbstractAttributeMapping attrMapping)
             throws SQLException, DataSourceException {
-        AbstractAttribute<?> attr = null;
+        IProperty<?> attr = null;
         final String colName = extractColumnName(attrMapping.getNameDS(), attrMapping.getName(),
                                                  attrMapping.isPrimaryKey());
 
@@ -306,7 +305,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             // lets handle touchy cases by hand
             case URL:
                 try {
-                    attr = AttributeBuilder.buildUrl(attrMapping.getName(), MarkdownURL.build(rset.getString(colName)));
+                    attr = IProperty.buildUrl(attrMapping.getName(), MarkdownURL.build(rset.getString(colName)));
                 } catch (MalformedURLException e) {
                     String message = String
                             .format("Given url into database (column %s) could not be processed as a URL", colName);
@@ -319,7 +318,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                 break;
             // if it is not a touchy case, lets use the general way
             default:
-                attr = AttributeBuilder.forType(attrMapping.getType(), attrMapping.getName(), rset.getObject(colName));
+                attr = IProperty.forType(attrMapping.getType(), attrMapping.getName(), rset.getObject(colName));
                 break;
         }
         // If value was null => no attribute value
@@ -381,10 +380,10 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * <li>last update date
      * <li>geometry
      * @param dataObject the current {@link DataObject} to build
-     * @param attr the current {@link AbstractAttribute} to analyze
+     * @param attr the current {@link IProperty} to analyze
      * @param attrMapping the {@link AbstractAttributeMapping} for the current attribute
      */
-    private void processStaticAttributes(DataObjectFeature dataObject, AbstractAttribute<?> attr,
+    private void processStaticAttributes(DataObjectFeature dataObject, IProperty<?> attr,
             AbstractAttributeMapping attrMapping) {
         if (attrMapping.isPrimaryKey()) {
             String val = attr.getValue().toString();
@@ -393,7 +392,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
 
         // Manage files
         if (attrMapping.isRawData() || attrMapping.isThumbnail()) {
-            String str = ((StringAttribute) attr).getValue();
+            String str = (String) attr.getValue();
 
             try {
                 // Check if attribute is a valid URL
@@ -428,10 +427,10 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         if (attrMapping.isLabel()) {
-            dataObject.setLabel(((StringAttribute) attr).getValue());
+            dataObject.setLabel((String) attr.getValue());
         }
         if (attrMapping.isGeometry()) {
-            String str = ((StringAttribute) attr).getValue();
+            String str = (String) attr.getValue();
             dataObject.setGeometry(gson.fromJson(str, IGeometry.class));
         }
     }

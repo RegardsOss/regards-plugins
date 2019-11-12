@@ -43,9 +43,8 @@ import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreSqlGenerator;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 
 /**
  * Class PostgreDataSourceFromSingleTablePlugin A {@link Plugin} to discover the tables, columns and indexes to a
@@ -112,7 +111,7 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
      * @see 'https://jdbc.postgresql.org/documentation/head/8-date-time.html'
      */
     @Override
-    protected AbstractAttribute<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
+    protected IProperty<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
             throws SQLException {
         OffsetDateTime ldt;
         Integer typeDS = getTypeDs(attrDSName);
@@ -140,7 +139,7 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
             }
         }
 
-        return AttributeBuilder.buildDate(attrName, ldt);
+        return IProperty.buildDate(attrName, ldt);
     }
 
     @Override

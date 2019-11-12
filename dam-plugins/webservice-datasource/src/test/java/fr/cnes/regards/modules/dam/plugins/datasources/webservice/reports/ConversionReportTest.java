@@ -1,26 +1,26 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
-import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
-import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.templates.dao.ITemplateRepository;
-import fr.cnes.regards.modules.templates.service.TemplateService;
+import java.util.SortedMap;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.SortedMap;
+import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
+import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.templates.service.TemplateService;
 
 /**
  * Conversion report tests, with template rendering
  *
  * @author Raphaël Mechali
  */
-@TestPropertySource(locations = {"classpath:test.properties"},
-        properties = {"spring.jpa.properties.hibernate.default_schema=public"})
+@TestPropertySource(locations = { "classpath:test.properties" },
+        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 @RegardsTransactional
 public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT {
 
@@ -28,18 +28,22 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
     private TemplateService templateService;
 
     private static void assertFeatureAndErrorsDisplayed(String builtNotification, FeatureErrors feat) {
-        Assert.assertTrue("feat#" + feat.getIndex() + " index must be displayed", builtNotification.contains(String.valueOf(feat.getIndex())));
+        Assert.assertTrue("feat#" + feat.getIndex() + " index must be displayed",
+                          builtNotification.contains(String.valueOf(feat.getIndex())));
         if (feat.getLabel() != null) {
-            Assert.assertTrue("feat#" + feat.getIndex() + "label must be displayed", builtNotification.contains(feat.getLabel()));
+            Assert.assertTrue("feat#" + feat.getIndex() + "label must be displayed",
+                              builtNotification.contains(feat.getLabel()));
         }
         if (feat.getProviderId() != null) {
-            Assert.assertTrue("feat#" + feat.getIndex() + " providerId must be displayed", builtNotification.contains(feat.getProviderId()));
+            Assert.assertTrue("feat#" + feat.getIndex() + " providerId must be displayed",
+                              builtNotification.contains(feat.getProviderId()));
         }
         for (FeatureConversionError error : feat.getErrors()) {
             // escape error non HTML chars (StringEscapeUtils.escapeHtml not working there - not sure of the work performed by freemarker so just replace the quote char)
             String msgForHTML = error.getMessage().replaceAll("'", "&#39;");
-            Assert.assertTrue("feat# " + feat.getIndex() + " error '" + msgForHTML + "' must be displayed. It was not found in report:\n" + builtNotification,
-                    builtNotification.contains(msgForHTML));
+            Assert.assertTrue("feat# " + feat.getIndex() + " error '" + msgForHTML
+                    + "' must be displayed. It was not found in report:\n" + builtNotification,
+                              builtNotification.contains(msgForHTML));
         }
     }
 
@@ -57,18 +61,20 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
             - That non blocking issues section is hidden
          */
         ConversionReport report = new ConversionReport();
-        report.addFeatureConversionError(5, "Feat5", "ProviderFeat1",
-                FeatureConversionError.getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
-        report.addFeatureConversionError(8, "Feat8", null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(5, "Feat5", "ProviderFeat1", FeatureConversionError
+                .getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
+        report.addFeatureConversionError(8, "Feat8", null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_LABEL, "source.attr.label"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getInvalidValueOnPathError("my.attr1", true, "source.frag.myAttr1", "frag", "46"));
         report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_LABEL, "source.attr.label"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getInvalidValueOnPathError("my.attr1", true, "source.frag.myAttr1", "frag", "46"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getValueNotConvertibleError("my.attr2", AttributeType.INTEGER_ARRAY, true, "source.frag.myAttr1", false));
+                                         FeatureConversionError
+                                                 .getValueNotConvertibleError("my.attr2", PropertyType.INTEGER_ARRAY,
+                                                                              true, "source.frag.myAttr1", false));
 
         String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
 
@@ -95,7 +101,8 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
             assertFeatureAndErrorsDisplayed(notification, feat);
         }
 
-        Assert.assertTrue("There should be no features with non blocking errors", report.getNonBlockingErrors().isEmpty());
+        Assert.assertTrue("There should be no features with non blocking errors",
+                          report.getNonBlockingErrors().isEmpty());
         Assert.assertFalse("Non blocking errors should be hidden", notification.contains("Minor conversion issues"));
     }
 
@@ -106,12 +113,12 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
             - That non blocking issues section is hidden
          */
         ConversionReport report = new ConversionReport();
-        report.addFeatureConversionError(18, "Feat18", "ProviderFeat18",
-                FeatureConversionError.getValueNotConvertibleError("f1.myAttr1", AttributeType.INTEGER_ARRAY, false, "my.attr1.path", 25));
-        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55",
-                FeatureConversionError.getValueNotConvertibleError("f1.myAttr1", AttributeType.INTEGER_ARRAY, false, "my.attr1.path", false));
-        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55",
-                FeatureConversionError.getInvalidValueOnPathError("fX.myAttr2", false, "my.attr2.path", "attr2", "abcd"));
+        report.addFeatureConversionError(18, "Feat18", "ProviderFeat18", FeatureConversionError
+                .getValueNotConvertibleError("f1.myAttr1", PropertyType.INTEGER_ARRAY, false, "my.attr1.path", 25));
+        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55", FeatureConversionError
+                .getValueNotConvertibleError("f1.myAttr1", PropertyType.INTEGER_ARRAY, false, "my.attr1.path", false));
+        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55", FeatureConversionError
+                .getInvalidValueOnPathError("fX.myAttr2", false, "my.attr2.path", "attr2", "abcd"));
 
         String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
 
@@ -144,24 +151,26 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
     public void testAllIssuesAreDisplayed() {
         /* Create features from tests above and check all sections and issues are displayed (note that index are different to keep it simple to test) */
         ConversionReport report = new ConversionReport();
-        report.addFeatureConversionError(5, "Feat5", "ProviderFeat1",
-                FeatureConversionError.getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
-        report.addFeatureConversionError(8, "Feat8", null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(5, "Feat5", "ProviderFeat1", FeatureConversionError
+                .getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
+        report.addFeatureConversionError(8, "Feat8", null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_LABEL, "source.attr.label"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
+        report.addFeatureConversionError(11, null, null, FeatureConversionError
+                .getInvalidValueOnPathError("my.attr1", true, "source.frag.myAttr1", "frag", "46"));
         report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_LABEL, "source.attr.label"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getMandatoryAttributeNotFoundError(StaticProperties.FEATURE_PROVIDER_ID, "source.my.providerId"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getInvalidValueOnPathError("my.attr1", true, "source.frag.myAttr1", "frag", "46"));
-        report.addFeatureConversionError(11, null, null,
-                FeatureConversionError.getValueNotConvertibleError("my.attr2", AttributeType.INTEGER_ARRAY, true, "source.frag.myAttr1", false));
-        report.addFeatureConversionError(18, "Feat18", "ProviderFeat18",
-                FeatureConversionError.getValueNotConvertibleError("f1.myAttr1", AttributeType.INTEGER_ARRAY, false, "my.attr1.path", 25));
-        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55",
-                FeatureConversionError.getValueNotConvertibleError("f1.myAttr1", AttributeType.INTEGER_ARRAY, false, "my.attr1.path", false));
-        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55",
-                FeatureConversionError.getInvalidValueOnPathError("fX.myAttr2", false, "my.attr2.path", "attr2", "abcd"));
+                                         FeatureConversionError
+                                                 .getValueNotConvertibleError("my.attr2", PropertyType.INTEGER_ARRAY,
+                                                                              true, "source.frag.myAttr1", false));
+        report.addFeatureConversionError(18, "Feat18", "ProviderFeat18", FeatureConversionError
+                .getValueNotConvertibleError("f1.myAttr1", PropertyType.INTEGER_ARRAY, false, "my.attr1.path", 25));
+        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55", FeatureConversionError
+                .getValueNotConvertibleError("f1.myAttr1", PropertyType.INTEGER_ARRAY, false, "my.attr1.path", false));
+        report.addFeatureConversionError(55, "Feat55", "ProviderFeat55", FeatureConversionError
+                .getInvalidValueOnPathError("fX.myAttr2", false, "my.attr2.path", "attr2", "abcd"));
 
         String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
 
@@ -175,12 +184,12 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
         ConversionReport report = new ConversionReport();
         for (int i = 0; i < 100; i++) {
             // Blocking error
-            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1),
-                    FeatureConversionError.getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
+            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1), FeatureConversionError
+                    .getMandatoryAttributeNotFoundError("my.attr1", "source.myAttr1"));
             // Non blocking error
-            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1),
-                    FeatureConversionError.getInvalidImageMimeTypeFound("http://www.myImageStock.com/image.tiff", DataType.QUICKLOOK_MD,
-                            "source.test.quicklook", "image/tiff"));
+            report.addFeatureConversionError(i, "Feat" + (i + 1), "ProviderFeat" + (i + 1), FeatureConversionError
+                    .getInvalidImageMimeTypeFound("http://www.myImageStock.com/image.tiff", DataType.QUICKLOOK_MD,
+                                                  "source.test.quicklook", "image/tiff"));
         }
         String notification = report.buildNotificationReport("http://i.dont.exit.com/features", templateService);
         // check some blocking and some minor are shown
@@ -199,4 +208,3 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
     }
 
 }
-
