@@ -61,15 +61,12 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.AIPBuilder;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.service.IModelService;
 
 /**
  * {@link AipDataSourcePlugin} test class
@@ -216,13 +213,11 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertNotNull(feature.getTags());
         Assert.assertTrue(feature.getTags().contains("tag1"));
         Assert.assertTrue(feature.getTags().contains("tag2"));
-        Assert.assertTrue(feature.getProperty("history") instanceof StringArrayAttribute);
-        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) feature.getProperty("history")).getValue(),
-                                              "H1") > -1);
-        Assert.assertTrue(Arrays.binarySearch(((StringArrayAttribute) feature.getProperty("history")).getValue(),
-                                              "H2") > -1);
-        Assert.assertTrue(feature.getProperty("DATE_INTERVAL") instanceof DateIntervalAttribute);
-        Assert.assertTrue(feature.getProperty("INT_INTERVAL") instanceof IntegerIntervalAttribute);
+        Assert.assertTrue(PropertyType.STRING_ARRAY.equals(feature.getProperty("history").getType()));
+        Assert.assertTrue(Arrays.binarySearch((Object[]) feature.getProperty("history").getValue(), "H1") > -1);
+        Assert.assertTrue(Arrays.binarySearch((Object[]) feature.getProperty("history").getValue(), "H2") > -1);
+        Assert.assertTrue(PropertyType.DATE_INTERVAL.equals(feature.getProperty("DATE_INTERVAL").getType()));
+        Assert.assertTrue(PropertyType.INTEGER_INTERVAL.equals(feature.getProperty("INT_INTERVAL").getType()));
         Assert.assertNotNull(feature.getFiles());
         Assert.assertEquals(1, feature.getFiles().size());
         Assert.assertTrue(feature.getFiles().containsKey(DataType.RAWDATA));
@@ -230,7 +225,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertTrue(feature.getTags().contains("TOTO"));
         Assert.assertTrue(feature.getTags().contains("TITI"));
 
-        Assert.assertTrue(feature.getProperty("SIZE") instanceof LongAttribute);
+        Assert.assertTrue(PropertyType.LONG.equals(feature.getProperty("SIZE").getType()));
 
         Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().isOnline());
         Assert.assertFalse(feature.getFiles().get(DataType.RAWDATA).iterator().next().isReference());
