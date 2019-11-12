@@ -72,11 +72,11 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.service.IModelService;
 
 /**
  * @author Christophe Mertz
@@ -297,26 +297,26 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     private void buildModelAttributes() {
         attributesMapping = new ArrayList<AbstractAttributeMapping>();
 
-        attributesMapping.add(new DynamicAttributeMapping(NAME_ATTR, AttributeType.STRING,
+        attributesMapping.add(new DynamicAttributeMapping(NAME_ATTR, PropertyType.STRING,
                 "'" + HELLO + "--> '||label as label"));
         attributesMapping
-                .add(new DynamicAttributeMapping("alt", "geometry", AttributeType.INTEGER, "altitude AS altitude"));
-        attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", AttributeType.DOUBLE, "latitude"));
-        attributesMapping.add(new DynamicAttributeMapping("long", "geometry", AttributeType.DOUBLE, "longitude"));
-        attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", AttributeType.DATE_ISO8601,
+                .add(new DynamicAttributeMapping("alt", "geometry", PropertyType.INTEGER, "altitude AS altitude"));
+        attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", PropertyType.DOUBLE, "latitude"));
+        attributesMapping.add(new DynamicAttributeMapping("long", "geometry", PropertyType.DOUBLE, "longitude"));
+        attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", PropertyType.DATE_ISO8601,
                 "timeStampWithoutTimeZone"));
-        attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", AttributeType.DATE_ISO8601,
+        attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", PropertyType.DATE_ISO8601,
                 "timeStampWithoutTimeZone"));
-        attributesMapping.add(new DynamicAttributeMapping("date", "hello", AttributeType.DATE_ISO8601, "date"));
+        attributesMapping.add(new DynamicAttributeMapping("date", "hello", PropertyType.DATE_ISO8601, "date"));
         attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "timeStampWithTimeZone"));
-        attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", AttributeType.BOOLEAN, "update"));
-        attributesMapping.add(new DynamicAttributeMapping("date_string", AttributeType.DATE_ISO8601,
+                PropertyType.DATE_ISO8601, "timeStampWithTimeZone"));
+        attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", PropertyType.BOOLEAN, "update"));
+        attributesMapping.add(new DynamicAttributeMapping("date_string", PropertyType.DATE_ISO8601,
                 "to_timestamp(dateStr, 'YYYY-MM-DD HH24:MI:SS:US')"));
         attributesMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
-        attributesMapping.add(new DynamicAttributeMapping("select", AttributeType.STRING, "descr"));
-        attributesMapping.add(new DynamicAttributeMapping("link", AttributeType.URL, "url"));
+                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
+        attributesMapping.add(new DynamicAttributeMapping("select", PropertyType.STRING, "descr"));
+        attributesMapping.add(new DynamicAttributeMapping("link", PropertyType.URL, "url"));
     }
 
 }

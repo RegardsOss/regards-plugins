@@ -41,18 +41,18 @@ import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationReposit
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.crawler.test.ValidationConfiguration;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
-import fr.cnes.regards.modules.dam.dao.models.IAttributeModelRepository;
-import fr.cnes.regards.modules.dam.dao.models.IFragmentRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeModel;
-import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactory;
-import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.dam.service.models.IAttributeModelService;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.model.dao.IAttributeModelRepository;
+import fr.cnes.regards.modules.model.dao.IFragmentRepository;
+import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.model.dao.IModelRepository;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
+import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.model.service.IAttributeModelService;
+import fr.cnes.regards.modules.model.service.IModelService;
 
 /**
  * Pseudo IT test used for initialisation of Validation
@@ -204,10 +204,10 @@ public class ValidationIT {
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
-    
+
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
-    
+
     private PluginConfiguration getPostgresConnectionConfiguration() {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
@@ -215,7 +215,7 @@ public class ValidationIT {
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
-    
+
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
     */
