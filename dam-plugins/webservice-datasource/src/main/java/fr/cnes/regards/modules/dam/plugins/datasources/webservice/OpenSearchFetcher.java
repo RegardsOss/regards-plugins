@@ -1,14 +1,11 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
-import com.google.gson.Gson;
-import feign.FeignException;
-import feign.Target;
-import feign.httpclient.ApacheHttpClient;
-import fr.cnes.regards.framework.feign.ExternalTarget;
-import fr.cnes.regards.framework.feign.FeignClientBuilder;
-import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
-import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.HttpClient;
 import org.springframework.data.domain.Pageable;
@@ -17,40 +14,52 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.google.gson.Gson;
+
+import feign.FeignException;
+import feign.Target;
+import feign.httpclient.ApacheHttpClient;
+import fr.cnes.regards.framework.feign.ExternalTarget;
+import fr.cnes.regards.framework.feign.FeignClientBuilder;
+import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 
 /**
  * Fetches an open search data source
  */
 public class OpenSearchFetcher {
+
     /**
      * URL query start char
      */
     private static final String queryStartMarker = "?";
+
     /**
      * URL next parameter separator
      */
     private static final String nextParameterMarker = "&";
+
     /**
      * URL parameter value separator
      */
     private static final String parameterValueSeparator = "=";
+
     /**
      * OpenSearch webservice configuration
      **/
     private final WebserviceConfiguration webserviceConfiguration;
+
     /**
      * HTTP client
      */
     private final HttpClient httpClient;
+
     /**
      * JSON converter
      */
     private final Gson gson;
+
     /**
      * Stores fetched page URL (used for logging/reporting needs)
      */
@@ -83,7 +92,8 @@ public class OpenSearchFetcher {
         int servicePageIndex = page.getPageNumber() + webserviceConfiguration.getStartPageIndex();
         addedParameters.add(Pair.of(webserviceConfiguration.getPageIndexParam(), String.valueOf(servicePageIndex)));
         // 2.2 - page size: from configuration when provided, from caller page otherwise
-        int pageSize = this.webserviceConfiguration.getPagesSize() != null ? this.webserviceConfiguration.getPagesSize() : page.getPageSize();
+        int pageSize = this.webserviceConfiguration.getPagesSize() != null ? this.webserviceConfiguration.getPagesSize()
+                : page.getPageSize();
         addedParameters.add(Pair.of(webserviceConfiguration.getPageSizeParam(), String.valueOf(pageSize)));
         // 3.3 - lastUpdate if any is required and user provided it
         String lastUpdateParam = webserviceConfiguration.getLastUpdateParam();
@@ -105,7 +115,8 @@ public class OpenSearchFetcher {
         // 3 - Append parameters
         StringBuilder builtURL = new StringBuilder(webserviceURL);
         for (Pair<String, String> p : addedParameters) {
-            builtURL.append(currentParameterSeparator).append(p.getKey()).append(parameterValueSeparator).append(p.getValue());
+            builtURL.append(currentParameterSeparator).append(p.getKey()).append(parameterValueSeparator)
+                    .append(p.getValue());
             currentParameterSeparator = nextParameterMarker;
         }
         // 4 - Append configuration parameters
@@ -113,7 +124,8 @@ public class OpenSearchFetcher {
         if (webserviceParameters != null) {
             for (Map.Entry<String, Object> parameter : webserviceParameters.entrySet()) {
                 if (parameter.getValue() != null) {
-                    builtURL.append(currentParameterSeparator).append(parameter.getKey()).append(parameterValueSeparator).append(parameter.getValue());
+                    builtURL.append(currentParameterSeparator).append(parameter.getKey())
+                            .append(parameterValueSeparator).append(parameter.getValue());
                     currentParameterSeparator = nextParameterMarker;
                 }
             }
@@ -129,19 +141,23 @@ public class OpenSearchFetcher {
      * @return found features
      * @throws DataSourceException when content could not be retrieved
      */
-    public ResponseEntity<FeatureWithPropertiesCollection> fetchFeatures(Pageable page, OffsetDateTime lastUpdate) throws DataSourceException {
+    public ResponseEntity<FeatureWithPropertiesCollection> fetchFeatures(Pageable page, OffsetDateTime lastUpdate)
+            throws DataSourceException {
         lastPageURL = this.getFetchURL(page, lastUpdate);
-        @SuppressWarnings("unchecked") Target<GEOJsonWebservice> target = new ExternalTarget<>(GEOJsonWebservice.class, lastPageURL);
+        Target<GEOJsonWebservice> target = new ExternalTarget<>(GEOJsonWebservice.class, lastPageURL, null);
         ApacheHttpClient client = new ApacheHttpClient(httpClient);
         try {
-            ResponseEntity<FeatureWithPropertiesCollection> lastRetrievedFeatures = FeignClientBuilder.build(target, client, gson).get();
+            ResponseEntity<FeatureWithPropertiesCollection> lastRetrievedFeatures = FeignClientBuilder
+                    .build(target, client, gson).get();
             if (lastRetrievedFeatures.getStatusCode() != HttpStatus.OK) {
-                throw new DataSourceException(String.format("Could not get features to convert from URL '%s' (returned code: %d)",
-                        lastPageURL, lastRetrievedFeatures.getStatusCodeValue()));
+                throw new DataSourceException(
+                        String.format("Could not get features to convert from URL '%s' (returned code: %d)",
+                                      lastPageURL, lastRetrievedFeatures.getStatusCodeValue()));
             }
             return lastRetrievedFeatures;
         } catch (HttpClientErrorException | HttpServerErrorException | FeignException e) {
-            throw new DataSourceException(String.format("Could not get features to convert from URL '%s' (HTTP error)", lastPageURL), e);
+            throw new DataSourceException(
+                    String.format("Could not get features to convert from URL '%s' (HTTP error)", lastPageURL), e);
         }
     }
 
