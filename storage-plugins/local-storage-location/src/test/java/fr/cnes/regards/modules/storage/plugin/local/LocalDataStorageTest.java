@@ -42,15 +42,15 @@ import fr.cnes.regards.framework.modules.locks.service.ILockService;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.storagelight.domain.database.FileLocation;
-import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
-import fr.cnes.regards.modules.storagelight.domain.database.FileReferenceMetaInfo;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.domain.database.FileLocation;
+import fr.cnes.regards.modules.storage.domain.database.FileReference;
+import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
+import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 
 /**
  * @author sbinda

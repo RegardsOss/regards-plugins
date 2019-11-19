@@ -52,16 +52,16 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileRestorationWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IOnlineStorageLocation;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.domain.database.FileReference;
+import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.IOnlineStorageLocation;
+import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 
 /**
  * @author Sylvain Vissiere-Guerinet
