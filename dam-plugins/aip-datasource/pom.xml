@@ -119,8 +119,8 @@
 									<include>commons-beanutils:commons-beanutils</include>
 									<include>fr.cnes.regards.modules.ingest:ingest-client</include>
 									<include>fr.cnes.regards.modules.ingest:ingest-domain</include>
-									<include>fr.cnes.regards.modules.storage-light:storage-light-client</include>
-									<include>fr.cnes.regards.modules.storage-light:storage-light-domain</include>
+									<include>fr.cnes.regards.modules.storage:storage-client</include>
+									<include>fr.cnes.regards.modules.storage:storage-domain</include>
 									<include>fr.cnes.regards.modules.project:project-client</include>
 									<include>fr.cnes.regards.modules.project:project-domain</include>
 								</includes>
