@@ -90,9 +90,9 @@ import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
-import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storagelight.domain.plugin.StorageType;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
+import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 
 /**
  * Plugin to crawl data from OAIS feature manager (ingest microservice).
