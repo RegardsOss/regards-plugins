@@ -345,6 +345,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         // Build feature
         DataObjectFeature feature = new DataObjectFeature(aip.getId(), aip.getProviderId(), "NO_LABEL");
 
+        // Add session information for session monitoring.
+        feature.setSessionOwner(aipEntity.getSessionOwner());
+        feature.setSession(aipEntity.getSession());
+
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;
 
