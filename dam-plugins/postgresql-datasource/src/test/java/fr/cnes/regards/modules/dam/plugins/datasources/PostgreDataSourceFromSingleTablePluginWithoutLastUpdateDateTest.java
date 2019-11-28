@@ -47,10 +47,16 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.google.gson.Gson;
 
+import fr.cnes.regards.framework.encryption.exception.EncryptionException;
+import fr.cnes.regards.framework.module.rest.exception.EntityInvalidException;
+import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
@@ -114,8 +120,6 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
 
     private static int nbElements;
 
-    private final Map<String, Object> pluginCacheMap = new HashMap<>();
-
     /**
      * JPA Repository
      */
@@ -131,6 +135,12 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
     @Autowired
     private Gson gson;
 
+    @Autowired
+    private IPluginService pluginService;
+
+    @Autowired
+    private IPluginConfigurationRepository pluginConfigurationRepository;
+
     /**
      * Populate the datasource as a legacy catalog
      *
@@ -145,6 +155,7 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
 
         PluginUtils.setup(Lists.newArrayList(), gson);
         tenantResolver.forceTenant(getDefaultTenant());
+        pluginConfigurationRepository.deleteAll();
         try {
             // Remove the model if existing
             modelService.getModelByName(MODEL_NAME_TEST);
@@ -189,8 +200,11 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
                                         PluginParameterTransformer.toJson(attributesMapping)),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800));
 
-        plgDBDataSource = PluginUtils.getPlugin(parameters, PostgreDataSourceFromSingleTablePlugin.class,
-                                                pluginCacheMap);
+        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin", parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
+
+        dbDataSourceConf = pluginService.savePluginConfiguration(dbDataSourceConf);
+
+        plgDBDataSource = pluginService.getPlugin(dbDataSourceConf.getBusinessId());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(plgDBDataSource.getDBConnection().testConnection());
@@ -228,7 +242,8 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
      *
      * @return the {@link PluginConfiguration} @
      */
-    private PluginConfiguration getPostgreConnectionConfiguration() {
+    private PluginConfiguration getPostgreConnectionConfiguration()
+            throws EncryptionException, EntityNotFoundException, EntityInvalidException {
         Set<IPluginParam> parameters = IPluginParam
                 .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
                      IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
@@ -238,10 +253,9 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        PluginConfiguration plgConf = PluginUtils.getPluginConfiguration(parameters,
-                                                                         DefaultPostgreConnectionPlugin.class);
-        pluginCacheMap.put(plgConf.getBusinessId(),
-                           PluginUtils.getPlugin(plgConf, plgConf.getPluginClassName(), pluginCacheMap));
+        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters, DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
+
+        pluginService.savePluginConfiguration(plgConf);
         return plgConf;
     }
 

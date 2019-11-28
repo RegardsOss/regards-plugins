@@ -52,16 +52,16 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storagelight.domain.database.FileReference;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storagelight.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileRestorationWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IOnlineStorageLocation;
-import fr.cnes.regards.modules.storagelight.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.domain.database.FileReference;
+import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.IOnlineStorageLocation;
+import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 
 /**
  * @author Sylvain Vissiere-Guerinet
@@ -110,21 +110,23 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     /**
      * Base storage location url
      */
-    @PluginParameter(name = BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME, description = "Base storage location url to use",
-            label = "Base storage location url")
+    @PluginParameter(name = BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME,
+            description = "Root directory where to store new files on this location", label = "Root directory")
     private String baseStorageLocationAsString;
 
-    @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "true",
+    @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "false",
             label = "Enable physical deletion of files",
             description = "If deletion is allowed, files are physically deleted else files are only removed from references")
     private Boolean allowPhysicalDeletion;
 
-    @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP, label = "Maximum file size for zip",
-            description = "Maximum size, in bytes, for a file to be put in a zip", defaultValue = "10000")
+    @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP,
+            label = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \"small files\" in a zip archive. The size is in octets.",
+            description = "Maximum size, in bytes, for a file to be put in a zip (octets)", defaultValue = "10000")
     private Long maxFileSizeForZip;
 
-    @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size",
-            description = "Maximum zip size, in bytes", defaultValue = "500000000")
+    @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size (octets)",
+            description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
+            defaultValue = "500000000")
     private Long maxZipSize;
 
     @Override
