@@ -111,7 +111,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private String driver;
 
     @Autowired
-    private IIngesterService ingesterService;
+    private IngesterService ingesterService;
 
     private List<AbstractAttributeMapping> modelAttrMapping;
 
