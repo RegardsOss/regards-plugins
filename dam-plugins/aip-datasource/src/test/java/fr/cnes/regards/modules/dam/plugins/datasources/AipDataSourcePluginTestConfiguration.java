@@ -37,10 +37,10 @@ import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storagelight.client.IStorageRestClient;
-import fr.cnes.regards.modules.storagelight.domain.database.StorageLocationConfiguration;
-import fr.cnes.regards.modules.storagelight.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storagelight.domain.plugin.StorageType;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfiguration;
+import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
+import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 
 @Configuration
 public class AipDataSourcePluginTestConfiguration {
