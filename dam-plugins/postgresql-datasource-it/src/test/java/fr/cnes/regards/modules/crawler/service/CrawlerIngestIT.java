@@ -331,7 +331,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         // Ingest from scratch
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
-        IngestionResult summary = crawlerService.ingest(dataSourcePluginConf, dsi);
+        IngestionResult summary = crawlerService.ingest(dsi.getId()).get();
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         crawlerService.startWork();
@@ -377,7 +377,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService.ingest(dataSourcePluginConf, dsi2);
+        summary = crawlerService.ingest(dsi2.getId()).get();
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
@@ -401,7 +401,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
         try {
-            crawlerService.ingest(dataSourceTestPluginConf, dsi);
+            crawlerService.ingest(dsi.getId()).get();
             Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
         } catch (ExecutionException ee) {
             Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
@@ -420,7 +420,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
         modelAttrAssocs.add(attrAssocTutuToto);
         Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
-        IngestionResult summary = crawlerService.ingest(dataSourceTestPluginConf, dsi);
+        IngestionResult summary = crawlerService.ingest(dsi.getId()).get();
         // 2 validation errors so nothing saved
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }
