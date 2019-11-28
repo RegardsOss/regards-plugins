@@ -148,7 +148,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     private ICrawlerAndIngesterService crawlerService;
 
     @Autowired
-    private IIngesterService ingesterService;
+    private IngesterService ingesterService;
 
     @Autowired
     private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
