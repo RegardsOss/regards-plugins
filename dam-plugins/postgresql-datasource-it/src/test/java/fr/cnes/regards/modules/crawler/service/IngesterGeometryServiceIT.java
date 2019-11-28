@@ -98,7 +98,7 @@ public class IngesterGeometryServiceIT {
     private String driver;
 
     @Autowired
-    private IIngesterService ingesterService;
+    private IngesterService ingesterService;
 
     private List<AbstractAttributeMapping> modelAttrMapping;
 
