@@ -194,8 +194,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                                     request.getMetaInfo().getAlgorithm(),
                                                                     request.getMetaInfo().getChecksum());
             } catch (IOException e) {
-                throw new ModuleException(
-                        String.format("Download error for file %s. Cause : ", request.getOriginUrl(), e.getMessage()));
+                throw new ModuleException(String.format("Download error for file %s. Cause : %s",
+                                                        request.getOriginUrl(), e.getMessage()));
             }
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
