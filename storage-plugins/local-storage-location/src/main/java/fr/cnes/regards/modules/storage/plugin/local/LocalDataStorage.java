@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
@@ -62,6 +63,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IOnlineStorageLocation;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.PreparationResponse;
 
 /**
  * @author Sylvain Vissiere-Guerinet
@@ -130,26 +132,27 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     private Long maxZipSize;
 
     @Override
-    public Collection<FileStorageWorkingSubset> prepareForStorage(
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(
             Collection<FileStorageRequest> fileReferenceRequests) {
         Collection<FileStorageWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileStorageWorkingSubset(fileReferenceRequests));
-        return workingSubSets;
+        return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
     @Override
-    public Collection<FileDeletionWorkingSubset> prepareForDeletion(
+    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(
             Collection<FileDeletionRequest> fileDeletionRequests) {
         Collection<FileDeletionWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileDeletionWorkingSubset(Sets.newHashSet(fileDeletionRequests)));
-        return workingSubSets;
+        return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
     @Override
-    public Collection<FileRestorationWorkingSubset> prepareForRestoration(Collection<FileCacheRequest> requests) {
+    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(
+            Collection<FileCacheRequest> requests) {
         Collection<FileRestorationWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileRestorationWorkingSubset(Sets.newHashSet(requests)));
-        return workingSubSets;
+        return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
     @Override
@@ -166,7 +169,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
                             request.getMetaInfo().getChecksum(), ioe.toString());
             LOG.error(failureCause, ioe);
-            progressManager.storageFailed(request, failureCause);
+            progressManager.storageFailed(request, ioe.getMessage());
             return;
         }
         //check if file is already at the right place or not. Unless we are instructed not to(for updates for example)
@@ -191,8 +194,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                                     request.getMetaInfo().getAlgorithm(),
                                                                     request.getMetaInfo().getChecksum());
             } catch (IOException e) {
-                throw new ModuleException(
-                        String.format("Download error for file %s. Cause : ", request.getOriginUrl(), e.getMessage()));
+                throw new ModuleException(String.format("Download error for file %s. Cause : %s",
+                                                        request.getOriginUrl(), e.getMessage()));
             }
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
@@ -206,11 +209,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     progressManager.storageSucceed(request, fullPathToFile.toUri().toURL(), fileSize);
                 }
             } else {
-                String failureCause = String
-                        .format("Storage of StorageDataFile(%s) failed at the following location: %s. Its checksum once stored does not match with expected one",
-                                request.getMetaInfo().getChecksum(), fullPathToFile);
                 Files.deleteIfExists(fullPathToFile);
-                progressManager.storageFailed(request, failureCause);
+                progressManager.storageFailed(request, "Checksum does not match with expected one");
             }
         } catch (NoSuchAlgorithmException e) {
             LOG.error(e.getMessage(), e);
@@ -267,9 +267,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
                         if (!downloadOk) {
-                            String failureCause = String
-                                    .format("Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with expected one",
-                                            checksum, pathInZip, zipPath);
+                            String failureCause = String.format("Checksum does not match expected one", checksum,
+                                                                pathInZip, zipPath);
                             Files.deleteIfExists(pathInZip);
                             progressManager.storageFailed(request, failureCause);
                         }
