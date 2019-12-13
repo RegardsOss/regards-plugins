@@ -450,7 +450,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                             if (!zipFile.entries().hasMoreElements()) {
                                 Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
                                 // Check if it is the current zip file. If it is, delete the symlink
-                                if (Files.exists(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                if (Files.isSymbolicLink(linkPath)
+                                        && zipPath.equals(Files.readSymbolicLink(linkPath))) {
                                     Files.delete(linkPath);
                                 }
                                 Files.deleteIfExists(zipPath);
