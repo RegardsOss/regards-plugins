@@ -309,7 +309,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if (request.getStorageSubDirectory() != null) {
             // Storage directory is provider. use it
-            storageLocation = storageLocation.resolve(request.getStorageSubDirectory());
+            storageLocation = Paths.get(baseStorageLocationAsString, request.getStorageSubDirectory());
         } else {
             // Storage directory is not provided, generate new one with checksum
             int subFolders = 0;
@@ -335,7 +335,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if (!Strings.isNullOrEmpty(request.getStorageSubDirectory())) {
             // add the sub directory
-            storageLocation = storageLocation.resolve(request.getStorageSubDirectory());
+            storageLocation = Paths.get(baseStorageLocationAsString, request.getStorageSubDirectory());
         } else {
             // add "zips" to the storage location to get all zips in the same subdirectory
             storageLocation = storageLocation.resolve(ZIP_DIR_NAME);
