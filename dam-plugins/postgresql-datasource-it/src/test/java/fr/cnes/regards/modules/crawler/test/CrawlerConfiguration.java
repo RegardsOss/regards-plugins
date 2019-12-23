@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 
 import fr.cnes.regards.framework.hateoas.IResourceService;
@@ -67,7 +67,7 @@ public class CrawlerConfiguration {
             project.setName(tenant);
             project.setCrs("WGS_84");
             project.setPoleToBeManaged(Boolean.FALSE);
-            return ResponseEntity.ok(new Resource<Project>(project));
+            return ResponseEntity.ok(new EntityModel<Project>(project));
         });
         return projectClient;
     }
