@@ -43,7 +43,6 @@ import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
-import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
@@ -152,7 +151,7 @@ public class IngesterGeometryServiceIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        return PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null, parameters);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -165,7 +164,7 @@ public class IngesterGeometryServiceIT {
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
+        return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);
     }
 
     private void buildModelAttributes() {

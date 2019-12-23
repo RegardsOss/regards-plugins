@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -189,8 +189,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf1");
         conf.setBusinessId("pluginConf1");
         return conf;
@@ -205,8 +205,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf2");
         conf.setBusinessId("pluginConf2");
         return conf;
@@ -221,8 +221,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf3");
         conf.setBusinessId("pluginConf3");
         return conf;
@@ -238,7 +238,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
+        return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);
     }
 
     private void buildModelAttributes() {
@@ -347,7 +347,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     public void test() throws InterruptedException {
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
-                .thenReturn(ResponseEntity.ok(new Resource<>(project)));
+                .thenReturn(ResponseEntity.ok(new EntityModel<>(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 

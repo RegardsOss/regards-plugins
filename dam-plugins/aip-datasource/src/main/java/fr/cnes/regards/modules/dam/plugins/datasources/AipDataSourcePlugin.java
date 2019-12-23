@@ -42,8 +42,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -292,17 +292,17 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             throws DataSourceException {
         try {
             FeignSecurityManager.asSystem();
-            ResponseEntity<List<Resource<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
+            ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
-            ResponseEntity<PagedResources<Resource<AIPEntity>>> aipResponseEntity = aipClient
+            ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
                             .withCategories(categories).withLastUpdateFrom(date), pageable.getPageNumber(),
                                 pageable.getPageSize());
             Storages storages = new Storages(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
                 List<DataObjectFeature> list = new ArrayList<>();
-                for (Resource<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
+                for (EntityModel<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
                     // rs-storage stores all kinds of entity, we only want data here.
                     AIPEntity aipEntity = aipDataFiles.getContent();
                     if (aipEntity.getAip().getIpType() == EntityType.DATA) {
@@ -317,7 +317,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     }
                 }
 
-                PagedResources.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
+                PagedModel.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
                 int pageSize = (int) responsePageMeta.getSize();
                 return new PageImpl<>(list,
                         PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
