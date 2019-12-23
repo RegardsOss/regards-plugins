@@ -59,7 +59,6 @@ import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
-import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionResult;
@@ -282,8 +281,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
-
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        return PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null, parameters);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
@@ -296,13 +294,13 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
+        return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
         Set<IPluginParam> parameters = IPluginParam
                 .set(IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()));
-        return PluginUtils.getPluginConfiguration(parameters, TestDsPlugin.class);
+        return PluginConfiguration.build(TestDsPlugin.class, null, parameters);
     }
 
     private void buildModelAttributes() {
