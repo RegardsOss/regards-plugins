@@ -24,7 +24,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -107,7 +107,7 @@ public class PostgreDataSourcePluginTestConfiguration {
             project.setName(tenant);
             project.setCrs("WGS_84");
             project.setPoleToBeManaged(Boolean.FALSE);
-            return ResponseEntity.ok(new Resource<>(project));
+            return ResponseEntity.ok(new EntityModel<>(project));
         });
         return projectClient;
     }

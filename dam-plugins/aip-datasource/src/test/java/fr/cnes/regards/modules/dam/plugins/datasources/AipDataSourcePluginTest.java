@@ -49,6 +49,7 @@ import com.google.common.collect.Lists;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
@@ -116,7 +117,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                                         PluginParameterTransformer.toJson(Lists.newArrayList("TOTO", "TITI"))),
                      IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE"));
 
-        dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, pluginCacheMap);
+        dsPlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
+                                         pluginCacheMap);
 
     }
 
