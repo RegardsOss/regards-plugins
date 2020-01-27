@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
     private static final String CATALOG_DOWNLOAD_PATH = "/downloads/{aip_id}/files/{checksum}";
+
+    /**
+     * Property in AIP contentInformation.representationInformation.environmentDescription.softwareEnvironment to
+     * add custom types on data files.
+     */
+    public static final String AIP_PROPERTY_DATA_FILES_TYPES = "types";
 
     @Autowired
     private IAIPRestClient aipClient;
@@ -339,6 +346,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      * @param aipEntity
      * @param storages
      */
+    @SuppressWarnings("unchecked")
     private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages, String tenant)
             throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         AIP aip = aipEntity.getAip();
@@ -374,6 +382,16 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 dataFile.setChecksum(oaisDo.getChecksum());
                 dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
                 dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
+                if ((ci.getRepresentationInformation() != null)
+                        && (ci.getRepresentationInformation().getEnvironmentDescription() != null)
+                        && (ci.getRepresentationInformation().getEnvironmentDescription()
+                                .getSoftwareEnvironment() != null)) {
+                    Object types = ci.getRepresentationInformation().getEnvironmentDescription()
+                            .getSoftwareEnvironment().get(AIP_PROPERTY_DATA_FILES_TYPES);
+                    if (types instanceof Collection) {
+                        dataFile.getTypes().addAll((Collection) types);
+                    }
+                }
                 // Register file
                 feature.getFiles().put(dataFile.getDataType(), dataFile);
                 if ((oaisDo.getRegardsDataType() == DataType.RAWDATA) && (oaisDo.getFileSize() != null)) {
