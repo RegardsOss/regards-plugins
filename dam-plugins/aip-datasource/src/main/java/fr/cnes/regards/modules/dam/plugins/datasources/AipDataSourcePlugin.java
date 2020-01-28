@@ -376,7 +376,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(), oaisDo.getFilename(), downloadUrl,
                                                    ci.getRepresentationInformation().getSyntax().getMimeType(), online,
                                                    referenceUrl.isPresent());
-                feature.getFiles().put(dataFile.getDataType(), dataFile);
                 dataFile.setFilesize(oaisDo.getFileSize());
                 dataFile.setDigestAlgorithm(oaisDo.getAlgorithm());
                 dataFile.setChecksum(oaisDo.getChecksum());
