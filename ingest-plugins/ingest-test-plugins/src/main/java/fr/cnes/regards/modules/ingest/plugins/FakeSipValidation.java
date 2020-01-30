@@ -39,10 +39,7 @@ import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 public class FakeSipValidation implements ISipValidation {
 
     @PluginParameter(label = "Simple string", description = "Simple string description",
-            defaultValue = "Ah ! Mesdames, voilà du bon fromage,\n" + "Celui qui l'a fait il est de son village\n"
-                    + "Voilà du bon fromage au lait\n" + "Il est du pays de celui qui l'a fait !\n" + "\n"
-                    + "Celui qui l'a fait il est de son village\n" + "Ah ! Mesdames, voilà du bon fromage\n"
-                    + "Voilà du bon fromage au lait,\n" + "Il est du pays de celui qui l'a fait !")
+            defaultValue = "default simple string !")
     private String pString;
 
     @PluginParameter(label = "Simple byte", description = "Simple byte description", defaultValue = "1")
