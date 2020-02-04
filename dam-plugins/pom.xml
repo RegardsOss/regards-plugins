@@ -59,6 +59,7 @@
 		<module>db-datasource-common</module>
 		<module>postgresql-datasource</module>
 		<module>postgresql-datasource-it</module>
+		<module>geode-datasource</module>
         <module>webservice-datasource</module>
     </modules>
 </project>
