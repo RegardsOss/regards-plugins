@@ -20,7 +20,6 @@ import org.springframework.util.MimeTypeUtils;
 
 import com.google.common.collect.Sets;
 
-import fr.cnes.regards.framework.oais.ContentInformation;
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.oais.urn.EntityType;
@@ -90,16 +89,12 @@ public class AipDataSourcePluginTestConfiguration {
             List<AIPEntity> aipEntities = new ArrayList<>();
 
             for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
-                aip.getProperties()
-                        .withDataObject(DataType.RAWDATA, "Name", "SHA", "Checksum", 1000L,
-                                        OAISDataObjectLocation.build("http://perdu.com", "AWS"))
-                        .withSyntax(MimeTypeUtils.IMAGE_JPEG);
-                aip.getProperties().registerContentInformation();
-                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
-                        .setHeight(1500d);
-                aip.getProperties().getContentInformations().get(0).getRepresentationInformation().getSyntax()
-                        .setWidth(1000d);
-                ContentInformation ci = aip.getProperties().getContentInformations().get(0);
+                aip.withDataObject(DataType.RAWDATA, "Name", "SHA", "Checksum", 1000L,
+                                   OAISDataObjectLocation.build("http://perdu.com", "AWS"));
+                aip.withSyntaxAndDimension(MimeTypeUtils.IMAGE_JPEG, 1000d, 1500d);
+                aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
+                                                    Sets.newHashSet("type1", "type2"));
+                aip.registerContentInformation();
                 SIP sip = SIP.build(EntityType.DATA, "sipId");
                 SIPEntity sipEntity = SIPEntity
                         .build("PROJECT1",
