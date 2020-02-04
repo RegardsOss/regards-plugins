@@ -16,6 +16,7 @@
     <version>GEODE</version>
     <modules>
         <module>enhanced-descriptive-aip-generation</module>
+        <module>ingest-test-plugins</module>
     </modules>
 
 
