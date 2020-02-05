@@ -401,7 +401,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
 
         // Create attribute containing all RAW DATA files size
         if (!Strings.isNullOrEmpty(modelAttrNameFileSize)) {
-            feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize, rawDataFilesSize));
+            //handle fragment
+            String[] fragNAttr = modelAttrNameFileSize.split("\\.");
+            if(fragNAttr.length > 1) {
+                feature.addProperty(AttributeBuilder.buildObject(fragNAttr[0], AttributeBuilder.forType(AttributeType.LONG, fragNAttr[1], rawDataFilesSize)));
+            } else {
+                feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize, rawDataFilesSize));
+            }
         }
 
         // Tags
