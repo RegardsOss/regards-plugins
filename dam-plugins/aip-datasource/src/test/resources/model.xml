@@ -19,12 +19,6 @@
     </attribute>
     <attribute>
         <label>forTests</label>
-        <name>SIZE</name>
-        <description>file size</description>
-        <type>INTEGER</type>
-    </attribute>
-    <attribute>
-        <label>forTests</label>
         <name>ORIGIN</name>
         <description>name of the original file</description>
         <type>STRING</type>
@@ -81,6 +75,12 @@
         <attribute>
             <label>forTests</label>
             <name>MAX</name>
+            <type>INTEGER</type>
+        </attribute>
+        <attribute>
+            <label>forTests</label>
+            <name>SIZE</name>
+            <description>file size</description>
             <type>INTEGER</type>
         </attribute>
     </fragment>
