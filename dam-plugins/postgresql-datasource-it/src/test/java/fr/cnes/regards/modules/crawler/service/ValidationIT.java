@@ -204,10 +204,10 @@ public class ValidationIT {
                 .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
                 .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
                 .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
-    
+
         return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
     }
-    
+
     private PluginConfiguration getPostgresConnectionConfiguration() {
         final Set<PluginParameter> parameters = PluginParametersFactory.build()
                 .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
@@ -215,7 +215,7 @@ public class ValidationIT {
                 .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
                 .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
                 .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
-    
+
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
     */
@@ -293,7 +293,7 @@ public class ValidationIT {
                                                "validationDataModel2.xml"));
         modelService.importModel(input);
 
-        final List<AttributeModel> attributes = attributeModelService.getAttributes(null, null, null, null);
+        final List<AttributeModel> attributes = attributeModelService.getAttributes(null, null, null);
         gsonAttributeFactory.refresh(tenant, attributes);
     }
 
