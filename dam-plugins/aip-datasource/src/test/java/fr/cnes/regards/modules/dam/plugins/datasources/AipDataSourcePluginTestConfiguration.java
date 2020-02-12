@@ -21,8 +21,8 @@ import org.springframework.util.MimeTypeUtils;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
