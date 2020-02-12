@@ -65,6 +65,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginCo
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.LongProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.service.IModelService;
 
@@ -114,7 +115,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
                      IPluginParam.build(DataSourcePluginConstants.TAGS,
                                         PluginParameterTransformer.toJson(Lists.newArrayList("TOTO", "TITI"))),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE"));
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "ALTITUDE.SIZE"));
 
         dsPlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
                                          pluginCacheMap);
@@ -226,7 +227,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertTrue(feature.getTags().contains("TOTO"));
         Assert.assertTrue(feature.getTags().contains("TITI"));
 
-        Assert.assertTrue(PropertyType.LONG.equals(feature.getProperty("SIZE").getType()));
+        Assert.assertNotNull(feature.getProperty("ALTITUDE.SIZE"));
+        Assert.assertTrue(feature.getProperty("ALTITUDE.SIZE") instanceof LongProperty);
 
         Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().isOnline());
         Assert.assertFalse(feature.getFiles().get(DataType.RAWDATA).iterator().next().isReference());
