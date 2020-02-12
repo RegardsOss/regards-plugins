@@ -27,9 +27,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.util.Lists;
@@ -58,10 +56,10 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -200,7 +198,8 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
                                         PluginParameterTransformer.toJson(attributesMapping)),
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800));
 
-        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin", parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin",
+                parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
 
         dbDataSourceConf = pluginService.savePluginConfiguration(dbDataSourceConf);
 
@@ -253,7 +252,8 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters, DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters,
+                DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
 
         pluginService.savePluginConfiguration(plgConf);
         return plgConf;
