@@ -20,8 +20,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import java.time.OffsetDateTime;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +31,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IGeodeDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.feature.service.IDataObjectFeatureFactory;
 
 /**
  * Plugin to get data from feature manager
@@ -43,8 +43,6 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
         url = "https://github.com/RegardsOss")
 public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GeodeDataSourcePlugin.class);
-
     @Value("${geode.plugin.refreshRate:1000}")
     private int refreshRate;
 
@@ -52,15 +50,18 @@ public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
             description = "Associated data source model name")
     protected String modelName;
 
+    @Autowired
+    private IDataObjectFeatureFactory dataObjectFactory;
+
     @Override
     public int getRefreshRate() {
         return refreshRate;
     }
 
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+    public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        return null;
+        return dataObjectFactory.findAll(model, pageable, date);
     }
 
     @Override

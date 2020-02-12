@@ -62,28 +62,9 @@
         </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
-            <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>feign-regards-starter</artifactId>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-service</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.dam</groupId>
-            <artifactId>dam-service</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.dam</groupId>
-            <artifactId>dam-plugins</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
-            <artifactId>plugins-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.project</groupId>
-            <artifactId>project-client</artifactId>
         </dependency>
         <!-- Tests -->
         <dependency>
@@ -109,8 +90,6 @@
 								<includes>
 									<include>fr.cnes.regards.framework.utils:spring-utils</include>
 									<include>commons-beanutils:commons-beanutils</include>
-									<include>fr.cnes.regards.modules.project:project-client</include>
-									<include>fr.cnes.regards.modules.project:project-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
