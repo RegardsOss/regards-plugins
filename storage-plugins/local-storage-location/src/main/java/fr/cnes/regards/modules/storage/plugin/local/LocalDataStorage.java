@@ -505,7 +505,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:file:" + zipPath.toAbsolutePath().toString()),
                                                          env);
             Path pathInZip = zipFs.getPath(checksum);
-            return new RegardsIS(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, zipAccessSemaphore);
+            return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, zipAccessSemaphore);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOG.error("[LOCAL STORAGE PLUGIN] Deletion from zip has been interrupted while acquiring semaphore.", e);
@@ -518,24 +518,27 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return allowPhysicalDeletion;
     }
 
-    private class RegardsIS extends InputStream {
+    private static class RegardsIS extends InputStream {
 
-        private final FileLock lock;
+        private FileLock lock;
 
-        private final FileChannel fc;
+        private FileChannel fc;
 
-        private final Semaphore semaphore;
+        private Semaphore semaphore;
 
-        private final InputStream source;
+        private InputStream source;
 
-        private final FileSystem fs;
+        private FileSystem fs;
 
-        public RegardsIS(InputStream source, FileSystem fs, FileLock lock, FileChannel fc, Semaphore semaphore) {
-            this.source = source;
-            this.fs = fs;
-            this.lock = lock;
-            this.fc = fc;
-            this.semaphore = semaphore;
+        public static RegardsIS build(InputStream source, FileSystem fs, FileLock lock, FileChannel fc,
+                Semaphore semaphore) {
+            RegardsIS is = new RegardsIS();
+            is.source = source;
+            is.fs = fs;
+            is.lock = lock;
+            is.fc = fc;
+            is.semaphore = semaphore;
+            return is;
         }
 
         @Override
