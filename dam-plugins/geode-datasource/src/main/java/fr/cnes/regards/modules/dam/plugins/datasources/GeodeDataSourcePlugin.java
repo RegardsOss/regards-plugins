@@ -29,9 +29,9 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IGeodeDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.service.IDataObjectFeatureService;
+import fr.cnes.regards.modules.feature.client.IDataFeatureObjectClient;
 
 /**
  * Plugin to get data from feature manager
@@ -41,7 +41,7 @@ import fr.cnes.regards.modules.feature.service.IDataObjectFeatureService;
 @Plugin(id = "gedoe-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
         author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
         url = "https://github.com/RegardsOss")
-public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
+public class GeodeDataSourcePlugin implements IDataSourcePlugin {
 
     @Value("${geode.plugin.refreshRate:1000}")
     private int refreshRate;
@@ -51,7 +51,7 @@ public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
     protected String modelName;
 
     @Autowired
-    private IDataObjectFeatureService dataObjectFactory;
+    private IDataFeatureObjectClient dataObjectClient;
 
     @Override
     public int getRefreshRate() {
@@ -61,7 +61,7 @@ public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
     @Override
     public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        return dataObjectFactory.findAll(model, pageable, date);
+        return dataObjectClient.findAll(model, pageable, date).getBody();
     }
 
     @Override
