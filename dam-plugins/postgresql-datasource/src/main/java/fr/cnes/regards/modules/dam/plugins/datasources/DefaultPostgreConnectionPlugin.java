@@ -79,12 +79,12 @@ public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
      * This class is used to initialize the {@link Plugin}
      */
     @PluginInit
-    private void createPoolConnection() {
+    public void createPoolConnection() {
         createPoolConnection(dbUser, dbPassword, 3, 1);
     }
 
     @PluginDestroy
-    private void destroyPoolConnection() {
+    public void destroyPoolConnection() {
         closeConnection();
     }
 
