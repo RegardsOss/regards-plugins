@@ -31,7 +31,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IGeodeDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.service.IDataObjectFeatureFactory;
+import fr.cnes.regards.modules.feature.service.IDataObjectFeatureService;
 
 /**
  * Plugin to get data from feature manager
@@ -51,7 +51,7 @@ public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
     protected String modelName;
 
     @Autowired
-    private IDataObjectFeatureFactory dataObjectFactory;
+    private IDataObjectFeatureService dataObjectFactory;
 
     @Override
     public int getRefreshRate() {
