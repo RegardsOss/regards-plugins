@@ -19,10 +19,13 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -32,6 +35,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginCo
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.feature.client.IDataFeatureObjectClient;
+import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
 
 /**
  * Plugin to get data from feature manager
@@ -61,7 +65,14 @@ public class GeodeDataSourcePlugin implements IDataSourcePlugin {
     @Override
     public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        return dataObjectClient.findAll(model, pageable, date).getBody();
+        Page<FeatureEntityDto> dtos = dataObjectClient.findAll(model, pageable, date).getBody();
+        return new PageImpl<DataObjectFeature>(
+                dtos.stream()
+                        .map(feature -> new DataObjectFeature(feature.getFeature().getUrn(),
+                                feature.getFeature().getId(), "NO LABEL", feature.getSessionOwner(),
+                                feature.getSession(), feature.getFeature().getModel()))
+                        .collect(Collectors.toList()),
+                PageRequest.of(dtos.getNumber(), dtos.getSize()), dtos.getTotalElements());
     }
 
     @Override
