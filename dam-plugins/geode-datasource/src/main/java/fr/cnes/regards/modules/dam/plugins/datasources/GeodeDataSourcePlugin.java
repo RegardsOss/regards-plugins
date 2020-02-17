@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -34,7 +35,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.client.IDataFeatureObjectClient;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
 import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
 
 /**
@@ -55,7 +56,7 @@ public class GeodeDataSourcePlugin implements IDataSourcePlugin {
     protected String modelName;
 
     @Autowired
-    private IDataFeatureObjectClient dataObjectClient;
+    private IFeatureEntityClient dataObjectClient;
 
     @Override
     public int getRefreshRate() {
@@ -65,14 +66,16 @@ public class GeodeDataSourcePlugin implements IDataSourcePlugin {
     @Override
     public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        Page<FeatureEntityDto> dtos = dataObjectClient.findAll(model, pageable, date).getBody();
+        EntityModel<Page<FeatureEntityDto>> dtos = dataObjectClient.findAll(model, pageable, date).getBody();
         return new PageImpl<DataObjectFeature>(
-                dtos.stream()
-                        .map(feature -> new DataObjectFeature(feature.getFeature().getUrn(),
-                                feature.getFeature().getId(), "NO LABEL", feature.getSessionOwner(),
-                                feature.getSession(), feature.getFeature().getModel()))
-                        .collect(Collectors.toList()),
-                PageRequest.of(dtos.getNumber(), dtos.getSize()), dtos.getTotalElements());
+                dtos.getContent().stream().map(entity -> initDataObjectFeature(entity)).collect(Collectors.toList()),
+                PageRequest.of(dtos.getContent().getNumber(), dtos.getContent().getSize()),
+                dtos.getContent().getTotalElements());
+    }
+
+    private DataObjectFeature initDataObjectFeature(FeatureEntityDto feature) {
+        return new DataObjectFeature(feature.getFeature().getUrn(), feature.getFeature().getId(), "NO LABEL",
+                feature.getSessionOwner(), feature.getSession(), feature.getFeature().getModel());
     }
 
     @Override
