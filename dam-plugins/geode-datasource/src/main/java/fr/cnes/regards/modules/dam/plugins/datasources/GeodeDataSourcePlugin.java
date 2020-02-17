@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -66,16 +68,20 @@ public class GeodeDataSourcePlugin implements IDataSourcePlugin {
     @Override
     public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        EntityModel<Page<FeatureEntityDto>> dtos = dataObjectClient.findAll(model, pageable, date).getBody();
+        PagedModel<EntityModel<FeatureEntityDto>> page = dataObjectClient
+                .findAll(model, date, pageable.getPageNumber(), pageable.getPageSize()).getBody();
+        Collection<EntityModel<FeatureEntityDto>> dtos = page.getContent();
         return new PageImpl<DataObjectFeature>(
-                dtos.getContent().stream().map(entity -> initDataObjectFeature(entity)).collect(Collectors.toList()),
-                PageRequest.of(dtos.getContent().getNumber(), dtos.getContent().getSize()),
-                dtos.getContent().getTotalElements());
+                dtos.stream().map(entity -> initDataObjectFeature(entity)).collect(Collectors.toList()),
+                PageRequest.of(new Long(page.getMetadata().getNumber()).intValue(),
+                               new Long(page.getMetadata().getSize()).intValue()),
+                page.getMetadata().getTotalElements());
     }
 
-    private DataObjectFeature initDataObjectFeature(FeatureEntityDto feature) {
-        return new DataObjectFeature(feature.getFeature().getUrn(), feature.getFeature().getId(), "NO LABEL",
-                feature.getSessionOwner(), feature.getSession(), feature.getFeature().getModel());
+    private DataObjectFeature initDataObjectFeature(EntityModel<FeatureEntityDto> entity) {
+        return new DataObjectFeature(entity.getContent().getFeature().getUrn(),
+                entity.getContent().getFeature().getId(), "NO LABEL", entity.getContent().getSessionOwner(),
+                entity.getContent().getSession(), entity.getContent().getFeature().getModel());
     }
 
     @Override
