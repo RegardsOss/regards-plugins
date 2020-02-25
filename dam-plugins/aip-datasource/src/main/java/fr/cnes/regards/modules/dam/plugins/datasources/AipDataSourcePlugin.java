@@ -335,7 +335,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         "Error while calling storage client (HTTP STATUS : " + aipResponseEntity.getStatusCode());
             }
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage());
+            throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
         } finally {
             FeignSecurityManager.reset();
         }
@@ -551,7 +551,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         try {
             value = propertyUtilsBean.getNestedProperty(aip, propertyJsonPath.trim());
         } catch (NestedNullException e) {
-            LOGGER.debug("Property \"{}\" not found in AIP \"{}\"", propertyJsonPath, aip.getId());
+            LOGGER.debug(String.format("Property \"%s\" not found in AIP \"%s\"", propertyJsonPath, aip.getId()), e);
         }
         return value;
     }
