@@ -29,6 +29,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Performs conversion from a retrieved feature list into a Regards data object features
@@ -85,7 +87,7 @@ public class FeaturesConverter {
     /**
      * Map of target attribute model to source JSON field
      */
-    private final Map<AttributeModel, String> attributeModelToPath = new HashMap<>();
+    private final ConcurrentMap<AttributeModel, String> attributeModelToPath = new ConcurrentHashMap<>();
     /**
      * Current page conversion errors report
      */
