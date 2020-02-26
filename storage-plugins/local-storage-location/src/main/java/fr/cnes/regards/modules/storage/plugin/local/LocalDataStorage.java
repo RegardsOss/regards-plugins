@@ -307,8 +307,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     public Path getStorageLocation(FileStorageRequest request) throws IOException {
         String checksum = request.getMetaInfo().getChecksum();
         Path storageLocation = Paths.get(baseStorageLocationAsString);
-        if (request.getStorageSubDirectory() != null) {
-            // Storage directory is provider. use it
+        if ((request.getStorageSubDirectory() != null) && !request.getStorageSubDirectory().isEmpty()) {
+            // Storage directory is provided. use it
             storageLocation = Paths.get(baseStorageLocationAsString, request.getStorageSubDirectory());
         } else {
             // Storage directory is not provided, generate new one with checksum
