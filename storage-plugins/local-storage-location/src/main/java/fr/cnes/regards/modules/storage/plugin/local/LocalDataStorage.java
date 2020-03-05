@@ -198,8 +198,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                                     request.getMetaInfo().getAlgorithm(),
                                                                     request.getMetaInfo().getChecksum());
             } catch (IOException e) {
-                throw new ModuleException(String.format("Download error for file %s. Cause : %s",
-                                                        request.getOriginUrl(), e.getMessage()), e);
+                throw new ModuleException(
+                        String.format("Download error for file %s. Cause : %s", request.getOriginUrl(), e.getMessage()),
+                        e);
             }
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
@@ -374,7 +375,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // in this case, we have to check its size to be sure we can still add files to it
             Path targetPath = Files.readSymbolicLink(linkPath);
             try (ZipFile zip = new ZipFile(targetPath.toFile())) {
-                if ((targetPath.toFile().length() > maxZipSize) || (zip.size() > MAX_FILE_IN_ZIP)) {
+                if ((targetPath.toFile().length() >= maxZipSize) || (zip.size() >= MAX_FILE_IN_ZIP)) {
                     // we have to create a new one
                     try (FileChannel targetFC = FileChannel.open(targetPath, StandardOpenOption.WRITE,
                                                                  StandardOpenOption.READ)) {
