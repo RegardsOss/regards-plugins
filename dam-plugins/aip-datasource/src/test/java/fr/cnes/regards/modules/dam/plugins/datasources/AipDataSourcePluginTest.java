@@ -64,7 +64,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginCo
 import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
@@ -143,7 +142,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         for (int i = 0; i < count; i++) {
             UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
                     UUID.randomUUID(), 1);
-            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i);
+            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
             aip.withContextTags(tags);
 
             aip.withDescriptiveInformation("label", "libellé du data object " + i);
