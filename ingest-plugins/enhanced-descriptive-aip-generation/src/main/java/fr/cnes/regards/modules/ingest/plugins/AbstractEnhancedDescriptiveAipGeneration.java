@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
+import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
-import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 
 /**
  *
@@ -32,9 +32,9 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected Boolean always;
 
     @Override
-    public List<AIP> generate(SIP sip, UniformResourceName aipId, UniformResourceName sipId, String providerId) {
+    public List<AIP> generate(SIPEntity sip, UniformResourceName aipId, UniformResourceName sipId, String providerId) {
 
-        AIP aip = AIP.build(sip, aipId, Optional.ofNullable(sipId), providerId);
+        AIP aip = AIP.build(sip.getSip(), aipId, Optional.ofNullable(sipId), providerId, sip.getVersion());
         if (COUNTER.get() == Integer.MAX_VALUE) {
             COUNTER.set(Integer.MIN_VALUE);
         }
