@@ -22,6 +22,7 @@ CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdi
 	# Remove old dam plugins
 	rm -f /regards-plugins/dam/aip-datasource-*.jar && \
 	rm -f /regards-plugins/dam/postgresql-datasource-*.jar && \
+	rm -f /regards-plugins/dam/webservice-datasource-*.jar && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
         # Remove old ingest plugins
