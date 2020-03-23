@@ -1,6 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
-import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 
 /**

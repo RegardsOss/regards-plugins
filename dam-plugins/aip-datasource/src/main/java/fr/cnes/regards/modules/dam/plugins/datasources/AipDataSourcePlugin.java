@@ -65,9 +65,9 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.ContentInformation;
 import fr.cnes.regards.framework.oais.OAISDataObject;
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.oais.urn.UniformResourceName;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -503,7 +503,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      * @param checksum
      * @return
      */
-    private String getDownloadUrl(UniformResourceName uniformResourceName, String checksum, String tenant) {
+    private String getDownloadUrl(OaisUniformResourceName uniformResourceName, String checksum, String tenant) {
         Project project = projects.get(tenant);
         if (project == null) {
             FeignSecurityManager.asSystem();
