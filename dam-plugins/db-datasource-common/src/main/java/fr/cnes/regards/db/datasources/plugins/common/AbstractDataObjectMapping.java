@@ -54,7 +54,10 @@ import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -241,7 +244,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
     protected DataObjectFeature processResultSet(ResultSet rset, Model model, String tenant)
             throws SQLException, DataSourceException {
 
-        DataObjectFeature feature = new DataObjectFeature(tenant, "providerIdPlaceHolder", "labelPlaceHolder");
+        DataObjectFeature feature = new DataObjectFeature(
+                OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP, EntityType.DATA, tenant, 1),
+                "providerIdPlaceHolder", "labelPlaceHolder");
 
         Set<IProperty<?>> attributes = new HashSet<>();
         Map<String, List<IProperty<?>>> spaceNames = Maps.newHashMap();
