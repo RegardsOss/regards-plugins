@@ -52,11 +52,11 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.UniformResourceName;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -140,7 +140,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
+            OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
                     UUID.randomUUID(), 1);
             AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i);
             aip.withContextTags(tags);

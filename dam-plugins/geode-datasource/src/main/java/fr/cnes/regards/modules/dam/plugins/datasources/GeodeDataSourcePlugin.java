@@ -19,19 +19,26 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IGeodeDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
+import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
 
 /**
  * Plugin to get data from feature manager
@@ -41,9 +48,7 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 @Plugin(id = "gedoe-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
         author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
         url = "https://github.com/RegardsOss")
-public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GeodeDataSourcePlugin.class);
+public class GeodeDataSourcePlugin implements IDataSourcePlugin {
 
     @Value("${geode.plugin.refreshRate:1000}")
     private int refreshRate;
@@ -52,15 +57,31 @@ public class GeodeDataSourcePlugin implements IGeodeDataSourcePlugin {
             description = "Associated data source model name")
     protected String modelName;
 
+    @Autowired
+    private IFeatureEntityClient dataObjectClient;
+
     @Override
     public int getRefreshRate() {
         return refreshRate;
     }
 
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+    public Page<DataObjectFeature> findAll(String model, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
-        return null;
+        PagedModel<EntityModel<FeatureEntityDto>> page = dataObjectClient
+                .findAll(model, date, pageable.getPageNumber(), pageable.getPageSize()).getBody();
+        Collection<EntityModel<FeatureEntityDto>> dtos = page.getContent();
+        return new PageImpl<DataObjectFeature>(
+                dtos.stream().map(entity -> initDataObjectFeature(entity)).collect(Collectors.toList()),
+                PageRequest.of(new Long(page.getMetadata().getNumber()).intValue(),
+                               new Long(page.getMetadata().getSize()).intValue()),
+                page.getMetadata().getTotalElements());
+    }
+
+    private DataObjectFeature initDataObjectFeature(EntityModel<FeatureEntityDto> entity) {
+        return new DataObjectFeature(entity.getContent().getFeature().getUrn(),
+                entity.getContent().getFeature().getId(), "NO LABEL", entity.getContent().getSessionOwner(),
+                entity.getContent().getSession(), entity.getContent().getFeature().getModel());
     }
 
     @Override
