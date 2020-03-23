@@ -22,7 +22,10 @@ import org.springframework.http.MediaType;
 import fr.cnes.regards.framework.geojson.Feature;
 import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
@@ -248,7 +251,9 @@ public class FeaturesConverter {
                                                                null, StaticProperties.FEATURE_PROVIDER_ID, true);
 
         // C - Create feature, even when it is not valid, to avoid testing those points later (it will not be registered in such case)
-        DataObjectFeature convertedFeature = new DataObjectFeature(tenant, providerIDValue, labelValue);
+        DataObjectFeature convertedFeature = new DataObjectFeature(
+                OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP, EntityType.DATA, tenant, 1),
+                providerIDValue, labelValue);
 
         // D - Retrieve geometry if provided
         convertedFeature.setGeometry(feature.getGeometry());
