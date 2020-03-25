@@ -45,7 +45,7 @@ import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
  *
  * @author Kevin Marchois
  */
-@Plugin(id = "gedoe-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
+@Plugin(id = "geode-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
         author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
         url = "https://github.com/RegardsOss")
 public class GeodeDataSourcePlugin implements IDataSourcePlugin {
