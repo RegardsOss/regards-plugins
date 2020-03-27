@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -62,6 +62,10 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.DateIntervalAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.IntegerIntervalAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.LongAttribute;
+import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribute;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -142,7 +146,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         for (int i = 0; i < count; i++) {
             OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
                     UUID.randomUUID(), 1);
-            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i);
+            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
             aip.withContextTags(tags);
 
             aip.withDescriptiveInformation("label", "libellé du data object " + i);
