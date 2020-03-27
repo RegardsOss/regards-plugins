@@ -403,12 +403,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             //handle fragment
             String[] fragNAttr = modelAttrNameFileSize.split("\\.");
             if (fragNAttr.length > 1) {
-                feature.addProperty(AttributeBuilder
+                feature.addProperty(IProperty
                         .buildObject(fragNAttr[0],
-                                     AttributeBuilder.forType(AttributeType.LONG, fragNAttr[1], rawDataFilesSize)));
+                                     IProperty.forType(PropertyType.LONG, fragNAttr[1], rawDataFilesSize)));
             } else {
-                feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize,
-                                                             rawDataFilesSize));
+                feature.addProperty(IProperty.forType(PropertyType.LONG, modelAttrNameFileSize, rawDataFilesSize));
             }
         }
 
