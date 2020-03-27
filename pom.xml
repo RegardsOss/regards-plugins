@@ -57,9 +57,16 @@
 
 
     <dependencies>
+        <!-- Add here files to save in docker image-->
         <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>aip-datasource</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+            <artifactId>geode-datasource</artifactId>
+            <version>GEODE</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
