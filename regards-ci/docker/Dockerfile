@@ -29,9 +29,6 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/dam/geode-datasource-*.jar && \
 	rm -f /regards-plugins/dam/postgresql-datasource-*.jar && \
 	rm -f /regards-plugins/dam/webservice-datasource-*.jar && \
-    # Remove old ingest plugins
-	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
-	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
 
