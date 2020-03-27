@@ -33,18 +33,15 @@ public class OpenSearchFetcher {
     /**
      * URL query start char
      */
-    private static final String queryStartMarker = "?";
-
+    private static final String QUERY_START_MARKER = "?";
     /**
      * URL next parameter separator
      */
-    private static final String nextParameterMarker = "&";
-
+    private static final String NEXT_PARAMETER_MARKER = "&";
     /**
      * URL parameter value separator
      */
-    private static final String parameterValueSeparator = "=";
-
+    private static final String PARAMETER_VALUE_SEPARATOR = "=";
     /**
      * OpenSearch webservice configuration
      **/
@@ -103,30 +100,29 @@ public class OpenSearchFetcher {
 
         // 2 - prepare next parameter separator
         String webserviceURL = webserviceConfiguration.getWebserviceURL();
-        String currentParameterSeparator = queryStartMarker; // by default: query delimiter
-        if (webserviceURL.endsWith(queryStartMarker) || webserviceURL.endsWith(nextParameterMarker)) {
+        String currentParameterSeparator = QUERY_START_MARKER; // by default: query delimiter
+        if (webserviceURL.endsWith(QUERY_START_MARKER) || webserviceURL.endsWith(NEXT_PARAMETER_MARKER)) {
             // next parameter can be added without inserting any new separator
             currentParameterSeparator = "";
-        } else if (webserviceURL.contains(queryStartMarker)) {
+        } else if (webserviceURL.contains(QUERY_START_MARKER)) {
             // url  already contains a query, next parameter should be separated using "&"
-            currentParameterSeparator = nextParameterMarker;
+            currentParameterSeparator = NEXT_PARAMETER_MARKER;
         }
 
         // 3 - Append parameters
         StringBuilder builtURL = new StringBuilder(webserviceURL);
         for (Pair<String, String> p : addedParameters) {
-            builtURL.append(currentParameterSeparator).append(p.getKey()).append(parameterValueSeparator)
-                    .append(p.getValue());
-            currentParameterSeparator = nextParameterMarker;
+            builtURL.append(currentParameterSeparator).append(p.getKey()).append(PARAMETER_VALUE_SEPARATOR).append(p.getValue());
+            currentParameterSeparator = NEXT_PARAMETER_MARKER;
         }
         // 4 - Append configuration parameters
         Map<String, Object> webserviceParameters = webserviceConfiguration.getWebserviceParameters();
         if (webserviceParameters != null) {
             for (Map.Entry<String, Object> parameter : webserviceParameters.entrySet()) {
                 if (parameter.getValue() != null) {
-                    builtURL.append(currentParameterSeparator).append(parameter.getKey())
-                            .append(parameterValueSeparator).append(parameter.getValue());
-                    currentParameterSeparator = nextParameterMarker;
+                    builtURL.append(currentParameterSeparator).append(parameter.getKey()).append(
+                            PARAMETER_VALUE_SEPARATOR).append(parameter.getValue());
+                    currentParameterSeparator = NEXT_PARAMETER_MARKER;
                 }
             }
         }
