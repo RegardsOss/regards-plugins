@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -306,7 +306,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
                             .withCategories(categories).withLastUpdateFrom(date), pageable.getPageNumber(),
                                 pageable.getPageSize());
-            Storages storages = new Storages(storageLocationDTOList);
+            Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
                 List<DataObjectFeature> list = new ArrayList<>();
                 for (EntityModel<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
@@ -334,7 +334,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                         "Error while calling storage client (HTTP STATUS : " + aipResponseEntity.getStatusCode());
             }
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage());
+            throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
         } finally {
             FeignSecurityManager.reset();
         }
@@ -387,7 +387,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     Object types = ci.getRepresentationInformation().getEnvironmentDescription()
                             .getSoftwareEnvironment().get(AIP_PROPERTY_DATA_FILES_TYPES);
                     if (types instanceof Collection) {
-                        dataFile.getTypes().addAll((Collection) types);
+                        dataFile.getTypes().addAll((Collection<String>) types);
                     }
                 }
                 // Register file
@@ -403,11 +403,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             //handle fragment
             String[] fragNAttr = modelAttrNameFileSize.split("\\.");
             if (fragNAttr.length > 1) {
-                feature.addProperty(IProperty
+                feature.addProperty(AttributeBuilder
                         .buildObject(fragNAttr[0],
-                                     IProperty.forType(PropertyType.LONG, fragNAttr[1], rawDataFilesSize)));
+                                     AttributeBuilder.forType(AttributeType.LONG, fragNAttr[1], rawDataFilesSize)));
             } else {
-                feature.addProperty(IProperty.forType(PropertyType.LONG, modelAttrNameFileSize, rawDataFilesSize));
+                feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize,
+                                                             rawDataFilesSize));
             }
         }
 
@@ -549,7 +550,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         try {
             value = propertyUtilsBean.getNestedProperty(aip, propertyJsonPath.trim());
         } catch (NestedNullException e) {
-            LOGGER.debug("Property \"{}\" not found in AIP \"{}\"", propertyJsonPath, aip.getId());
+            LOGGER.debug(String.format("Property \"%s\" not found in AIP \"%s\"", propertyJsonPath, aip.getId()), e);
         }
         return value;
     }
@@ -563,24 +564,26 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
     }
 
-    private class Storages {
+    private static class Storages {
 
-        private final List<String> all;
+        private List<String> all;
 
-        private final List<String> onlines;
+        private List<String> onlines;
 
-        private final List<String> offlines;
+        private List<String> offlines;
 
-        Storages(List<StorageLocationDTO> storageLocationDTOList) {
-            this.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
-            this.onlines = storageLocationDTOList.stream()
+        public static Storages build(List<StorageLocationDTO> storageLocationDTOList) {
+            Storages storages = new Storages();
+            storages.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
+            storages.onlines = storageLocationDTOList.stream()
                     .filter(s -> (s.getConfiguration() != null)
                             && (s.getConfiguration().getStorageType() == StorageType.ONLINE))
                     .map(n -> n.getName()).collect(Collectors.toList());
-            this.offlines = storageLocationDTOList.stream()
+            storages.offlines = storageLocationDTOList.stream()
                     .filter(s -> (s.getConfiguration() == null)
                             || (s.getConfiguration().getStorageType() == StorageType.OFFLINE))
                     .map(n -> n.getName()).collect(Collectors.toList());
+            return storages;
         }
 
         public List<String> getAll() {
