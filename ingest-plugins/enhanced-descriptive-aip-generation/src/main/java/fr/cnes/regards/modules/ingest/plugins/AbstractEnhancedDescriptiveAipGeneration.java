@@ -32,7 +32,8 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected Boolean always;
 
     @Override
-    public List<AIP> generate(SIPEntity sip, UniformResourceName aipId, UniformResourceName sipId, String providerId) {
+    public List<AIP> generate(SIPEntity sip, OaisUniformResourceName aipId, OaisUniformResourceName sipId,
+            String providerId) {
 
         AIP aip = AIP.build(sip.getSip(), aipId, Optional.ofNullable(sipId), providerId, sip.getVersion());
         if (COUNTER.get() == Integer.MAX_VALUE) {
