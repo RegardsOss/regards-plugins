@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
@@ -21,10 +21,9 @@ import org.springframework.util.MimeTypeUtils;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
@@ -34,6 +33,7 @@ import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
 import fr.cnes.regards.modules.ingest.dto.sip.SIP;
+import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
@@ -59,8 +59,9 @@ public class AipDataSourcePluginTestConfiguration {
         IProjectsClient client = Mockito.mock(IProjectsClient.class);
         Project project = new Project("desc", null, true, "test-project");
         project.setHost("http://test.com");
-        Resource<Project> resource = new Resource<Project>(project);
-        ResponseEntity<Resource<Project>> response = new ResponseEntity<Resource<Project>>(resource, HttpStatus.OK);
+        EntityModel<Project> resource = new EntityModel<Project>(project);
+        ResponseEntity<EntityModel<Project>> response = new ResponseEntity<EntityModel<Project>>(resource,
+                HttpStatus.OK);
         Mockito.when(client.retrieveProject(Mockito.anyString())).thenReturn(response);
         return client;
     }
@@ -83,7 +84,7 @@ public class AipDataSourcePluginTestConfiguration {
     private class AipClientProxy {
 
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedResources<Resource<AIPEntity>>> searchAIPs(SearchAIPsParameters filters, int page,
+        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters, int page,
                 int size) {
             List<AIPEntity> aipEntities = new ArrayList<>();
 
@@ -105,11 +106,11 @@ public class AipDataSourcePluginTestConfiguration {
 
             }
 
-            List<Resource<AIPEntity>> list = aipEntities.stream().map(n -> {
-                return new Resource<AIPEntity>(n);
+            List<EntityModel<AIPEntity>> list = aipEntities.stream().map(n -> {
+                return new EntityModel<AIPEntity>(n);
             }).collect(Collectors.toList());
-            return ResponseEntity.ok(new PagedResources<Resource<AIPEntity>>(list,
-                    new PagedResources.PageMetadata(aipEntities.size(), 0, aipEntities.size(), 1)));
+            return ResponseEntity.ok(new PagedModel<EntityModel<AIPEntity>>(list,
+                    new PagedModel.PageMetadata(aipEntities.size(), 0, aipEntities.size(), 1)));
         }
 
     }
@@ -121,9 +122,9 @@ public class AipDataSourcePluginTestConfiguration {
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
         StorageLocationDTO dto = StorageLocationDTO.build("AWS", 1L, 1L, 1L, 1L, false, false, false,
                                                           storageLocationConfiguration);
-        List<Resource<StorageLocationDTO>> list = new LinkedList<>();
-        list.add(new Resource<>(dto));
-        ResponseEntity<List<Resource<StorageLocationDTO>>> result = ResponseEntity.ok(list);
+        List<EntityModel<StorageLocationDTO>> list = new LinkedList<>();
+        list.add(new EntityModel<>(dto));
+        ResponseEntity<List<EntityModel<StorageLocationDTO>>> result = ResponseEntity.ok(list);
         Mockito.when(mock.retrieve()).thenReturn(result);
         return mock;
     }
