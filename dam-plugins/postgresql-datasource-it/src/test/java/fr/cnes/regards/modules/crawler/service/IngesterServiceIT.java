@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -46,8 +46,8 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
@@ -61,21 +61,21 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalData3Repository;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelAttrAssocRepository;
-import fr.cnes.regards.modules.dam.dao.models.IModelRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.model.dao.IModelRepository;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
+import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 
@@ -189,8 +189,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf1");
         conf.setBusinessId("pluginConf1");
         return conf;
@@ -205,8 +205,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf2");
         conf.setBusinessId("pluginConf2");
         return conf;
@@ -221,8 +221,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                      IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
                                         PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
-                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+                                                             parameters);
         conf.setLabel("pluginConf3");
         conf.setBusinessId("pluginConf3");
         return conf;
@@ -238,15 +238,14 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
+        return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);
     }
 
     private void buildModelAttributes() {
         modelAttrMapping = new ArrayList<>();
-        modelAttrMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, PropertyType.DATE_ISO8601,
+                "date"));
     }
 
     @Before
@@ -348,7 +347,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     public void test() throws InterruptedException {
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
-                .thenReturn(ResponseEntity.ok(new Resource<>(project)));
+                .thenReturn(ResponseEntity.ok(new EntityModel<>(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 

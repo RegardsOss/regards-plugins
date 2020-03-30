@@ -23,7 +23,7 @@
 
 	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 	<artifactId>dam-plugins</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>GEODE</version>
 	<packaging>pom</packaging>
 	
 	<description>Plugins allowing the system to connect to various datasources, from which will be aspired the data</description>
@@ -51,7 +51,7 @@
 	<parent>
 		<groupId>fr.cnes.regards</groupId>
 		<artifactId>regards-parent</artifactId>
-		<version>0.5.0-SNAPSHOT</version>
+		<version>GEODE</version>
 		<relativePath />
 	</parent>
 	<modules>
@@ -59,6 +59,7 @@
 		<module>db-datasource-common</module>
 		<module>postgresql-datasource</module>
 		<module>postgresql-datasource-it</module>
+		<module>geode-datasource</module>
         <module>webservice-datasource</module>
     </modules>
 </project>

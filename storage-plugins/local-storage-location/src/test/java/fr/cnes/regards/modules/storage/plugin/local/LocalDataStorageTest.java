@@ -39,6 +39,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import fr.cnes.regards.framework.modules.locks.service.ILockService;
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -74,7 +75,8 @@ public class LocalDataStorageTest {
         params.add(IPluginParam.build(LocalDataStorage.BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME, baseStorageLocation));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_DELETE_OPTION, true));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_TOTAL_SPACE, 10_000_000L));
-        plugin = PluginUtils.getPlugin(params, LocalDataStorage.class, Maps.newHashMap());
+        plugin = PluginUtils.getPlugin(PluginConfiguration.build(LocalDataStorage.class, null, params),
+                                       Maps.newHashMap());
 
         ILockService mockLockService = Mockito.mock(ILockService.class);
         Mockito.when(mockLockService.waitForlock(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyLong()))
