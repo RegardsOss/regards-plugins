@@ -28,10 +28,13 @@ import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 
 /**
  * @author oroussel
@@ -50,13 +53,14 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
         List<DataObjectFeature> list = new ArrayList<>();
-        DataObjectFeature o = new DataObjectFeature(tenant, "DO1", "");
+        DataObjectFeature o = new DataObjectFeature(
+                OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP, EntityType.DATA, tenant, 1), "DO1", "");
         // toto isn't expected by the model
-        o.addProperty(AttributeBuilder.buildString("toto", "texte"));
+        o.addProperty(IProperty.buildString("toto", "texte"));
         // tutu.titi isn't expected by the model
         // tutu.toto is expected as mandatory
-        o.addProperty(AttributeBuilder.buildObject("tutu", AttributeBuilder.buildString("titi", "texte"),
-                                                   AttributeBuilder.buildString("toto", "texte")));
+        o.addProperty(IProperty.buildObject("tutu", IProperty.buildString("titi", "texte"),
+                                            IProperty.buildString("toto", "texte")));
         list.add(o);
         return new PageImpl<>(list);
     }

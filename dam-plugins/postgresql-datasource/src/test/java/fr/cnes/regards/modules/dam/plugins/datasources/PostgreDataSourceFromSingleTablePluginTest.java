@@ -27,13 +27,10 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.util.Lists;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -60,10 +57,10 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -75,11 +72,11 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.DataSourceEntity;
 import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceRepositoryTest;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.service.IModelService;
 
 /**
  * @author Christophe Mertz
@@ -204,7 +201,8 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
                      IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
                      IPluginParam.build(DataSourcePluginConstants.TAGS, PluginParameterTransformer.toJson(tags)));
 
-        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin", parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin",
+                parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
 
         dbDataSourceConf = pluginService.savePluginConfiguration(dbDataSourceConf);
 
@@ -320,7 +318,8 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters, DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters,
+                DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
 
         pluginService.savePluginConfiguration(plgConf);
 
@@ -331,23 +330,23 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
         this.attributesMapping = new ArrayList<>();
 
         this.attributesMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, AttributeType.LONG, "id"));
+                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
 
         this.attributesMapping
                 .add(new StaticAttributeMapping(AbstractAttributeMapping.LABEL, "'" + HELLO + "- 'as label"));
         this.attributesMapping
-                .add(new DynamicAttributeMapping("alt", "geometry", AttributeType.INTEGER, "altitude AS altitude"));
-        this.attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", AttributeType.DOUBLE, "latitude"));
-        this.attributesMapping.add(new DynamicAttributeMapping("long", "geometry", AttributeType.DOUBLE, "longitude"));
-        this.attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", AttributeType.DATE_ISO8601,
+                .add(new DynamicAttributeMapping("alt", "geometry", PropertyType.INTEGER, "altitude AS altitude"));
+        this.attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", PropertyType.DOUBLE, "latitude"));
+        this.attributesMapping.add(new DynamicAttributeMapping("long", "geometry", PropertyType.DOUBLE, "longitude"));
+        this.attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", PropertyType.DATE_ISO8601,
                 "timestampwithouttimezone"));
-        this.attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", AttributeType.DATE_ISO8601,
+        this.attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", PropertyType.DATE_ISO8601,
                 "timestampwithouttimezone"));
-        this.attributesMapping.add(new DynamicAttributeMapping("date", "hello", AttributeType.DATE_ISO8601, "date"));
+        this.attributesMapping.add(new DynamicAttributeMapping("date", "hello", PropertyType.DATE_ISO8601, "date"));
         this.attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                AttributeType.DATE_ISO8601, "timestampwithtimezone"));
-        this.attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", AttributeType.BOOLEAN, "update"));
-        this.attributesMapping.add(new DynamicAttributeMapping("url", "", AttributeType.URL, "url"));
+                PropertyType.DATE_ISO8601, "timestampwithtimezone"));
+        this.attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", PropertyType.BOOLEAN, "update"));
+        this.attributesMapping.add(new DynamicAttributeMapping("url", "", PropertyType.URL, "url"));
     }
 
 }

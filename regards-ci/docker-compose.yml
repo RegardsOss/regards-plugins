@@ -1,12 +1,12 @@
 version: '2'
 services:
   rs-rabbitmq:
-    image: rabbitmq:3.6.5-management
+    image: rabbitmq:3.8.2-management-alpine
     networks:
       - regards_IT_network
 
   rs-postgres:
-    image: postgres:9.6
+    image: postgres:11.5
     environment:
       - POSTGRES_PASSWORD=azertyuiop123456789
       - POSTGRES_USER=azertyuiop123456789

@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 
+import com.google.common.collect.Maps;
+
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
@@ -82,7 +84,9 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        postgreDBConn = PluginUtils.getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
+        postgreDBConn = PluginUtils
+                .getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters),
+                           Maps.newHashMap());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(postgreDBConn.testConnection());
