@@ -43,8 +43,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -65,30 +65,29 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.ContentInformation;
 import fr.cnes.regards.framework.oais.OAISDataObject;
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.DataType;
-import fr.cnes.regards.framework.oais.urn.EntityType;
-import fr.cnes.regards.framework.oais.urn.UniformResourceName;
+import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IAipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.AbstractAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.ObjectAttribute;
-import fr.cnes.regards.modules.dam.domain.entities.attribute.builder.AttributeBuilder;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.Model;
-import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
-import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
-import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
-import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
+import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
@@ -132,7 +131,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     /**
      * Association table between JSON path property and its type from model
      */
-    private final Map<String, AttributeType> modelMappingMap = new HashMap<>();
+    private final Map<String, PropertyType> modelMappingMap = new HashMap<>();
 
     /**
      * Map of {@link Project}s by tenant
@@ -272,7 +271,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         // Check number of values mapped for each type
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
             if (entry.getKey().startsWith(DataSourcePluginConstants.PROPERTY_PREFIX)) {
-                AttributeType attributeType = modelMappingMap.get(entry.getKey());
+                PropertyType attributeType = modelMappingMap.get(entry.getKey());
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
@@ -300,17 +299,17 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             throws DataSourceException {
         try {
             FeignSecurityManager.asSystem();
-            ResponseEntity<List<Resource<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
+            ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
-            ResponseEntity<PagedResources<Resource<AIPEntity>>> aipResponseEntity = aipClient
+            ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
                             .withCategories(categories).withLastUpdateFrom(date), pageable.getPageNumber(),
                                 pageable.getPageSize());
             Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
                 List<DataObjectFeature> list = new ArrayList<>();
-                for (Resource<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
+                for (EntityModel<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
                     // rs-storage stores all kinds of entity, we only want data here.
                     AIPEntity aipEntity = aipDataFiles.getContent();
                     if (aipEntity.getAip().getIpType() == EntityType.DATA) {
@@ -325,7 +324,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     }
                 }
 
-                PagedResources.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
+                PagedModel.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
                 int pageSize = (int) responsePageMeta.getSize();
                 return new PageImpl<>(list,
                         PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
@@ -404,12 +403,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             //handle fragment
             String[] fragNAttr = modelAttrNameFileSize.split("\\.");
             if (fragNAttr.length > 1) {
-                feature.addProperty(AttributeBuilder
+                feature.addProperty(IProperty
                         .buildObject(fragNAttr[0],
-                                     AttributeBuilder.forType(AttributeType.LONG, fragNAttr[1], rawDataFilesSize)));
+                                     IProperty.forType(PropertyType.LONG, fragNAttr[1], rawDataFilesSize)));
             } else {
-                feature.addProperty(AttributeBuilder.forType(AttributeType.LONG, modelAttrNameFileSize,
-                                                             rawDataFilesSize));
+                feature.addProperty(IProperty.forType(PropertyType.LONG, modelAttrNameFileSize, rawDataFilesSize));
             }
         }
 
@@ -444,8 +442,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                 // Property name in all cases (fragment or not)
                 String propName = dynamicPropertyPath.substring(dynamicPropertyPath.indexOf('.') + 1);
                 // Retrieve attribute type to manage interval specific value
-                AttributeType attributeType = modelMappingMap.get(doPropertyPath);
-                AbstractAttribute<?> propAtt = null;
+                PropertyType attributeType = modelMappingMap.get(doPropertyPath);
+                IProperty<?> propAtt = null;
                 if (attributeType.isInterval()) {
                     // Values from AIP
                     String lowerBoundPropertyPath = entry.getValue().get(0);
@@ -454,7 +452,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     Object upperBound = getNestedProperty(aip, upperBoundPropertyPath);
                     if ((lowerBound != null) || (upperBound != null)) {
                         try {
-                            propAtt = AttributeBuilder.forType(attributeType, propName, lowerBound, upperBound);
+                            propAtt = IProperty.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
                             String msg = String.format("Cannot map %s and to %s (values %s and %s)",
                                                        lowerBoundPropertyPath, upperBoundPropertyPath, propName,
@@ -468,7 +466,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     Object value = getNestedProperty(aip, propertyPath);
                     if (value != null) {
                         try {
-                            propAtt = AttributeBuilder.forType(attributeType, propName, value);
+                            propAtt = IProperty.forType(attributeType, propName, value);
                         } catch (ClassCastException e) {
                             String msg = String.format("Cannot map %s to %s (value %s)", propertyPath, propName, value);
                             throw new RsRuntimeException(msg, e);
@@ -480,13 +478,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
                     if (dynamicPropertyPath.contains(".")) {
                         String fragmentName = dynamicPropertyPath.substring(0, dynamicPropertyPath.indexOf('.'));
 
-                        Optional<AbstractAttribute<?>> opt = feature.getProperties().stream()
+                        Optional<IProperty<?>> opt = feature.getProperties().stream()
                                 .filter(p -> p.getName().equals(fragmentName)).findAny();
-                        ObjectAttribute fragmentAtt = opt.isPresent() ? (ObjectAttribute) opt.get() : null;
+                        ObjectProperty fragmentAtt = opt.isPresent() ? (ObjectProperty) opt.get() : null;
                         if (fragmentAtt == null) {
-                            fragmentAtt = AttributeBuilder.buildObject(fragmentName, propAtt);
+                            fragmentAtt = IProperty.buildObject(fragmentName, propAtt);
                         } else {
-                            fragmentAtt.getValue().add(propAtt);
+                            fragmentAtt.addProperty(propAtt);
                         }
                         feature.addProperty(fragmentAtt);
                     } else {
@@ -505,7 +503,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
      * @param checksum
      * @return
      */
-    private String getDownloadUrl(UniformResourceName uniformResourceName, String checksum, String tenant) {
+    private String getDownloadUrl(OaisUniformResourceName uniformResourceName, String checksum, String tenant) {
         Project project = projects.get(tenant);
         if (project == null) {
             FeignSecurityManager.asSystem();
