@@ -13,8 +13,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>geode-datasource</artifactId>
-	<description>Geode datasource</description>
+	<artifactId>feature-datasource</artifactId>
+	<description>Feature manager as a datasource</description>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -49,18 +49,26 @@
 			<artifactId>commons-beanutils</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-domain</artifactId>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.framework.utils</groupId>
 			<artifactId>spring-utils</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.feature</groupId>
-			<artifactId>feature-service</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.feature</groupId>
 			<artifactId>feature-client</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage</groupId>
+            <artifactId>storage-client</artifactId>
+        </dependency>
+		<dependency>
+            <groupId>fr.cnes.regards.modules.project</groupId>
+            <artifactId>project-client</artifactId>
+        </dependency>
 		<!-- Tests -->
 		<dependency>
 			<groupId>fr.cnes.regards.framework.test</groupId>
@@ -85,7 +93,13 @@
 								<includes>
 									<include>fr.cnes.regards.framework.utils:spring-utils</include>
 									<include>commons-beanutils:commons-beanutils</include>
-<!--									TODO Add exclusions-->
+									
+									<include>fr.cnes.regards.modules.ingest:ingest-client</include>
+									<include>fr.cnes.regards.modules.ingest:ingest-domain</include>
+									<include>fr.cnes.regards.modules.storage:storage-client</include>
+									<include>fr.cnes.regards.modules.storage:storage-domain</include>
+									<include>fr.cnes.regards.modules.project:project-client</include>
+									<include>fr.cnes.regards.modules.project:project-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>
