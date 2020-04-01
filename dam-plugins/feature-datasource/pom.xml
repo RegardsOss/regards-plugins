@@ -56,6 +56,7 @@
 		<dependency>
 			<groupId>fr.cnes.regards.framework.utils</groupId>
 			<artifactId>spring-utils</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.feature</groupId>
@@ -64,10 +65,12 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
             <artifactId>storage-client</artifactId>
+            <scope>provided</scope>
         </dependency>
 		<dependency>
             <groupId>fr.cnes.regards.modules.project</groupId>
             <artifactId>project-client</artifactId>
+            <scope>provided</scope>
         </dependency>
 		<!-- Tests -->
 		<dependency>
@@ -91,15 +94,9 @@
 							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<includes>
-									<include>fr.cnes.regards.framework.utils:spring-utils</include>
-									<include>commons-beanutils:commons-beanutils</include>
-									
-									<include>fr.cnes.regards.modules.ingest:ingest-client</include>
-									<include>fr.cnes.regards.modules.ingest:ingest-domain</include>
-									<include>fr.cnes.regards.modules.storage:storage-client</include>
-									<include>fr.cnes.regards.modules.storage:storage-domain</include>
-									<include>fr.cnes.regards.modules.project:project-client</include>
-									<include>fr.cnes.regards.modules.project:project-domain</include>
+									<include>commons-beanutils:commons-beanutils</include>			
+									<include>fr.cnes.regards.modules.feature:feature-client</include>	
+									<include>fr.cnes.regards.modules.feature:feature-dto</include>				
 								</includes>
 							</artifactSet>
 						</configuration>

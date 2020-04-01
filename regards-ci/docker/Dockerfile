@@ -6,7 +6,7 @@ ENV REGARDS_HOME /regards
 ADD local-storage-location-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
 ADD aip-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD geode-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD feature-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD postgresql-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 ADD webservice-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
