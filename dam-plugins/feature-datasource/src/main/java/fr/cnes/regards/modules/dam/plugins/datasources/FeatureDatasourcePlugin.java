@@ -88,7 +88,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
     protected String modelName;
 
     @Autowired
-    private IFeatureEntityClient dataObjectClient;
+    private IFeatureEntityClient featureClient;
 
     /**
      * May not be useful if no file is managed!
@@ -124,9 +124,14 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
             throws DataSourceException {
 
-        // Do remote request to FEATURE MANAGER
-        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = dataObjectClient
-                .findAll(modelName, date, pageable.getPageNumber(), pageable.getPageSize());
+        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response;
+        try {
+            FeignSecurityManager.asSystem();
+            // Do remote request to FEATURE MANAGER
+            response = featureClient.findAll(modelName, date, pageable.getPageNumber(), pageable.getPageSize());
+        } finally {
+            FeignSecurityManager.reset();
+        }
 
         // Manage request error
         if (!response.getStatusCode().is2xxSuccessful()) {
