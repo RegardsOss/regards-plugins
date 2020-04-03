@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -18,25 +18,28 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Sets;
+
+import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.feature.client.FeatureClient;
-import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.framework.modules.jobs.domain.JobInfo;
+import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
+import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
+import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
+import fr.cnes.regards.modules.catalog.femdriver.service.job.FemUpdateJob;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 
 /**
- * @author sbinda
+ * Business service for FEM Driver
+ *
+ * @author Sébastien Binda
  *
  */
 @Service
@@ -44,23 +47,26 @@ import fr.cnes.regards.modules.search.domain.SearchRequest;
 public class FemDriverService {
 
     @Autowired
-    private IServiceHelper serviceHelper;
+    private IAuthenticationResolver authResolver;
 
     @Autowired
-    private FeatureClient featureClient;
+    private IJobInfoService jobInfoService;
 
-    // TODO :  A faire dans un job
-    public void update(SearchRequest searchRequest, Map<String, IProperty<?>> propertyMap) throws ModuleException {
-        Page<DataObject> results = serviceHelper.getDataObjects(searchRequest, 0, 1000);
-        List<Feature> features = Lists.newArrayList();
-        for (DataObject dobj : results.getContent()) {
-            Feature feature = Feature.build(dobj.getIpId().toString(), null, null, null, null);
-            for (IProperty<?> prop : propertyMap.values()) {
-                feature.addProperty(prop);
-            }
-            features.add(feature);
-        }
-        featureClient.updateFeatures(features);
+    /**
+     * Schedule a job to handle update request.  <br/>
+     * An update request is build with : <ul>
+     * <li> a {@link SearchRequest} containing the search request parameters to find features to update</li>
+     * <li> a Map of {@link IProperty} of each property to update</li>
+     * </ul>
+     * @param request {@link FeatureUpdateRequest}
+     * @return {@link JobInfo} of  scheduled job
+     * @throws ModuleException
+     */
+    public JobInfo scheduleUpdate(FeatureUpdateRequest request) throws ModuleException {
+        Set<JobParameter> jobParameters = Sets.newHashSet();
+        jobParameters.add(new JobParameter(FemUpdateJob.REQUEST_PARAMETER, request));
+        JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemUpdateJob.class.getName());
+        return jobInfoService.createAsQueued(jobInfo);
     }
 
 }
