@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -24,7 +24,9 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 
 /**
- * @author sbinda
+ * DTO for update request parameters.
+ *
+ * @author Sébastien Binda
  *
  */
 public class FeatureUpdateRequest {
@@ -35,6 +37,13 @@ public class FeatureUpdateRequest {
 
     public FeatureUpdateRequest() {
         super();
+    }
+
+    public static FeatureUpdateRequest build(SearchRequest searchRequest, Map<String, IProperty<?>> values) {
+        FeatureUpdateRequest req = new FeatureUpdateRequest();
+        req.searchRequest = searchRequest;
+        req.values = values;
+        return req;
     }
 
     /**
