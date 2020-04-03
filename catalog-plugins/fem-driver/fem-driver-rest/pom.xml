@@ -21,7 +21,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.catalog</groupId>
+	<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
 	<artifactId>fem-driver-rest</artifactId>
 	<packaging>jar</packaging>
 
@@ -48,7 +48,7 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards.modules.catalog</groupId>
+		<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
 		<artifactId>fem-driver</artifactId>
 		<version>1.1.0-SNAPSHOT</version>
 	</parent>
@@ -71,8 +71,8 @@
 			<artifactId>search-rest</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.catalog</groupId>
-			<artifactId>fem-driver-dto</artifactId>
+			<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+			<artifactId>fem-driver-service</artifactId>
 		</dependency>
 		<!-- Test dependencies -->
 		<dependency>
