@@ -18,8 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
@@ -37,10 +35,8 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.feature.dto.event.in.FeatureUpdateRequestEvent;
-import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.feature.dto.event.in.FeatureDeletionRequestEvent;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 
@@ -52,7 +48,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
  */
 @TestPropertySource(locations = { "classpath:test.properties", "classpath:local.properties" },
         properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
-public class FemUpdateJobTest extends AbstractFemJobTest {
+public class FemDeleteJobTest extends AbstractFemJobTest {
 
     @Autowired
     private IJobInfoService jobInfoService;
@@ -69,30 +65,25 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
     }
 
     @Test
-    public void testUpdateJob() throws ModuleException, InterruptedException, ExecutionException {
+    public void testDeleteJob() throws ModuleException, InterruptedException, ExecutionException {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
         SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
                 null, null, null);
-        Map<String, IProperty<?>> propertyMap = new HashMap<String, IProperty<?>>();
-        propertyMap.put("name", IProperty.buildString("name", "plop"));
-        femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+        femDriverService.scheduleDeletion(searchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
             loop++;
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureUpdateRequestEvent)
+        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureDeletionRequestEvent)
                 .peek(v -> {
-                    if (v instanceof FeatureUpdateRequestEvent) {
-                        FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event.getFeature());
-                        Assert.assertEquals("model_test", event.getFeature().getModel());
-                        Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
-                        Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
-                        Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
+                    if (v instanceof FeatureDeletionRequestEvent) {
+                        FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) v;
+                        Assert.assertNotNull("Invalid null event", event);
+                        Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
                     }
                 }).count();
         Assert.assertEquals(2L, nbEvents);
@@ -100,30 +91,26 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
     }
 
     @Test
-    public void testUpdateJobWithCrit() throws ModuleException, InterruptedException, ExecutionException {
+    public void testDeletionJobWithCrit() throws ModuleException, InterruptedException, ExecutionException {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
         SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
                 Sets.newHashSet(datas.get(0).getIpId().toString()), null, null);
-        Map<String, IProperty<?>> propertyMap = new HashMap<String, IProperty<?>>();
-        propertyMap.put("name", IProperty.buildString("name", "plop"));
-        femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+
+        femDriverService.scheduleDeletion(searchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
             loop++;
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureUpdateRequestEvent)
+        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureDeletionRequestEvent)
                 .peek(v -> {
-                    if (v instanceof FeatureUpdateRequestEvent) {
-                        FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event.getFeature());
-                        Assert.assertEquals("model_test", event.getFeature().getModel());
-                        Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
-                        Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
-                        Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
+                    if (v instanceof FeatureDeletionRequestEvent) {
+                        FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) v;
+                        Assert.assertNotNull("Invalid null event", event);
+                        Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
                     }
                 }).count();
         Assert.assertEquals(1L, nbEvents);
