@@ -55,6 +55,8 @@ public class FemDriverController {
 
     public static final String FEM_DRIVER_DELETE_PATH = "/delete";
 
+    public static final String FEM_DRIVER_NOTIFY_PATH = "/notify";
+
     @Autowired
     private FemDriverService femDriverService;
 
@@ -83,6 +85,20 @@ public class FemDriverController {
             @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
             throws ModuleException {
         femDriverService.scheduleDeletion(request);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Schedule FEM Feature notification",
+            description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
+    @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
+    @ResourceAccess(
+            description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
+    @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST,
+            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    public ResponseEntity<Void> notifyFeatures(
+            @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
+            throws ModuleException {
+        femDriverService.scheduleNotification(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
