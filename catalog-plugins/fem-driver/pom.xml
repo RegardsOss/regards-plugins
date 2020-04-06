@@ -16,15 +16,17 @@
  
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-	<artifactId>catalog-plugins</artifactId>
+	<artifactId>fem-driver</artifactId>
 	<version>1.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	
-	<description>Catalog plugins</description>
+
+	<description>Module providing search features on the entities catalog</description>
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -50,9 +52,41 @@
 		<groupId>fr.cnes.regards</groupId>
 		<artifactId>regards-parent</artifactId>
 		<version>1.1.0-SNAPSHOT</version>
-		<relativePath/>
+		<relativePath />
 	</parent>
+	
+
 	<modules>
-		<module>fem-driver</module>
-    </modules>
+		<module>fem-driver-dto</module>
+		<module>fem-driver-rest</module>
+		<module>fem-driver-service</module>
+		<module>fem-driver-plugin</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Module layers -->
+			<dependency>
+				<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+				<artifactId>fem-driver-dto</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+				<artifactId>fem-driver-rest</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+				<artifactId>fem-driver-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+				<artifactId>fem-driver-plugin</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 </project>
