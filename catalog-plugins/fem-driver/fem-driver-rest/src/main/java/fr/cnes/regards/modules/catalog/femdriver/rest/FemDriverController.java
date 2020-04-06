@@ -33,6 +33,7 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
+import fr.cnes.regards.modules.search.domain.SearchRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -48,21 +49,41 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RequestMapping(FemDriverController.FEM_DRIVER_PATH)
 public class FemDriverController {
 
-    public static final String FEM_DRIVER_PATH = "/femdriver";
+    public static final String FEM_DRIVER_PATH = "/femdriver/features";
+
+    public static final String FEM_DRIVER_UPDATE_PATH = "/update";
+
+    public static final String FEM_DRIVER_DELETE_PATH = "/delete";
 
     @Autowired
     private FemDriverService femDriverService;
 
-    @Operation(summary = "Publish a new feature and return the request id",
-            description = "Publish a new feature and return the request id")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A RequestInfo") })
-    @ResourceAccess(description = "Publish a new feature and return the request id")
-    @RequestMapping(method = RequestMethod.POST, consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
-    public ResponseEntity<Void> createFeatures(
-            @Parameter(description = "Contain all Features to handle") @Valid @RequestBody FeatureUpdateRequest request)
+    @Operation(summary = "Schedule FEM Feature updates",
+            description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
+    @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
+    @ResourceAccess(
+            description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
+    @RequestMapping(path = FEM_DRIVER_UPDATE_PATH, method = RequestMethod.POST,
+            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    public ResponseEntity<Void> updateFeatures(@Parameter(
+            description = "Contain feature seach request and feature properties to update") @Valid @RequestBody FeatureUpdateRequest request)
             throws ModuleException {
         femDriverService.scheduleUpdate(request);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Schedule FEM Feature deletion",
+            description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
+    @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
+    @ResourceAccess(
+            description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
+    @RequestMapping(path = FEM_DRIVER_DELETE_PATH, method = RequestMethod.POST,
+            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    public ResponseEntity<Void> deleteFeatures(
+            @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
+            throws ModuleException {
+        femDriverService.scheduleDeletion(request);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }
