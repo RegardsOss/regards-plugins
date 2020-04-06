@@ -32,6 +32,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.JobInfo;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
+import fr.cnes.regards.modules.catalog.femdriver.service.job.FemDeletionJob;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FemUpdateJob;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
@@ -66,6 +67,13 @@ public class FemDriverService {
         Set<JobParameter> jobParameters = Sets.newHashSet();
         jobParameters.add(new JobParameter(FemUpdateJob.REQUEST_PARAMETER, request));
         JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemUpdateJob.class.getName());
+        return jobInfoService.createAsQueued(jobInfo);
+    }
+
+    public JobInfo scheduleDeletion(SearchRequest request) {
+        Set<JobParameter> jobParameters = Sets.newHashSet();
+        jobParameters.add(new JobParameter(FemDeletionJob.REQUEST_PARAMETER, request));
+        JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemDeletionJob.class.getName());
         return jobInfoService.createAsQueued(jobInfo);
     }
 
