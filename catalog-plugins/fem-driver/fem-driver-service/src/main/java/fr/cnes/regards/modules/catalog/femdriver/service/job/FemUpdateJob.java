@@ -88,6 +88,7 @@ public class FemUpdateJob extends AbstractJob<Void> {
                 }
                 List<Feature> features = Lists.newArrayList();
                 for (DataObject dobj : results.getContent()) {
+                    LOGGER.info("Check do : {}", dobj.getLabel());
                     try {
                         Feature feature = Feature.build(dobj.getProviderId(),
                                                         FeatureUniformResourceName
