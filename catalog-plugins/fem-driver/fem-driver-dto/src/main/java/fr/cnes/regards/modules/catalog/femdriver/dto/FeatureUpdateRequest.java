@@ -18,7 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.dto;
 
-import java.util.Map;
+import java.util.Set;
 
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
@@ -33,16 +33,16 @@ public class FeatureUpdateRequest {
 
     private SearchRequest searchRequest;
 
-    private Map<String, IProperty<?>> values;
+    private Set<IProperty<?>> properties;
 
     public FeatureUpdateRequest() {
         super();
     }
 
-    public static FeatureUpdateRequest build(SearchRequest searchRequest, Map<String, IProperty<?>> values) {
+    public static FeatureUpdateRequest build(SearchRequest searchRequest, Set<IProperty<?>> properties) {
         FeatureUpdateRequest req = new FeatureUpdateRequest();
         req.searchRequest = searchRequest;
-        req.values = values;
+        req.properties = properties;
         return req;
     }
 
@@ -63,15 +63,15 @@ public class FeatureUpdateRequest {
     /**
      * @return the values
      */
-    public Map<String, IProperty<?>> getValues() {
-        return values;
+    public Set<IProperty<?>> getProperties() {
+        return properties;
     }
 
     /**
      * @param values the values to set
      */
-    public void setValues(Map<String, IProperty<?>> values) {
-        this.values = values;
+    public void setProperties(Set<IProperty<?>> properties) {
+        this.properties = properties;
     }
 
 }

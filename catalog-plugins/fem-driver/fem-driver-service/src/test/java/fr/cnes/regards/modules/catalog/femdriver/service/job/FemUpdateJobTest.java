@@ -18,8 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
@@ -75,8 +74,8 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
         SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
                 null, null, null);
-        Map<String, IProperty<?>> propertyMap = new HashMap<String, IProperty<?>>();
-        propertyMap.put("name", IProperty.buildString("name", "plop"));
+        Set<IProperty<?>> propertyMap = Sets.newHashSet();
+        propertyMap.add(IProperty.buildString("name", "plop"));
         femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
@@ -106,8 +105,8 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
         SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
                 Sets.newHashSet(datas.get(0).getIpId().toString()), null, null);
-        Map<String, IProperty<?>> propertyMap = new HashMap<String, IProperty<?>>();
-        propertyMap.put("name", IProperty.buildString("name", "plop"));
+        Set<IProperty<?>> propertyMap = Sets.newHashSet();
+        propertyMap.add(IProperty.buildString("name", "plop"));
         femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
