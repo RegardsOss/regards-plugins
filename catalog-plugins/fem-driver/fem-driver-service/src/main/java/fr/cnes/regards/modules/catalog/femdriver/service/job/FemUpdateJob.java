@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
@@ -93,8 +92,8 @@ public class FemUpdateJob extends AbstractJob<Void> {
                                                         FeatureUniformResourceName
                                                                 .fromString(dobj.getIpId().toString()),
                                                         null, EntityType.DATA, dobj.getModel().getName());
-                        for (Entry<String, IProperty<?>> prop : request.getValues().entrySet()) {
-                            feature.addProperty(prop.getValue());
+                        for (IProperty<?> prop : request.getProperties()) {
+                            feature.addProperty(prop);
                         }
                         features.add(feature);
                     } catch (IllegalArgumentException e) {
