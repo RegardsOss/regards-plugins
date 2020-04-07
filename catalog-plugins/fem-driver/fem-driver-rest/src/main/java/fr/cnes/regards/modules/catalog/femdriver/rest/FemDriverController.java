@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import fr.cnes.regards.framework.geojson.GeoJsonMediaType;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
@@ -65,8 +64,7 @@ public class FemDriverController {
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
             description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
-    @RequestMapping(path = FEM_DRIVER_UPDATE_PATH, method = RequestMethod.POST,
-            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    @RequestMapping(path = FEM_DRIVER_UPDATE_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> updateFeatures(@Parameter(
             description = "Contain feature seach request and feature properties to update") @Valid @RequestBody FeatureUpdateRequest request)
             throws ModuleException {
@@ -79,8 +77,7 @@ public class FemDriverController {
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
             description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
-    @RequestMapping(path = FEM_DRIVER_DELETE_PATH, method = RequestMethod.POST,
-            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    @RequestMapping(path = FEM_DRIVER_DELETE_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteFeatures(
             @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
             throws ModuleException {
@@ -93,8 +90,7 @@ public class FemDriverController {
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
             description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
-    @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST,
-            consumes = GeoJsonMediaType.APPLICATION_GEOJSON_VALUE)
+    @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> notifyFeatures(
             @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
             throws ModuleException {
