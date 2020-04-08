@@ -31,6 +31,8 @@ import fr.cnes.regards.modules.search.domain.SearchRequest;
  */
 public class FeatureUpdateRequest {
 
+    public static final String TYPE = "_FEM_UPDT_REQ_";
+
     private SearchRequest searchRequest;
 
     private Set<IProperty<?>> properties;
