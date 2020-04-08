@@ -31,11 +31,9 @@ import fr.cnes.regards.modules.search.domain.SearchRequest;
  */
 public class FeatureUpdateRequest {
 
-    public static final String TYPE = "_FEM_UPDT_REQ_";
-
     private SearchRequest searchRequest;
 
-    private Set<IProperty<?>> properties;
+    private FeatureProperties feature;
 
     public FeatureUpdateRequest() {
         super();
@@ -44,7 +42,7 @@ public class FeatureUpdateRequest {
     public static FeatureUpdateRequest build(SearchRequest searchRequest, Set<IProperty<?>> properties) {
         FeatureUpdateRequest req = new FeatureUpdateRequest();
         req.searchRequest = searchRequest;
-        req.properties = properties;
+        req.setFeature(FeatureProperties.build(properties));
         return req;
     }
 
@@ -62,18 +60,12 @@ public class FeatureUpdateRequest {
         this.searchRequest = searchRequest;
     }
 
-    /**
-     * @return the values
-     */
-    public Set<IProperty<?>> getProperties() {
-        return properties;
+    public FeatureProperties getFeature() {
+        return feature;
     }
 
-    /**
-     * @param values the values to set
-     */
-    public void setProperties(Set<IProperty<?>> properties) {
-        this.properties = properties;
+    public void setFeature(FeatureProperties feature) {
+        this.feature = feature;
     }
 
 }
