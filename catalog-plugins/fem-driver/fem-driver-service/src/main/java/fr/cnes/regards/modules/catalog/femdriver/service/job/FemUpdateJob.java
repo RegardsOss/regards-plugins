@@ -92,7 +92,7 @@ public class FemUpdateJob extends AbstractJob<Void> {
                                                         FeatureUniformResourceName
                                                                 .fromString(dobj.getIpId().toString()),
                                                         null, EntityType.DATA, dobj.getModel().getName());
-                        for (IProperty<?> prop : request.getProperties()) {
+                        for (IProperty<?> prop : request.getFeature().getProperties()) {
                             feature.addProperty(prop);
                         }
                         features.add(feature);

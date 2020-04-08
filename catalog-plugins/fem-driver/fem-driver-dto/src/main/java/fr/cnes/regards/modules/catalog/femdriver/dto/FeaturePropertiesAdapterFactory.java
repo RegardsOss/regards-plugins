@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import fr.cnes.regards.framework.gson.adapters.PolymorphicTypeAdapterFactory;
 import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapterFactory;
@@ -38,36 +39,35 @@ import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapterFactory;
  *
  */
 @GsonTypeAdapterFactory
-public class FeatureUpdateRequestAdapterFactory extends PolymorphicTypeAdapterFactory<FeatureUpdateRequest> {
+public class FeaturePropertiesAdapterFactory extends PolymorphicTypeAdapterFactory<FeatureProperties> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FeatureUpdateRequestAdapterFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FeaturePropertiesAdapterFactory.class);
 
     private static final String PROPERTIES_FIELD_NAME = "properties";
 
-    public FeatureUpdateRequestAdapterFactory() {
-        super(FeatureUpdateRequest.class, "FeatureUpdateRequest", true);
-        this.registerSubtype(FeatureUpdateRequest.class, FeatureUpdateRequest.TYPE);
+    public FeaturePropertiesAdapterFactory() {
+        super(FeatureProperties.class, "type", false);
+        this.registerSubtype(FeatureProperties.class, FeatureProperties.TYPE);
+    }
+
+    @Override
+    protected JsonElement getOnReadDiscriminator(JsonElement jsonElement) {
+        return new JsonPrimitive(FeatureProperties.TYPE);
     }
 
     @Override
     protected JsonElement beforeWrite(JsonElement jsonElement, Class<?> subType) {
 
-        // Do injection
-        JsonElement clone = super.beforeWrite(jsonElement, subType);
-
         LOGGER.trace("Before write");
 
-        if (!clone.isJsonObject()) {
-            throw objectRequiredException(clone);
-        }
-
-        JsonObject entity = clone.getAsJsonObject();
+        JsonObject entity = jsonElement.getAsJsonObject();
         JsonElement attEl = entity.get(PROPERTIES_FIELD_NAME);
         if ((attEl != null) && !attEl.isJsonNull()) {
             if (attEl.isJsonArray()) {
                 entity.add(PROPERTIES_FIELD_NAME, mergeArray(attEl.getAsJsonArray()));
             } else {
-                String errorMessage = String.format("Unexpected JSON element %s. Array required.", clone.toString());
+                String errorMessage = String.format("Unexpected JSON element %s. Array required.",
+                                                    jsonElement.toString());
                 LOGGER.error(errorMessage);
                 throw new IllegalArgumentException(errorMessage);
             }
