@@ -16,6 +16,7 @@ ADD ingest-test-plugins-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest
 ADD custom-command-file-validation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 # Catalog
 ADD download-metalink-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 
 # Testing purpose : CMD [ "/bin/bash" ]
@@ -37,6 +38,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
 	# Remove old catalog plugins
 	rm  -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
+	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
 	rm  -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
 
 	# copy JARs
