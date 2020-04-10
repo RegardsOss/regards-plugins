@@ -53,6 +53,8 @@
 		<relativePath/>
 	</parent>
 	<modules>
+		<module>download-metalink-plugin</module>
+		<module>download-plugin</module>
 		<module>fem-driver</module>
     </modules>
 </project>

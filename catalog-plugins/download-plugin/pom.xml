@@ -22,7 +22,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-	<artifactId>fem-driver-plugin</artifactId>
+	<artifactId>download-plugin</artifactId>
 	<packaging>jar</packaging>
 
 	<description>Service layer of the Search module</description>
@@ -48,57 +48,46 @@
 	</developers>
 
 	<parent>
-		<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-		<artifactId>fem-driver</artifactId>
+		<groupId>fr.cnes.regards</groupId>
+		<artifactId>regards-parent</artifactId>
 		<version>1.1.0-SNAPSHOT</version>
+		<relativePath/>
 	</parent>
 
 	<dependencies>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-			<artifactId>fem-driver-rest</artifactId>
+			<groupId>fr.cnes.regards.modules</groupId>
+			<artifactId>catalog-services-plugin</artifactId>
 		</dependency>
+		
+		<dependency>
+		    <groupId>fr.cnes.regards.modules.storage</groupId>
+		    <artifactId>storage-client</artifactId>
+	    </dependency>
 	</dependencies>
+	
 	<build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <dependencies>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.2.1.RELEASE</version>
-			</dependency>
-		</dependencies>
-        <executions>
-          <execution>
-          	<!-- Specific id in order to avoid use of legacy maven-shade-plugin execution configuration. A bug in transformers management force us to do so. -->
-          	<id>femdriver-shade</id>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-        	    <shadedArtifactAttached>true</shadedArtifactAttached>
-				<shadedClassifierName>shaded</shadedClassifierName>
-				<minimizeJar>false</minimizeJar>
-				<artifactSet>
-     	       	<includes>
-            		<include>fr.cnes.regards.modules.catalog.plugins:*</include>
-            		<include>fr.cnes.regards.framework.modules.workspace:*</include>
-            		<include>fr.cnes.regards.framework.modules.jobs:*</include>
-            		<include>fr.cnes.regards.modules.feature:*</include>
-            	</includes>
-       	     	</artifactSet>
-				<transformers>
-					<transformer  implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
-						<resource>META-INF/spring.factories</resource>
-					</transformer>
-				</transformers>
-			</configuration>
-		  </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>false</minimizeJar>
+							<artifactSet>
+								<includes>
+									<include>fr.cnes.regards.modules.catalog.plugins:*</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
