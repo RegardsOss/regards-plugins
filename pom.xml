@@ -151,6 +151,7 @@
     	<module>catalog-plugins</module>
     	<module>dataprovider-plugins</module>
         <module>dam-plugins</module>
+        <module>fem-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
     </modules>
