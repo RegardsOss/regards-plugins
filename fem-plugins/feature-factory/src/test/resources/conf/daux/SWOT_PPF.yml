@@ -1,0 +1,28 @@
+SWOT_PPF:
+    name: SWOT_PPF_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    example: ['SWOT_PPF_AXVCNE20180316_170700_20180212_215523_20180214_002323']
+    document: "SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD"
+    granule_type: Downlink
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 64ko
+        directory: "swot/corpfalti_moe/"
+        has_path_by_date: False
+        creation: [
+          { period: 1, time: "082800", offset_begin: -10h, offset_end: -8h },
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

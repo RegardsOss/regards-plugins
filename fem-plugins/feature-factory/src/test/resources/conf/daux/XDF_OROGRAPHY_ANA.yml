@@ -1,0 +1,32 @@
+XDF_OROGRAPHY_ANA:
+    name: SMM_ORA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    example: ['SMM_ORA_AXVCNE20200303_060000_20200302_180000_20200302_180000']
+    document: "SWOT-ICD-SYS-0421-CNES"
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 200ko
+        directory: "commun/meteo/orography"
+        has_path_by_date: False
+        creation: [
+          { period: 1, time: "180000", offset_begin: -18h, offset_end: -18h },
+          { period: 1, time: "180000", offset_begin: -12h, offset_end: -12h },
+          { period: 1, time: "060000", offset_begin: -18h, offset_end: -18h },
+          { period: 1, time: "060000", offset_begin: -12h, offset_end: -12h }
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        
+        
