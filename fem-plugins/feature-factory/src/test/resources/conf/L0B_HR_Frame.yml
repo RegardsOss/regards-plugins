@@ -1,0 +1,24 @@
+L0B_HR_Frame:
+    name: SWOT_L0B_HR_Frame_{{ CycleID }}_{{ PassID }}_{{ TileID }}F_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ''
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    example: ['SWOT_L0B_HR_Frame_003_069_161F_20200203T010000_20200203T010010_ABfw00_01.tar']
+    granule_type: TileF
+    tar_content: [nc, met.json, rc.xml, md5]
+    mission: SWOT
+    Nature: Product
+    metadata: [CycleID, PassID, TileID, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    simu_method:
+      directory: swot/l0b_hr
+      file_size: 0.283go
+      has_path_by_date: false
+      name: product
+    CHRONOS:
+      geode_sync_duration: 6m
+      has_path_by_date: false
+      input_dir: ''
+      lifetime_duration: ''
+      output_dir: swot/l0b_hr
+      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
+      source: Production
+      storage_server: GEODE

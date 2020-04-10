@@ -1,0 +1,24 @@
+LPF_10:
+    name: PSWOT_LPF_1PaS{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
+    Description: ""
+    example: ['PSWOT_LPF_1PaS20200203_011614_20200203_000000_20200203_010614.nc']
+    document: "SMM-IF-BN1-EA-22105-CN"
+    granule_type: Segment
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: from_tm
+        file_size: 2ko
+        directory: "swot_chronos_ref/lpf1/"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : Intern
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []

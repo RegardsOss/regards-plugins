@@ -1,0 +1,28 @@
+ATTD_RECONST_ALGPAR:
+    name: ATTD_RECONST_ALGPAR_{{ DateCreationFile }}.txt
+    Description: ""
+    example: ['SWOT_ATTD_RECONST_ALGPAR_20211206.txt']
+    document: "SWOT-IS-CDM-1358-CNES PGE-PCM ICS for ATTD_RECONST"
+    granule_type: ValidDate
+    tar_content: []
+    mission: SWOT
+    Nature: Product
+    metadata: [DateCreationFile]
+    simu_method: 
+        name: period
+        file_size: 1ko
+        directory: "swot_chronos_ref/attd_reconst_algpar"
+        has_path_by_date: False
+        creation: [
+            { period: 0,  time: "070000", offset_begin: 0, offset_end: 0},   
+          ] 
+    CHRONOS:
+        storage_server : Intern
+        input_dir : ""
+        output_dir : ""
+        source: Production
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        
