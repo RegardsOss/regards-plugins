@@ -1,0 +1,28 @@
+XDF_MP2_MWD_WAM:
+    name: SMM_WMA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    document: "SWOT-ICD-SYS-0421-CNES"
+    example: ['SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000']
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 31000ko
+        directory: "commun/meteo/mfwam"
+        has_path_by_date: False
+        creation: [
+          { period: 1, time: "100000", offset_begin: -111600, offset_end: -36000 },
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

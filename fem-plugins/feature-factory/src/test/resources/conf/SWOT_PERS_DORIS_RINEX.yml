@@ -1,0 +1,24 @@
+SWOT_PERS_DORIS_RINEX:
+    name: pers.xml
+    Description: ''
+    document: "SWOT-IS-CDM-1211-CNES PGE-PCM ICS for DORIS RINEX"
+    example: ['pers.xml']
+    granule_type: Day
+    tar_content: []
+    mission: SWOT
+    Nature: Product
+    metadata: []
+    simu_method:
+      directory: swot_chronos_ref/pesr_rinex
+      file_size: 10mo
+      has_path_by_date: false
+      name: product
+    CHRONOS:
+      geode_sync_duration: 3m
+      has_path_by_date: false
+      input_dir: ''
+      lifetime_duration: ''
+      output_dir: ''
+      pcm_metadata: []
+      source: Production
+      storage_server: Intern

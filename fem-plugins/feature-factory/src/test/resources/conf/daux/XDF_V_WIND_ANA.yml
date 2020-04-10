@@ -1,0 +1,31 @@
+XDF_V_WIND_ANA:
+    name: SMM_VWA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    document: "SWOT-ICD-SYS-0421-CNES"
+    example: ['SMM_VWA_AXVCNE20200303_060000_20200302_180000_20200302_180000']
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 4100ko
+        directory: "commun/meteo/v_wind"
+        has_path_by_date: False
+        creation: [
+          { period: 1, time: "180000", offset_begin: -18h, offset_end: -18h },
+          { period: 1, time: "180000", offset_begin: -12h, offset_end: -12h },
+          { period: 1, time: "060000", offset_begin: -18h, offset_end: -18h },
+          { period: 1, time: "060000", offset_begin: -12h, offset_end: -12h }
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

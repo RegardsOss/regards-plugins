@@ -1,0 +1,27 @@
+LTM_RI:
+    name: PSWOT_RI_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
+    Description: ""
+    example: ['PSWOT_RI_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc']
+    document: "SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD"
+    granule_type: Segment
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 1mo
+        directory: "swot/ltm/"
+        has_path_by_date: False
+        creation: [
+          { period: 1, time: "110000", offset_begin: -300j, offset_end: -11h },
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : "swot/ltm/"
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []

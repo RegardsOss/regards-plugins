@@ -1,0 +1,25 @@
+NALT_ALTI1:
+    name: PSWOT_ALT_1PaS{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
+    Description: ""
+    example: ['PSWOT_ALT_1PaS20200203_013414_20200203_000000_20200203_012414.nc']
+    document: "SMM-IF-BN1-EA-22105-CN"
+    granule_type: Segment
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: from_tm
+        file_size: 60mo
+        directory: "swot_chronos_ref/alti1/"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : Intern
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

@@ -1,0 +1,25 @@
+L1B_HR_SLC:
+    name: SWOT_L1B_HR_SLC_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ''
+    example: ['SWOT_L1B_HR_SLC_003_069_161L_20200203T010000_20200203T010010_ABfw00_01.tar']
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    granule_type: Tile
+    tar_content: [nc, met.json, rc.xml, md5]
+    mission: SWOT
+    Nature: Product
+    metadata: [CycleID, PassID, TileID, TileSide, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    simu_method:
+      directory: swot/l1b_hr
+      file_size: 52.3go
+      has_path_by_date: false
+      name: product
+    CHRONOS:
+      geode_sync_duration: 6m
+      has_path_by_date: false
+      input_dir: ''
+      lifetime_duration: ''
+      output_dir: swot/l1b_hr_slc
+      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
+      source: Production
+      storage_server: GEODE 
+      

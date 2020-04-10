@@ -1,0 +1,26 @@
+DECOM_DOR:
+    name: DSWOT_DOR_{{ FileIdentifier }}_1PaS{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    example: ['DSWOT_DOR_ANO_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_DMP_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_JAM_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_ROUT_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_ATT_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_OTH_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_DAT_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_DOP_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_NAVG_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_NAVI_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_NAVT_1PaS20200203_013121_20200203_000000_20200203_012121', 'DSWOT_DOR_NAVK_1PaS20200203_013121_20200203_000000_20200203_012121']
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    granule_type: Segment
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [FileIdentifier, CreationDateTime, StartDateTime, EndDateTime]
+    FileIdentifier: [ANO, DMP, JAM, ROUT, ATT, OTH, DAT, DOP, NAVG, NAVI, NAVT, NAVK]
+    simu_method: 
+        name: from_tm
+        file_size: 2ko
+        directory: "swot/decom_dor/"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

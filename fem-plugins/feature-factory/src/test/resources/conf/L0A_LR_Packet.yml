@@ -1,0 +1,28 @@
+L0A_LR_Packet:
+    name: SWOT_{{ StationName }}_{{ DateTimeCreationFile }}_{{ DateTimeBeginTM }}_{{ DateTimeEndTM }}_{{ SourceType }}_APID{{ APIDnumber }}.PTM_{{ index }}
+    Description: ""
+    example: ['SWOT_IVK_20200203T011155_20200203T000000_20200203T010155_S_APID1070.PTM_0','SWOT_IVK_20200203T011155_20200203T000000_20200203T010155_S_APID1073.PTM_0']
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    granule_type: Downlink
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
+    APIDnumber : [1070, 1073]
+    simu_method: 
+        name : idefix
+        prime_link : ["L0A_LR_Prime"]
+        day_file_size: 
+            1070 : 192937984ko
+            1073 : 70464307ko
+        directory: "swot/l0a/{{ APIDnumber }}"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
