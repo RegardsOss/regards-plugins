@@ -14,6 +14,10 @@ ADD enhanced-descriptive-aip-generation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME
 ADD ingest-test-plugins-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
 ADD custom-command-file-validation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+# Catalog
+ADD download-metalink-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -21,6 +25,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
     mkdir -p /regards-plugins/dam/ && \
     mkdir -p /regards-plugins/ingest/ && \
     mkdir -p /regards-plugins/dataprovider/ && \
+    mkdir -p /regards-plugins/catalog/ && \
 
 	# Remove old storage plugins
 	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
@@ -31,9 +36,14 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/dam/webservice-datasource-*.jar && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
+	# Remove old catalog plugins
+	rm  -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
+	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
+	rm  -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
 
 	# copy JARs
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
 	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/ && \
-	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/
+	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/ && \
+	cp ${REGARDS_HOME}/plugins/catalog/*.jar /regards-plugins/catalog/
