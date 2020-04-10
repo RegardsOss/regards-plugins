@@ -33,6 +33,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FemDeletionJob;
+import fr.cnes.regards.modules.catalog.femdriver.service.job.FemNotifierJob;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FemUpdateJob;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
@@ -70,10 +71,31 @@ public class FemDriverService {
         return jobInfoService.createAsQueued(jobInfo);
     }
 
+    /**
+     * Schedule a job to handle deletion request.
+     *
+     * @param request {@link SearchRequest}
+     * @return {@link JobInfo} of  scheduled job
+     * @throws ModuleException
+     */
     public JobInfo scheduleDeletion(SearchRequest request) {
         Set<JobParameter> jobParameters = Sets.newHashSet();
         jobParameters.add(new JobParameter(FemDeletionJob.REQUEST_PARAMETER, request));
         JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemDeletionJob.class.getName());
+        return jobInfoService.createAsQueued(jobInfo);
+    }
+
+    /**
+     * Schedule a job to handle notification request.
+     *
+     * @param request {@link SearchRequest}
+     * @return {@link JobInfo} of  scheduled job
+     * @throws ModuleException
+     */
+    public JobInfo scheduleNotification(SearchRequest request) {
+        Set<JobParameter> jobParameters = Sets.newHashSet();
+        jobParameters.add(new JobParameter(FemNotifierJob.REQUEST_PARAMETER, request));
+        JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemNotifierJob.class.getName());
         return jobInfoService.createAsQueued(jobInfo);
     }
 
