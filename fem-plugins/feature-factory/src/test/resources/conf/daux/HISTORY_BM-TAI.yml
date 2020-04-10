@@ -1,0 +1,29 @@
+HISTORY_BM-TAI:
+    name: SMM_{{ FileIdentifier }}_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    example: ['SMM_3_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_4_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_131_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_132_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_259_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_260_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_278_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_282_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_342_AXVCNE20200203_180000_20111117_180000_20200513_180000', 'SMM_387_AXVCNE20200203_180000_20111117_180000_20200513_180000']
+    document: "SWOT-IS-CDM-1211-CNES PGE-PCM ICS for DORIS RINEX"
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [FileIdentifier, CreationDateTime, StartDateTime, EndDateTime]
+    FileIdentifier: [003, 004, 131, 132, 259, 260, 278, 282, 342, 387]
+    simu_method: 
+        name: period
+        file_size: 4ko
+        directory: "commun/bm_tai"
+        has_path_by_date: False
+        creation: [
+          { period: 0, time: "180000", offset_begin: -3000d, offset_end: 100d },
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []           
+        

@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.fem.plugins.service;
 
 import static org.junit.Assert.assertNotNull;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,6 +38,7 @@ public class FeatureFactoryServiceIT extends AbstractMultitenantServiceTest {
     private IFeatureFactoryService factoryService;
 
     @Test
+    @Ignore
     public void testFactory() {
         String[] testFiles = { "SWOT_IVK_20210612T081400_20210612T072103_20210612T080137_O_APID1070.PTM_1",
                 "SWOT_L0A_LR_Prime_IVK_20210612T072203_20210612T072500_1070_PGA2_03.nc",
