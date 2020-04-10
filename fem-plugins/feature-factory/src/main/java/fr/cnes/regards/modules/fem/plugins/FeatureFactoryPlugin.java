@@ -21,10 +21,10 @@ package fr.cnes.regards.modules.fem.plugins;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
 import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.fem.plugins.service.IFeatureFactoryService;
-import plugin.IFeatureFactoryPlugin;
 
 /**
  * Create a {@link Feature} from a {@link FeatureReferenceRequest}
