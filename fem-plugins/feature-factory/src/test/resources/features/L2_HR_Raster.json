@@ -1,0 +1,36 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_L2_HR_Raster_003_069_081F_20200203T010000_20200203T010010_ABfw00_01.tar",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "tar",
+      "file_name": "SWOT_L2_HR_Raster_003_069_081F_20200203T010000_20200203T010010_ABfw00_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_L2_HR_Raster_003_069_081F_20200203T010000_20200203T010010_ABfw00_01.tar"
+    },
+    "data": {
+      "start_date": "2020-02-03T01:00:00Z",
+      "end_date": "2020-02-03T01:00:10Z",
+      "type": "L2_HR_Raster"
+    },
+    "swot": {
+      "cycle_number": 3,
+      "pass_number": 69,
+      "scene_id": 81,
+      "granule_type": "Scene",
+      "crid": "ABfw00",
+      "product_counter": 1
+    }
+  },
+  "type": "FEATURE"
+}

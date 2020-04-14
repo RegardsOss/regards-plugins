@@ -7,7 +7,7 @@ MOE:
     tar_content: []
     mission: MM
     Nature: Product
-    metadata: [ProductionDateTime, RangeBeginningDateTime, RangeEndingDateTime]
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
     simu_method: 
         name: period
         file_size: 160ko

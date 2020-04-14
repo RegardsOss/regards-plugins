@@ -1,5 +1,5 @@
 ATTD_RECONST_ALGPAR:
-    name: ATTD_RECONST_ALGPAR_{{ DateCreationFile }}.txt
+    name: SWOT_ATTD_RECONST_ALGPAR_{{ DateCreationFile }}.txt
     Description: ""
     example: ['SWOT_ATTD_RECONST_ALGPAR_20211206.txt']
     document: "SWOT-IS-CDM-1358-CNES PGE-PCM ICS for ATTD_RECONST"

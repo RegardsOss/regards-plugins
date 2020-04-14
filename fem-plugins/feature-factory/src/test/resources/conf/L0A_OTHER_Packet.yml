@@ -8,7 +8,7 @@ L0A_OTHER_Packet:
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
+    metadata: [StationName, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
     APIDnumber : [1066, 1067, 1068, 1069]
     simu_method: 
         name : idefix
