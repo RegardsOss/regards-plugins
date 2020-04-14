@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_STR_1PaS20200203_010902_20200203_000000_20200203_005902",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": null,
+      "file_name": "SWOT_STR_1PaS20200203_010902_20200203_000000_20200203_005902",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_STR_1PaS20200203_010902_20200203_000000_20200203_005902"
+    },
+    "data": {
+      "creation_date": "2020-02-03T01:09:02Z",
+      "end_date": "2020-02-03T00:59:02Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "DECOM_PFSW_TM_HKANCILLARY"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "FEATURE"
+}

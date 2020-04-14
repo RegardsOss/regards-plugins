@@ -2,7 +2,7 @@ L2_HR_LakeSP:
     name: SWOT_L2_HR_LakeSP_{{ FileIdentifier }}_{{ CycleID }}_{{ PassID }}_{{ ContinentID }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_L2_HR_LakeSP_ObsLake_003_068_AF_20200202T234200_20200203T003320_ABfw00_01.tar', 'SWOT_L2_HR_LakeSP_PLDLake_003_068_AF_20200202T234200_20200203T003320_ABfw00_01.tar', 'SWOT_L2_HR_LakeSP_Unident_003_068_AF_20200202T234200_20200203T003320_ABfw00_01.tar']
+    example: ['SWOT_L2_HR_LakeSP_ObsLake_003_068_1_20200202T234200_20200203T003320_ABfw00_01.tar', 'SWOT_L2_HR_LakeSP_PLDLake_003_068_AF_20200202T234200_20200203T003320_ABfw00_01.tar', 'SWOT_L2_HR_LakeSP_Unident_003_068_1_20200202T234200_20200203T003320_ABfw00_01.tar']
     granule_type: ContinentPass
     tar_content: [zip, met.json, rc.xml, iso.xml, md5]
     mission: SWOT

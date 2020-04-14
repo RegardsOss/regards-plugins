@@ -2,7 +2,7 @@ REPORT_KARIN_FRAMES_GAPS:
     name: REPORT_KARIN_FRAMES_GAPS_{{ ProductionDateTime }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}.xml
     Description: ""
     document: "SWOT-ICD-SYS-0421-CNES"
-    example: ['REPORT_KARIN_FRAMES_GAPS_20200303_120000_20200301_230000_20200303_010000.nc']
+    example: ['REPORT_KARIN_FRAMES_GAPS_20200303_120000_20200301T230000_20200303T010000.xml']
     granule_type: Day
     tar_content: []
     mission: MM

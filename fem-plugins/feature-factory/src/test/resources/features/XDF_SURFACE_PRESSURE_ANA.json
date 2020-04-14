@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": null,
+      "file_name": "SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000"
+    },
+    "data": {
+      "creation_date": "2020-03-03T06:00:00Z",
+      "end_date": "2020-03-02T18:00:00Z",
+      "start_date": "2020-03-02T18:00:00Z",
+      "type": "XDF_SURFACE_PRESSURE_ANA"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "FEATURE"
+}

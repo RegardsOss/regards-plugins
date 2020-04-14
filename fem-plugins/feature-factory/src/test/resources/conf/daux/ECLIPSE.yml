@@ -1,7 +1,7 @@
 ECLIPSE:
     name: SWOT_SCC_OEF_ECLIPSE_{{ SensingDateDay }}_{{ CreationDateTime }}.tgz
     Description: ""
-    example: ['SWOT_SCC_OEF_ECLIPSE__20200303_070000.xml']
+    example: ['SWOT_SCC_OEF_ECLIPSE_20200201_20200303_070000.tgz']
     document: "SWOT-ICD-SYS-0421-CNES"
     granule_type: Day
     tar_content: []

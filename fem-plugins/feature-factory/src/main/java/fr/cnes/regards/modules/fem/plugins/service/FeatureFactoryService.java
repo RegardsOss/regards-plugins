@@ -46,11 +46,12 @@ import fr.cnes.regards.modules.fem.plugins.service.factory.L2_LR_PreCalSSH;
  * @author Kevin Marchois
  *
  */
-@Service
+@Service("featurePluginFactoryService")
 @MultitenantTransactional
 public class FeatureFactoryService implements IFeatureFactoryService {
 
-    private final Map<String, AbstractFeatureFactory> factoryByRegexMap = ImmutableMap.<String, AbstractFeatureFactory> builder()
+    private final Map<String, AbstractFeatureFactory> factoryByRegexMap = ImmutableMap
+            .<String, AbstractFeatureFactory> builder()
             .put("SWOT_(\\p{Upper}{3})_([0-9]{8}T[0-9]{6})_([0-9]{8}T[0-9]{6})_([0-9]{8}T[0-9]{6})_(O|T|S)_(APID[0-9]{4})\\.PTM_[0-9]+",
                  new L0A_LR_Packet()) // same factory for L0A_HR_Packet
             .put("SWOT_(L0A_(?:HR|LR|KCAL|RAD|GPSP)_Prime)_(\\p{Upper}{3})_([0-9]{8}T[0-9]{6})_([0-9]{8}T[0-9]{6})_([0-9]{4})_([\\p{Upper}\\p{Digit}]+)_([0-9]+)\\..+",

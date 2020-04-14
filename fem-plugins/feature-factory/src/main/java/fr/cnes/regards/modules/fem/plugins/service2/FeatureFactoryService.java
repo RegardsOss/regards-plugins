@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -21,10 +21,11 @@ package fr.cnes.regards.modules.fem.plugins.service2;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,12 @@ public class FeatureFactoryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService.class);
 
+    private static final String SYSTEM_FRAGMENT_NAME = "system";
+
+    private static final String SWOT_FRAGMENT = "swot";
+
+    private static final String DATA_FRAGMENT = "data";
+
     /**
      * Valid and available {@link DataTypeDescriptor}s
      */
@@ -62,11 +69,10 @@ public class FeatureFactoryService {
      * @param directory
      * @throws IOException
      */
-    @PostConstruct
     public void readConfs(Path directory) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        Files.list(directory).forEach(filePath -> {
+        Files.list(directory).filter(f -> f.getFileName().toString().endsWith(".yml")).forEach(filePath -> {
             try {
                 if (Files.isRegularFile(filePath)) {
                     String dataType = filePath.getFileName().toString()
@@ -103,7 +109,9 @@ public class FeatureFactoryService {
         Set<DataTypeDescriptor> types = descriptors.stream().filter(dt -> dt.matches(fileName))
                 .collect(Collectors.toSet());
         if (types.size() > 1) {
-            throw new ModuleException(String.format("More than one dataType match for the fileName %s", fileName));
+            throw new ModuleException(String
+                    .format("More than one dataType match for the fileName %s. -> %s", fileName,
+                            types.stream().map(DataTypeDescriptor::getType).collect(Collectors.toList()).toString()));
         }
         if (types.isEmpty()) {
             throw new ModuleException(String.format("No dataType match for the fileName %s", fileName));
@@ -115,23 +123,57 @@ public class FeatureFactoryService {
 
     /**
      * Get a {@link Feature} for the given fileName by reading the associated {@link DataTypeDescriptor}
-     * @param fileName
+     * @param fileLocation
      * @param model
      * @return {@link Feature}
      * @throws ModuleException
      */
-    public Feature getFeature(String fileName, String model) throws ModuleException {
+    public Feature getFeature(String fileLocation, String model, OffsetDateTime creationDate) throws ModuleException {
+        String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
-        Feature toCreate = Feature.build(fileName, null, null, EntityType.DATA, model);
+        Feature toCreate = Feature.build(fileLocation, null, null, EntityType.DATA, model);
         for (String meta : dataDesc.getMetadata()) {
-            dataDesc.getMetaProperty(meta, fileName).ifPresent(toCreate::addProperty);
+            Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName, dataDesc.getType());
+            if (property.isPresent()) {
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
+            }
         }
+
         if ((dataDesc.getGranule_type() != null) && !dataDesc.getGranule_type().isEmpty()) {
-            toCreate.addProperty(IProperty.buildString(PropertiesEnum.GRANULE_TYPE.getName(),
-                                                       dataDesc.getGranule_type()));
+
+            IProperty.mergeProperties(toCreate.getProperties(), Sets
+                    .newHashSet(IProperty.buildObject(SWOT_FRAGMENT, IProperty
+                            .buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(), dataDesc.getGranule_type()))),
+                                      fileLocation);
         }
+        if ((dataDesc.getType() != null) && !dataDesc.getType().isEmpty()) {
+            IProperty.mergeProperties(toCreate.getProperties(),
+                                      Sets.newHashSet(IProperty.buildObject(DATA_FRAGMENT, IProperty
+                                              .buildString(PropertiesEnum.TYPE.getPropertyPath(), dataDesc.getType()))),
+                                      fileLocation);
+        }
+
+        addSystemProperties(toCreate, fileLocation, creationDate);
         return toCreate;
 
+    }
+
+    /**
+     * @param toCreate
+     */
+    private void addSystemProperties(Feature toCreate, String fileLocation, OffsetDateTime creationDate) {
+        String fileName = Paths.get(fileLocation).getFileName().toString();
+        String fileExt = null;
+        if (fileName.lastIndexOf(".") > 0) {
+            fileExt = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+        }
+        toCreate.addProperty(IProperty
+                .buildObject(SYSTEM_FRAGMENT_NAME,
+                             IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
+                             IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
+                             IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
+                             IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName),
+                             IProperty.buildString(SystemPropertiyEnum.EXTENSION.getPropertyPath(), fileExt)));
     }
 
     /**
