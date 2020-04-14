@@ -2,7 +2,7 @@ XDF_ALTITUDE_GRILLE_GAUSS:
     name: SMM_ALT_AXVCNE{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
     Description: ""
     document: "SWOT-ICD-SYS-0421-CNES"
-    example: ['SMM_ALT_AXVCNE20200103_060000_20160302_180000_20220302_180000']
+    example: ['SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc']
     granule_type: Segment
     tar_content: []
     mission: MM

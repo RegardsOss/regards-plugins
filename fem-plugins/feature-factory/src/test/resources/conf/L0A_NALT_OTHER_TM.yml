@@ -7,7 +7,7 @@ L0A_NALT_OTHER_TM:
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
+    metadata: [StationName, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
     APIDnumber : [1028, 1027, 1026, 1025, 1024]
     simu_method: 
         name: idefix

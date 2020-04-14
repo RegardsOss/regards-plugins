@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_ATTD_RECONST_ALGPAR_20211206.txt",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "txt",
+      "file_name": "SWOT_ATTD_RECONST_ALGPAR_20211206.txt",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_ATTD_RECONST_ALGPAR_20211206.txt"
+    },
+    "data": {
+      "creation_date": "2021-12-06T00:00:00Z",
+      "type": "ATTD_RECONST_ALGPAR"
+    },
+    "swot": {
+      "granule_type": "ValidDate"
+    }
+  },
+  "type": "FEATURE"
+}

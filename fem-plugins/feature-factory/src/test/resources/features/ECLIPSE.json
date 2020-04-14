@@ -1,0 +1,31 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_SCC_OEF_ECLIPSE_20200201_20200303_070000.tgz",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "tgz",
+      "file_name": "SWOT_SCC_OEF_ECLIPSE_20200201_20200303_070000.tgz",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_SCC_OEF_ECLIPSE_20200201_20200303_070000.tgz"
+    },
+    "data": {
+      "creation_date": "2020-03-03T07:00:00Z",
+      "type": "ECLIPSE"
+    },
+    "swot": {
+      "day_date": "2020-02-01T00:00:00Z",
+      "granule_type": "Day"
+    }
+  },
+  "type": "FEATURE"
+}

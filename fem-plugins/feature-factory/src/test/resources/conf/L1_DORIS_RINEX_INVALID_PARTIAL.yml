@@ -1,5 +1,5 @@
 L1_DORIS_RINEX_INVALID_PARTIAL:
-    name: DSWOT_MEP_1P{{ ProductVersionRinex }}S{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    name: DSWOT_FLA_1P{{ ProductVersionRinex }}S{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     example: ['DSWOT_FLA_1PaS20220718_071533_20220717_235951_20220718_061635']

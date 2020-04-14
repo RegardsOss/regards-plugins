@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SMM_MOG_AXPCNE20200303_200222_20200303_060000_20200303_060000",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": null,
+      "file_name": "SMM_MOG_AXPCNE20200303_200222_20200303_060000_20200303_060000",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SMM_MOG_AXPCNE20200303_200222_20200303_060000_20200303_060000"
+    },
+    "data": {
+      "creation_date": "2020-03-03T20:02:22Z",
+      "end_date": "2020-03-03T06:00:00Z",
+      "start_date": "2020-03-03T06:00:00Z",
+      "type": "XDF_MOG2D_COMBINEE_P"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "FEATURE"
+}

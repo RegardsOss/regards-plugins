@@ -7,7 +7,7 @@ L0A_DORIS_NAV_T:
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
+    metadata: [StationName, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
     APIDnumber : [1179, 1242]
     simu_method: 
         name: idefix

@@ -1,0 +1,33 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_KRX_20200203T012828_20200203T000000_20200203T011828_S_APID1402.PTM_0",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "PTM_0",
+      "file_name": "SWOT_KRX_20200203T012828_20200203T000000_20200203T011828_S_APID1402.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_KRX_20200203T012828_20200203T000000_20200203T011828_S_APID1402.PTM_0"
+    },
+    "data": {
+      "start_date": "2020-02-03T00:00:00Z",
+      "end_date": "2020-02-03T01:18:28Z",
+      "type": "L0A_RAD_Packet"
+    },
+    "swot": {
+      "apid": 1402,
+      "station": "S",
+      "granule_type": "Downlink"
+    }
+  },
+  "type": "FEATURE"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.fem.plugins.service2;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -100,24 +101,68 @@ public class DataTypeDescriptor {
      * @return {@link IProperty}
      * @throws ModuleException
      */
-    public Optional<IProperty<?>> getMetaProperty(String meta, String fileName) throws ModuleException {
+    public Optional<IProperty<?>> getMetaProperty(String meta, String fileName, String dataType)
+            throws ModuleException {
+        PropertiesEnum prop = PropertiesEnum.get(meta);
         Integer groupIndex = this.nameProperties.get(meta);
+        String propertyName = meta;
+        String propertyPath = meta;
+        PropertyType type = PropertyType.STRING;
+
+        if (prop != null) {
+            propertyPath = prop.getPropertyPath();
+            if (propertyPath.lastIndexOf(".") > 0) {
+                propertyName = propertyPath.substring(propertyPath.lastIndexOf(".") + 1, propertyPath.length());
+            } else {
+                propertyName = propertyPath;
+            }
+            type = prop.getType();
+        } else {
+            LOGGER.warn("[{}] Default format used for property {} in file {}", dataType, meta, fileName);
+        }
+
         if ((groupIndex != null) && this.matches(fileName)) {
+            IProperty<?> property;
             Matcher matcher = Pattern.compile(this.regexp).matcher(fileName);
             matcher.matches();
             String metaValue = matcher.group(groupIndex);
-            switch (PropertiesEnum.getType(meta)) {
+            switch (type) {
                 case DATE:
-                    return Optional.of(IProperty.buildDate(meta, parseDate(metaValue)));
+                    property = IProperty.buildDate(propertyName, parseDate(metaValue, prop.getFormat()));
+                    break;
+                case DATE_TIME:
+                    property = IProperty.buildDate(propertyName, parseDateTime(metaValue, prop.getFormat()));
+                    break;
                 case INTEGER:
-                    return Optional.of(IProperty.buildInteger(meta, Integer.valueOf(metaValue)));
+                    property = IProperty.buildInteger(propertyName, Integer.valueOf(metaValue));
+                    break;
                 case STRING:
                 default:
-                    return Optional.of(IProperty.buildString(meta, metaValue));
+                    property = IProperty.buildString(propertyName, metaValue);
+                    break;
             }
+            return Optional.of(buildPropertyFragment(propertyPath, property));
         } else {
             LOGGER.warn("[{}] {} not found in file name", this.getType(), meta);
             return Optional.empty();
+        }
+    }
+
+    /**
+     * @param propertyName
+     * @param property
+     * @return
+     */
+    private IProperty<?> buildPropertyFragment(String propertyPath, IProperty<?> property) {
+        String[] fragments = propertyPath.split("\\.");
+        if (fragments.length > 1) {
+            IProperty<?> pp = property;
+            for (int i = (fragments.length - 2); i >= 0; i--) {
+                pp = IProperty.buildObject(fragments[i], pp);
+            }
+            return pp;
+        } else {
+            return property;
         }
     }
 
@@ -127,11 +172,24 @@ public class DataTypeDescriptor {
      * @return
      * @throws ModuleException
      */
-    public OffsetDateTime parseDate(String date) throws ModuleException {
+    public OffsetDateTime parseDate(String date, String format) throws ModuleException {
         try {
-            return OffsetDateTime
-                    .of(LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd'T'hhmmss")).atStartOfDay(),
-                        ZoneOffset.UTC);
+            return OffsetDateTime.of(LocalDate.parse(date, DateTimeFormatter.ofPattern(format)).atStartOfDay(),
+                                     ZoneOffset.UTC);
+        } catch (Exception e) {
+            throw new ModuleException(String.format("Parse date exception %s", e.getMessage()));
+        }
+    }
+
+    /**
+     * Parse a date
+     * @param date
+     * @return
+     * @throws ModuleException
+     */
+    public OffsetDateTime parseDateTime(String date, String format) throws ModuleException {
+        try {
+            return OffsetDateTime.of(LocalDateTime.parse(date, DateTimeFormatter.ofPattern(format)), ZoneOffset.UTC);
         } catch (Exception e) {
             throw new ModuleException(String.format("Parse date exception %s", e.getMessage()));
         }
@@ -159,10 +217,20 @@ public class DataTypeDescriptor {
         Matcher matcher = Pattern.compile(this.regexp).matcher(fileName);
         if (matcher.matches()) {
             if ((this.apidNumber != null) && !this.apidNumber.isEmpty()) {
+                // Test APIDNumber if any
                 Integer groupIndex = this.nameProperties.get(PropertiesEnum.APID_NUMBER.getName());
                 Integer apid = Integer.parseInt(matcher.group(groupIndex));
                 LOGGER.debug("Checking APIDNumber {} from list {}", apid, this.apidNumber.toString());
                 if (!this.apidNumber.contains(apid)) {
+                    matches = false;
+                }
+            }
+            if ((this.fileIdentifier != null) && !this.fileIdentifier.isEmpty()) {
+                // Test FileIdentifier if any
+                Integer groupIndex = this.nameProperties.get(PropertiesEnum.FILE_IDENTIFIER.getName());
+                String fileId = matcher.group(groupIndex);
+                LOGGER.debug("Checking FileIdentifier {} from list {}", fileId, this.fileIdentifier.toString());
+                if (!this.fileIdentifier.contains(fileId)) {
                     matches = false;
                 }
             }
