@@ -1,0 +1,35 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_L0A_GPSP_Prime_HBX_20200203T000000_20200203T011912_1280_ABfw00_01.tar",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "tar",
+      "file_name": "SWOT_L0A_GPSP_Prime_HBX_20200203T000000_20200203T011912_1280_ABfw00_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_L0A_GPSP_Prime_HBX_20200203T000000_20200203T011912_1280_ABfw00_01.tar"
+    },
+    "data": {
+      "start_date": "2020-02-03T00:00:00Z",
+      "end_date": "2020-02-03T01:19:12Z",
+      "type": "L0A_GPSP_Prime"
+    },
+    "swot": {
+      "granule_type": "Segment",
+      "apid": 1280,
+      "station": "HBX",
+      "crid": "ABfw00",
+      "product_counter": 1
+    }
+  },
+  "type": "FEATURE"
+}

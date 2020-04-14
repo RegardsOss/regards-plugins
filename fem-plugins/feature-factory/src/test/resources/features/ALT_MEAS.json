@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "dat",
+      "file_name": "SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat"
+    },
+    "data": {
+      "creation_date": "2022-10-10T10:10:00Z",
+      "end_date": "2022-10-09T00:00:00Z",
+      "start_date": "2020-02-02T00:00:00Z",
+      "type": "ALT_MEAS"
+    },
+    "swot": {
+      "granule_type": "Pass"
+    }
+  },
+  "type": "FEATURE"
+}

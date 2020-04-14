@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/SMM_PMP_AXVCNE20200303_180000_20200305_120000_20200305_120000",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": null,
+      "file_name": "SMM_PMP_AXVCNE20200303_180000_20200305_120000_20200305_120000",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/SMM_PMP_AXVCNE20200303_180000_20200305_120000_20200305_120000"
+    },
+    "data": {
+      "creation_date": "2020-03-03T18:00:00Z",
+      "end_date": "2020-03-05T12:00:00Z",
+      "start_date": "2020-03-05T12:00:00Z",
+      "type": "XDF_SEA_PRESSURE_PRE"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "FEATURE"
+}

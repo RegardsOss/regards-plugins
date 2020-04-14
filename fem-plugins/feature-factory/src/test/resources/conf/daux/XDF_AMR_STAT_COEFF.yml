@@ -1,7 +1,7 @@
 XDF_AMR_STAT_COEFF: 
     name: SWOT_RAD_{{ FileIdentifier }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
     Description: ""
-    example: ['SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc', 'SWOT_RAD_MAP_AX_20200303T120000_20200303T120000_20200303T120000.nc']
+    example: ['SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303_120000.nc', 'SWOT_RAD_MAP_AX_20200303T120000_20200303T120000_20200303_120000.nc']
     document: "SWOT-ICD-SYS-0421-CNES"
     granule_type: Segment
     tar_content: []

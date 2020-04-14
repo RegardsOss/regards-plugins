@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/pers.xml",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "xml",
+      "file_name": "pers.xml",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/pers.xml"
+    },
+    "data": {
+      "type": "SWOT_PERS_DORIS_RINEX"
+    },
+    "swot": {
+      "granule_type": "Day"
+    }
+  },
+  "type": "FEATURE"
+}

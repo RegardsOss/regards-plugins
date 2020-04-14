@@ -7,7 +7,7 @@ L0A_RAD_Packet:
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
+    metadata: [StationName, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
     APIDnumber : [1402, 1408]
     simu_method: 
         name: idefix

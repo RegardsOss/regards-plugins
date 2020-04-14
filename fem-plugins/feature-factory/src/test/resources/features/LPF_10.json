@@ -1,0 +1,32 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "model",
+  "files": [],
+  "id": "file:/somewhere/test/PSWOT_LPF_1PaS20200203_011614_20200203_000000_20200203_010614.nc",
+  "geometry": null,
+  "normalizedGeometry": {
+    "type": "UNLOCATED",
+    "bbox": null,
+    "crs": null
+  },
+  "properties": {
+    "system": {
+      "extension": "nc",
+      "file_name": "PSWOT_LPF_1PaS20200203_011614_20200203_000000_20200203_010614.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file:/somewhere/test/PSWOT_LPF_1PaS20200203_011614_20200203_000000_20200203_010614.nc"
+    },
+    "data": {
+      "creation_date": "2020-02-03T01:16:14Z",
+      "end_date": "2020-02-03T01:06:14Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "LPF_10"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "FEATURE"
+}

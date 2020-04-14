@@ -18,10 +18,18 @@
  */
 package fr.cnes.regards.modules.fem.plugins;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
 import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
@@ -30,7 +38,7 @@ import fr.cnes.regards.modules.fem.plugins.service2.FeatureFactoryService;
 /**
  * Create a {@link Feature} from a {@link FeatureReferenceRequest}
  * We will use the file name to extract {@link Feature} metadata
- * @author Kevin Marchois
+ * @author Sébastien Binda
  *
  */
 @Plugin(author = "REGARDS Team", description = "Create a feature from a file reference", id = "FeatureFactoryPlugin2",
@@ -38,14 +46,35 @@ import fr.cnes.regards.modules.fem.plugins.service2.FeatureFactoryService;
         url = "https://regardsoss.github.io/")
 public class FeatureFactoryPlugin2 implements IFeatureFactoryPlugin {
 
-    public static final String MODEL = "model";
+    @PluginParameter(name = "model", label = "Model to generate features")
+    public static final String model = "model";
+
+    @PluginParameter(name = "configDirectory",
+            label = "Directory where to parse data types desccription files at yml format (datatype.yml)")
+    public static final String configDirectory = "model";
 
     @Autowired
     private FeatureFactoryService factoryService;
 
+    @PluginInit
+    public void init() throws ModuleException {
+        // Initialize data type description from configuration directory
+        Path confPath = Paths.get(configDirectory);
+        if (Files.isDirectory(confPath) && Files.isReadable(confPath)) {
+            try {
+                factoryService.readConfs(confPath);
+            } catch (IOException e) {
+                throw new ModuleException(
+                        String.format("Error during plugin initialisation. Cause : %s", e.getMessage()));
+            }
+        } else {
+            throw new ModuleException(String.format("Invalid configuration directory at %s", configDirectory));
+        }
+    }
+
     @Override
     public Feature createFeature(FeatureReferenceRequest reference) throws ModuleException {
-        return factoryService.getFeature(reference.getLocation(), MODEL);
+        return factoryService.getFeature(reference.getLocation(), model, OffsetDateTime.now());
     }
 
 }

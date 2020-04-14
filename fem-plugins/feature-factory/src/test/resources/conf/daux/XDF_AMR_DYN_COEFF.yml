@@ -2,7 +2,7 @@ XDF_AMR_DYN_COEFF:
     name: SWOT_RAD_CAL_A_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
     Description: ""
     document: "SWOT-ICD-SYS-0421-CNES"
-    example: ['SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223T120000.nc']
+    example: ['SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223_120000.nc']
     granule_type: Segment
     tar_content: []
     mission: MM
