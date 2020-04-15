@@ -33,32 +33,43 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
 import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
-import fr.cnes.regards.modules.fem.plugins.service2.FeatureFactoryService;
+import fr.cnes.regards.modules.fem.plugins.service.DataTypeFeatureFactoryService;
 
 /**
  * Create a {@link Feature} from a {@link FeatureReferenceRequest}
  * We will use the file name to extract {@link Feature} metadata
+ *
  * @author Sébastien Binda
  *
  */
-@Plugin(author = "REGARDS Team", description = "Create a feature from a file reference", id = "FeatureFactoryPlugin2",
-        version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-        url = "https://regardsoss.github.io/")
-public class FeatureFactoryPlugin2 implements IFeatureFactoryPlugin {
+@Plugin(author = "REGARDS Team",
+        description = "Creates SWOT Feature from file location.  Uses yml description files to identify data types.",
+        id = "SwotFeatureFactoryPlugin", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
+        owner = "CNES", url = "https://regardsoss.github.io/")
+public class DataTypeFeatureFactoryPlugin implements IFeatureFactoryPlugin {
 
+    /**
+     * Model name of the Feature to generate
+     */
     @PluginParameter(name = "model", label = "Model to generate features")
     public static final String model = "model";
 
+    /**
+     * Configuration  directory where to scan data types yml configuration files
+     */
     @PluginParameter(name = "configDirectory",
             label = "Directory where to parse data types desccription files at yml format (datatype.yml)")
     public static final String configDirectory = "model";
 
     @Autowired
-    private FeatureFactoryService factoryService;
+    private DataTypeFeatureFactoryService factoryService;
 
+    /**
+     * Initialize all data types by reading yml configuration files.
+     * @throws ModuleException
+     */
     @PluginInit
     public void init() throws ModuleException {
-        // Initialize data type description from configuration directory
         Path confPath = Paths.get(configDirectory);
         if (Files.isDirectory(confPath) && Files.isReadable(confPath)) {
             try {
