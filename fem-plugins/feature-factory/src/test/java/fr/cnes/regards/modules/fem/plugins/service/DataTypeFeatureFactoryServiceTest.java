@@ -34,18 +34,12 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -68,15 +62,10 @@ import fr.cnes.regards.modules.model.service.xml.XmlImportHelper;
  *
  * @author Sébastien  Binda
  */
-@RunWith(SpringRunner.class)
-@EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@TestPropertySource(
-        properties = { "regards.gson.prettyPrint=true", "spring.application.name=fatureFactory",
-                "regards.cipher.key-location=src/test/resources/testKey", "regards.cipher.iv=1234567812345678" },
-        locations = "classpath:geode-test.properties")
-@ContextConfiguration(classes = { AbstractMultitenantServiceTest.ScanningConfiguration.class })
-@ActiveProfiles("test")
-public class DataTypeFeatureFactoryServiceTest {
+@TestPropertySource(properties = { "regards.gson.prettyPrint=true", "spring.application.name=fatureFactory" })
+public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataTypeFeatureFactoryServiceTest.class);
 
     @Autowired
     Gson gson;
@@ -91,8 +80,6 @@ public class DataTypeFeatureFactoryServiceTest {
     protected MultitenantFlattenedAttributeAdapterFactory factory;
 
     private final static String RESOURCE_PATH = "src/test/resources/conf/models";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataTypeFeatureFactoryServiceTest.class);
 
     private static final String tenant = "DEFAULT";
 
