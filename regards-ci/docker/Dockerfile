@@ -18,6 +18,8 @@ ADD custom-command-file-validation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plu
 ADD download-metalink-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+# FEM
+ADD feature-factory-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -40,10 +42,13 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm  -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
 	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
 	rm  -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
+	# Remove old fem plugins
+	rm  -f /regards-plugins/fem/fem-driver-plugin*.jar && \
 
 	# copy JARs
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
 	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/ && \
 	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/ && \
-	cp ${REGARDS_HOME}/plugins/catalog/*.jar /regards-plugins/catalog/
+	cp ${REGARDS_HOME}/plugins/catalog/*.jar /regards-plugins/catalog/ && \
+	cp ${REGARDS_HOME}/plugins/fem/*.jar /regards-plugins/fem/
