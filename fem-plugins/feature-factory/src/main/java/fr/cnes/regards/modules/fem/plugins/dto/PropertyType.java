@@ -16,31 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.fem.plugins.service2;
+package fr.cnes.regards.modules.fem.plugins.dto;
 
 /**
- * Enumeration of fixed properties to each SWOT Feature to add in system fragment.
+ * Enumeration available types for know {@link PropertiesEnum}
  *
  * @author Sébastien Binda
  *
  */
-public enum SystemPropertiyEnum {
+public enum PropertyType {
 
-    INGEST_DATE("ingestion_date"),
-    CHANGE_DATE("change_date"),
-    GPFS_URL("gpfs_url"),
-    FILE_NAME("file_name"),
-    FILE_SIZE("filesize"),
-    EXTENSION("extension");
+    DATE,
 
-    private String propertyPath;
+    DATE_TIME,
 
-    SystemPropertiyEnum(String propertyPath) {
-        this.propertyPath = propertyPath;
-    }
+    STRING,
 
-    public String getPropertyPath() {
-        return propertyPath;
-    }
+    INTEGER;
 
 }

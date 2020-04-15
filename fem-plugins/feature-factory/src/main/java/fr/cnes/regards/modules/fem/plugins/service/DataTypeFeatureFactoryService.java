@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.fem.plugins.service2;
+package fr.cnes.regards.modules.fem.plugins.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,6 +40,9 @@ import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
+import fr.cnes.regards.modules.fem.plugins.dto.PropertiesEnum;
+import fr.cnes.regards.modules.fem.plugins.dto.SystemPropertiyEnum;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 
 /**
@@ -49,14 +52,26 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
  *
  */
 @Service
-public class FeatureFactoryService {
+public class DataTypeFeatureFactoryService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService.class);
+    /**
+     * Class logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataTypeFeatureFactoryService.class);
 
+    /**
+     * Name of Feature fragment containing  feature system information
+     */
     private static final String SYSTEM_FRAGMENT_NAME = "system";
 
+    /**
+     * Name of Feature fragment containing SWOT properties
+     */
     private static final String SWOT_FRAGMENT = "swot";
 
+    /**
+     * Name of Feature fragment containing data properties
+     */
     private static final String DATA_FRAGMENT = "data";
 
     /**
@@ -65,8 +80,8 @@ public class FeatureFactoryService {
     Set<DataTypeDescriptor> descriptors = Sets.newHashSet();
 
     /**
-     * Reads all {@link DataTypeDescriptor}s from configured directory
-     * @param directory
+     * Reads all {@link DataTypeDescriptor}s from configured directory and initialize associated {@link DataTypeDescriptor}s
+     * @param directory directory to parse for yml files
      * @throws IOException
      */
     public void readConfs(Path directory) throws IOException {
@@ -96,7 +111,6 @@ public class FeatureFactoryService {
                 LOGGER.error("Error reading configuration file {}. Cause : {}", filePath, e.getMessage());
             }
         });
-
     }
 
     /**
@@ -122,7 +136,7 @@ public class FeatureFactoryService {
     }
 
     /**
-     * Get a {@link Feature} for the given fileName by reading the associated {@link DataTypeDescriptor}
+     * Get a {@link Feature} for the given fileLocation by reading the associated {@link DataTypeDescriptor}
      * @param fileLocation
      * @param model
      * @return {@link Feature}
@@ -132,42 +146,45 @@ public class FeatureFactoryService {
         String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
         Feature toCreate = Feature.build(fileLocation, null, null, EntityType.DATA, model);
+        // 1. Add all dynamic properties read from data descriptor
         for (String meta : dataDesc.getMetadata()) {
             Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName, dataDesc.getType());
             if (property.isPresent()) {
                 IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
             }
         }
-
+        // 2. Add fixed granule type property
         if ((dataDesc.getGranule_type() != null) && !dataDesc.getGranule_type().isEmpty()) {
-
             IProperty.mergeProperties(toCreate.getProperties(), Sets
                     .newHashSet(IProperty.buildObject(SWOT_FRAGMENT, IProperty
                             .buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(), dataDesc.getGranule_type()))),
                                       fileLocation);
         }
+        // 3. Add fixed data type  property
         if ((dataDesc.getType() != null) && !dataDesc.getType().isEmpty()) {
             IProperty.mergeProperties(toCreate.getProperties(),
                                       Sets.newHashSet(IProperty.buildObject(DATA_FRAGMENT, IProperty
                                               .buildString(PropertiesEnum.TYPE.getPropertyPath(), dataDesc.getType()))),
                                       fileLocation);
         }
-
+        // 4. Add fixed system properties
         addSystemProperties(toCreate, fileLocation, creationDate);
         return toCreate;
-
     }
 
     /**
-     * @param toCreate
+     * Add all fixed properties of the system fragment
+     * @param feature {@link Feature}
+     * @param fileLocation
+     * @param creationDate
      */
-    private void addSystemProperties(Feature toCreate, String fileLocation, OffsetDateTime creationDate) {
+    private void addSystemProperties(Feature feature, String fileLocation, OffsetDateTime creationDate) {
         String fileName = Paths.get(fileLocation).getFileName().toString();
         String fileExt = null;
         if (fileName.lastIndexOf(".") > 0) {
             fileExt = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
         }
-        toCreate.addProperty(IProperty
+        feature.addProperty(IProperty
                 .buildObject(SYSTEM_FRAGMENT_NAME,
                              IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
                              IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
