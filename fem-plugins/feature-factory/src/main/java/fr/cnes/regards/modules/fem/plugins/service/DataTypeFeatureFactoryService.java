@@ -92,19 +92,24 @@ public class DataTypeFeatureFactoryService {
                 if (Files.isRegularFile(filePath)) {
                     String dataType = filePath.getFileName().toString()
                             .substring(0, filePath.getFileName().toString().indexOf("."));
-                    JsonNode mainNode = mapper.readTree(filePath.toFile());
-                    JsonNode dataNode = mainNode.get(dataType);
-                    DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
-                    if (dt != null) {
-                        dt.setType(dataType);
-                        try {
-                            dt.validate();
-                            descriptors.add(dt);
-                        } catch (ModuleException e) {
-                            LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+                    if (!this.descriptors.stream().anyMatch(d -> d.getType().equals(dataType))) {
+                        JsonNode mainNode = mapper.readTree(filePath.toFile());
+                        JsonNode dataNode = mainNode.get(dataType);
+                        DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
+                        if (dt != null) {
+                            dt.setType(dataType);
+                            try {
+                                dt.validate();
+                                descriptors.add(dt);
+                            } catch (ModuleException e) {
+                                LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+                            }
+                        } else {
+                            LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
                         }
                     } else {
-                        LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
+                        LOGGER.error("[{}] Invalid data type. A data type configuration already exists for this type.",
+                                     dataType);
                     }
                 }
             } catch (IOException e) {
