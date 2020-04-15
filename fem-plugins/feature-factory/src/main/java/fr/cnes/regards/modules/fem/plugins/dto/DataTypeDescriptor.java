@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.fem.plugins.service2;
+package fr.cnes.regards.modules.fem.plugins.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,17 +46,32 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
  */
 public class DataTypeDescriptor {
 
+    /**
+     * Class logger
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(DataTypeDescriptor.class);
 
+    /**
+     * File name template containing tokens for property to read. A property token is defined by "{{ propertyName }}".
+     */
     @JsonProperty("name")
     private String name;
 
+    /**
+     * A simple description of the data type
+     */
     @JsonProperty("Description")
     private String description;
 
+    /**
+     * Specification documen associated
+     */
     @JsonProperty("document")
     private String document;
 
+    /**
+     * File name example matching the name template.
+     */
     @JsonProperty("example")
     private List<String> example;
 
@@ -72,26 +87,50 @@ public class DataTypeDescriptor {
     @JsonProperty("Nature")
     private String nature;
 
+    /**
+     * List of properties to generate in the Feature
+     */
     @JsonProperty("metadata")
     private List<String> metadata;
 
+    /**
+     * Possible values for the property FileIdentifier
+     */
     @JsonProperty("FileIdentifier")
     private List<String> fileIdentifier;
 
+    /**
+     * Possible values for the property APIDnumber
+     */
     @JsonProperty("APIDnumber")
     private List<Integer> apidNumber;
 
+    /**
+     * Map of the properties read from the template file. key=propertyName and value=group number in the regexp parsed
+     */
     @JsonIgnore
     private final Map<String, Integer> nameProperties = new HashMap<>();
 
+    /**
+     * Generated regexp construct from the template and the list of known properties from {@link PropertiesEnum}.
+     */
     @JsonIgnore
     private String regexp;
 
+    /**
+     * Name of the current datatype
+     */
     @JsonIgnore
     private String type;
 
+    /**
+     * Regex to read a property name from the given template
+     */
     private static String propertyPattern = "\\{\\{ [a-zA-Z]* \\}\\}";
 
+    /**
+     * {@link Pattern} to read a property name from the given template
+     */
     private static Pattern pattern = Pattern.compile(propertyPattern);
 
     /**
@@ -103,12 +142,15 @@ public class DataTypeDescriptor {
      */
     public Optional<IProperty<?>> getMetaProperty(String meta, String fileName, String dataType)
             throws ModuleException {
+        // Find a configuration associated to the property
         PropertiesEnum prop = PropertiesEnum.get(meta);
+        // Find index of the property in file name template
         Integer groupIndex = this.nameProperties.get(meta);
+        // Init default values
         String propertyName = meta;
         String propertyPath = meta;
         PropertyType type = PropertyType.STRING;
-
+        // If property is configured retrieve values
         if (prop != null) {
             propertyPath = prop.getPropertyPath();
             if (propertyPath.lastIndexOf(".") > 0) {
@@ -120,7 +162,7 @@ public class DataTypeDescriptor {
         } else {
             LOGGER.warn("[{}] Default format used for property {} in file {}", dataType, meta, fileName);
         }
-
+        // If property is found in the file name pattern create the IProperty
         if ((groupIndex != null) && this.matches(fileName)) {
             IProperty<?> property;
             Matcher matcher = Pattern.compile(this.regexp).matcher(fileName);
@@ -149,9 +191,10 @@ public class DataTypeDescriptor {
     }
 
     /**
+     * Build a {@link IProperty} of Object type to handle fragment if needed in the property path
      * @param propertyName
      * @param property
-     * @return
+     * @return {@link IProperty}
      */
     private IProperty<?> buildPropertyFragment(String propertyPath, IProperty<?> property) {
         String[] fragments = propertyPath.split("\\.");
@@ -167,8 +210,9 @@ public class DataTypeDescriptor {
     }
 
     /**
-     * Parse a date
+     * Parse a date without time with the given format.
      * @param date
+     * @param format
      * @return
      * @throws ModuleException
      */
@@ -182,8 +226,9 @@ public class DataTypeDescriptor {
     }
 
     /**
-     * Parse a date
+     * Parse a date with time with the given format.
      * @param date
+     * @param format
      * @return
      * @throws ModuleException
      */
@@ -240,10 +285,16 @@ public class DataTypeDescriptor {
         return matches;
     }
 
+    // GETTER / SETTER
+
     public String getName() {
         return name;
     }
 
+    /**
+     * Use name setter to handle creation of nameProperties map
+     * @param name
+     */
     public void setName(String name) {
         this.name = name;
         this.regexp = name;

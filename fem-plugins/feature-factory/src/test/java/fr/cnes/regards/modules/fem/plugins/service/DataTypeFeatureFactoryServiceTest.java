@@ -56,7 +56,6 @@ import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantService
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.feature.dto.Feature;
-import fr.cnes.regards.modules.fem.plugins.service2.FeatureFactoryService;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
@@ -77,13 +76,13 @@ import fr.cnes.regards.modules.model.service.xml.XmlImportHelper;
         locations = "classpath:geode-test.properties")
 @ContextConfiguration(classes = { AbstractMultitenantServiceTest.ScanningConfiguration.class })
 @ActiveProfiles("test")
-public class FeatureFactoryService2Test {
+public class DataTypeFeatureFactoryServiceTest {
 
     @Autowired
     Gson gson;
 
     @Autowired
-    FeatureFactoryService featureFactory;
+    DataTypeFeatureFactoryService featureFactory;
 
     @Autowired
     IRuntimeTenantResolver resovlver;
@@ -93,7 +92,7 @@ public class FeatureFactoryService2Test {
 
     private final static String RESOURCE_PATH = "src/test/resources/conf/models";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService2Test.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataTypeFeatureFactoryServiceTest.class);
 
     private static final String tenant = "DEFAULT";
 
