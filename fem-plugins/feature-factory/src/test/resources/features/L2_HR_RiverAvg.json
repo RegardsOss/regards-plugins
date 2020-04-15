@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar",
+  "id": "b10d2e69-bd02-32dc-bad5-c8a4fb44553c",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar",
       "extension": "tar",
-      "file_name": "SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar"
     },
     "data": {
       "start_date": "2121-06-12T07:21:03Z",
@@ -25,11 +21,11 @@
     },
     "swot": {
       "cycle_number": 1,
-      "granule_type": "BassinCycle",
+      "granule_type": "Bassin-cycle",
       "bassin_id": "002",
       "crid": "PGA2",
       "product_counter": 3
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

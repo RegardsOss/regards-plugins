@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
+  "id": "f671ab9e-b64a-3453-ace8-5c88da841818",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
       "extension": null,
-      "file_name": "SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204"
+      "gpfs_url": "file://somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204"
     },
     "data": {
       "creation_date": "2020-02-03T01:32:04Z",
@@ -28,5 +24,5 @@
       "granule_type": "Segment"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

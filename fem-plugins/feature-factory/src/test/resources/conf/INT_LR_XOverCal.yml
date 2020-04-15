@@ -2,7 +2,7 @@ INT_LR_XOverCal:
     name: SWOT_INT_LR_XOverCal_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ""
     document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_ABfw00_01.tar']
+    example: ['SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_PGA2_01.tar']
     granule_type: Day
     tar_content: [nc, Archive.xml, met.json, rc.xml, md5]
     mission: SWOT

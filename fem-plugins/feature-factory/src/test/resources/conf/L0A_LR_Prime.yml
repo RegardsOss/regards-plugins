@@ -1,7 +1,7 @@
 L0A_LR_Prime:
     name: SWOT_L0A_LR_Prime_{{ StationName }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ APIDnumber }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ""
-    example: ['SWOT_L0A_LR_Prime_IVK_20200203T000000_20200203T001539_1070_ABfw00_01.tar', 'SWOT_L0A_LR_Prime_IVK_20200203T000000_20200203T001539_1073_ABfw00_01.tar']
+    example: ['SWOT_L0A_LR_Prime_IVK_20200203T000000_20200203T001539_1070_PGA2_01.tar', 'SWOT_L0A_LR_Prime_IVK_20200203T000000_20200203T001539_1073_PGA2_01.tar']
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     granule_type: Segment
     tar_content: [nc, met.json, rc.xml]

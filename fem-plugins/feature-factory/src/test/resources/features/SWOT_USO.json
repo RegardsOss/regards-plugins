@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355",
+  "id": "cbc66ebe-741d-3387-a64e-310d0fc569eb",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355",
       "extension": null,
-      "file_name": "SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355"
+      "gpfs_url": "file://somewhere/test/SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355"
     },
     "data": {
       "creation_date": "2019-11-20T08:28:00Z",
@@ -25,8 +21,8 @@
       "type": "SWOT_USO"
     },
     "swot": {
-      "granule_type": "Downlink"
+      "granule_type": "Downlink unit"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }
