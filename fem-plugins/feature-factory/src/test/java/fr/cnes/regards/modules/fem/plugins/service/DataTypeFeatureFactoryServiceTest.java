@@ -32,14 +32,15 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.validation.Errors;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -50,10 +51,16 @@ import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantService
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.feature.service.FeatureValidationService;
+import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
+import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.model.client.IModelClient;
+import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.exception.ImportException;
+import fr.cnes.regards.modules.model.service.validation.ValidationMode;
 import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 import fr.cnes.regards.modules.model.service.xml.XmlImportHelper;
 
@@ -79,11 +86,20 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
     @Autowired
     protected MultitenantFlattenedAttributeAdapterFactory factory;
 
+    @Autowired
+    private FeatureValidationService validationService;
+
+    @Autowired
+    protected IModelClient modelClientMock;
+
+    @Autowired
+    protected IModelAttrAssocClient modelAttrAssocClientMock;
+
     private final static String RESOURCE_PATH = "src/test/resources/conf/models";
 
     private static final String tenant = "DEFAULT";
 
-    @Before
+    // @Before
     public void init() {
         try {
             FileUtils.deleteDirectory(Paths.get("target/features").toFile());
@@ -112,6 +128,16 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
 
             // Property factory registration
             factory.registerAttributes(tenant, atts);
+
+            // Mock client
+            List<EntityModel<Model>> models = new ArrayList<EntityModel<Model>>();
+            Model mockModel = Mockito.mock(Model.class);
+            Mockito.when(mockModel.getName()).thenReturn(modelName);
+            models.add(new EntityModel<Model>(mockModel));
+            Mockito.when(modelClientMock.getModels(null)).thenReturn(ResponseEntity.ok(models));
+            Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(modelName))
+                    .thenReturn(ResponseEntity.ok(resources));
+
             return modelName;
         } catch (IOException | ImportException e) {
             String errorMessage = "Cannot import model";
@@ -129,31 +155,38 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
     @Test
     public void testAllDataTypes() throws JsonParseException, JsonMappingException, IOException {
         resovlver.forceTenant(tenant);
-        this.importModel("model_geode.xml");
+        String modelName = this.importModel("model_geode.xml");
         featureFactory.readConfs(Paths.get("src/test/resources/conf/"));
         featureFactory.readConfs(Paths.get("src/test/resources/conf/daux"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
-        featureFactory.getDescriptors().forEach(d -> {
+        for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
                 try {
-                    Feature feature = featureFactory
-                            .getFeature(Paths.get("file:///somewhere/test/", d.getExample().get(0)).toString(), "model",
-                                        creationDate);
+                    Feature feature = featureFactory.getFeature("file://somewhere/test/" + d.getExample().get(0),
+                                                                modelName, creationDate);
                     LOGGER.debug(feature.getProperties().toString());
+                    Errors errors = validationService.validate(feature, ValidationMode.CREATION);
+                    if (errors.hasErrors()) {
+                        errors.getAllErrors().forEach(e -> LOGGER.error(" ----> {}", e.getDefaultMessage().toString()));
+                        String message = String.format("[%s] %s validation errors", d.getType(),
+                                                       errors.getErrorCount());
+                        LOGGER.error(message);
+                        Assert.fail(message);
+                    }
+
                     File result = writeToFile(feature, d.getType());
                     Assert.assertTrue(String.format("Expected generated feature for product %s does not match",
                                                     d.getType()),
                                       com.google.common.io.Files.equal(result, Paths
                                               .get("src/test/resources/features", d.getType() + ".json").toFile()));
-                } catch (ModuleException | IOException e) {
+                } catch (ModuleException e) {
                     LOGGER.error("[{}] Invalid data descriptor cause : {}", d.getType(), e.getMessage());
-                    // FIXME : One  each data type is well defined add test fail if exception
-                    // Assert.fail(String.format("[%s] Invalid data descriptor cause : %s", d.getType(), e.getMessage()));
+                    Assert.fail(String.format("[%s] Invalid data descriptor cause : %s", d.getType(), e.getMessage()));
                 }
             }
-        });
+        }
         // FIXME : One  each data type is well defined add test all 127 data types.
-        Assert.assertEquals(121, featureFactory.getDescriptors().size());
+        Assert.assertEquals(103, featureFactory.getDescriptors().size());
     }
 
     private File writeToFile(Feature feature, String dataType) {

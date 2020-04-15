@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc",
+  "id": "40d04f60-31f1-31a2-8b64-4680a3582496",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc",
       "extension": "nc",
-      "file_name": "SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc"
+      "gpfs_url": "file://somewhere/test/SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc"
     },
     "data": {
       "creation_date": "2020-03-03T12:00:00Z",
@@ -25,8 +21,8 @@
       "type": "SAT-COM"
     },
     "swot": {
-      "granule_type": "Day"
+      "granule_type": "Daily"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

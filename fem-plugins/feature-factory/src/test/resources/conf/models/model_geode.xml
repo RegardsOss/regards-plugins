@@ -1,31 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+	Last changes :
+	- 10/03/2020 : document FWY
+	- 10/04/2020 : simplification et précisions FWY
+-->
 <model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="model_V1.0.xsd">
 	<name>GEODE001</name>
 	<description>Data model for SWOT data lifecycle</description>
-	<version>0.0.1</version>
+	<version>1.0.2</version>
 	<type>DATA</type>
 	<!-- System infos -->
 	<fragment>
 		<name>system</name>
-		<attribute>
+		<attribute optional="true">
 			<label>File size</label>
 			<name>filesize</name>
 			<type>INTEGER</type>
 		</attribute>
-		<attribute alterable="false">
-			<label>Creation date</label>
-			<name>creation_date</name>
+		<attribute>
+			<label>Ingestion date</label>
+			<name>ingestion_date</name>
+			<description>Ingestion date in the GEODE repository</description>
 			<type>DATE_ISO8601</type>
 		</attribute>
 		<attribute>
-			<label>Modification date</label>
-			<name>modification_date</name>
+			<label>Change date</label>
+			<name>change_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
-		<attribute>
-			<label>Urls</label>
-			<name>urls</name>
-			<type>STRING_ARRAY</type>
+		<attribute optional="true">
+			<label>REGARDS URL</label>
+			<name>regards_url</name>
+			<type>STRING</type>
+			<restriction>
+				<pattern>^(https?|ftp|file)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
+			</restriction>
+		</attribute>
+		<attribute optional="true">
+			<label>GPFS URL</label>
+			<name>gpfs_url</name>
+			<type>STRING</type>
+			<restriction>
+				<pattern>^(https?|ftp|file)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
+			</restriction>
+		</attribute>
+		<attribute optional="true">
+			<label>LOM URL</label>
+			<name>lom_url</name>
+			<type>STRING</type>
 			<restriction>
 				<pattern>^(https?|ftp|file)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
 			</restriction>
@@ -35,7 +57,7 @@
 			<name>filename</name>
 			<type>STRING</type>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Checksum</label>
 			<name>checksum</name>
 			<type>STRING</type>
@@ -44,107 +66,166 @@
 			<label>Extension</label>
 			<name>extension</name>
 			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>tar</value>
-					<value>nc</value>
-					<value>shp</value>
-					<value>zip</value>
-					<value>tgz</value>
-					<value>xml</value>
-				</enumeration>
-			</restriction>
 		</attribute>
 	</fragment>
-	<!-- File infos -->
+	<!-- Data -->
 	<fragment>
-		<name>file_infos</name>
-		<attribute alterable="false">
+		<name>data</name>
+		<attribute>
 			<label>Data type</label>
 			<name>type</name>
 			<type>STRING</type>
 			<restriction>
 				<enumeration>
-					<value>L0A_LR_Packet</value>
-					<value>L0A_HR_Packet</value>
-					<value>L0A_RAD_Packet</value>
-					<value>L0A_NALT_RAW</value>
-					<value>L0A_DORIS_RAW</value>
-					<value>L0A_GPSP_Packet</value>
-					<value>L2_LR_SSH</value>
+					<value>ALT_MEAS</value>
+					<value>NALT_ALTI1</value>
+					<value>ECLIPSE</value>
+					<value>HISTO_OEF</value>
+					<value>I-Q-GCRF-ITRF</value>
+					<value>Q-GCRF-ITRF</value>
+					<value>REPORT_KARIN_FRAMES_GAPS</value>
+					<value>REPORT_TMX_GAPS</value>
+					<value>SAT-COM</value>
+					<value>XDF_ALTITUDE_GRILLE_GAUSS</value>
+					<value>XDF_AMR_DYN_COEFF</value>
+					<value>XDF_AMR_STAT_COEFF</value>
+					<value>XDF_COR_IONO_GIM</value>
+					<value>XDF_DYN_LR_ICE_MAP</value>
+					<value>XDF_HISTO_POLE</value>
+					<value>XDF_HISTO_TAI_TUC</value>
+					<value>XDF_HUMIDITY_ANA</value>
+					<value>XDF_LIQUID_VAPOR_CONTENT_ANA</value>
+					<value>XDF_MEAN_SURFACE_PRESSURE_ANA</value>
+					<value>XDF_MEAN_SURFACE_PRESSURE_PRE</value>
+					<value>XDF_MOG2D_COMBINEE_V</value>
+					<value>XDF_MOG2D_COMBINEE_P</value>
+					<value>XDF_MOG2D_COMBINEE_F</value>
+					<value>XDF_ORBIT_REV_FILE</value>
+					<value>XDF_OROGRAPHY_ANA</value>
+					<value>XDF_RAIN_RATE_crr</value>
+					<value>XDF_RAIN_RATE_lsr</value>
+					<value>XDF_SEA_PRESSURE_ANA</value>
+					<value>XDF_SEA_PRESSURE_PRE</value>
+					<value>XDF_SST_REYNOLDS_NOAA_ANA</value>
 					<value>XDF_SURFACE_PRESSURE_ANA</value>
-					<value>L2_HR_RIVER_SP</value>
+					<value>XDF_SURFACE_PRESSURE_PRE</value>
+					<value>XDF_TEMPERATURE_ANA</value>
+					<value>XDF_UNCORRECTED_SURFACE_PRESSURE_ANA</value>
+					<value>XDF_MP2_MWD_WAM</value>
+					<value>XDF_WET_TROPO_ANA</value>
+					<value>XDF_WET_TROPO_PRE</value>
+					<value>XDF_U_WIND_ANA</value>
+					<value>XDF_U_WIND_PRE</value>
+					<value>XDF_V_WIND_ANA</value>
+					<value>XDF_V_WIND_PRE</value>
+					<value>HISTORY_BM-TAI</value>
+					<value>SWOT_ALT_CHAR</value>
+					<value>SWOT_USO</value>
+					<value>SWOT_PPF</value>
+					<value>L0A_OTHER_Packet</value>
+					<value>L0A_LR_Packet</value>
+					<value>L0B_LR_Frame</value>
+					<value>L1B_LR_INTF</value>
+					<value>INT_LR_XOverCal</value>
+					<value>L2_LR_SSH</value>
+					<value>L0A_HR_Packet</value>
+					<value>L0B_HR_Frame</value>
+					<value>L1B_HR_SLC</value>
+					<value>L1B_HR_SLC_META</value>
+					<value>L2_HR_PIXC</value>
+					<value>L2_HR_PIXCVecRiver</value>
+					<value>L2_HR_RiverSP</value>
+					<value>L2_HR_RiverAvg</value>
+					<value>L2_HR_LakeTile</value>
+					<value>L2_HR_LakeSP</value>
+					<value>L2_HR_LakeAvg</value>
+					<value>L2_HR_PIXCVec</value>
+					<value>L2_HR_Raster</value>
+					<value>L2_HR_RiverTile</value>
+					<value>L0A_KCAL_Packet</value>
+					<value>INT_KCAL_Dyn</value>
+					<value>L0A_RAD_Packet</value>
+					<value>L0A_HR_Prime</value>
+					<value>L2_RAD_OGDR</value>
+					<value>L2_RAD_IGDR</value>
+					<value>L2_RAD_GDR</value>
+					<value>L0A_NALT_RAW</value>
+					<value>L2_NALT_OGDR</value>
+					<value>L2_NALT_IGDR</value>
+					<value>L2_NALT_GDR</value>
+					<value>L0A_DORIS_RAW</value>
+					<value>L1_DORIS_RINEX</value>
+					<value>L1_DORIS_RINEX_PARTIAL</value>
+					<value>L1_DORIS_RINEX_INVALID</value>
+					<value>L1_DORIS_RINEX_INVALID_PARTIAL</value>
+					<value>L1_DORIS_RINEX_REX</value>
+					<value>L1_DORIS_RINEX_REX_PARTIAL</value>
+					<value>L0A_DORIS_NAV_T</value>
+					<value>L0A_DORIS_NAV_G</value>
+					<value>L0A_DORIS_NAV_I</value>
+					<value>L0A_DORIS_ATTD</value>
+					<value>L0A_DORIS_DAT</value>
+					<value>L0A_DORIS_ROUTREP</value>
+					<value>L0A_DORIS_ANOREP</value>
+					<value>L0A_DORIS_TST_JAM</value>
+					<value>L0A_DORIS_TST_DMP</value>
+					<value>L0A_DORIS_TST_OTHER</value>
+					<value>L0A_DORIS_NAVK</value>
+					<value>L0A_KCAL_Prime</value>
+					<value>L0A_LR_Prime</value>
+					<value>DECOM_DOR</value>
+					<value>L0A_GPSP_Packet</value>
+					<value>L1_GPSP_RINEX</value>
+					<value>ATTD_RECONST</value>
+					<value>ATTD_CONTEXT</value>
+					<value>MOE</value>
+					<value>POE</value>
+					<value>L0A_NALT_CAL2</value>
+					<value>L0A_NALT_CAL1</value>
+					<value>L0A_NALT_OTHER_TM</value>
+					<value>DECOM_NALT</value>
+					<value>L0A_GYRO_INERT</value>
+					<value>INERTIAL_GYRO_10</value>
+					<value>L0A_GYRO_TECH</value>
+					<value>DECOM_TECH_GYRO</value>
+					<value>HKTM</value>
+					<value>DECOM_PFSW_TM_HKANCILLARY</value>
+					<value>LTM_RI</value>
+					<value>LTM_FI</value>
+					<value>LTM_IQ</value>
+					<value>Point_Croisement</value>
+					<value>L0A_GPSP_Prime</value>
+					<value>LPF_10</value>
+					<value>PTR_10</value>
+					<value>L2_LR_PreCalSSH</value>
+					<value>L0A_RAD_Prime</value>
+					<value>DSWO_DIF</value>
 				</enumeration>
 			</restriction>
 		</attribute>
-		<attribute>
-			<label>Nature</label>
-			<name>nature</name>
-			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>TM</value>
-					<value>PRODUCT</value>
-					<value>DAD</value>
-					<value>SAD</value>
-				</enumeration>
-			</restriction>
-		</attribute>
-		<attribute>
-			<label>Type of date</label>
-			<name>date_type</name>
-			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>BEGINEND</value>
-					<value>VALIDITY</value>
-					<value>GRID</value>
-					<value>DAY</value>
-				</enumeration>
-			</restriction>
-		</attribute>
-		<attribute>
-			<label>Level</label>
-			<name>level</name>
-			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>L0A</value>
-					<value>LOAP</value>
-					<value>L1</value>
-					<value>L1B</value>
-					<value>L2</value>
-				</enumeration>
-			</restriction>
-		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Production date</label>
 			<name>production_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
 		<attribute>
-			<label>UTC start date</label>
-			<name>utc_start_date</name>
+			<label>start date</label>
+			<name>start_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
 		<attribute>
-			<label>UTC end date</label>
-			<name>utc_end_date</name>
+			<label>end date</label>
+			<name>end_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
-		<attribute>
-			<label>TAI start date</label>
-			<name>tai_start_date</name>
+		<attribute optional="true">
+			<label>creation date</label>
+			<name>creation_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
-		<attribute>
-			<label>TAI end date</label>
-			<name>tai_end_date</name>
-			<type>DATE_ISO8601</type>
-		</attribute>
-		<attribute>
-			<label>Validity</label>
-			<name>valid</name>
+		<attribute optional="true">
+			<label>Validition flag</label>
+			<name>validation_flag</name>
 			<type>BOOLEAN</type>
 		</attribute>
 		<attribute optional="true">
@@ -152,116 +233,196 @@
 			<name>validity_change_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
-	</fragment>
-	<!-- Ground segment -->
-	<fragment>
-		<name>ground_segment</name>
-		<attribute>
-			<label>sended</label>
-			<name>sended</name>
+		<attribute optional="true">
+			<label>Validity flag</label>
+			<name>validity_flag</name>
 			<type>BOOLEAN</type>
 		</attribute>
+	</fragment>
+	<!-- JPL SDS -->
+	<fragment>
+		<name>jpl_sds</name>
 		<attribute optional="true">
-			<label>Sending date</label>
-			<name>sending_date</name>
+			<label>JPL SDS transfer start</label>
+			<name>tstart</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
 		<attribute optional="true">
-			<label>Recipients</label>
-			<name>recipients</name>
-			<type>STRING_ARRAY</type>
+			<label>JPL SDS transfer end</label>
+			<name>tend</name>
+			<type>DATE_ISO8601</type>
 		</attribute>
-		<attribute>
-			<label>Archived</label>
+		<attribute optional="true">
+			<label>JPL SDS transfer type</label>
+			<name>ttype</name>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>download</value>
+					<value>upload</value>
+				</enumeration>
+			</restriction>
+		</attribute>
+	</fragment>
+	<!-- JPL GDS -->
+	<fragment>
+		<name>jpl_gds</name>
+		<attribute optional="true">
+			<label>JPL GDS transfer start</label>
+			<name>tstart</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>JPL GDS transfer end</label>
+			<name>tend</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>JPL GDS transfer type</label>
+			<name>ttype</name>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>download</value>
+					<value>upload</value>
+				</enumeration>
+			</restriction>
+		</attribute>
+	</fragment>
+	<!-- SCC -->
+	<fragment>
+		<name>scc</name>
+		<attribute optional="true">
+			<label>SCC transfer start</label>
+			<name>tstart</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>SCC transfer end</label>
+			<name>tend</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>SCC transfer type</label>
+			<name>ttype</name>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>download</value>
+					<value>upload</value>
+				</enumeration>
+			</restriction>
+		</attribute>
+	</fragment>
+	<!-- REGARDS -->
+	<fragment>
+		<name>regards</name>
+		<attribute optional="true">
+			<label>REGARDS transfer start</label>
+			<name>tstart</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>REGARDS delivery end</label>
+			<name>delivery_end</name>
+			<type>DATE_ISO8601</type>
+		</attribute>
+		<attribute optional="true">
+			<label>REGARDS archiving status</label>
 			<name>archived</name>
 			<type>BOOLEAN</type>
 		</attribute>
 		<attribute optional="true">
-			<label>Archiving date</label>
-			<name>archiving_date</name>
-			<type>DATE_ISO8601</type>
-		</attribute>
-		<attribute>
-			<label>Public</label>
-			<name>public</name>
-			<type>BOOLEAN</type>
-		</attribute>
-		<attribute>
-			<label>Distributed</label>
+			<label>REGARDS distribution status</label>
 			<name>distributed</name>
 			<type>BOOLEAN</type>
 		</attribute>
 		<attribute optional="true">
-			<label>Distribution date</label>
+			<label>REGARDS distribution date</label>
 			<name>distribution_date</name>
 			<type>DATE_ISO8601</type>
-		</attribute>
-		<attribute>
-			<label>Restored</label>
-			<name>restored</name>
-			<type>BOOLEAN</type>
-		</attribute>
-		<attribute>
-			<label>State</label>
-			<name>state</name>
-			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>NOT ARCHIVED</value>
-					<value>ARCHIVED</value>
-					<value>VALIDATING</value>
-				</enumeration>
-			</restriction>
 		</attribute>
 	</fragment>
 	<!-- SWOT -->
 	<fragment>
 		<name>swot</name>
-		<attribute>
+		<attribute optional="true">
 			<label>CRID</label>
-			<name>CRID</name>
+			<name>crid</name>
 			<type>STRING</type>
+			<restriction>
+				<pattern>[DPTVX][GIO][A-Z0-9]{2}[A-Z0-9]{0,2}</pattern>
+			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Product counter</label>
 			<name>product_counter</name>
 			<type>INTEGER</type>
-		</attribute>		
-		<attribute>
-			<label>Last version flag</label>
-			<name>is_last_version</name>
-			<type>BOOLEAN</type>
+			<restriction>
+				<integer_range>
+					<min>1</min>
+					<max>99</max>
+				</integer_range>
+			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
+			<label>Product version</label>
+			<name>product_version</name>
+			<type>STRING</type>
+			<restriction>
+				<pattern>[a-z]{1}</pattern>
+			</restriction>
+		</attribute>
+		<attribute optional="true">
 			<label>Station</label>
 			<name>station</name>
 			<type>STRING</type>
 			<restriction>
 				<enumeration>
-					<value>KUX</value>
 					<value>IVK</value>
+					<value>KRX</value>
+					<value>AUX</value>
+					<value>HBX</value>
+					<value>KUX</value>
 				</enumeration>
 			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
+			<label>Source</label>
+			<name>source</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute optional="true">
 			<label>Day date</label>
 			<name>day_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Cycle</label>
-			<name>cycle</name>
+			<name>cycle_number</name>
 			<type>INTEGER</type>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Pass</label>
-			<name>pass</name>
+			<name>pass_number</name>
 			<type>INTEGER</type>
+			<restriction>
+				<integer_range>
+					<min>1</min>
+					<max>584</max>
+				</integer_range>
+			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Tile</label>
-			<name>tile</name>
+			<name>tile_number</name>
 			<type>INTEGER</type>
+			<restriction>
+				<integer_range>
+					<min>1</min>
+					<max>308</max>
+				</integer_range>
+			</restriction>
 		</attribute>
 		<attribute optional="true">
 			<label>Tile side</label>
@@ -276,8 +437,8 @@
 			</restriction>
 		</attribute>
 		<attribute optional="true">
-			<label>L2 LR File id</label>
-			<name>FileIdentifier</name>
+			<label>File identifier</label>
+			<name>file_identifier</name>
 			<type>STRING</type>
 			<restriction>
 				<enumeration>
@@ -289,9 +450,15 @@
 			</restriction>
 		</attribute>
 		<attribute optional="true">
-			<label>L0A or LOAP APID</label>
-			<name>APID</name>
-			<type>STRING</type>
+			<label>APID</label>
+			<name>apid</name>
+			<type>INTEGER</type>
+			<restriction>
+				<integer_range>
+					<min>1</min>
+					<max>9999</max>
+				</integer_range>
+			</restriction>
 		</attribute>
 		<attribute optional="true">
 			<label>Granule type</label>
@@ -300,6 +467,7 @@
 			<restriction>
 				<enumeration>
 					<value>Downlink unit</value>
+					<value>Downlink</value>
 					<value>Cycle</value>
 					<value>Half Orbit</value>
 					<value>Tile</value>
@@ -307,15 +475,36 @@
 					<value>Bassin-cycle</value>
 					<value>Continent-pass</value>
 					<value>Daily</value>
+					<value>Day</value>
+					<value>Segment</value>
+					<value>Full</value>
+					<value>Scene</value>
+					<value>Pass</value>
 				</enumeration>
 			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Continent id</label>
 			<name>continent_id</name>
-			<type>STRING_ARRAY</type>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>AF</value>
+					<value>AU</value>
+					<value>EU</value>
+					<value>GR</value>
+					<value>NA</value>
+					<value>SA</value>
+					<value>SI</value>
+				</enumeration>
+			</restriction>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
+			<label>Scene id</label>
+			<name>scene_id</name>
+			<type>INTEGER</type>
+		</attribute>
+		<attribute optional="true">
 			<label>Bassin id</label>
 			<name>bassin_id</name>
 			<type>STRING</type>

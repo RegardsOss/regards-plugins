@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat",
+  "id": "dda03a2b-135b-3bf9-ae4e-28760b227e29",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat",
       "extension": "dat",
-      "file_name": "SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat"
+      "gpfs_url": "file://somewhere/test/SWOT_MF_ALT20221010_101000_20200202_000000_20221009_000000.dat"
     },
     "data": {
       "creation_date": "2022-10-10T10:10:00Z",
@@ -28,5 +24,5 @@
       "granule_type": "Pass"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

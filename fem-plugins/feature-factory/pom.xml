@@ -67,6 +67,11 @@
 			<artifactId>model-service</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.feature</groupId>
+			<artifactId>feature-service</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

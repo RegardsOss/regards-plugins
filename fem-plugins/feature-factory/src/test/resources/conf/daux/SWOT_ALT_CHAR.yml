@@ -3,7 +3,7 @@ SWOT_ALT_CHAR:
     Description: ""
     example: ['PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959']
     document: "SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD"
-    granule_type: Downlink
+    granule_type: Downlink unit
     tar_content: []
     mission: SWOT
     Nature: TM

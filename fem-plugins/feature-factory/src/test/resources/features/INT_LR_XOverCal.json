@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_ABfw00_01.tar",
+  "id": "26c08c86-c1c7-32b3-9b6d-0dcbb11cd82f",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_PGA2_01.tar",
       "extension": "tar",
-      "file_name": "SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_ABfw00_01.tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_ABfw00_01.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_PGA2_01.tar"
     },
     "data": {
       "start_date": "2020-03-03T00:00:00Z",
@@ -24,10 +20,10 @@
       "type": "INT_LR_XOverCal"
     },
     "swot": {
-      "crid": "ABfw00",
+      "crid": "PGA2",
       "product_counter": 1,
       "granule_type": "Day"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

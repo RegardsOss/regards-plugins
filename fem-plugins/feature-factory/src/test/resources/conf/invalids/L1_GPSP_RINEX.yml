@@ -1,7 +1,7 @@
 L1_GPSP_RINEX:
     name: SWOT_L1_GPSP_RINEX_{{ APIDnumber }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ""
-    example: ['SWOT_L1_GPSP_RINEX_1280_20200203T000000_20200203T011912_ABfw00_01.tar']
+    example: ['SWOT_L1_GPSP_RINEX_1280_20200203T000000_20200203T011912_PGA2_01.tar']
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     granule_type: Segment
     tar_content: [rnx, iso.xml, rc.xml, met.json, md5]

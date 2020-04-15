@@ -3,7 +3,7 @@ SAT-COM:
     Description: ""
     document: "SWOT-ICD-SYS-0421-CNES"
     example: ['SWOT_SAT_COM_20200303_120000_20200301_230000_20200303_010000.nc']
-    granule_type: Day
+    granule_type: Daily
     tar_content: []
     mission: MM
     Nature: Product

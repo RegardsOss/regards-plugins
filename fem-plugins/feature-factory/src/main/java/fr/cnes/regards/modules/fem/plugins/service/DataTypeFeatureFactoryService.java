@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -150,10 +151,11 @@ public class DataTypeFeatureFactoryService {
     public Feature getFeature(String fileLocation, String model, OffsetDateTime creationDate) throws ModuleException {
         String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
-        Feature toCreate = Feature.build(fileLocation, null, null, EntityType.DATA, model);
+        Feature toCreate = Feature.build(UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString(), null, null,
+                                         EntityType.DATA, model);
         // 1. Add all dynamic properties read from data descriptor
         for (String meta : dataDesc.getMetadata()) {
-            Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName, dataDesc.getType());
+            Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName);
             if (property.isPresent()) {
                 IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
             }
