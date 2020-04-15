@@ -44,7 +44,7 @@ import fr.cnes.regards.modules.fem.plugins.service.DataTypeFeatureFactoryService
  */
 @Plugin(author = "REGARDS Team",
         description = "Creates SWOT Feature from file location.  Uses yml description files to identify data types.",
-        id = "SwotFeatureFactoryPlugin", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
+        id = "DataTypeFeatureFactoryPlugin", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class DataTypeFeatureFactoryPlugin implements IFeatureFactoryPlugin {
 
