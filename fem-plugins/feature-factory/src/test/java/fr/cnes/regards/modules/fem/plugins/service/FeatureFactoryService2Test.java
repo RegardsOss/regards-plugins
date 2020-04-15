@@ -71,8 +71,10 @@ import fr.cnes.regards.modules.model.service.xml.XmlImportHelper;
  */
 @RunWith(SpringRunner.class)
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@TestPropertySource(properties = { "regards.gson.prettyPrint=true", "spring.application.name=fatureFactory",
-        "regards.cipher.key-location=src/test/resources/testKey", "regards.cipher.iv=1234567812345678" })
+@TestPropertySource(
+        properties = { "regards.gson.prettyPrint=true", "spring.application.name=fatureFactory",
+                "regards.cipher.key-location=src/test/resources/testKey", "regards.cipher.iv=1234567812345678" },
+        locations = "classpath:geode-test.properties")
 @ContextConfiguration(classes = { AbstractMultitenantServiceTest.ScanningConfiguration.class })
 @ActiveProfiles("test")
 public class FeatureFactoryService2Test {
@@ -159,10 +161,12 @@ public class FeatureFactoryService2Test {
                                               .get("src/test/resources/features", d.getType() + ".json").toFile()));
                 } catch (ModuleException | IOException e) {
                     LOGGER.error("[{}] Invalid data descriptor cause : {}", d.getType(), e.getMessage());
+                    // FIXME : One  each data type is well defined add test fail if exception
                     // Assert.fail(String.format("[%s] Invalid data descriptor cause : %s", d.getType(), e.getMessage()));
                 }
             }
         });
+        // FIXME : One  each data type is well defined add test all 127 data types.
         Assert.assertEquals(121, featureFactory.getDescriptors().size());
     }
 
