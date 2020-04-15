@@ -158,6 +158,8 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
         String modelName = this.importModel("model_geode.xml");
         featureFactory.readConfs(Paths.get("src/test/resources/conf/"));
         featureFactory.readConfs(Paths.get("src/test/resources/conf/daux"));
+        // FIXME : correct invalids data  types
+        // featureFactory.readConfs(Paths.get("src/test/resources/conf/invalids"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
         for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
