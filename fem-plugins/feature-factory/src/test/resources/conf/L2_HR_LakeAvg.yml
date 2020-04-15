@@ -3,7 +3,7 @@ L2_HR_LakeAvg:
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     example: ['SWOT_L2_HR_LakeAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar']
-    granule_type: BassinCycle
+    granule_type: Bassin-cycle
     tar_content: [tar.gz, met.json, rc.xml, md5]
     mission: SWOT
     Nature: Product

@@ -2,8 +2,8 @@ L0B_HR_Frame:
     name: SWOT_L0B_HR_Frame_{{ CycleID }}_{{ PassID }}_{{ TileID }}F_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_L0B_HR_Frame_003_069_161F_20200203T010000_20200203T010010_ABfw00_01.tar']
-    granule_type: TileF
+    example: ['SWOT_L0B_HR_Frame_003_069_161F_20200203T010000_20200203T010010_PGA2_01.tar']
+    granule_type: Tile
     tar_content: [nc, met.json, rc.xml, md5]
     mission: SWOT
     Nature: Product

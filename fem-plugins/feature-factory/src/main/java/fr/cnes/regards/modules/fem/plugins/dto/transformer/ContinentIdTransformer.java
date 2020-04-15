@@ -16,31 +16,40 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.fem.plugins.dto;
+package fr.cnes.regards.modules.fem.plugins.dto.transformer;
 
 /**
- * Enumeration of fixed properties to each SWOT Feature to add in system fragment.
+ * Feature property transformer
  *
  * @author Sébastien Binda
  *
  */
-public enum SystemPropertiyEnum {
+public class ContinentIdTransformer implements ITransformer {
 
-    INGEST_DATE("ingestion_date"),
-    CHANGE_DATE("change_date"),
-    GPFS_URL("gpfs_url"),
-    FILE_NAME("filename"),
-    FILE_SIZE("filesize"),
-    EXTENSION("extension");
-
-    private String propertyPath;
-
-    SystemPropertiyEnum(String propertyPath) {
-        this.propertyPath = propertyPath;
-    }
-
-    public String getPropertyPath() {
-        return propertyPath;
+    @Override
+    public String tranform(String value) {
+        switch (value) {
+            case "1":
+                return "AF";
+            case "2":
+                return "EU";
+            case "3":
+                return "SI";
+            case "4":
+                return "AS";
+            case "5":
+                return "AU";
+            case "6":
+                return "SA";
+            case "7":
+                return "NA";
+            case "8":
+                return "AR";
+            case "9":
+                return "GR";
+            default:
+                return value;
+        }
     }
 
 }

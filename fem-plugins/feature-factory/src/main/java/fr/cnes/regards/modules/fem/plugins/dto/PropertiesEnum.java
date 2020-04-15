@@ -18,6 +18,10 @@
  */
 package fr.cnes.regards.modules.fem.plugins.dto;
 
+import fr.cnes.regards.modules.fem.plugins.dto.transformer.ContinentIdTransformer;
+import fr.cnes.regards.modules.fem.plugins.dto.transformer.ITransformer;
+import fr.cnes.regards.modules.fem.plugins.dto.transformer.TileSideTransformer;
+
 /**
  * Enumeration of known properties to READ from {@link DataTypeDescriptor}s<br/>
  *
@@ -27,6 +31,7 @@ package fr.cnes.regards.modules.fem.plugins.dto;
  * <li><b>pattern : </b>Regex of the  attribute in file names</li>
  * <li><b>type : </b>Type of the attribute</li>
  * <li><b>format : </b> [Optional] Format to parse dates</li>
+ * <li><b>transformer : </b> [Optional] function to transform property value</li>
  * </ul>
  *
  *
@@ -79,7 +84,7 @@ public enum PropertiesEnum {
 
     STATION_NAME("StationName", "swot.station", "[A-Z]{3}", PropertyType.STRING),
 
-    SOURCE_TYPE("SourceType", "swot.station", "O|T|S", PropertyType.STRING),
+    SOURCE_TYPE("SourceType", "swot.source", "O|T|S", PropertyType.STRING),
 
     SENSING_DATE_TIME("SensingDateDay", "swot.day_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
 
@@ -87,9 +92,9 @@ public enum PropertiesEnum {
 
     PASS_ID("PassID", "swot.pass_number", "[0-9]{3}", PropertyType.INTEGER),
 
-    TILE_ID("TileID", "swot.tile_number", "[0-9]{3}", PropertyType.STRING),
+    TILE_ID("TileID", "swot.tile_number", "[0-9]{3}", PropertyType.INTEGER),
 
-    TILE_SIDE("TileSide", "swot.tile_side", ".*", PropertyType.STRING),
+    TILE_SIDE("TileSide", "swot.tile_side", ".*", PropertyType.STRING, new TileSideTransformer()),
 
     FILE_IDENTIFIER("FileIdentifier", "swot.file_identifier", ".*", PropertyType.STRING),
 
@@ -97,7 +102,7 @@ public enum PropertiesEnum {
 
     GRANULE_TYPE("GranuleType", "granule_type", ".*", PropertyType.STRING),
 
-    CONTINENT_ID("ContinentID", "swot.continent_id", "[1-9]{1}", PropertyType.INTEGER),
+    CONTINENT_ID("ContinentID", "swot.continent_id", "[1-9]{1}", PropertyType.STRING, new ContinentIdTransformer()),
 
     SCENE_ID("SceneID", "swot.scene_id", "[0-9]{3}", PropertyType.INTEGER),
 
@@ -113,12 +118,24 @@ public enum PropertiesEnum {
 
     private String format;
 
+    private ITransformer transformer;
+
     PropertiesEnum(String name, String featureName, String pattern, PropertyType type) {
         this.name = name;
         this.propertyPath = featureName;
         this.pattern = pattern;
         this.type = type;
         this.format = null;
+        this.transformer = null;
+    }
+
+    PropertiesEnum(String name, String featureName, String pattern, PropertyType type, ITransformer transformer) {
+        this.name = name;
+        this.propertyPath = featureName;
+        this.pattern = pattern;
+        this.type = type;
+        this.format = null;
+        this.transformer = transformer;
     }
 
     PropertiesEnum(String name, String featureName, String pattern, PropertyType type, String format) {
@@ -202,6 +219,10 @@ public enum PropertiesEnum {
 
     public String getPropertyPath() {
         return propertyPath;
+    }
+
+    public ITransformer getTransformer() {
+        return transformer;
     }
 
 }

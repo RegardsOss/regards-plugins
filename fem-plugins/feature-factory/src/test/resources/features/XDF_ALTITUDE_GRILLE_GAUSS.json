@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc",
+  "id": "dd4d7182-bdb9-3036-9693-43761ea80399",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc",
       "extension": "nc",
-      "file_name": "SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc"
+      "gpfs_url": "file://somewhere/test/SMM_ALT_AXVCNE20200103T060000_20160302T180000_20220302_180000.nc"
     },
     "data": {
       "production_date": "2022-03-02T18:00:00Z",
@@ -28,5 +24,5 @@
       "granule_type": "Segment"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

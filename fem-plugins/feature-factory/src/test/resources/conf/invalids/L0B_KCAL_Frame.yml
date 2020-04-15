@@ -2,7 +2,7 @@ L0B_KCAL_Frame:
     name: SWOT_L0B_KCAL_Frame_{{ CycleID }}_{{ PassID }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_L0B_KCAL_Frame_003_069_20200203T003320_20200203T012450_ABfw00_01.tar']
+    example: ['SWOT_L0B_KCAL_Frame_003_069_20200203T003320_20200203T012450_PGA2_01.tar']
     granule_type: Pass
     tar_content: [nc, met.json, rc.xml]
     mission: SWOT

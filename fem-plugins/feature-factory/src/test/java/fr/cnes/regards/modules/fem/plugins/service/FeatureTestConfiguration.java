@@ -25,6 +25,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.model.client.IModelClient;
 import fr.cnes.regards.modules.model.gson.IAttributeHelper;
 import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 
@@ -54,6 +55,11 @@ public class FeatureTestConfiguration {
     @Bean // Used in model service
     public IComputationPluginService computationPluginService() {
         return Mockito.mock(IComputationPluginService.class);
+    }
+
+    @Bean
+    public IModelClient modelClient() {
+        return Mockito.mock(IModelClient.class);
     }
 
 }

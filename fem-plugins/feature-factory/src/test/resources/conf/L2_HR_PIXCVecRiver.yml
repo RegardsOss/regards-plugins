@@ -2,7 +2,7 @@ L2_HR_PIXCVecRiver:
     name: SWOT_L2_HR_PIXCVecRiver_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_L2_HR_PIXCVecRiver_003_069_161L_20200203T010000_20200203T010010_ABfw00_01.tar']
+    example: ['SWOT_L2_HR_PIXCVecRiver_003_069_161L_20200203T010000_20200203T010010_PGA2_01.tar']
     granule_type: Tile
     tar_content: [nc, met.json, rc.xml, iso.xml, md5]
     mission: SWOT
