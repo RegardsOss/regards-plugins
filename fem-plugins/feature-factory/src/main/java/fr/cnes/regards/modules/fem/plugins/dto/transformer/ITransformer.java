@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,31 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.fem.plugins.dto;
+package fr.cnes.regards.modules.fem.plugins.dto.transformer;
 
 /**
- * Enumeration of fixed properties to each SWOT Feature to add in system fragment.
- *
- * @author Sébastien Binda
+ * @author sbinda
  *
  */
-public enum SystemPropertiyEnum {
+public interface ITransformer {
 
-    INGEST_DATE("ingestion_date"),
-    CHANGE_DATE("change_date"),
-    GPFS_URL("gpfs_url"),
-    FILE_NAME("filename"),
-    FILE_SIZE("filesize"),
-    EXTENSION("extension");
-
-    private String propertyPath;
-
-    SystemPropertiyEnum(String propertyPath) {
-        this.propertyPath = propertyPath;
-    }
-
-    public String getPropertyPath() {
-        return propertyPath;
-    }
+    String tranform(String value);
 
 }

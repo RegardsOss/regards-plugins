@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_HBX_20200203T011824_20200203T000000_20200203T010824_S_APID1034.PTM_0",
+  "id": "cf5c7ce6-9eb0-32fd-8f80-4a09f7acd40c",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_HBX_20200203T011824_20200203T000000_20200203T010824_S_APID1034.PTM_0",
       "extension": "PTM_0",
-      "file_name": "SWOT_HBX_20200203T011824_20200203T000000_20200203T010824_S_APID1034.PTM_0",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_HBX_20200203T011824_20200203T000000_20200203T010824_S_APID1034.PTM_0"
+      "gpfs_url": "file://somewhere/test/SWOT_HBX_20200203T011824_20200203T000000_20200203T010824_S_APID1034.PTM_0"
     },
     "data": {
       "start_date": "2020-02-03T00:00:00Z",
@@ -24,10 +20,11 @@
       "type": "L0A_NALT_CAL2"
     },
     "swot": {
+      "source": "S",
+      "granule_type": "Downlink",
       "apid": 1034,
-      "station": "S",
-      "granule_type": "Downlink"
+      "station": "HBX"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0",
+  "id": "b937720d-aecd-3f9d-b845-7de0b204afcb",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0",
       "extension": "PTM_0",
-      "file_name": "SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0"
+      "gpfs_url": "file://somewhere/test/SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0"
     },
     "data": {
       "start_date": "2020-02-03T00:00:00Z",
@@ -24,10 +20,11 @@
       "type": "HKTM"
     },
     "swot": {
+      "source": "S",
+      "granule_type": "Downlink",
       "apid": 1,
-      "station": "S",
-      "granule_type": "Downlink"
+      "station": "KUX"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

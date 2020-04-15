@@ -1,22 +1,18 @@
 {
   "urn": null,
   "entityType": "DATA",
-  "model": "model",
+  "model": "GEODE001",
   "files": [],
-  "id": "file:/somewhere/test/SMM_WEA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+  "id": "0044a5fe-6401-3621-bfa2-435e34a9016e",
   "geometry": null,
-  "normalizedGeometry": {
-    "type": "UNLOCATED",
-    "bbox": null,
-    "crs": null
-  },
+  "normalizedGeometry": null,
   "properties": {
     "system": {
+      "filename": "SMM_WEA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
       "extension": null,
-      "file_name": "SMM_WEA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file:/somewhere/test/SMM_WEA_AXVCNE20200303_060000_20200302_180000_20200302_180000"
+      "gpfs_url": "file://somewhere/test/SMM_WEA_AXVCNE20200303_060000_20200302_180000_20200302_180000"
     },
     "data": {
       "creation_date": "2020-03-03T06:00:00Z",
@@ -28,5 +24,5 @@
       "granule_type": "Segment"
     }
   },
-  "type": "FEATURE"
+  "type": "Feature"
 }

@@ -38,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.modules.fem.plugins.dto.transformer.ITransformer;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 
 /**
@@ -140,8 +141,7 @@ public class DataTypeDescriptor {
      * @return {@link IProperty}
      * @throws ModuleException
      */
-    public Optional<IProperty<?>> getMetaProperty(String meta, String fileName, String dataType)
-            throws ModuleException {
+    public Optional<IProperty<?>> getMetaProperty(String meta, String fileName) throws ModuleException {
         // Find a configuration associated to the property
         PropertiesEnum prop = PropertiesEnum.get(meta);
         // Find index of the property in file name template
@@ -149,6 +149,7 @@ public class DataTypeDescriptor {
         // Init default values
         String propertyName = meta;
         String propertyPath = meta;
+        ITransformer transformer = null;
         PropertyType type = PropertyType.STRING;
         // If property is configured retrieve values
         if (prop != null) {
@@ -159,8 +160,9 @@ public class DataTypeDescriptor {
                 propertyName = propertyPath;
             }
             type = prop.getType();
+            transformer = prop.getTransformer();
         } else {
-            LOGGER.warn("[{}] Default format used for property {} in file {}", dataType, meta, fileName);
+            LOGGER.warn("[{}] Default format used for property {} in file {}", type, meta, fileName);
         }
         // If property is found in the file name pattern create the IProperty
         if ((groupIndex != null) && this.matches(fileName)) {
@@ -168,6 +170,9 @@ public class DataTypeDescriptor {
             Matcher matcher = Pattern.compile(this.regexp).matcher(fileName);
             matcher.matches();
             String metaValue = matcher.group(groupIndex);
+            if (transformer != null) {
+                metaValue = transformer.tranform(metaValue);
+            }
             switch (type) {
                 case DATE:
                     property = IProperty.buildDate(propertyName, parseDate(metaValue, prop.getFormat()));
