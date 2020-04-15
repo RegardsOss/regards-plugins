@@ -19,7 +19,7 @@ ADD download-metalink-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/c
 ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
-ADD feature-factory-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem
+ADD feature-factory-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -28,6 +28,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
     mkdir -p /regards-plugins/ingest/ && \
     mkdir -p /regards-plugins/dataprovider/ && \
     mkdir -p /regards-plugins/catalog/ && \
+    mkdir -p /regards-plugins/fem/ && \
 
 	# Remove old storage plugins
 	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
