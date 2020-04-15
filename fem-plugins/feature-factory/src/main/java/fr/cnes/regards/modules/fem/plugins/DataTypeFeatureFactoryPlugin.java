@@ -52,14 +52,14 @@ public class DataTypeFeatureFactoryPlugin implements IFeatureFactoryPlugin {
      * Model name of the Feature to generate
      */
     @PluginParameter(name = "model", label = "Model to generate features")
-    public static final String model = "model";
+    private String model;
 
     /**
      * Configuration  directory where to scan data types yml configuration files
      */
     @PluginParameter(name = "configDirectory",
             label = "Directory where to parse data types desccription files at yml format (datatype.yml)")
-    public static final String configDirectory = "model";
+    private String configDirectory;
 
     @Autowired
     private DataTypeFeatureFactoryService factoryService;
