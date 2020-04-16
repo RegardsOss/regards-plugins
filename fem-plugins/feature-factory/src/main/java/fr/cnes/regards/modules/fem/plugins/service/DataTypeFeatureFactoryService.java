@@ -78,7 +78,7 @@ public class DataTypeFeatureFactoryService {
     /**
      * Valid and available {@link DataTypeDescriptor}s
      */
-    Set<DataTypeDescriptor> descriptors = Sets.newHashSet();
+    private final Set<DataTypeDescriptor> descriptors = Sets.newConcurrentHashSet();
 
     /**
      * Reads all {@link DataTypeDescriptor}s from configured directory and initialize associated {@link DataTypeDescriptor}s
