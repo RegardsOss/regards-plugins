@@ -62,7 +62,7 @@
 			<name>checksum</name>
 			<type>STRING</type>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Extension</label>
 			<name>extension</name>
 			<type>STRING</type>
