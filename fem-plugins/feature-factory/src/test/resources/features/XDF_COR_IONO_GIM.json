@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SWO_ION_AXPCNE20200303_065500_20200302_000000_20200302_235959",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SWO_ION_AXPCNE20200303_065500_20200302_000000_20200302_235959"
