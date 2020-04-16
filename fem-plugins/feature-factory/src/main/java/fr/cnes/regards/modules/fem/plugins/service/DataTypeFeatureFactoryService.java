@@ -191,13 +191,22 @@ public class DataTypeFeatureFactoryService {
         if (fileName.lastIndexOf(".") > 0) {
             fileExt = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
         }
-        feature.addProperty(IProperty
-                .buildObject(SYSTEM_FRAGMENT_NAME,
-                             IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
-                             IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
-                             IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
-                             IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName),
-                             IProperty.buildString(SystemPropertiyEnum.EXTENSION.getPropertyPath(), fileExt)));
+        if ((fileExt != null) && !fileExt.isEmpty()) {
+            feature.addProperty(IProperty
+                    .buildObject(SYSTEM_FRAGMENT_NAME,
+                                 IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
+                                 IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
+                                 IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
+                                 IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName),
+                                 IProperty.buildString(SystemPropertiyEnum.EXTENSION.getPropertyPath(), fileExt)));
+        } else {
+            feature.addProperty(IProperty
+                    .buildObject(SYSTEM_FRAGMENT_NAME,
+                                 IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
+                                 IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
+                                 IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
+                                 IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName)));
+        }
     }
 
     /**
