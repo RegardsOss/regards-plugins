@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SMM_Q3A_AXVCNE20200303_060000_20200302_180000_20200302_180000",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SMM_Q3A_AXVCNE20200303_060000_20200302_180000_20200302_180000"

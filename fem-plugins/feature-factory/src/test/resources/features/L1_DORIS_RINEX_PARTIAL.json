@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "DSWOT_MEP_1PaS20220718_071533_20220717_235951_20220718_061635",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/DSWOT_MEP_1PaS20220718_071533_20220717_235951_20220718_061635"

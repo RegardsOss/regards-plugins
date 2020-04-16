@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SMM_TUC_AXXCNE20200303_120000_20180403_120000_20220201_120000",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SMM_TUC_AXXCNE20200303_120000_20180403_120000_20220201_120000"
