@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000"

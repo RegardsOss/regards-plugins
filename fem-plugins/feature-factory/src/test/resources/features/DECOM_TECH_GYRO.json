@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204"

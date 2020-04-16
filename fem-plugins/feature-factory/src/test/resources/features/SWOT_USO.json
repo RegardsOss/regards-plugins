@@ -9,7 +9,6 @@
   "properties": {
     "system": {
       "filename": "SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355",
-      "extension": null,
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
       "gpfs_url": "file://somewhere/test/SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355"

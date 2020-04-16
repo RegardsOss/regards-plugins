@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -99,7 +100,7 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
 
     private static final String tenant = "DEFAULT";
 
-    // @Before
+    @Before
     public void init() {
         try {
             FileUtils.deleteDirectory(Paths.get("target/features").toFile());
