@@ -6,7 +6,10 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.ingest.domain.exception.AIPGenerationException;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
@@ -32,10 +35,17 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected Boolean always;
 
     @Override
-    public List<AIP> generate(SIPEntity sip, OaisUniformResourceName aipId, OaisUniformResourceName sipId,
-            String providerId) {
-
-        AIP aip = AIP.build(sip.getSip(), aipId, Optional.ofNullable(sipId), providerId, sip.getVersion());
+    public List<AIP> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
+        OaisUniformResourceName sipIdUrn = sip.getSipIdUrn();
+        AIP aip = AIP.build(sip.getSip(),
+                            new OaisUniformResourceName(OAISIdentifier.AIP,
+                                                        entityType,
+                                                        tenant,
+                                                        sipIdUrn.getEntityId(),
+                                                        sip.getVersion()),
+                            Optional.of(sipIdUrn),
+                            sip.getProviderId(),
+                            sip.getVersion());
         if (COUNTER.get() == Integer.MAX_VALUE) {
             COUNTER.set(Integer.MIN_VALUE);
         }
