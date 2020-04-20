@@ -25,13 +25,13 @@ public class StringArrayEnhancedDescriptiveAipGeneration extends AbstractEnhance
 
     @Override
     protected void addDescriptiveInformation(AIP aip) {
-        if(allValues) {
+        if (allValues) {
             aip.withDescriptiveInformation(descriptiveInfoName, values);
         } else {
             Random r = new Random();
             Set<String> toAdd = new HashSet<>();
-            for(String value:values) {
-                if(r.nextInt()%2==0) {
+            for (String value : values) {
+                if (r.nextInt() % 2 == 0) {
                     toAdd.add(value);
                 }
             }
