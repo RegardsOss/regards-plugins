@@ -14,7 +14,7 @@
       "gpfs_url": "file://somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204"
     },
     "data": {
-      "creation_date": "2020-02-03T01:32:04Z",
+      "production_date": "2020-02-03T01:32:04Z",
       "end_date": "2020-02-03T01:22:04Z",
       "start_date": "2020-02-03T00:00:00Z",
       "type": "DECOM_TECH_GYRO"

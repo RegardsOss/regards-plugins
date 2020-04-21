@@ -1,0 +1,24 @@
+L2_HR_LakeAvg:
+    name: SWOT_L2_HR_LakeAvg_{{ CycleID }}_{{ BassinID }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ''
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    example: ['SWOT_L2_HR_LakeAvg_001_AF_2_21210612T072103_2021075103_PGA2_03.tar']
+    granule_type: Bassin-Cycle
+    tar_content: [tar.gz, met.json, rc.xml, md5]
+    mission: SWOT
+    Nature: Product
+    metadata: [CycleID, BassinID, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    simu_method:
+      directory: swot/l2_hr_lakeravg
+      file_size: 52.3go
+      has_path_by_date: false
+      name: product
+    CHRONOS:
+      geode_sync_duration: 3m
+      has_path_by_date: false
+      input_dir: ''
+      lifetime_duration: ''
+      output_dir: swot/l2_hr_lakeravg
+      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
+      source: Production
+      storage_server: GEODE

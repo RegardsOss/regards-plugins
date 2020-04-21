@@ -3,20 +3,20 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "b10d2e69-bd02-32dc-bad5-c8a4fb44553c",
+  "id": "d417d797-464d-3c23-8a22-8a4674a9e250",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar",
+      "filename": "SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar",
       "extension": "tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_RiverAvg_001_002_21210612T072103_20210710T051030_PGA2_03.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar"
     },
     "data": {
-      "start_date": "2121-06-12T07:21:03Z",
-      "end_date": "2021-07-10T05:10:30Z",
+      "start_date": "2020-01-31T14:15:00Z",
+      "end_date": "2020-02-21T11:00:00Z",
       "type": "L2_HR_RiverAvg"
     },
     "swot": {

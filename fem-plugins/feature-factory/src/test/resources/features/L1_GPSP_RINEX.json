@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "d8a0c602-1981-323c-b4c2-18f6d22a7e86",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_L1_GPSP_RINEX_1280_20200203T000000_20200203T011912_VI0059_01.tar",
+      "extension": "tar",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file://somewhere/test/SWOT_L1_GPSP_RINEX_1280_20200203T000000_20200203T011912_VI0059_01.tar"
+    },
+    "data": {
+      "start_date": "2020-02-03T00:00:00Z",
+      "end_date": "2020-02-03T01:19:12Z",
+      "type": "L1_GPSP_RINEX"
+    },
+    "swot": {
+      "granule_type": "Segment",
+      "apid": 1280,
+      "crid": "VI0059",
+      "product_counter": 1
+    }
+  },
+  "type": "Feature"
+}

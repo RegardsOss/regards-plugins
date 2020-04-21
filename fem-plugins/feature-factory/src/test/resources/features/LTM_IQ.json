@@ -15,7 +15,7 @@
       "gpfs_url": "file://somewhere/test/PSWOT_IQ_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc"
     },
     "data": {
-      "creation_date": "2022-10-10T10:10:00Z",
+      "production_date": "2022-10-10T10:10:00Z",
       "end_date": "2022-10-09T00:00:00Z",
       "start_date": "2020-02-02T00:00:00Z",
       "type": "LTM_IQ"

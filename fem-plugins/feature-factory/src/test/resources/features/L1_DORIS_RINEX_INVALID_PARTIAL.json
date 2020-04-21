@@ -14,7 +14,7 @@
       "gpfs_url": "file://somewhere/test/DSWOT_FLA_1PaS20220718_071533_20220717_235951_20220718_061635"
     },
     "data": {
-      "creation_date": "2022-07-18T07:15:33Z",
+      "production_date": "2022-07-18T07:15:33Z",
       "end_date": "2022-07-18T06:16:35Z",
       "start_date": "2022-07-17T23:59:51Z",
       "type": "L1_DORIS_RINEX_INVALID_PARTIAL"

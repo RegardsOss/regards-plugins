@@ -15,15 +15,15 @@
       "gpfs_url": "file://somewhere/test/SWOT_KRX_20200203T013121_20200203T000000_20200203T012121_S_APID1033.PTM_0"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:31:21Z",
       "end_date": "2020-02-03T01:21:21Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_NALT_CAL1"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1033,
-      "station": "KRX"
+      "station": "KRX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

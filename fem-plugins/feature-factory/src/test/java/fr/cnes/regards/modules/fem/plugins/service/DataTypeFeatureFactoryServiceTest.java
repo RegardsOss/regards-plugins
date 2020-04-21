@@ -157,10 +157,7 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
     public void testAllDataTypes() throws JsonParseException, JsonMappingException, IOException {
         resovlver.forceTenant(tenant);
         String modelName = this.importModel("model_geode.xml");
-        featureFactory.readConfs(Paths.get("src/test/resources/conf/"));
-        featureFactory.readConfs(Paths.get("src/test/resources/conf/daux"));
-        // FIXME : correct invalids data  types
-        // featureFactory.readConfs(Paths.get("src/test/resources/conf/invalids"));
+        featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
         for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
@@ -173,7 +170,7 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
                         errors.getAllErrors().forEach(e -> LOGGER.error(" ----> {}", e.getDefaultMessage().toString()));
                         String message = String.format("[%s] %s validation errors", d.getType(),
                                                        errors.getErrorCount());
-                        LOGGER.error(message);
+                        LOGGER.error("-------------> {}", message);
                         Assert.fail(message);
                     }
 
@@ -188,8 +185,8 @@ public class DataTypeFeatureFactoryServiceTest extends AbstractMultitenantServic
                 }
             }
         }
-        // FIXME : One  each data type is well defined add test all 127 data types.
-        Assert.assertEquals(103, featureFactory.getDescriptors().size());
+        // FIXME : One  each data type is well defined add test all 111 data types.
+        Assert.assertEquals(108, featureFactory.getDescriptors().size());
     }
 
     private File writeToFile(Feature feature, String dataType) {
