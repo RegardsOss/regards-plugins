@@ -14,13 +14,13 @@
       "gpfs_url": "file://somewhere/test/SMM_TUC_AXXCNE20200303_120000_20180403_120000_20220201_120000"
     },
     "data": {
-      "creation_date": "2020-03-03T12:00:00Z",
+      "production_date": "2020-03-03T12:00:00Z",
       "end_date": "2022-02-01T12:00:00Z",
       "start_date": "2018-04-03T12:00:00Z",
       "type": "XDF_HISTO_TAI_TUC"
     },
     "swot": {
-      "granule_type": "Full"
+      "granule_type": "Segment"
     }
   },
   "type": "Feature"

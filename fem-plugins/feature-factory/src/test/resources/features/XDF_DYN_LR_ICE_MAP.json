@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "6ed08aa4-a013-3425-977e-e8fb8eaec8a4",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SMM_ICN_AXVCNE20200303_060000_20200302_000000_20200303_000000.nc",
+      "extension": "nc",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file://somewhere/test/SMM_ICN_AXVCNE20200303_060000_20200302_000000_20200303_000000.nc"
+    },
+    "data": {
+      "production_date": "2020-03-03T06:00:00Z",
+      "end_date": "2020-03-03T00:00:00Z",
+      "start_date": "2020-03-02T00:00:00Z",
+      "type": "XDF_DYN_LR_ICE_MAP"
+    },
+    "swot": {
+      "file_identifier": "N",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

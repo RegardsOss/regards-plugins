@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "fce36a8f-93ad-339a-be96-98330c49a3cb",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz",
+      "extension": "tgz",
+      "ingestion_date": "2020-04-10T12:00:00Z",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "file://somewhere/test/SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz"
+    },
+    "data": {
+      "production_date": "2020-03-03T07:00:00Z",
+      "end_date": "2020-03-02T01:00:00Z",
+      "start_date": "2020-03-02T00:00:00Z",
+      "type": "ECLIPSE"
+    },
+    "swot": {
+      "day_date": "2020-03-02T00:00:00Z",
+      "granule_type": "Day"
+    }
+  },
+  "type": "Feature"
+}

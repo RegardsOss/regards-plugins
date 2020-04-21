@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.fem.plugins.dto;
 
-import fr.cnes.regards.modules.fem.plugins.dto.transformer.ContinentIdTransformer;
 import fr.cnes.regards.modules.fem.plugins.dto.transformer.ITransformer;
 import fr.cnes.regards.modules.fem.plugins.dto.transformer.TileSideTransformer;
 
@@ -54,7 +53,7 @@ public enum PropertiesEnum {
     DATE_TIME_END_TM("DateTimeEndTM", "data.end_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
             "yyyyMMdd'T'HHmmss"),
 
-    CREATION_DATE_TIME("CreationDateTime", "data.creation_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
+    CREATION_DATE_TIME("CreationDateTime", "data.production_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
             "yyyyMMdd'_'HHmmss"),
 
     START_DATE_TIME("StartDateTime", "data.start_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
@@ -62,12 +61,12 @@ public enum PropertiesEnum {
 
     END_DATE_TIME("EndDateTime", "data.end_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME, "yyyyMMdd'_'HHmmss"),
 
-    PRODUCTION_DATE_TIME("ProductionDateTime", "data.production_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'_'HHmmss"),
+    PRODUCTION_DATE_TIME("ProductionDateTime", "data.production_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
+            "yyyyMMdd'T'HHmmss"),
 
-    DATE_CREATION_FILE("DateCreationFile", "data.creation_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
+    DATE_CREATION_FILE("DateCreationFile", "data.production_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
 
-    DATETIME_CREATION_FILE("DateTimeCreationFile", "data.creation_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
+    DATETIME_CREATION_FILE("DateTimeCreationFile", "data.production_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
             "yyyyMMdd'T'HHmmss"),
 
     TYPE("TYPE", "type", ".*", PropertyType.STRING),
@@ -84,7 +83,7 @@ public enum PropertiesEnum {
 
     STATION_NAME("StationName", "swot.station", "[A-Z]{3}", PropertyType.STRING),
 
-    SOURCE_TYPE("SourceType", "swot.source", "O|T|S", PropertyType.STRING),
+    SOURCE_TYPE("SourceType", null, "O|T|S", PropertyType.STRING),
 
     SENSING_DATE_TIME("SensingDateDay", "swot.day_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
 
@@ -98,11 +97,11 @@ public enum PropertiesEnum {
 
     FILE_IDENTIFIER("FileIdentifier", "swot.file_identifier", ".*", PropertyType.STRING),
 
-    APID_NUMBER("APIDnumber", "swot.apid", "[0-9]{4}", PropertyType.INTEGER),
+    APID_NUMBER("APIDnumber", "swot.apid", "[0-9]{1,4}", PropertyType.INTEGER),
 
     GRANULE_TYPE("GranuleType", "granule_type", ".*", PropertyType.STRING),
 
-    CONTINENT_ID("ContinentID", "swot.continent_id", "[1-9]{1}", PropertyType.STRING, new ContinentIdTransformer()),
+    CONTINENT_ID("ContinentID", "swot.continent_id", "[A-Z]{2}", PropertyType.STRING),
 
     SCENE_ID("SceneID", "swot.scene_id", "[0-9]{3}", PropertyType.INTEGER),
 

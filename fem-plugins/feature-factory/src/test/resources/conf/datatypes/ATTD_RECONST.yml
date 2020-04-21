@@ -1,0 +1,25 @@
+ATTD_RECONST:
+    name: SWOT_ATTD_RECONST_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ""
+    example: ['SWOT_ATTD_RECONST_20200303T000000_20200304T000000_VI0059_01.tar']
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    granule_type: Day
+    tar_content: [nc, Archive.xml, met.json, rc.xml, md5]
+    mission: SWOT
+    Nature: Product
+    metadata: [RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    simu_method: 
+        name: product
+        file_size: 40mo
+        directory: "swot/attd_reconst"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : "swot/attd_reconst"
+        source: Production
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

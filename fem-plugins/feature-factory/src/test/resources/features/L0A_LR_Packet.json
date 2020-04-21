@@ -15,15 +15,15 @@
       "gpfs_url": "file://somewhere/test/SWOT_IVK_20200203T011155_20200203T000000_20200203T010155_S_APID1070.PTM_0"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:11:55Z",
       "end_date": "2020-02-03T01:01:55Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_LR_Packet"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1070,
-      "station": "IVK"
+      "station": "IVK",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

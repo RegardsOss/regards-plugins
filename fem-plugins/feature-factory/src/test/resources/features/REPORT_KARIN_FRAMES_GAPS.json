@@ -3,21 +3,21 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "5ea345da-800d-364d-803b-8a63ffa8b7dc",
+  "id": "6db2f866-d758-3d67-aa0d-e46ea905b33b",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "REPORT_KARIN_FRAMES_GAPS_20200303_120000_20200301T230000_20200303T010000.xml",
+      "filename": "REPORT_KARIN_FRAMES_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
       "extension": "xml",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/REPORT_KARIN_FRAMES_GAPS_20200303_120000_20200301T230000_20200303T010000.xml"
+      "gpfs_url": "file://somewhere/test/REPORT_KARIN_FRAMES_GAPS_20200213T120000_20200212T000000_20200213T000000.xml"
     },
     "data": {
-      "production_date": "2020-03-03T12:00:00Z",
-      "end_date": "2020-03-03T01:00:00Z",
-      "start_date": "2020-03-01T23:00:00Z",
+      "production_date": "2020-02-13T12:00:00Z",
+      "end_date": "2020-02-13T00:00:00Z",
+      "start_date": "2020-02-12T00:00:00Z",
       "type": "REPORT_KARIN_FRAMES_GAPS"
     },
     "swot": {

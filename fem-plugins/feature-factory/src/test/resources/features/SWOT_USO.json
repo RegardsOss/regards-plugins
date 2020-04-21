@@ -14,13 +14,13 @@
       "gpfs_url": "file://somewhere/test/SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355"
     },
     "data": {
-      "creation_date": "2019-11-20T08:28:00Z",
+      "production_date": "2019-11-20T08:28:00Z",
       "end_date": "2019-11-20T05:53:55Z",
       "start_date": "2016-01-19T11:34:55Z",
       "type": "SWOT_USO"
     },
     "swot": {
-      "granule_type": "Downlink unit"
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

@@ -14,7 +14,7 @@
       "gpfs_url": "file://somewhere/test/SMM_MOG_AXPCNE20200303_200222_20200303_060000_20200303_060000"
     },
     "data": {
-      "creation_date": "2020-03-03T20:02:22Z",
+      "production_date": "2020-03-03T20:02:22Z",
       "end_date": "2020-03-03T06:00:00Z",
       "start_date": "2020-03-03T06:00:00Z",
       "type": "XDF_MOG2D_COMBINEE_P"
