@@ -1,0 +1,27 @@
+XDF_ALTITUDE_GRILLE_GAUSS:
+    name: SMM_ALT_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    document: "SWOT-ICD-SYS-0421-CNES"
+    example: ['SMM_ALT_AXVCNE20200103_060000_20160302_180000_20220302_180000']
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 1ko
+        directory: "commun/meteo/gauss"
+        has_path_by_date: False
+        creation: [
+          { period: 0, time: "120000", offset_begin: -300j, offset_end: 300j }
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []

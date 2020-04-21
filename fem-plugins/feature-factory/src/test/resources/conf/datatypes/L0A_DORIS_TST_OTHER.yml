@@ -1,0 +1,28 @@
+L0A_DORIS_TST_OTHER:
+    name: SWOT_{{ StationName }}_{{ DateTimeCreationFile }}_{{ DateTimeBeginTM }}_{{ DateTimeEndTM }}_{{ SourceType }}_APID{{ APIDnumber }}.PTM_{{ index }}
+    Description: ""
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    example: ['SWOT_KRX_20200203T011448_20200203T000000_20200203T010448_S_APID1175.PTM_0', 'SWOT_KRX_20200203T011448_20200203T000000_20200203T010448_S_APID1238.PTM_0']
+    granule_type: Downlink
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [StationName, DateTimeCreationFile, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
+    APIDnumber : [1175, 1238]
+    simu_method: 
+        name: idefix
+        day_file_size: 
+            1175 : 2mo
+            1238 : 2mo
+        directory: "swot/l0a/{{ APIDnumber }}"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

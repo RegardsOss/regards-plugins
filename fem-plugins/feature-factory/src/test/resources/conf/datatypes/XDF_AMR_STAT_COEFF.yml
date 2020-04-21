@@ -1,0 +1,28 @@
+XDF_AMR_STAT_COEFF: 
+    name: SWOT_RAD_{{ FileIdentifier }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
+    Description: ""
+    example: ['SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc', 'SWOT_RAD_MAP_AX_20200303T120000_20200303T120000_20200303T120000.nc']
+    document: "SWOT-ICD-SYS-0421-CNES"
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [FileIdentifier, ProductionDateTime, RangeBeginningDateTime, RangeEndingDateTime]
+    FileIdentifier: [ CHD_AX, MAP_AX ] 
+    simu_method: 
+        name: period
+        file_size: 1ko
+        directory: "swot/amr_stat_coef"
+        has_path_by_date: False
+        creation: [
+          { period: 21, time: "120000", offset_begin: -21j, offset_end: 0j }
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []

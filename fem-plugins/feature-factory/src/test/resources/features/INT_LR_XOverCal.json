@@ -3,16 +3,16 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "26c08c86-c1c7-32b3-9b6d-0dcbb11cd82f",
+  "id": "2570cc01-ad93-33c9-9967-f8a6e6bec4b7",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_PGA2_01.tar",
+      "filename": "SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_VI0059_01.tar",
       "extension": "tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_PGA2_01.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_INT_LR_XOverCal_20200303T000000_20200304T000000_VI0059_01.tar"
     },
     "data": {
       "start_date": "2020-03-03T00:00:00Z",
@@ -20,7 +20,7 @@
       "type": "INT_LR_XOverCal"
     },
     "swot": {
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1,
       "granule_type": "Day"
     }

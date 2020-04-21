@@ -15,7 +15,7 @@
       "gpfs_url": "file://somewhere/test/SWOT_I_Q_GCRF_ITRF_20200303_120000_20200301_230000_20200303_010000.nc"
     },
     "data": {
-      "creation_date": "2020-03-03T12:00:00Z",
+      "production_date": "2020-03-03T12:00:00Z",
       "end_date": "2020-03-03T01:00:00Z",
       "start_date": "2020-03-01T23:00:00Z",
       "type": "I-Q-GCRF-ITRF"

@@ -3,16 +3,16 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "9ac1ca35-eea9-32b7-9f34-c67f2541b677",
+  "id": "1cf32b85-90bc-39be-9dc6-5110ee7fed46",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_L2_HR_LakeSP_ObsLake_003_068_1_20200202T234200_20200203T003320_PGA2_01.tar",
+      "filename": "SWOT_L2_HR_LakeSP_ObsLake_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar",
       "extension": "tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_LakeSP_ObsLake_003_068_1_20200202T234200_20200203T003320_PGA2_01.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_LakeSP_ObsLake_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar"
     },
     "data": {
       "start_date": "2020-02-02T23:42:00Z",
@@ -24,7 +24,7 @@
       "pass_number": 68,
       "granule_type": "Continent-pass",
       "continent_id": "AF",
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1
     }
   },

@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -154,12 +155,8 @@ public class DataTypeFeatureFactoryService {
         Feature toCreate = Feature.build(UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString(), null, null,
                                          EntityType.DATA, model);
         // 1. Add all dynamic properties read from data descriptor
-        for (String meta : dataDesc.getMetadata()) {
-            Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName);
-            if (property.isPresent()) {
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
-            }
-        }
+        addSpecificProperties(toCreate, fileName, dataDesc);
+
         // 2. Add fixed granule type property
         if ((dataDesc.getGranule_type() != null) && !dataDesc.getGranule_type().isEmpty()) {
             IProperty.mergeProperties(toCreate.getProperties(), Sets
@@ -177,6 +174,80 @@ public class DataTypeFeatureFactoryService {
         // 4. Add fixed system properties
         addSystemProperties(toCreate, fileLocation, creationDate);
         return toCreate;
+    }
+
+    /**
+     * Add specific {@link IProperty}s read from configuration data type
+     *
+     * @param toCreate
+     * @param fileLocation
+     * @param dataDesc
+     * @throws ModuleException
+     */
+    private void addSpecificProperties(Feature toCreate, String fileName, DataTypeDescriptor dataDesc)
+            throws ModuleException {
+        for (String meta : dataDesc.getMetadata()) {
+            Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName);
+            if (property.isPresent()) {
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
+            }
+        }
+
+        // Handle missing mandatory date properties
+        handleMissingDateProperties(toCreate, fileName, dataDesc);
+    }
+
+    /**
+     * Check date start/end date property are not missing
+     * @param toCreate
+     * @param fileLocation
+     * @param dataDesc
+     */
+    private void handleMissingDateProperties(Feature toCreate, String fileName, DataTypeDescriptor dataDesc) {
+        Map<String, IProperty<?>> map = IProperty.getPropertyMap(toCreate.getProperties());
+        IProperty<?> startDate = map.get("data.start_date");
+        IProperty<?> stopDate = map.get("data.end_date");
+        IProperty<?> productionDate = map.get("data.production_date");
+        IProperty<?> dayDate = map.get("swot.day_date");
+        if ((startDate == null) && (stopDate == null)) {
+            switch (dataDesc.getType()) {
+                case "HISTO_OEF":
+                    if (productionDate != null) {
+                        OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
+                        startDate = IProperty.buildDate("start_date", date);
+                        stopDate = IProperty.buildDate("end_date", date.plusYears(10L));
+                    }
+                    break;
+                case "ECLIPSE":
+                case "L1_DORIS_RINEX":
+                case "L1_DORIS_RINEX_REX":
+                case "L1_DORIS_RINEX_INVALID":
+                    if (dayDate != null) {
+                        OffsetDateTime date = (OffsetDateTime) dayDate.getValue();
+                        startDate = IProperty.buildDate("start_date", date);
+                        stopDate = IProperty.buildDate("end_date", date.plusHours(1L));
+                    }
+                    break;
+                case "L0A_GPSP_Packet":
+                    if (productionDate != null) {
+                        OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
+                        startDate = IProperty.buildDate("start_date", date);
+                        stopDate = IProperty.buildDate("end_date", date);
+                    }
+                    break;
+                default:
+                    LOGGER.error("Missing start/end date propertues for file  {} of type {}", fileName,
+                                 dataDesc.getType());
+                    break;
+            }
+            if ((startDate != null) && (stopDate != null)) {
+                startDate = dataDesc.buildPropertyFragment("data.start_date", startDate);
+                stopDate = dataDesc.buildPropertyFragment("data.end_date", stopDate);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName);
+            }
+        }
+
     }
 
     /**

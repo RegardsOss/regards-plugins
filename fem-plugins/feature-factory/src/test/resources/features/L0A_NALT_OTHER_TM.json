@@ -15,15 +15,15 @@
       "gpfs_url": "file://somewhere/test/SWOT_KUX_20200203T010819_20200203T000000_20200203T005819_S_APID1028.PTM_0"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:08:19Z",
       "end_date": "2020-02-03T00:58:19Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_NALT_OTHER_TM"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1028,
-      "station": "KUX"
+      "station": "KUX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

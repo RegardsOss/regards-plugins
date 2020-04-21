@@ -14,7 +14,7 @@
       "gpfs_url": "file://somewhere/test/SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000"
     },
     "data": {
-      "creation_date": "2020-03-03T08:00:00Z",
+      "production_date": "2020-03-03T08:00:00Z",
       "end_date": "2020-03-09T08:00:00Z",
       "start_date": "2018-04-03T08:00:00Z",
       "type": "XDF_ORBIT_REV_FILE"
