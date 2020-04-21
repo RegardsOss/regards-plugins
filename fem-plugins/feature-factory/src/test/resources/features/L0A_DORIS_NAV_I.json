@@ -15,15 +15,15 @@
       "gpfs_url": "file://somewhere/test/SWOT_AUX_20200203T012745_20200203T000000_20200203T011745_S_APID1181.PTM_0"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:27:45Z",
       "end_date": "2020-02-03T01:17:45Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_DORIS_NAV_I"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1181,
-      "station": "AUX"
+      "station": "AUX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

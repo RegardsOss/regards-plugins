@@ -3,16 +3,16 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "916ae040-c773-3249-b301-c54d09ec7be3",
+  "id": "c604210c-0539-3dd6-9603-77be33e3acd2",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_INT_KCAL_Dyn_003_069_20200203T003320_20200203T012450_PGA2_01.tar",
+      "filename": "SWOT_INT_KCAL_Dyn_003_069_20200203T003320_20200203T012450_VI0059_01.tar",
       "extension": "tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_INT_KCAL_Dyn_003_069_20200203T003320_20200203T012450_PGA2_01.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_INT_KCAL_Dyn_003_069_20200203T003320_20200203T012450_VI0059_01.tar"
     },
     "data": {
       "start_date": "2020-02-03T00:33:20Z",
@@ -23,7 +23,7 @@
       "cycle_number": 3,
       "pass_number": 69,
       "granule_type": "Pass",
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1
     }
   },

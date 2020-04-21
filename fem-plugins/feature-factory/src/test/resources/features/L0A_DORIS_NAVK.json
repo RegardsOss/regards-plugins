@@ -15,15 +15,15 @@
       "gpfs_url": "file://somewhere/test/SWOT_HBX_20200203T013624_20200203T000000_20200203T012624_S_APID1174.PTM_0"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:36:24Z",
       "end_date": "2020-02-03T01:26:24Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_DORIS_NAVK"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1174,
-      "station": "HBX"
+      "station": "HBX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

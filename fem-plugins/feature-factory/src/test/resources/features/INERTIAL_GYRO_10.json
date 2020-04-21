@@ -15,7 +15,7 @@
       "gpfs_url": "file://somewhere/test/SWOT_INERTIAL_GYRO_1PaS20200203_011321_20200203_000000_20200203_010321.nc"
     },
     "data": {
-      "creation_date": "2020-02-03T01:13:21Z",
+      "production_date": "2020-02-03T01:13:21Z",
       "end_date": "2020-02-03T01:03:21Z",
       "start_date": "2020-02-03T00:00:00Z",
       "type": "INERTIAL_GYRO_10"

@@ -3,16 +3,16 @@
   "entityType": "DATA",
   "model": "GEODE001",
   "files": [],
-  "id": "926fe033-b39c-3757-bfef-2026a0c9474d",
+  "id": "0152f475-670c-3069-896f-4dd58c3ded6d",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_L2_HR_PIXC_003_069_161L_20200203T010000_20200203T010010_PGA2_01.tar",
+      "filename": "SWOT_L2_HR_PIXC_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar",
       "extension": "tar",
       "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_PIXC_003_069_161L_20200203T010000_20200203T010010_PGA2_01.tar"
+      "gpfs_url": "file://somewhere/test/SWOT_L2_HR_PIXC_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar"
     },
     "data": {
       "start_date": "2020-02-03T01:00:00Z",
@@ -23,7 +23,7 @@
       "cycle_number": 3,
       "granule_type": "Tile",
       "tile_number": 161,
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1,
       "pass_number": 69,
       "tile_side": "Left"
