@@ -1,0 +1,28 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "POE:beae0a45-d57e-31d4-82f3-5ae2823bf938",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_VOR_AXVCNE20200301_150000_20200202_230000_20200204_010000.nc",
+      "extension": "nc",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_VOR_AXVCNE20200301_150000_20200202_230000_20200204_010000.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-03-01T15:00:00Z",
+      "end_date": "2020-02-04T01:00:00Z",
+      "start_date": "2020-02-02T23:00:00Z",
+      "type": "POE"
+    },
+    "swot": {
+      "granule_type": "Day"
+    }
+  },
+  "type": "Feature"
+}

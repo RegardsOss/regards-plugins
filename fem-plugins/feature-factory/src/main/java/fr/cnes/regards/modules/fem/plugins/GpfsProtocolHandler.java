@@ -23,18 +23,26 @@ import java.net.URL;
 import sun.net.www.protocol.file.Handler;
 
 /**
- * @author sbinda
+ * Protocol handler for gpfs protocol.
+ *
+ * @author Sébastien Binda
  *
  */
+@SuppressWarnings("restriction")
 public class GpfsProtocolHandler {
 
+    private static boolean initialized = false;
+
     public static void initializeProtocol() {
-        URL.setURLStreamHandlerFactory(protocol -> {
-            if (protocol.equals("gpfs")) {
-                return new Handler();
-            }
-            return null;
-        });
+        if (!initialized) {
+            URL.setURLStreamHandlerFactory(protocol -> {
+                if (protocol.equals("gpfs")) {
+                    return new Handler();
+                }
+                return null;
+            });
+            initialized = true;
+        }
     }
 
 }

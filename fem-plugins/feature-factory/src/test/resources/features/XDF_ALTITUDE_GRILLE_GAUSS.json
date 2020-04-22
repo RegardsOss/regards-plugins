@@ -1,0 +1,27 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "XDF_ALTITUDE_GRILLE_GAUSS:a3ce0a32-d683-30b0-9426-8d5c3169f7a8",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SMM_ALT_AXVCNE20200103_060000_20160302_180000_20220302_180000",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SMM_ALT_AXVCNE20200103_060000_20160302_180000_20220302_180000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-01-03T06:00:00Z",
+      "end_date": "2022-03-02T18:00:00Z",
+      "start_date": "2016-03-02T18:00:00Z",
+      "type": "XDF_ALTITUDE_GRILLE_GAUSS"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}
