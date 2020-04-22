@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "L0A_GYRO_INERT:b908fe78-3c11-30fc-bd75-d85490de6b7c",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
+      "extension": "PTM_0",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-03T01:14:04Z",
+      "end_date": "2020-02-03T01:04:04Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "L0A_GYRO_INERT"
+    },
+    "swot": {
+      "apid": 990,
+      "station": "AUX",
+      "granule_type": "Downlink"
+    }
+  },
+  "type": "Feature"
+}

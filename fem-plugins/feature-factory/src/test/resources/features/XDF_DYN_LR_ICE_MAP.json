@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "XDF_DYN_LR_ICE_MAP:4e8c98a1-5cad-3085-b892-ce285bb750ea",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SMM_ICN_AXVCNE20200303_060000_20200302_000000_20200303_000000.nc",
+      "extension": "nc",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SMM_ICN_AXVCNE20200303_060000_20200302_000000_20200303_000000.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-03-03T06:00:00Z",
+      "end_date": "2020-03-03T00:00:00Z",
+      "start_date": "2020-03-02T00:00:00Z",
+      "type": "XDF_DYN_LR_ICE_MAP"
+    },
+    "swot": {
+      "file_identifier": "N",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

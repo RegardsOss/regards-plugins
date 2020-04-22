@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "ECLIPSE:6d9ab43e-f44d-31d6-b3ab-33db866de1cb",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz",
+      "extension": "tgz",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-03-03T07:00:00Z",
+      "end_date": "2020-03-02T01:00:00Z",
+      "start_date": "2020-03-02T00:00:00Z",
+      "type": "ECLIPSE"
+    },
+    "swot": {
+      "day_date": "2020-03-02T00:00:00Z",
+      "granule_type": "Day"
+    }
+  },
+  "type": "Feature"
+}

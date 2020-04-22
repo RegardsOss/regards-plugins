@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "L2_NALT_OGDR:67ecde0d-b4f8-3649-acc7-4145f0e02828",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_OPN_2PfS003_068_20200203_000000_20200203_010404.nc",
+      "extension": "nc",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_OPN_2PfS003_068_20200203_000000_20200203_010404.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2020-02-03T00:00:00Z",
+      "end_date": "2020-02-03T01:04:04Z",
+      "type": "L2_NALT_OGDR"
+    },
+    "swot": {
+      "cycle_number": 3,
+      "pass_number": 68,
+      "granule_type": "Segment",
+      "product_version": "f"
+    }
+  },
+  "type": "Feature"
+}

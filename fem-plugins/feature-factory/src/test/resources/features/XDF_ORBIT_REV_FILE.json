@@ -1,0 +1,27 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "XDF_ORBIT_REV_FILE:c6cd30b7-b56d-3550-aa2f-800105551f36",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-03-03T08:00:00Z",
+      "end_date": "2020-03-09T08:00:00Z",
+      "start_date": "2018-04-03T08:00:00Z",
+      "type": "XDF_ORBIT_REV_FILE"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}
