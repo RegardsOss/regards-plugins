@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "L0A_GPSP_Packet:4d1f456f-dcbb-3178-85a7-e27d2c9918d9",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_HBX_20200203T012912___S_APID1280.PTM_0",
+      "extension": "PTM_0",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_HBX_20200203T012912___S_APID1280.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-03T01:29:12Z",
+      "end_date": "2020-02-03T01:29:12Z",
+      "start_date": "2020-02-03T01:29:12Z",
+      "type": "L0A_GPSP_Packet"
+    },
+    "swot": {
+      "apid": 1280,
+      "station": "HBX",
+      "granule_type": "Downlink"
+    }
+  },
+  "type": "Feature"
+}

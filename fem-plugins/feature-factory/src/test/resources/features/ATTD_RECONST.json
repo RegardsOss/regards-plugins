@@ -1,0 +1,29 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "ATTD_RECONST:b3bbc9ec-ab1d-3719-b26a-6088633e9a49",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_ATTD_RECONST_20200303T000000_20200304T000000_VI0059_01.tar",
+      "extension": "tar",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_ATTD_RECONST_20200303T000000_20200304T000000_VI0059_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2020-03-03T00:00:00Z",
+      "end_date": "2020-03-04T00:00:00Z",
+      "type": "ATTD_RECONST"
+    },
+    "swot": {
+      "crid": "VI0059",
+      "product_counter": 1,
+      "granule_type": "Day"
+    }
+  },
+  "type": "Feature"
+}

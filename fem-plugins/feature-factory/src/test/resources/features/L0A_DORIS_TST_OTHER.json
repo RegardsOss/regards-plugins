@@ -1,0 +1,30 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "L0A_DORIS_TST_OTHER:83bf54c9-e049-3ab4-924b-5330e550ad81",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_KRX_20200203T011448_20200203T000000_20200203T010448_S_APID1175.PTM_0",
+      "extension": "PTM_0",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_KRX_20200203T011448_20200203T000000_20200203T010448_S_APID1175.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-03T01:14:48Z",
+      "end_date": "2020-02-03T01:04:48Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "L0A_DORIS_TST_OTHER"
+    },
+    "swot": {
+      "apid": 1175,
+      "station": "KRX",
+      "granule_type": "Downlink"
+    }
+  },
+  "type": "Feature"
+}

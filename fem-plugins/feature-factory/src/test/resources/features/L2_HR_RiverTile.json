@@ -1,0 +1,34 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "L2_HR_RiverTile:b333fab4-05a5-3426-af7e-1b644627285c",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_L2_HR_RiverTile_Node_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar",
+      "extension": "tar",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_L2_HR_RiverTile_Node_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2020-02-03T01:00:00Z",
+      "end_date": "2020-02-03T01:00:10Z",
+      "type": "L2_HR_RiverTile"
+    },
+    "swot": {
+      "cycle_number": 3,
+      "file_identifier": "Node",
+      "granule_type": "Tile",
+      "tile_number": 161,
+      "crid": "VI0059",
+      "product_counter": 1,
+      "pass_number": 69,
+      "tile_side": "Left"
+    }
+  },
+  "type": "Feature"
+}
