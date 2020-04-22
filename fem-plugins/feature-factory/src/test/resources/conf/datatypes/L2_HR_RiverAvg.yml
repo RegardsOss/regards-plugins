@@ -3,7 +3,7 @@ L2_HR_RiverAvg:
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     example: ['SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar']
-    granule_type: Bassin-cycle
+    granule_type: Bassin-Cycle
     tar_content: [tar.gz, met.json, rc.xml, md5]
     mission: SWOT
     Nature: Product

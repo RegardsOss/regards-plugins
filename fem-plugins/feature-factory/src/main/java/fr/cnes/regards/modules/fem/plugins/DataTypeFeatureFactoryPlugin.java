@@ -70,6 +70,8 @@ public class DataTypeFeatureFactoryPlugin implements IFeatureFactoryPlugin {
      */
     @PluginInit
     public void init() throws ModuleException {
+        // Init gpfs protocol handler
+        GpfsProtocolHandler.initializeProtocol();
         Path confPath = Paths.get(configDirectory);
         if (Files.isDirectory(confPath) && Files.isReadable(confPath)) {
             try {
