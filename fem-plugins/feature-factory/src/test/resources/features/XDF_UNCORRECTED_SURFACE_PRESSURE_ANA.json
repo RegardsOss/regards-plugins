@@ -1,0 +1,27 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "files": [],
+  "id": "XDF_UNCORRECTED_SURFACE_PRESSURE_ANA:49786cf9-4510-3203-969f-f5be20186776",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SMM_PSA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SMM_PSA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-03-03T06:00:00Z",
+      "end_date": "2020-03-02T18:00:00Z",
+      "start_date": "2020-03-02T18:00:00Z",
+      "type": "XDF_UNCORRECTED_SURFACE_PRESSURE_ANA"
+    },
+    "swot": {
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}
