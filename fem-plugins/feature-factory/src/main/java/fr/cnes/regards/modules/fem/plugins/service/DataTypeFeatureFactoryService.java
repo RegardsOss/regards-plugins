@@ -18,7 +18,10 @@
  */
 package fr.cnes.regards.modules.fem.plugins.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +49,7 @@ import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
 import fr.cnes.regards.modules.fem.plugins.dto.PropertiesEnum;
 import fr.cnes.regards.modules.fem.plugins.dto.SystemPropertiyEnum;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 
 /**
  * Factory to create {@link Feature}s from a String fileName and an associated  {@link DataTypeDescriptor}
@@ -172,7 +176,7 @@ public class DataTypeFeatureFactoryService {
                                       fileLocation);
         }
         // 4. Add fixed system properties
-        addSystemProperties(toCreate, fileLocation, creationDate);
+        addSystemProperties(toCreate, fileLocation, creationDate, dataDesc.getType());
         return toCreate;
     }
 
@@ -256,28 +260,40 @@ public class DataTypeFeatureFactoryService {
      * @param fileLocation
      * @param creationDate
      */
-    private void addSystemProperties(Feature feature, String fileLocation, OffsetDateTime creationDate) {
+    private void addSystemProperties(Feature feature, String fileLocation, OffsetDateTime creationDate,
+            String dataType) {
+        Set<IProperty<?>> properties = Sets.newHashSet();
         String fileName = Paths.get(fileLocation).getFileName().toString();
         String fileExt = null;
         if (fileName.lastIndexOf(".") > 0) {
             fileExt = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+            properties.add(IProperty.buildString(SystemPropertiyEnum.EXTENSION.getPropertyPath(), fileExt));
         }
-        if ((fileExt != null) && !fileExt.isEmpty()) {
-            feature.addProperty(IProperty
-                    .buildObject(SYSTEM_FRAGMENT_NAME,
-                                 IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
-                                 IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
-                                 IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
-                                 IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName),
-                                 IProperty.buildString(SystemPropertiyEnum.EXTENSION.getPropertyPath(), fileExt)));
-        } else {
-            feature.addProperty(IProperty
-                    .buildObject(SYSTEM_FRAGMENT_NAME,
-                                 IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate),
-                                 IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate),
-                                 IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation),
-                                 IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName)));
+        try {
+            URL url = new URL(fileLocation);
+            if (url.getProtocol().equals("file") || url.getProtocol().equals("gpfs")) {
+                File file = new File(url.getPath());
+                if (Files.exists(Paths.get(file.getPath()))) {
+                    properties.add(IProperty.buildLong(SystemPropertiyEnum.FILE_SIZE.getPropertyPath(), file.length()));
+                } else {
+                    LOGGER.warn("[{}] Unable to calculate file size for file {}. File is not readable.", dataType,
+                                fileLocation);
+                }
+            } else {
+                LOGGER.warn("[{}] Unable to calculate file size for file {}. Protocol can not be handled.", dataType,
+                            fileLocation);
+            }
+        } catch (MalformedURLException e) {
+            LOGGER.warn("[{}] Unable to calculate file size for file {}. Invalid url.", dataType, fileLocation);
         }
+        properties.add(IProperty.buildDate(SystemPropertiyEnum.INGEST_DATE.getPropertyPath(), creationDate));
+        properties.add(IProperty.buildDate(SystemPropertiyEnum.CHANGE_DATE.getPropertyPath(), creationDate));
+        properties.add(IProperty.buildString(SystemPropertiyEnum.GPFS_URL.getPropertyPath(), fileLocation));
+        properties.add(IProperty.buildString(SystemPropertiyEnum.FILE_NAME.getPropertyPath(), fileName));
+        ObjectProperty att = new ObjectProperty();
+        att.setName(SYSTEM_FRAGMENT_NAME);
+        att.setValue(properties);
+        feature.addProperty(att);
     }
 
     /**
