@@ -15,7 +15,7 @@
 		<attribute optional="true">
 			<label>File size</label>
 			<name>filesize</name>
-			<type>INTEGER</type>
+			<type>LONG</type>
 		</attribute>
 		<attribute>
 			<label>Ingestion date</label>
@@ -41,7 +41,7 @@
 			<name>gpfs_url</name>
 			<type>STRING</type>
 			<restriction>
-				<pattern>^(https?|ftp|file)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
+				<pattern>^(https?|ftp|file|gpfs)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
 			</restriction>
 		</attribute>
 		<attribute optional="true">
@@ -443,12 +443,13 @@
 					<value>Tile</value>
 					<value>TileF</value>
 					<value>Full-swath scene</value>
-					<value>Bassin-cycle</value>
-					<value>Continent-pass</value>
+					<value>Bassin-Cycle</value>
+					<value>Continent-Pass</value>
 					<value>Day</value>
 					<value>Segment</value>
 					<value>Scene</value>
 					<value>Pass</value>
+					<value>ValidDate</value>
 				</enumeration>
 			</restriction>
 		</attribute>
