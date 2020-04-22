@@ -3,7 +3,7 @@ L2_HR_LakeSP:
     Description: ''
     document: "D-56531_SWOT_Product_File_Naming_Convention"
     example: ['SWOT_L2_HR_LakeSP_ObsLake_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar', 'SWOT_L2_HR_LakeSP_PLDLake_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar', 'SWOT_L2_HR_LakeSP_Unident_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar']
-    granule_type: Continent-pass
+    granule_type: Continent-Pass
     tar_content: [zip, met.json, rc.xml, iso.xml, md5]
     mission: SWOT
     Nature: Product
