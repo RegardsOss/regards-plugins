@@ -85,7 +85,7 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceTest 
     protected IPublisher publisher;
 
     @Captor
-    protected ArgumentCaptor<ISubscribable> recordsCaptor;
+    protected ArgumentCaptor<List<ISubscribable>> recordsCaptor;
 
     protected final List<DataObject> datas = new ArrayList<>();
 

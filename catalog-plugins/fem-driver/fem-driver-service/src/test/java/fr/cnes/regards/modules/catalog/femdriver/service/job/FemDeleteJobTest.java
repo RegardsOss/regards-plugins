@@ -18,6 +18,8 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
@@ -31,6 +33,7 @@ import org.springframework.util.MultiValueMap;
 
 import com.google.common.collect.Sets;
 
+import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
@@ -78,15 +81,16 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureDeletionRequestEvent)
-                .peek(v -> {
-                    if (v instanceof FeatureDeletionRequestEvent) {
-                        FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event);
-                        Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
-                    }
-                }).count();
-        Assert.assertEquals(2L, nbEvents);
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+                .findFirst();
+        Assert.assertTrue(events.isPresent());
+        Assert.assertEquals(2, events.get().size());
+
+        events.get().forEach(e -> {
+            FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) e;
+            Assert.assertNotNull("Invalid null event", event);
+            Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
+        });
 
     }
 
@@ -105,15 +109,16 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureDeletionRequestEvent)
-                .peek(v -> {
-                    if (v instanceof FeatureDeletionRequestEvent) {
-                        FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event);
-                        Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
-                    }
-                }).count();
-        Assert.assertEquals(1L, nbEvents);
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+                .findFirst();
+        Assert.assertTrue(events.isPresent());
+        Assert.assertEquals(1, events.get().size());
+
+        events.get().forEach(e -> {
+            FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) e;
+            Assert.assertNotNull("Invalid null event", event);
+            Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
+        });
     }
 
 }
