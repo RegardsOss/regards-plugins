@@ -18,6 +18,8 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -32,6 +34,7 @@ import org.springframework.util.MultiValueMap;
 
 import com.google.common.collect.Sets;
 
+import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
@@ -83,19 +86,18 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureUpdateRequestEvent)
-                .peek(v -> {
-                    if (v instanceof FeatureUpdateRequestEvent) {
-                        FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event.getFeature());
-                        Assert.assertEquals("model_test", event.getFeature().getModel());
-                        Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
-                        Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
-                        Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
-                    }
-                }).count();
-        Assert.assertEquals(2L, nbEvents);
-
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+                .findFirst();
+        Assert.assertTrue(events.isPresent());
+        Assert.assertEquals(2, events.get().size());
+        events.get().forEach(e -> {
+            FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) e;
+            Assert.assertNotNull("Invalid null event", event.getFeature());
+            Assert.assertEquals("model_test", event.getFeature().getModel());
+            Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
+            Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
+            Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
+        });
     }
 
     @Test
@@ -114,18 +116,18 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        long nbEvents = recordsCaptor.getAllValues().stream().filter(v -> v instanceof FeatureUpdateRequestEvent)
-                .peek(v -> {
-                    if (v instanceof FeatureUpdateRequestEvent) {
-                        FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) v;
-                        Assert.assertNotNull("Invalid null event", event.getFeature());
-                        Assert.assertEquals("model_test", event.getFeature().getModel());
-                        Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
-                        Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
-                        Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
-                    }
-                }).count();
-        Assert.assertEquals(1L, nbEvents);
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+                .findFirst();
+        Assert.assertTrue(events.isPresent());
+        Assert.assertEquals(1, events.get().size());
+        events.get().forEach(e -> {
+            FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) e;
+            Assert.assertNotNull("Invalid null event", event.getFeature());
+            Assert.assertEquals("model_test", event.getFeature().getModel());
+            Assert.assertNotNull("EntityType is mandatory", event.getFeature().getEntityType());
+            Assert.assertNotNull("Feature id is mandatory", event.getFeature().getId());
+            Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
+        });
     }
 
 }
