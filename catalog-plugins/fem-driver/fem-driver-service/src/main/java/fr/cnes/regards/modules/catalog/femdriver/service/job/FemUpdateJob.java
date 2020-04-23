@@ -97,7 +97,7 @@ public class FemUpdateJob extends AbstractJob<Void> {
                         }
                         features.add(feature);
                     } catch (IllegalArgumentException e) {
-                        LOGGER.error("Error trying to delete feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                        LOGGER.error("Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
