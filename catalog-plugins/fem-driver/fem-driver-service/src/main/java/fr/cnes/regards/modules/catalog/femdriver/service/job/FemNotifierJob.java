@@ -76,11 +76,11 @@ public class FemNotifierJob extends AbstractJob<Void> {
                     try {
                         features.add(FeatureUniformResourceName.fromString(dobj.getIpId().toString()));
                     } catch (IllegalArgumentException e) {
-                        LOGGER.error("Error trying to delete feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                        LOGGER.error("Error trying to notify feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
-                LOGGER.info("[FEM DRIVER] Sending {} features update requests.", features.size());
+                LOGGER.info("[FEM DRIVER] Sending {} features notify requests.", features.size());
                 featureClient.notifyFeatures(features, PriorityLevel.NORMAL);
             } catch (ModuleException e) {
                 LOGGER.error("Error retrieving catalog objects.", e);

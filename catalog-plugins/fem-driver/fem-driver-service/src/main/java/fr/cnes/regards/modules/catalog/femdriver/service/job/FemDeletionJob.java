@@ -80,7 +80,7 @@ public class FemDeletionJob extends AbstractJob<Void> {
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
-                LOGGER.info("[FEM DRIVER] Sending {} features update requests.", features.size());
+                LOGGER.info("[FEM DRIVER] Sending {} features deletion requests.", features.size());
                 featureClient.deleteFeatures(features, PriorityLevel.NORMAL);
             } catch (ModuleException e) {
                 LOGGER.error("Error retrieving catalog objects.", e);
