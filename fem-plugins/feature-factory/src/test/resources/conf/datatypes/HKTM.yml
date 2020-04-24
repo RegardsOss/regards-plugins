@@ -7,7 +7,7 @@ HKTM :
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, DateTimeCreationFile, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
+    metadata: [StationName, RangeBeginningDateTime, RangeEndingDateTime, SourceType, APIDnumber]
     APIDnumber : [1]
     simu_method: 
         name: idefix
