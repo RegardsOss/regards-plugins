@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -155,6 +156,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void testAllDataTypes() throws JsonParseException, JsonMappingException, IOException {
         resovlver.forceTenant(tenant);
         GpfsProtocolHandler.initializeProtocol();
