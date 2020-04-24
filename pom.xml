@@ -178,5 +178,6 @@
         <module>fem-plugins</module>
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
+        <module>notifier-plugins</module>
     </modules>
 </project>
