@@ -33,17 +33,17 @@ public class ChronosNotificationEvent implements ISubscribable {
 
     private String action;
 
-    private String created_by;
+    private String createdBy;
 
-    private String modified_by;
+    private String modifiedBy;
 
     private String uri;
 
-    public static ChronosNotificationEvent build(String action, String created_by, String updated_by, String uri) {
+    public static ChronosNotificationEvent build(String action, String createdBy, String modifiedBy, String uri) {
         ChronosNotificationEvent event = new ChronosNotificationEvent();
         event.action = action;
-        event.created_by = created_by;
-        event.modified_by = updated_by;
+        event.createdBy = createdBy;
+        event.modifiedBy = modifiedBy;
         event.uri = uri;
         return event;
     }
@@ -53,11 +53,11 @@ public class ChronosNotificationEvent implements ISubscribable {
     }
 
     public String getCreatedBy() {
-        return created_by;
+        return createdBy;
     }
 
     public String getModifiedBy() {
-        return modified_by;
+        return modifiedBy;
     }
 
     public String getUri() {
