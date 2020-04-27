@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_MOG2D_COMBINEE_V:23617f41-8369-3dde-b8a0-b7323c905da6",
   "geometry": null,

@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "SWOT_USO:3ad7a64d-4bce-3620-a68a-ae432c8dfba1",
   "geometry": null,

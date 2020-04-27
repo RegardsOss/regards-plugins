@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_TEMPERATURE_ANA:f20bf4b7-b548-3cf6-b351-7d9129215b72",
   "geometry": null,

@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "INT_LR_XOverCal:c30005a2-9bec-3664-b349-ff3b0dcccbb7",
   "geometry": null,

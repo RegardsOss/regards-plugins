@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_SST_REYNOLDS_NOAA_ANA:f1faea33-70c2-3890-b286-3c46935d68c0",
   "geometry": null,

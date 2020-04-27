@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L2_HR_PIXCVecRiver:3cb89661-8bd7-377a-964a-8ff8054a7e92",
   "geometry": null,

@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "INERTIAL_GYRO_10:3e5661c4-baff-30fd-a9d3-154b317f8adb",
   "geometry": null,

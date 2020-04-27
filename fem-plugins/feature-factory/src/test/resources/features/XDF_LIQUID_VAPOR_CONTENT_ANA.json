@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_LIQUID_VAPOR_CONTENT_ANA:3f82cc70-64bd-3110-b578-c5ed4cda6738",
   "geometry": null,

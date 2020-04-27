@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_COR_IONO_GIM:9a07bd09-bf1d-32df-af04-bf6fb8bbd82a",
   "geometry": null,
