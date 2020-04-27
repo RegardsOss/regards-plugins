@@ -19,8 +19,11 @@
 package fr.cnes.regards.modules.notifier.plugins;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.JsonElement;
@@ -41,7 +44,13 @@ import fr.cnes.regards.modules.notifier.plugin.IRecipientNotifier;
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class ChronosRecipientSender implements IRecipientNotifier {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSender.class);
+
     public static final String PLUGIN_ID = "ChronosRecipientSender";
+
+    private static final String OWNER_KEY = "createdBy";
+
+    private static final String ACTION_KEY = "action";
 
     @Autowired
     private IPublisher publisher;
@@ -67,11 +76,20 @@ public class ChronosRecipientSender implements IRecipientNotifier {
     @Override
     public boolean send(JsonElement element, String action) {
         String createdBy = getValue(element, createdByPropertyPath).orElse(null);
-        String updatedBy = getValue(element, updatedByPropertyPath).orElse(null);
         String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
-        this.publisher.broadcast(exchange, Optional.ofNullable(queueName), 0,
-                                 ChronosNotificationEvent.build(action, createdBy, updatedBy, uri), new HashMap<>());
-        return true;
+        if ((action == null) || (createdBy == null) || (uri == null)) {
+            LOGGER.error("Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
+                         action, createdByPropertyPath, createdBy, gpfsUrlPropertyPath, uri, element.getAsString());
+            return false;
+        } else {
+            String updatedBy = getValue(element, updatedByPropertyPath).orElse(null);
+            Map<String, Object> headers = new HashMap<>();
+            headers.put(OWNER_KEY, createdBy);
+            headers.put(ACTION_KEY, action);
+            this.publisher.broadcast(exchange, Optional.ofNullable(queueName), 0,
+                                     ChronosNotificationEvent.build(action, createdBy, updatedBy, uri), headers);
+            return true;
+        }
     }
 
     public Optional<String> getValue(JsonElement element, String key) {
