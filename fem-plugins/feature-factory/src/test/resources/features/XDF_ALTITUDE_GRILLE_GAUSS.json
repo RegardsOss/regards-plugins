@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_ALTITUDE_GRILLE_GAUSS:a3ce0a32-d683-30b0-9426-8d5c3169f7a8",
   "geometry": null,

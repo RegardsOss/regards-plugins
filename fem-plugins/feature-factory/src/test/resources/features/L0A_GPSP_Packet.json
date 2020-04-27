@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L0A_GPSP_Packet:4d1f456f-dcbb-3178-85a7-e27d2c9918d9",
   "geometry": null,

@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_AMR_DYN_COEFF:5ca371f9-914e-37cd-90ef-4f04be218a67",
   "geometry": null,

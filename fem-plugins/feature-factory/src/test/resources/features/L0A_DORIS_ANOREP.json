@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L0A_DORIS_ANOREP:ee22f00d-a2b4-3bc0-b8ef-b7b29070b87e",
   "geometry": null,

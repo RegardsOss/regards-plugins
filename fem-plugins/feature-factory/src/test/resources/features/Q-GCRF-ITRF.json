@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "Q-GCRF-ITRF:21e224ac-fd0e-3a83-81a4-6fdf1412138b",
   "geometry": null,

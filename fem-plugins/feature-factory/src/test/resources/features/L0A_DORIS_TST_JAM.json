@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L0A_DORIS_TST_JAM:589de6c0-f3c6-3382-9c75-59a68aeea8e9",
   "geometry": null,

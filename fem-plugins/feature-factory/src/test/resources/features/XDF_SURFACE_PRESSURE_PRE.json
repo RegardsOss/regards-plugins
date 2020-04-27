@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_SURFACE_PRESSURE_PRE:c9ded29d-6e6c-3f6a-a034-e31f33923842",
   "geometry": null,
