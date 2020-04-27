@@ -42,7 +42,7 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
                                                         entityType,
                                                         tenant,
                                                         sipIdUrn.getEntityId(),
-                                                        sip.getVersion()),
+                                                        sip.getVersion(), null, null),
                             Optional.of(sipIdUrn),
                             sip.getProviderId(),
                             sip.getVersion());

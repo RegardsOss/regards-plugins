@@ -356,6 +356,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         feature.setSessionOwner(aipEntity.getSessionOwner());
         feature.setSession(aipEntity.getSession());
 
+        feature.setLast(aipEntity.isLast());
+
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;
 
