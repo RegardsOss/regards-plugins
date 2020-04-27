@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "REPORT_KARIN_FRAMES_GAPS:88f35c79-52c4-3118-9e56-e087c811fb4a",
   "geometry": null,

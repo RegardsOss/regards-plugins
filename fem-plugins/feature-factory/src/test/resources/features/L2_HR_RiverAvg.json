@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L2_HR_RiverAvg:51559f8a-40be-330b-a66a-cd52b72a3abb",
   "geometry": null,

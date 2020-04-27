@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_SEA_PRESSURE_ANA:14674837-f27d-338c-add5-ce8e879a3970",
   "geometry": null,

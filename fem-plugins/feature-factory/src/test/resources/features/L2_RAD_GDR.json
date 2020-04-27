@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L2_RAD_GDR:6e04bee7-62fa-37f1-8b32-fc1d706c3f4f",
   "geometry": null,

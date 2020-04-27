@@ -165,8 +165,9 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
                 try {
-                    Feature feature = featureFactory.getFeature("gpfs://" + urlPrefix + "/" + d.getExample().get(0),
-                                                                modelName, creationDate);
+                    Feature feature = featureFactory
+                            .getFeature("gpfs://" + urlPrefix + "/" + d.getExample().get(0), modelName, creationDate)
+                            .withHistory("test");
                     LOGGER.debug(feature.getProperties().toString());
                     Errors errors = validationService.validate(feature, ValidationMode.CREATION);
                     if (errors.hasErrors()) {

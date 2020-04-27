@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_WET_TROPO_PRE:f2311e3f-4b3d-37fd-8354-3f6275cdda11",
   "geometry": null,

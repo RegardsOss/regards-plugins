@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_RAIN_RATE_lsr:66e8b47d-0168-305f-89d0-9a4a1782b37c",
   "geometry": null,

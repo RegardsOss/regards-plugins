@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L2_HR_LakeSP:06983454-8238-30f3-9ba0-14b41fd76f5c",
   "geometry": null,

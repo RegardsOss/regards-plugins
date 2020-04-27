@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_U_WIND_ANA:f62cfb19-2b3b-3a8d-b52d-c23feacb6b17",
   "geometry": null,
