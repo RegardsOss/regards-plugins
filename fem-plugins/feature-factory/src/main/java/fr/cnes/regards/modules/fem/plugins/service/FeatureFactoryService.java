@@ -158,7 +158,7 @@ public class FeatureFactoryService {
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
         String id = String.format("%s:%s", dataDesc.getType(),
                                   UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString());
-        Feature toCreate = Feature.build(id, null, null, EntityType.DATA, model);
+        Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
         // 1. Add all dynamic properties read from data descriptor
         addSpecificProperties(toCreate, fileName, dataDesc);
 
