@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L0A_NALT_OTHER_TM:fd67d2a7-188b-3de0-b493-d6136d0bfc32",
   "geometry": null,

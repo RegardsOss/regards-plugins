@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "DECOM_TECH_GYRO:c5580a24-9bd7-3b3a-a2da-dce340578df3",
   "geometry": null,

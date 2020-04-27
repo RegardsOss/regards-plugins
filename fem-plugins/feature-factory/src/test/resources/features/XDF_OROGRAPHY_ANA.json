@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_OROGRAPHY_ANA:65d44f27-d6d6-30b3-b4e5-dedc5b5d9550",
   "geometry": null,

@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_HISTO_TAI_TUC:c780f36f-a195-3d61-9efc-254b14b92ede",
   "geometry": null,

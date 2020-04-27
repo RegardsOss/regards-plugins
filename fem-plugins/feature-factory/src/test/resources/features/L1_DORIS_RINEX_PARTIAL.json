@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "L1_DORIS_RINEX_PARTIAL:e9c3c938-ae9f-3e59-b49d-707d28c85d6b",
   "geometry": null,

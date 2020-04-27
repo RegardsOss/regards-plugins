@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_UNCORRECTED_SURFACE_PRESSURE_ANA:49786cf9-4510-3203-969f-f5be20186776",
   "geometry": null,

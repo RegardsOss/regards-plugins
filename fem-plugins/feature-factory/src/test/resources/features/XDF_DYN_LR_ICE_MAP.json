@@ -2,6 +2,11 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
   "id": "XDF_DYN_LR_ICE_MAP:4e8c98a1-5cad-3085-b892-ce285bb750ea",
   "geometry": null,
