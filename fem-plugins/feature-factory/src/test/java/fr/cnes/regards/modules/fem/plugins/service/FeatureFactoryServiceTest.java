@@ -177,6 +177,9 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                         LOGGER.error("-------------> {} - {}", d.getType(), message);
                         Assert.fail(message);
                     }
+                    // Fix id for test comparison
+                    String uniqId = String.format("%s:test", d.getType());
+                    feature.setId(uniqId);
                     File result = writeToFile(feature, d.getType());
                     Assert.assertTrue(String.format("Expected generated feature for product %s does not match",
                                                     d.getType()),
