@@ -15,7 +15,7 @@
     "system": {
       "filename": "PSWOT_ALT_DU_1PaS20200203_011657_20200203_000000_20200203_010657",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/PSWOT_ALT_DU_1PaS20200203_011657_20200203_000000_20200203_010657",
+      "gpfs_url": "gpfs:///directory/sub//PSWOT_ALT_DU_1PaS20200203_011657_20200203_000000_20200203_010657",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

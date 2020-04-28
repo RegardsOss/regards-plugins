@@ -15,7 +15,7 @@
     "system": {
       "filename": "PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
+      "gpfs_url": "gpfs:///directory/sub//PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
