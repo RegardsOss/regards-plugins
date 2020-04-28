@@ -16,7 +16,7 @@
       "filename": "SWOT_AUX_20200203T012745_20200203T000000_20200203T011745_S_APID1181.PTM_0",
       "extension": "PTM_0",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_AUX_20200203T012745_20200203T000000_20200203T011745_S_APID1181.PTM_0",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_AUX_20200203T012745_20200203T000000_20200203T011745_S_APID1181.PTM_0",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
