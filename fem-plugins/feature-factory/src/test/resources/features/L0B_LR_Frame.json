@@ -2,17 +2,22 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "71fc83a3-d4f9-394a-a196-d97ffe22e215",
+  "id": "L0B_LR_Frame:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_PGA2_01.tar",
+      "filename": "SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_VI0059_01.tar",
       "extension": "tar",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_PGA2_01.tar"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_VI0059_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
       "start_date": "2020-02-03T00:33:20Z",
@@ -23,7 +28,7 @@
       "cycle_number": 3,
       "pass_number": 69,
       "granule_type": "Pass",
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1
     }
   },

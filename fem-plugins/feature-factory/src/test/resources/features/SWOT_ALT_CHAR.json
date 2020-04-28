@@ -2,25 +2,30 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "22b365fb-ec74-3a81-a808-fae65dd74570",
+  "id": "SWOT_ALT_CHAR:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959"
+      "gpfs_url": "gpfs:///directory/sub//PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-01-21T00:00:00Z",
+      "production_date": "2020-01-21T00:00:00Z",
       "end_date": "2030-12-31T23:59:59Z",
       "start_date": "2019-01-01T00:00:00Z",
       "type": "SWOT_ALT_CHAR"
     },
     "swot": {
-      "granule_type": "Downlink unit"
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

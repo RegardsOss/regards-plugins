@@ -18,33 +18,78 @@
  */
 package fr.cnes.regards.modules.fem.plugins;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
 import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
-import fr.cnes.regards.modules.fem.plugins.service.IFeatureFactoryService;
+import fr.cnes.regards.modules.fem.plugins.service.FeatureFactoryService;
 
 /**
  * Create a {@link Feature} from a {@link FeatureReferenceRequest}
  * We will use the file name to extract {@link Feature} metadata
- * @author Kevin Marchois
+ *
+ * @author Sébastien Binda
  *
  */
-@Plugin(author = "REGARDS Team", description = "Create a feature from a file reference", id = "FeatureFactoryPlugin",
-        version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-        url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Creates SWOT Feature from file location.  Uses yml description files to identify data types.",
+        id = FeatureFactoryPlugin.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
+        owner = "CNES", url = "https://regardsoss.github.io/")
 public class FeatureFactoryPlugin implements IFeatureFactoryPlugin {
 
-    public static final String MODEL = "model";
+    public static final String PLUGIN_ID = "FeatureFactoryPlugin";
+
+    /**
+     * Model name of the Feature to generate
+     */
+    @PluginParameter(name = "model", label = "Model to generate features")
+    private String model;
+
+    /**
+     * Configuration  directory where to scan data types yml configuration files
+     */
+    @PluginParameter(name = "configDirectory",
+            label = "Directory where to parse data types desccription files at yml format (datatype.yml)")
+    private String configDirectory;
 
     @Autowired
-    private IFeatureFactoryService factoryService;
+    private FeatureFactoryService factoryService;
+
+    /**
+     * Initialize all data types by reading yml configuration files.
+     * @throws ModuleException
+     */
+    @PluginInit
+    public void init() throws ModuleException {
+        // Initialize gpfs protocol handler
+        GpfsProtocolHandler.initializeProtocol();
+        Path confPath = Paths.get(configDirectory);
+        if (Files.isDirectory(confPath) && Files.isReadable(confPath)) {
+            try {
+                factoryService.readConfs(confPath);
+            } catch (IOException e) {
+                throw new ModuleException(
+                        String.format("Error during plugin initialisation. Cause : %s", e.getMessage()));
+            }
+        } else {
+            throw new ModuleException(String.format("Invalid configuration directory at %s", configDirectory));
+        }
+    }
 
     @Override
-    public Feature createFeature(FeatureReferenceRequest reference) {
-        return factoryService.createFeature(reference);
+    public Feature createFeature(FeatureReferenceRequest reference) throws ModuleException {
+        return factoryService.getFeature(reference.getLocation(), model, OffsetDateTime.now());
     }
 
 }

@@ -1,0 +1,25 @@
+L2_HR_RiverTile:
+    name: SWOT_L2_HR_RiverTile_{{ FileIdentifier }}_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ''
+    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    example: ['SWOT_L2_HR_RiverTile_Node_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar', 'SWOT_L2_HR_RiverTile_Reach_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar']
+    granule_type: Tile
+    tar_content: [nc, met.json, rc.xml, iso.xml, md5]
+    mission: SWOT
+    Nature: Product
+    metadata: [FileIdentifier, CycleID, PassID, TileID, TileSide, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    FileIdentifier: [Node, Reach]
+    simu_method:
+      directory: swot/l2_hr_rivertile
+      file_size: 52.3go
+      has_path_by_date: false
+      name: product
+    CHRONOS:
+      geode_sync_duration: 3m
+      has_path_by_date: false
+      input_dir: ''
+      lifetime_duration: ''
+      output_dir: swot/l2_hr_rivertile
+      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
+      source: Production
+      storage_server: Intern

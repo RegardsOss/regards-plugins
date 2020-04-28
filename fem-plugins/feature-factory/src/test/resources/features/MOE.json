@@ -2,20 +2,25 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "6c94d5a0-c0b6-3261-b7f9-a083083f68d4",
+  "id": "MOE:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_POR_AXVCNE20200303_120000_20200301_230000_20200303_010000.nc",
       "extension": "nc",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_POR_AXVCNE20200303_120000_20200301_230000_20200303_010000.nc"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_POR_AXVCNE20200303_120000_20200301_230000_20200303_010000.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-03T12:00:00Z",
+      "production_date": "2020-03-03T12:00:00Z",
       "end_date": "2020-03-03T01:00:00Z",
       "start_date": "2020-03-01T23:00:00Z",
       "type": "MOE"

@@ -1,0 +1,33 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "id": "DECOM_DOR:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "DSWOT_DOR_ANO_1PaS20200203_013121_20200203_000000_20200203_012121",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//DSWOT_DOR_ANO_1PaS20200203_013121_20200203_000000_20200203_012121",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-03T01:31:21Z",
+      "end_date": "2020-02-03T01:21:21Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "DECOM_DOR"
+    },
+    "swot": {
+      "file_identifier": "ANO",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

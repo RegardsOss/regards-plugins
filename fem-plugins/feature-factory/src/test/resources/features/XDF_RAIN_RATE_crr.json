@@ -2,20 +2,25 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "f275bfc7-3ee4-3908-b2b7-8a3638aa1500",
+  "id": "XDF_RAIN_RATE_crr:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SMM_CRR_AXFCNE20200303_060000_20200302_180000_20200302_180000.grb",
       "extension": "grb",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SMM_CRR_AXFCNE20200303_060000_20200302_180000_20200302_180000.grb"
+      "gpfs_url": "gpfs:///directory/sub//SMM_CRR_AXFCNE20200303_060000_20200302_180000_20200302_180000.grb",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-03T06:00:00Z",
+      "production_date": "2020-03-03T06:00:00Z",
       "end_date": "2020-03-02T18:00:00Z",
       "start_date": "2020-03-02T18:00:00Z",
       "type": "XDF_RAIN_RATE_crr"

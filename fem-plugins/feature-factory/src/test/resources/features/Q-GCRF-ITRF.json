@@ -2,20 +2,25 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "bd51ce46-3add-3e07-a64a-d2911f458a08",
+  "id": "Q-GCRF-ITRF:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_Q_GCRF_ITRF_20200301_150000_20200202_230000_20200204_010000.nc",
       "extension": "nc",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_Q_GCRF_ITRF_20200301_150000_20200202_230000_20200204_010000.nc"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_Q_GCRF_ITRF_20200301_150000_20200202_230000_20200204_010000.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-01T15:00:00Z",
+      "production_date": "2020-03-01T15:00:00Z",
       "end_date": "2020-02-04T01:00:00Z",
       "start_date": "2020-02-02T23:00:00Z",
       "type": "Q-GCRF-ITRF"

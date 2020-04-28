@@ -2,20 +2,25 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "a28a354a-0feb-3c95-ac5b-e9c44d2a511c",
+  "id": "INERTIAL_GYRO_10:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_INERTIAL_GYRO_1PaS20200203_011321_20200203_000000_20200203_010321.nc",
       "extension": "nc",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_INERTIAL_GYRO_1PaS20200203_011321_20200203_000000_20200203_010321.nc"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_INERTIAL_GYRO_1PaS20200203_011321_20200203_000000_20200203_010321.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-02-03T01:13:21Z",
+      "production_date": "2020-02-03T01:13:21Z",
       "end_date": "2020-02-03T01:03:21Z",
       "start_date": "2020-02-03T00:00:00Z",
       "type": "INERTIAL_GYRO_10"
