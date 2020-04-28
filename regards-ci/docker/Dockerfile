@@ -20,6 +20,8 @@ ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
 ADD feature-factory-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
+# Notifier
+ADD chronos-recipient-sender-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -29,6 +31,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
     mkdir -p /regards-plugins/dataprovider/ && \
     mkdir -p /regards-plugins/catalog/ && \
     mkdir -p /regards-plugins/fem/ && \
+    mkdir -p /regards-plugins/notifier/ && \
 
 	# Remove old storage plugins
 	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
@@ -40,11 +43,13 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
 	# Remove old catalog plugins
-	rm  -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
-	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
-	rm  -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
+	rm -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
+	rm -f /regards-plugins/catalog/download-plugin*.jar && \
+	rm -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
 	# Remove old fem plugins
-	rm  -f /regards-plugins/fem/feature-factory-plugin*.jar && \
+	rm -f /regards-plugins/fem/feature-factory-plugin*.jar && \
+	# Remove old notifier plugins
+	rm -f /regards-plugins/notifier/chronos-recipient-sender*.jar && \
 
 	# copy JARs
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
@@ -52,4 +57,5 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/ && \
 	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/ && \
 	cp ${REGARDS_HOME}/plugins/catalog/*.jar /regards-plugins/catalog/ && \
-	cp ${REGARDS_HOME}/plugins/fem/*.jar /regards-plugins/fem/
+	cp ${REGARDS_HOME}/plugins/fem/*.jar /regards-plugins/fem/ && \
+	cp ${REGARDS_HOME}/plugins/notifier/*.jar /regards-plugins/notifier/

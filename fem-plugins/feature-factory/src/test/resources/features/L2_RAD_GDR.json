@@ -2,17 +2,22 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "6451060f-f93f-3b90-a62b-376959e0733a",
+  "id": "L2_RAD_GDR:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_PGA2_01.tar",
+      "filename": "SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_VI0059_01.tar",
       "extension": "tar",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_PGA2_01.tar"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_VI0059_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
       "start_date": "2020-02-03T00:33:20Z",
@@ -24,7 +29,7 @@
       "pass_number": 69,
       "granule_type": "Pass",
       "product_version": "f",
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1
     }
   },

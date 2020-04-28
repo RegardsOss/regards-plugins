@@ -1,0 +1,33 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "id": "DECOM_NALT:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "PSWOT_ALT_DU_1PaS20200203_011657_20200203_000000_20200203_010657",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//PSWOT_ALT_DU_1PaS20200203_011657_20200203_000000_20200203_010657",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-03T01:16:57Z",
+      "end_date": "2020-02-03T01:06:57Z",
+      "start_date": "2020-02-03T00:00:00Z",
+      "type": "DECOM_NALT"
+    },
+    "swot": {
+      "file_identifier": "DU",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

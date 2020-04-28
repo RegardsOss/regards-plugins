@@ -2,17 +2,22 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "42380f9a-9ec7-3f88-8924-06567234372b",
+  "id": "L0A_KCAL_Prime:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_L0A_KCAL_Prime_KRX_20200203T000000_20200203T010448_1075_PGA2_01.tar",
+      "filename": "SWOT_L0A_KCAL_Prime_KRX_20200203T000000_20200203T010448_1075_VI0059_01.tar",
       "extension": "tar",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_L0A_KCAL_Prime_KRX_20200203T000000_20200203T010448_1075_PGA2_01.tar"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_L0A_KCAL_Prime_KRX_20200203T000000_20200203T010448_1075_VI0059_01.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
       "start_date": "2020-02-03T00:00:00Z",
@@ -23,7 +28,7 @@
       "granule_type": "Segment",
       "apid": 1075,
       "station": "KRX",
-      "crid": "PGA2",
+      "crid": "VI0059",
       "product_counter": 1
     }
   },

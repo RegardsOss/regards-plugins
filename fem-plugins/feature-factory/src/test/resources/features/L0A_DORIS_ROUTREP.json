@@ -2,28 +2,33 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "536a6436-7a5e-3d0d-b69a-e4df4e99e351",
+  "id": "L0A_DORIS_ROUTREP:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_AUX_20200203T012912_20200203T000000_20200203T011912_S_APID1184.PTM_0",
       "extension": "PTM_0",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_AUX_20200203T012912_20200203T000000_20200203T011912_S_APID1184.PTM_0"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_AUX_20200203T012912_20200203T000000_20200203T011912_S_APID1184.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:29:12Z",
       "end_date": "2020-02-03T01:19:12Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_DORIS_ROUTREP"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 1184,
-      "station": "AUX"
+      "station": "AUX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

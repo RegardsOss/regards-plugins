@@ -2,19 +2,24 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "f671ab9e-b64a-3453-ace8-5c88da841818",
+  "id": "DECOM_TECH_GYRO:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_TECH_GYRO_1PaS20200203_013204_20200203_000000_20200203_012204",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-02-03T01:32:04Z",
+      "production_date": "2020-02-03T01:32:04Z",
       "end_date": "2020-02-03T01:22:04Z",
       "start_date": "2020-02-03T00:00:00Z",
       "type": "DECOM_TECH_GYRO"

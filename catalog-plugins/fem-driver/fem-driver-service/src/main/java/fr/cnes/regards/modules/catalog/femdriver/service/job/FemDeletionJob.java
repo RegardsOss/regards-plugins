@@ -33,6 +33,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterInvalidException;
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterMissingException;
+import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.feature.client.FeatureClient;
@@ -54,14 +55,20 @@ public class FemDeletionJob extends AbstractJob<Void> {
     private IServiceHelper serviceHelper;
 
     @Autowired
+    private IJobInfoService jobService;
+
+    @Autowired
     private FeatureClient featureClient;
 
     private SearchRequest request;
+
+    private String jobOwner;
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
             throws JobParameterMissingException, JobParameterInvalidException {
         request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
+        jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
     }
 
     @Override
@@ -80,8 +87,8 @@ public class FemDeletionJob extends AbstractJob<Void> {
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
-                LOGGER.info("[FEM DRIVER] Sending {} features update requests.", features.size());
-                featureClient.deleteFeatures(features, PriorityLevel.NORMAL);
+                LOGGER.info("[FEM DRIVER] Sending {} features deletion requests.", features.size());
+                featureClient.deleteFeatures(jobOwner, features, PriorityLevel.NORMAL);
             } catch (ModuleException e) {
                 LOGGER.error("Error retrieving catalog objects.", e);
                 results = null;

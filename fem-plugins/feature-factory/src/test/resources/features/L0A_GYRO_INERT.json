@@ -2,28 +2,33 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "c16552e0-b270-3d13-b766-1f6b1f0da44a",
+  "id": "L0A_GYRO_INERT:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID0990.PTM_0",
+      "filename": "SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
       "extension": "PTM_0",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID0990.PTM_0"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "start_date": "2020-02-03T00:00:00Z",
+      "production_date": "2020-02-03T01:14:04Z",
       "end_date": "2020-02-03T01:04:04Z",
+      "start_date": "2020-02-03T00:00:00Z",
       "type": "L0A_GYRO_INERT"
     },
     "swot": {
-      "source": "S",
-      "granule_type": "Downlink",
       "apid": 990,
-      "station": "AUX"
+      "station": "AUX",
+      "granule_type": "Downlink"
     }
   },
   "type": "Feature"

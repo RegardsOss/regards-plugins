@@ -1,0 +1,28 @@
+L0A_NALT_CAL1:
+    name: SWOT_{{ StationName }}_{{ DateTimeCreationFile }}_{{ DateTimeBeginTM }}_{{ DateTimeEndTM }}_{{ SourceType }}_APID{{ APIDnumber }}.PTM_{{ index }}
+    Description: ""
+    example: ['SWOT_KRX_20200203T013121_20200203T000000_20200203T012121_S_APID1033.PTM_0']
+    document: "SMM-IF-BN1-EA-22105-CN"
+    granule_type: Downlink
+    tar_content: []
+    mission: SWOT
+    Nature: TM
+    metadata: [StationName, DateTimeCreationFile, DateTimeBeginTM, DateTimeEndTM, SourceType, APIDnumber]
+    APIDnumber : [1033]
+    simu_method: 
+        name: idefix
+        decom : "NALT_VP"
+        day_file_size: 
+            1033 : 2mo
+        directory: "swot/l0a/{{ APIDnumber }}"
+        has_path_by_date: False
+    CHRONOS:
+        storage_server : GEODE
+        intput_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        
