@@ -15,7 +15,7 @@
     "system": {
       "filename": "DSWOT_MEP_1PaD20200303_000000",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/DSWOT_MEP_1PaD20200303_000000",
+      "gpfs_url": "gpfs:///directory/sub//DSWOT_MEP_1PaD20200303_000000",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

@@ -16,7 +16,7 @@
       "filename": "SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc",
       "extension": "nc",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
