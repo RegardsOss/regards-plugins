@@ -62,11 +62,11 @@ public class ChronosRecipientSender implements IRecipientNotifier {
     private String queueName;
 
     @PluginParameter(label = "Feature created_by property path", name = "createdByPropertyPath", optional = true,
-            defaultValue = "history.created_by")
+            defaultValue = "history.createdBy")
     private String createdByPropertyPath;
 
     @PluginParameter(label = "Feature updated_by property path", name = "updatedByPropertyPath", optional = true,
-            defaultValue = "history.updated_by")
+            defaultValue = "history.updatedBy")
     private String updatedByPropertyPath;
 
     @PluginParameter(label = "Feature updated_by property path", name = "gpfsUrlPropertyPath", optional = true,
