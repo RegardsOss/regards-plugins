@@ -57,5 +57,5 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/ingest/*.jar /regards-plugins/ingest/ && \
 	cp ${REGARDS_HOME}/plugins/dataprovider/*.jar /regards-plugins/dataprovider/ && \
 	cp ${REGARDS_HOME}/plugins/catalog/*.jar /regards-plugins/catalog/ && \
-	cp ${REGARDS_HOME}/plugins/fem/*.jar /regards-plugins/fem/ \
+	cp ${REGARDS_HOME}/plugins/fem/*.jar /regards-plugins/fem/ && \
 	cp ${REGARDS_HOME}/plugins/notifier/*.jar /regards-plugins/notifier/
