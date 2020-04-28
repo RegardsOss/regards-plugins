@@ -2,19 +2,24 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "c15850d4-f51b-3a2b-b646-91aafe960a4d",
+  "id": "SWOT_PPF:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_PPF_AXVCNE20180316_170700_20180212_215523_20180214_002323",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_PPF_AXVCNE20180316_170700_20180212_215523_20180214_002323"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_PPF_AXVCNE20180316_170700_20180212_215523_20180214_002323",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2018-03-16T17:07:00Z",
+      "production_date": "2018-03-16T17:07:00Z",
       "end_date": "2018-02-14T00:23:23Z",
       "start_date": "2018-02-12T21:55:23Z",
       "type": "SWOT_PPF"

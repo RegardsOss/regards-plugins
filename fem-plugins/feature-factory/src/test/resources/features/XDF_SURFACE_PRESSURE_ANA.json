@@ -2,19 +2,24 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "ede64381-0ed0-3386-863c-b999e48007b3",
+  "id": "XDF_SURFACE_PRESSURE_ANA:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000"
+      "gpfs_url": "gpfs:///directory/sub//SMM_PRA_AXVCNE20200303_060000_20200302_180000_20200302_180000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-03T06:00:00Z",
+      "production_date": "2020-03-03T06:00:00Z",
       "end_date": "2020-03-02T18:00:00Z",
       "start_date": "2020-03-02T18:00:00Z",
       "type": "XDF_SURFACE_PRESSURE_ANA"

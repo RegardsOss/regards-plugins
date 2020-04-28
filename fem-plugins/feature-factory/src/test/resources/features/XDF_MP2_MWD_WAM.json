@@ -2,19 +2,24 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "04920982-f9f2-3530-91a7-fdfa1ef62077",
+  "id": "XDF_MP2_MWD_WAM:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000"
+      "gpfs_url": "gpfs:///directory/sub//SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-03T10:00:00Z",
+      "production_date": "2020-03-03T10:00:00Z",
       "end_date": "2020-03-03T00:00:00Z",
       "start_date": "2020-03-02T03:00:00Z",
       "type": "XDF_MP2_MWD_WAM"

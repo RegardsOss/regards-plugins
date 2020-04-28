@@ -1,0 +1,33 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "id": "REPORT_TMX_GAPS:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
+      "extension": "xml",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "production_date": "2020-02-13T12:00:00Z",
+      "end_date": "2020-02-13T00:00:00Z",
+      "start_date": "2020-02-12T00:00:00Z",
+      "type": "REPORT_TMX_GAPS"
+    },
+    "swot": {
+      "granule_type": "Day"
+    }
+  },
+  "type": "Feature"
+}

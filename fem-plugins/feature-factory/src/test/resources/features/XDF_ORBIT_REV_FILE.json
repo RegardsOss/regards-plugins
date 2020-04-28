@@ -2,19 +2,24 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "8043d8b6-14b5-3bcf-8ac8-6bf5c6c7aa00",
+  "id": "XDF_ORBIT_REV_FILE:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
       "filename": "SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_ORF_AXXCNE20200303_080000_20180403_080000_20200309_080000",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "creation_date": "2020-03-03T08:00:00Z",
+      "production_date": "2020-03-03T08:00:00Z",
       "end_date": "2020-03-09T08:00:00Z",
       "start_date": "2018-04-03T08:00:00Z",
       "type": "XDF_ORBIT_REV_FILE"

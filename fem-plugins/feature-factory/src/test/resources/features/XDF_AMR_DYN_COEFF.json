@@ -2,17 +2,22 @@
   "urn": null,
   "entityType": "DATA",
   "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
   "files": [],
-  "id": "63285ae5-d434-3f2e-b161-e73dc6f00081",
+  "id": "XDF_AMR_DYN_COEFF:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223_120000.nc",
+      "filename": "SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223T120000.nc",
       "extension": "nc",
-      "ingestion_date": "2020-04-10T12:00:00Z",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "file://somewhere/test/SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223_120000.nc"
+      "gpfs_url": "gpfs:///directory/sub//SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223T120000.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
       "production_date": "2020-02-23T12:00:00Z",

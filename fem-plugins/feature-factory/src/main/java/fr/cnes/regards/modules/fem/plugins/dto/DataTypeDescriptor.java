@@ -154,13 +154,17 @@ public class DataTypeDescriptor {
         // If property is configured retrieve values
         if (prop != null) {
             propertyPath = prop.getPropertyPath();
-            if (propertyPath.lastIndexOf(".") > 0) {
-                propertyName = propertyPath.substring(propertyPath.lastIndexOf(".") + 1, propertyPath.length());
+            if (propertyPath != null) {
+                if (propertyPath.lastIndexOf(".") > 0) {
+                    propertyName = propertyPath.substring(propertyPath.lastIndexOf(".") + 1, propertyPath.length());
+                } else {
+                    propertyName = propertyPath;
+                }
+                type = prop.getType();
+                transformer = prop.getTransformer();
             } else {
-                propertyName = propertyPath;
+                return Optional.empty();
             }
-            type = prop.getType();
-            transformer = prop.getTransformer();
         } else {
             LOGGER.warn("[{}] Default format used for property {} in file {}", type, meta, fileName);
         }
@@ -201,7 +205,7 @@ public class DataTypeDescriptor {
      * @param property
      * @return {@link IProperty}
      */
-    private IProperty<?> buildPropertyFragment(String propertyPath, IProperty<?> property) {
+    public IProperty<?> buildPropertyFragment(String propertyPath, IProperty<?> property) {
         String[] fragments = propertyPath.split("\\.");
         if (fragments.length > 1) {
             IProperty<?> pp = property;

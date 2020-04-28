@@ -15,7 +15,7 @@
 		<attribute optional="true">
 			<label>File size</label>
 			<name>filesize</name>
-			<type>INTEGER</type>
+			<type>LONG</type>
 		</attribute>
 		<attribute>
 			<label>Ingestion date</label>
@@ -41,7 +41,7 @@
 			<name>gpfs_url</name>
 			<type>STRING</type>
 			<restriction>
-				<pattern>^(https?|ftp|file)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
+				<pattern>^(https?|ftp|file|gpfs)://[-a-zA-Z0-9+&#38;@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&#38;@#/%=~_|]</pattern>
 			</restriction>
 		</attribute>
 		<attribute optional="true">
@@ -187,18 +187,7 @@
 					<value>LTM_RI</value>
 					<value>LTM_FI</value>
 					<value>LTM_IQ</value>
-					<value>Point_Croisement</value>
-					<value>ALT_MEAS</value>
-					<value>NALT_ALTI1</value>
-					<value>L0A_GPSP_Prime</value>
-					<value>LPF_10</value>
-					<value>PTR_10</value>
-					<value>L2_LR_PreCalSSH</value>
-					<value>L0A_RAD_Prime</value>
-					<value>DSWO_DIF</value>
 					<value>L0A_KCAL_Prime</value>
-					<value>L0A_LR_Prime</value>
-					<value>L0A_HR_Prime</value>
 					<value>L2_HR_RiverTile</value>
 				</enumeration>
 			</restriction>
@@ -216,11 +205,6 @@
 		<attribute>
 			<label>end date</label>
 			<name>end_date</name>
-			<type>DATE_ISO8601</type>
-		</attribute>
-		<attribute optional="true">
-			<label>creation date</label>
-			<name>creation_date</name>
 			<type>DATE_ISO8601</type>
 		</attribute>
 		<attribute optional="true">
@@ -388,11 +372,6 @@
 			</restriction>
 		</attribute>
 		<attribute optional="true">
-			<label>Source</label>
-			<name>source</name>
-			<type>STRING</type>
-		</attribute>
-		<attribute optional="true">
 			<label>Day date</label>
 			<name>day_date</name>
 			<type>DATE_ISO8601</type>
@@ -440,14 +419,6 @@
 			<label>File identifier</label>
 			<name>file_identifier</name>
 			<type>STRING</type>
-			<restriction>
-				<enumeration>
-					<value>Basic</value>
-					<value>WindWave</value>
-					<value>Expert</value>
-					<value>Unsmoothed</value>
-				</enumeration>
-			</restriction>
 		</attribute>
 		<attribute optional="true">
 			<label>APID</label>
@@ -466,20 +437,19 @@
 			<type>STRING</type>
 			<restriction>
 				<enumeration>
-					<value>Downlink unit</value>
 					<value>Downlink</value>
 					<value>Cycle</value>
 					<value>Half Orbit</value>
 					<value>Tile</value>
+					<value>TileF</value>
 					<value>Full-swath scene</value>
-					<value>Bassin-cycle</value>
-					<value>Continent-pass</value>
-					<value>Daily</value>
+					<value>Bassin-Cycle</value>
+					<value>Continent-Pass</value>
 					<value>Day</value>
 					<value>Segment</value>
-					<value>Full</value>
 					<value>Scene</value>
 					<value>Pass</value>
+					<value>ValidDate</value>
 				</enumeration>
 			</restriction>
 		</attribute>
