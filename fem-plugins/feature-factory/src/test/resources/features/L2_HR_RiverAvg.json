@@ -16,7 +16,7 @@
       "filename": "SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar",
       "extension": "tar",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///home/sbinda/git/rs-plugins/fem-plugins/feature-factory/src/test/resources/in/SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_L2_HR_RiverAvg_001_002_20200131T141500_20200221T110000_PGA2_03.tar",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
