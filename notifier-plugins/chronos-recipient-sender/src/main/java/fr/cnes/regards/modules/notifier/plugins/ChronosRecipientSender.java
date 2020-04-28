@@ -79,7 +79,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
         String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
         if ((action == null) || (createdBy == null) || (uri == null)) {
             LOGGER.error("Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
-                         action, createdByPropertyPath, createdBy, gpfsUrlPropertyPath, uri, element.getAsString());
+                         action, createdByPropertyPath, createdBy, gpfsUrlPropertyPath, uri, element.toString());
             return false;
         } else {
             String updatedBy = getValue(element, updatedByPropertyPath).orElse(null);
