@@ -162,7 +162,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
         // Initialize catalog feature
         DataObjectFeature dataObject = new DataObjectFeature(feature.getUrn(), feature.getId(), feature.getId(),
                 featureDto.getSessionOwner(), featureDto.getSession(), feature.getModel());
-        //TODO handle last
+        dataObject.setLast(feature.isLast());
         // Propagate geometry
         dataObject.setGeometry(feature.getGeometry());
         // Propagate properties
