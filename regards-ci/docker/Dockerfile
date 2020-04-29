@@ -3,16 +3,16 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD local-storage-location-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD webservice-datasource-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
-ADD ingest-test-plugins-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD ingest-test-plugins-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
-ADD custom-command-file-validation-1.0.0-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+ADD custom-command-file-validation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
