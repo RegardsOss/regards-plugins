@@ -5,7 +5,7 @@
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <relativePath />
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,7 +13,7 @@
     <groupId>fr.cnes.regards.modules.ingest</groupId>
     <artifactId>ingest-plugins</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <modules>
         <module>enhanced-descriptive-aip-generation</module>
         <module>ingest-test-plugins</module>
