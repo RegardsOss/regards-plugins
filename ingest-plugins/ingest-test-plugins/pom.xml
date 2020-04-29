@@ -5,13 +5,13 @@
     <parent>
         <groupId>fr.cnes.regards.modules.ingest</groupId>
         <artifactId>ingest-plugins</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
     <artifactId>ingest-test-plugins</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <dependencies>
         <dependency>
