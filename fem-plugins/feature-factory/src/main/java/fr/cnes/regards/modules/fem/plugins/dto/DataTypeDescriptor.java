@@ -149,6 +149,7 @@ public class DataTypeDescriptor {
         // Init default values
         String propertyName = meta;
         String propertyPath = meta;
+        String propertyFormat = null;
         ITransformer transformer = null;
         PropertyType type = PropertyType.STRING;
         // If property is configured retrieve values
@@ -161,6 +162,7 @@ public class DataTypeDescriptor {
                     propertyName = propertyPath;
                 }
                 type = prop.getType();
+                propertyFormat = prop.getFormat();
                 transformer = prop.getTransformer();
             } else {
                 return Optional.empty();
@@ -179,10 +181,10 @@ public class DataTypeDescriptor {
             }
             switch (type) {
                 case DATE:
-                    property = IProperty.buildDate(propertyName, parseDate(metaValue, prop.getFormat()));
+                    property = IProperty.buildDate(propertyName, parseDate(metaValue, propertyFormat));
                     break;
                 case DATE_TIME:
-                    property = IProperty.buildDate(propertyName, parseDateTime(metaValue, prop.getFormat()));
+                    property = IProperty.buildDate(propertyName, parseDateTime(metaValue, propertyFormat));
                     break;
                 case INTEGER:
                     property = IProperty.buildInteger(propertyName, Integer.valueOf(metaValue));
