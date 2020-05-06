@@ -88,9 +88,8 @@
 							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<includes>
-									<include>commons-beanutils:commons-beanutils</include>
-									<include>fr.cnes.regards.modules.feature:feature-client</include>
-									<include>fr.cnes.regards.modules.feature:feature-dto</include>
+									<include>fr.cnes.regards.modules.fem.plugins:feature-factory-plugin</include>
+									<include>com.fasterxml.jackson.dataformat:jackson-dataformat-yaml</include>
 								</includes>
 							</artifactSet>
 						</configuration>
