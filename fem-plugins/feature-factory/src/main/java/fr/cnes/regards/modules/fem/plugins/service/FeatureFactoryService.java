@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,35 +94,38 @@ public class FeatureFactoryService {
     public void readConfs(Path directory) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        Files.list(directory).filter(f -> f.getFileName().toString().endsWith(".yml")).forEach(filePath -> {
-            try {
-                if (Files.isRegularFile(filePath)) {
-                    String dataType = filePath.getFileName().toString()
-                            .substring(0, filePath.getFileName().toString().indexOf("."));
-                    if (!this.descriptors.stream().anyMatch(d -> d.getType().equals(dataType))) {
-                        JsonNode mainNode = mapper.readTree(filePath.toFile());
-                        JsonNode dataNode = mainNode.get(dataType);
-                        DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
-                        if (dt != null) {
-                            dt.setType(dataType);
-                            try {
-                                dt.validate();
-                                descriptors.add(dt);
-                            } catch (ModuleException e) {
-                                LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+
+        try (Stream<Path> directories = Files.list(directory)) {
+            directories.filter(f -> f.getFileName().toString().endsWith(".yml")).forEach(filePath -> {
+                try {
+                    if (Files.isRegularFile(filePath)) {
+                        String dataType = filePath.getFileName().toString()
+                                .substring(0, filePath.getFileName().toString().indexOf("."));
+                        if (!this.descriptors.stream().anyMatch(d -> d.getType().equals(dataType))) {
+                            JsonNode mainNode = mapper.readTree(filePath.toFile());
+                            JsonNode dataNode = mainNode.get(dataType);
+                            DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
+                            if (dt != null) {
+                                dt.setType(dataType);
+                                try {
+                                    dt.validate();
+                                    descriptors.add(dt);
+                                } catch (ModuleException e) {
+                                    LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+                                }
+                            } else {
+                                LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
                             }
                         } else {
-                            LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
+                            LOGGER.error("[{}] Invalid data type. A data type configuration already exists for this type.",
+                                         dataType);
                         }
-                    } else {
-                        LOGGER.error("[{}] Invalid data type. A data type configuration already exists for this type.",
-                                     dataType);
                     }
+                } catch (IOException e) {
+                    LOGGER.error("Error reading configuration file {}. Cause : {}", filePath, e.getMessage());
                 }
-            } catch (IOException e) {
-                LOGGER.error("Error reading configuration file {}. Cause : {}", filePath, e.getMessage());
-            }
-        });
+            });
+        }
     }
 
     /**
