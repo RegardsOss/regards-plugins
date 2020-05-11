@@ -13,6 +13,8 @@ ADD enhanced-descriptive-aip-generation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins
 ADD ingest-test-plugins-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
 ADD custom-command-file-validation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+# Catalog
+ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -28,6 +30,8 @@ CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdi
         # Remove old ingest plugins
 	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
 	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
+	# Remove old catalog plugins
+	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
 	# then lets copy the jars 
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
