@@ -96,6 +96,12 @@
             <version>1.0.1</version>
             <classifier>shaded</classifier>
         </dependency>
+         <dependency>
+            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+            <artifactId>download-plugin</artifactId>
+            <version>1.0.1</version>
+            <classifier>shaded</classifier>
+        </dependency>
     </dependencies>
 
     <build>
