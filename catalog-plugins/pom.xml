@@ -53,5 +53,6 @@
 		<relativePath/>
 	</parent>
 	<modules>
+		<module>download-plugin</module>
     </modules>
 </project>
