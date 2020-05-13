@@ -56,8 +56,8 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.urn.DataType;
-import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.framework.oais.urn.DataType;
+import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.catalog.services.domain.ServiceScope;
 import fr.cnes.regards.modules.catalog.services.domain.annotations.CatalogServicePlugin;
@@ -68,7 +68,6 @@ import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.AbstractCatalogServicePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 
 @Plugin(description = "Plugin to allow download on multiple data selection by creating an archive.",
@@ -130,7 +129,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> applyOnQuery(SearchRequest searchRequest, EntityType pEntityType,
+    public ResponseEntity<StreamingResponseBody> applyOnQuery(String searchRequest, EntityType pEntityType,
             HttpServletResponse response) {
         Page<DataObject> results;
         try {
