@@ -14,7 +14,7 @@ ADD ingest-test-plugins-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
 ADD custom-command-file-validation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 # Catalog
-ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-plugin-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
