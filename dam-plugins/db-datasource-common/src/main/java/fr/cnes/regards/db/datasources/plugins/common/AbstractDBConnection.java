@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -27,12 +26,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -72,9 +73,9 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
     private static final String REMARKS = "REMARKS";
 
     /**
-     * A {@link ComboPooledDataSource} to used to connect to a data source
+     * A {@link HikariDataSource} to used to connect to a data source
      */
-    protected ComboPooledDataSource pooledDataSource;
+    protected HikariDataSource pooledDataSource;
 
     protected abstract IDBConnectionPlugin getDBConnectionPlugin();
 
@@ -111,38 +112,38 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
                     isConnected = true;
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | HikariPool.PoolInitializationException e) {
             LOG.error("Unable to connect to the database", e);
         }
         return isConnected;
     }
 
     /**
-     * Initialize the {@link ComboPooledDataSource}
-     * @param pUser The user to used for the database connection
-     * @param pPassword The user's password to used for the database connection
-     * @param pMaxPoolSize Maximum number of Connections a pool will maintain at any given time.
-     * @param pMinPoolSize Minimum number of Connections a pool will maintain at any given time.
+     * Initialize the {@link HikariDataSource}
+     * @param user The user to used for the database connection
+     * @param password The user's password to used for the database connection
+     * @param maxPoolSize Maximum number of Connections a pool will maintain at any given time.
+     * @param minPoolSize Minimum number of Connections a pool will maintain at any given time.
      */
-    protected void createPoolConnection(String pUser, String pPassword, Integer pMaxPoolSize, Integer pMinPoolSize) {
+    protected void createPoolConnection(String user, String password, Integer maxPoolSize, Integer minPoolSize) {
         String url = buildUrl();
         LOG.info("Create data source pool (url : {})", url);
-        pooledDataSource = new ComboPooledDataSource();
-        pooledDataSource.setJdbcUrl(url);
-        pooledDataSource.setUser(pUser);
-        pooledDataSource.setPassword(pPassword);
-        pooledDataSource.setMaxPoolSize(pMaxPoolSize);
-        pooledDataSource.setMinPoolSize(pMinPoolSize);
 
-        try {
-            pooledDataSource.setDriverClass(getJdbcDriver());
-        } catch (PropertyVetoException e) {
-            LOG.error(e.getMessage(), e);
-        }
+        HikariConfig config = new HikariConfig(new Properties());
+        config.setJdbcUrl(url);
+        config.setUsername(user);
+        config.setPassword(password);
+        // For maximum performance, HikariCP does not recommend setting this value so minimumIdle = maximumPoolSize
+        config.setMinimumIdle(minPoolSize);
+        config.setMaximumPoolSize(maxPoolSize);
+        config.setIdleTimeout(30000L);
+        config.setDriverClassName(getJdbcDriver());
+        // Postgres schema configuration
+        pooledDataSource = new HikariDataSource(config);
     }
 
     /**
-     * Destroy the {@link ComboPooledDataSource}
+     * Destroy the {@link HikariDataSource}
      */
     @Override
     public void closeConnection() {
@@ -178,16 +179,21 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
         try (Connection conn = getDBConnectionPlugin().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
 
-            rs = metaData.getTables(conn.getCatalog(), schemaPattern, tableNamePattern,
+            rs = metaData.getTables(conn.getCatalog(),
+                                    schemaPattern,
+                                    tableNamePattern,
                                     new String[] { METADATA_TABLE, METADATA_VIEW });
 
             while (rs.next()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("[TABLE] --> " + logString(rs, TABLE_NAME) + "] " + logString(rs, TABLE_CAT)
-                            + logString(rs, TABLE_SCHEM) + logString(rs, TABLE_TYPE) + logString(rs, REMARKS));
+                    LOG.debug("[TABLE] --> " + logString(rs, TABLE_NAME) + "] " + logString(rs, TABLE_CAT) + logString(
+                            rs,
+                            TABLE_SCHEM) + logString(rs, TABLE_TYPE) + logString(rs, REMARKS));
                 }
                 Table table = new Table(rs.getString(TABLE_NAME), rs.getString(TABLE_CAT), rs.getString(TABLE_SCHEM));
-                table.setPKey(getPrimaryKey(metaData, rs.getString(TABLE_CAT), rs.getString(TABLE_SCHEM),
+                table.setPKey(getPrimaryKey(metaData,
+                                            rs.getString(TABLE_CAT),
+                                            rs.getString(TABLE_SCHEM),
                                             rs.getString(TABLE_NAME)));
                 tables.put(table.getName(), table);
             }
@@ -240,12 +246,13 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
 
                 while (rs.next()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("[COLUMN] --> " + logString(rs, COLUMN_NAME) + logString(rs, TYPE_NAME)
-                                + logInt(rs, DATA_TYPE));
+                        LOG.debug("[COLUMN] --> " + logString(rs, COLUMN_NAME) + logString(rs, TYPE_NAME) + logInt(rs,
+                                                                                                                   DATA_TYPE));
                     }
 
-                    Column column = new Column(rs.getString(COLUMN_NAME), rs.getString(TYPE_NAME),
-                            rs.getInt(DATA_TYPE));
+                    Column column = new Column(rs.getString(COLUMN_NAME),
+                                               rs.getString(TYPE_NAME),
+                                               rs.getInt(DATA_TYPE));
                     cols.put(column.getName(), column);
                 }
             }
