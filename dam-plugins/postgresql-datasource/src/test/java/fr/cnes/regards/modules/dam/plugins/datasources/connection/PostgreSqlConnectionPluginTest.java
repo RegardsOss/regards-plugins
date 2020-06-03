@@ -36,6 +36,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.google.common.collect.Maps;
 
+import com.zaxxer.hikari.pool.HikariPool;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
@@ -43,6 +44,7 @@ import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -171,12 +173,16 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         passwordParam.setDecryptedValue("unknown");
         parameters.add(passwordParam);
 
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters),
-                           Maps.newHashMap());
-
-        Assert.assertNotNull(sqlConn);
-        Assert.assertFalse(sqlConn.testConnection());
+        try {
+            final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
+                    .getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters), Maps.newHashMap());
+        } catch (PluginUtilsRuntimeException e) {
+            // we do not rely on expected attribute from Test annotation because we want to be sure the test is successful
+            // because we could not create the pool due to bad credential
+            // and not due to other errors that could throw PluginUtilsRuntimeException
+            LOG.debug(e.getMessage(), e);
+            Assert.assertTrue(e.getCause() instanceof HikariPool.PoolInitializationException);
+        }
     }
 
     private Set<IPluginParam> getPostGreSqlParameters() {
