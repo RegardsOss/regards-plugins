@@ -168,17 +168,20 @@ public class FeatureFactoryService {
 
         // 2. Add fixed granule type property
         if ((dataDesc.getGranule_type() != null) && !dataDesc.getGranule_type().isEmpty()) {
-            IProperty.mergeProperties(toCreate.getProperties(), Sets
-                    .newHashSet(IProperty.buildObject(SWOT_FRAGMENT, IProperty
-                            .buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(), dataDesc.getGranule_type()))),
-                                      fileLocation);
+            IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(IProperty
+                    .buildObject(SWOT_FRAGMENT,
+                                 IProperty.buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(),
+                                                       dataDesc.getGranule_type()))),
+                                      fileLocation, this.getClass().getName());
         }
         // 3. Add fixed data type  property
         if ((dataDesc.getType() != null) && !dataDesc.getType().isEmpty()) {
             IProperty.mergeProperties(toCreate.getProperties(),
-                                      Sets.newHashSet(IProperty.buildObject(DATA_FRAGMENT, IProperty
-                                              .buildString(PropertiesEnum.TYPE.getPropertyPath(), dataDesc.getType()))),
-                                      fileLocation);
+                                      Sets.newHashSet(IProperty
+                                              .buildObject(DATA_FRAGMENT,
+                                                           IProperty.buildString(PropertiesEnum.TYPE.getPropertyPath(),
+                                                                                 dataDesc.getType()))),
+                                      fileLocation, this.getClass().getName());
         }
         // 4. Add fixed system properties
         addSystemProperties(toCreate, fileLocation, creationDate, dataDesc.getType());
@@ -198,7 +201,8 @@ public class FeatureFactoryService {
         for (String meta : dataDesc.getMetadata()) {
             Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName);
             if (property.isPresent()) {
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName,
+                                          this.getClass().getName());
             }
         }
 
@@ -252,8 +256,10 @@ public class FeatureFactoryService {
             if ((startDate != null) && (stopDate != null)) {
                 startDate = dataDesc.buildPropertyFragment("data.start_date", startDate);
                 stopDate = dataDesc.buildPropertyFragment("data.end_date", stopDate);
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName);
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName,
+                                          this.getClass().getName());
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName,
+                                          this.getClass().getName());
             }
         }
 
