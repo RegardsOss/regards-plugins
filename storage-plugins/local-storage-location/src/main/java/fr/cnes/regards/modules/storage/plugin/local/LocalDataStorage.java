@@ -554,6 +554,17 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return allowPhysicalDeletion;
     }
 
+    @Override
+    public boolean isValidUrl(String urlToValidate) {
+        try {
+            URL url = new URL(urlToValidate);
+            return url.getProtocol().equals("file");
+        } catch (MalformedURLException e) {
+            LOGGER.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
     private static class RegardsIS extends InputStream {
 
         private FileLock lock;
