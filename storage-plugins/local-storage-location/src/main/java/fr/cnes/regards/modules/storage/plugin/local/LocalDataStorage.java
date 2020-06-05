@@ -37,6 +37,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.zip.ZipFile;
 
@@ -555,14 +556,20 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public boolean isValidUrl(String urlToValidate) {
+    public boolean isValidUrl(String urlToValidate, Set<String> errors) {
+        boolean valid = true;
         try {
             URL url = new URL(urlToValidate);
-            return url.getProtocol().equals("file");
+            if (!url.getProtocol().equals("file")) {
+                errors.add(String.format("Invalid url protocol. Expected file bu was %s", url.getProtocol()));
+                valid = false;
+            }
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);
-            return false;
+            errors.add(String.format("Invalid url format %s", e.getMessage()));
+            valid = false;
         }
+        return valid;
     }
 
     private static class RegardsIS extends InputStream {
