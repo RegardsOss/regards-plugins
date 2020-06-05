@@ -3,25 +3,25 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD local-storage-location-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD feature-datasource-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD webservice-datasource-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD feature-datasource-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
-ADD ingest-test-plugins-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD ingest-test-plugins-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
-ADD custom-command-file-validation-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+ADD custom-command-file-validation-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 # Catalog
-ADD download-metalink-plugin-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/catalog/
-ADD download-plugin-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/catalog/
-ADD fem-driver-plugin-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-metalink-plugin-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-plugin-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD fem-driver-plugin-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
-ADD feature-factory-plugin-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/fem/
+ADD feature-factory-plugin-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/fem/
 # Notifier
-ADD chronos-recipient-sender-1.1.1-shaded.jar ${REGARDS_HOME}/plugins/notifier/
+ADD chronos-recipient-sender-1.2.0-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
