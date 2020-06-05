@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.fem.plugins.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -42,7 +44,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.feature.dto.Feature;
@@ -61,10 +68,22 @@ import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 @Service
 public class FeatureFactoryService {
 
-    /**
-     * Class logger
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService.class);
+
+    /**
+     * Location parameter path
+     */
+    private static final String LOCATION_PARAMETER_PATH = "location";
+
+    /**
+     * Geometry parameter path
+     */
+    private static final String GEOMETRY_PARAMETER_PATH = "geometry";
+
+    /**
+     * Properties parameter path
+     */
+    private static final String PROPERTIES_PARAMETER_PATH = "properties";
 
     /**
      * Name of Feature fragment containing  feature system information
@@ -85,6 +104,9 @@ public class FeatureFactoryService {
      * Valid and available {@link DataTypeDescriptor}s
      */
     private final Set<DataTypeDescriptor> descriptors = Sets.newConcurrentHashSet();
+
+    @Autowired
+    private Gson gson;
 
     /**
      * Reads all {@link DataTypeDescriptor}s from configured directory and initialize associated {@link DataTypeDescriptor}s
@@ -151,18 +173,30 @@ public class FeatureFactoryService {
     }
 
     /**
-     * Get a {@link Feature} for the given fileLocation by reading the associated {@link DataTypeDescriptor}
-     * @param fileLocation
-     * @param model
-     * @return {@link Feature}
-     * @throws ModuleException
+     * Generate a {@link Feature} according to specified parameters and by reading the associated {@link DataTypeDescriptor}
      */
-    public Feature getFeature(String fileLocation, String model, OffsetDateTime creationDate) throws ModuleException {
+    public Feature getFeature(JsonObject parameters, String model, OffsetDateTime creationDate) throws ModuleException {
+
+        // Retrieve required and optional parameters
+        String fileLocation = getLocation(parameters);
+        Optional<IGeometry> geometry = getGeometry(parameters);
+        Optional<Set<IProperty<?>>> properties = getProperties(parameters);
+
+        // Generate feature
         String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
         String id = String.format("%s:%s", dataDesc.getType(),
                                   UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString());
         Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
+
+        // 0. Apply additional properties from parameters
+        if (geometry.isPresent()) {
+            toCreate.setGeometry(geometry.get());
+        }
+        if (properties.isPresent()) {
+            toCreate.setProperties(properties.get());
+        }
+
         // 1. Add all dynamic properties read from data descriptor
         addSpecificProperties(toCreate, fileName, dataDesc);
 
@@ -186,6 +220,94 @@ public class FeatureFactoryService {
         // 4. Add fixed system properties
         addSystemProperties(toCreate, fileLocation, creationDate, dataDesc.getType());
         return toCreate;
+    }
+
+    //    @SuppressWarnings("unchecked")
+    //    private <T> T getParameter(JsonObject parameters, String path, Class<T> expected) throws ModuleException {
+    //        JsonElement element = parameters.get(path);
+    //        if (element == null) {
+    //            String errorMessage = String.format("Missing parameter %s", path);
+    //            LOGGER.error(errorMessage);
+    //            throw new ModuleException(errorMessage);
+    //        }
+    //        checkType(path, expected, element);
+    //        return (T) o;
+    //    }
+    //
+    //    @SuppressWarnings("unchecked")
+    //    private <T> Optional<T> getOptionalParameter(JsonObject parameters, String path, Class<T> expected)
+    //            throws ModuleException {
+    //        Object o = parameters.get(path);
+    //        if (o == null) {
+    //            return Optional.empty();
+    //        }
+    //        checkType(path, expected, o.getClass());
+    //        return Optional.of((T) o);
+    //    }
+    //
+    //    private <T> T getValue(String path, Class<T> expected, JsonElement found) throws ModuleException {
+    //        if (!expected.isAssignableFrom(found)) {
+    //            String errorMessage = String.format("Bad type for parameter %s (Expecting %s but found %s)", path,
+    //                                                expected.getName(), found.getName());
+    //            LOGGER.error(errorMessage);
+    //            throw new ModuleException(errorMessage);
+    //        }
+    //    }
+
+    private String getLocation(JsonObject parameters) throws ModuleException {
+        JsonElement element = parameters.get(LOCATION_PARAMETER_PATH);
+        checkNotNull(element, LOCATION_PARAMETER_PATH);
+        String location = null;
+        try {
+            location = element.getAsString();
+        } catch (Exception ex) {
+            badConversion(element, LOCATION_PARAMETER_PATH, ex);
+        }
+        return location;
+    }
+
+    private Optional<IGeometry> getGeometry(JsonObject parameters) throws ModuleException {
+        JsonElement element = parameters.get(GEOMETRY_PARAMETER_PATH);
+        if (element == null) {
+            return Optional.empty();
+        }
+        IGeometry geometry = null;
+        try {
+            geometry = gson.fromJson(element, IGeometry.class);
+        } catch (Exception ex) {
+            badConversion(element, GEOMETRY_PARAMETER_PATH, ex);
+        }
+        return Optional.of(geometry);
+    }
+
+    private Optional<Set<IProperty<?>>> getProperties(JsonObject parameters) throws ModuleException {
+        JsonElement element = parameters.get(PROPERTIES_PARAMETER_PATH);
+        if (element == null) {
+            return Optional.empty();
+        }
+        Set<IProperty<?>> properties = null;
+        Type type = new TypeToken<Set<IProperty<?>>>() {
+        }.getType();
+        try {
+            properties = gson.fromJson(element, type);
+        } catch (Exception ex) {
+            badConversion(element, PROPERTIES_PARAMETER_PATH, ex);
+        }
+        return Optional.of(properties);
+    }
+
+    private void checkNotNull(JsonElement element, String path) throws ModuleException {
+        if (element == null) {
+            String errorMessage = String.format("Missing parameter %s", path);
+            LOGGER.error(errorMessage);
+            throw new ModuleException(errorMessage);
+        }
+    }
+
+    private void badConversion(JsonElement element, String path, Exception ex) throws ModuleException {
+        String errorMessage = String.format("Bad conversion for parameter %s : %s", path, ex.getMessage());
+        LOGGER.error(errorMessage, ex);
+        throw new ModuleException(errorMessage);
     }
 
     /**
