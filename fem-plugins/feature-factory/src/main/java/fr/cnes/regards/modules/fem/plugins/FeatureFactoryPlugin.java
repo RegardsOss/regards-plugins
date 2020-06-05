@@ -26,6 +26,8 @@ import java.time.OffsetDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.gson.JsonObject;
+
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
@@ -88,8 +90,8 @@ public class FeatureFactoryPlugin implements IFeatureFactoryPlugin {
     }
 
     @Override
-    public Feature createFeature(FeatureReferenceRequest reference) throws ModuleException {
-        return factoryService.getFeature(reference.getLocation(), model, OffsetDateTime.now());
+    public Feature generateFeature(JsonObject parameters) throws ModuleException {
+        return factoryService.getFeature(parameters, model, OffsetDateTime.now());
     }
 
 }
