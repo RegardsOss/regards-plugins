@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.local;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -486,12 +487,17 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public InputStream retrieve(FileReference fileRef) throws ModuleException {
+    public InputStream retrieve(FileReference fileRef) throws ModuleException, FileNotFoundException {
         if (fileRef.getLocation().getUrl().matches(".*regards_.*\\.zip")) {
             return retrieveFromZip(fileRef);
         } else {
             try {
                 return (new URL(fileRef.getLocation().getUrl())).openStream();
+            } catch (FileNotFoundException e) {
+                String errorMessage = String.format("[LOCAL STORAGE PLUGIN] file %s does not exists.",
+                                                    fileRef.getLocation().getUrl());
+                LOGGER.error(errorMessage, e);
+                throw new FileNotFoundException(errorMessage);
             } catch (IOException e) {
                 String errorMessage = String.format("[LOCAL STORAGE PLUGIN] file %s is not a valid URL to retrieve.",
                                                     fileRef.getLocation().getUrl());
