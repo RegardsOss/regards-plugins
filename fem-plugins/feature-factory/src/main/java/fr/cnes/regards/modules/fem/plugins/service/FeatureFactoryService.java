@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -42,10 +43,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.feature.domain.plugin.FactoryParameters;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.feature.dto.gson.FeatureProperties;
 import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
 import fr.cnes.regards.modules.fem.plugins.dto.PropertiesEnum;
 import fr.cnes.regards.modules.fem.plugins.dto.SystemPropertiyEnum;
@@ -61,10 +67,17 @@ import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 @Service
 public class FeatureFactoryService {
 
-    /**
-     * Class logger
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService.class);
+
+    /**
+     * Location parameter path
+     */
+    protected static final String LOCATION_MEMBER_NAME = "location";
+
+    /**
+     * Geometry parameter path
+     */
+    protected static final String GEOMETRY_MEMBER_NAME = "geometry";
 
     /**
      * Name of Feature fragment containing  feature system information
@@ -85,6 +98,9 @@ public class FeatureFactoryService {
      * Valid and available {@link DataTypeDescriptor}s
      */
     private final Set<DataTypeDescriptor> descriptors = Sets.newConcurrentHashSet();
+
+    @Autowired
+    private FactoryParameters fp;
 
     /**
      * Reads all {@link DataTypeDescriptor}s from configured directory and initialize associated {@link DataTypeDescriptor}s
@@ -132,7 +148,8 @@ public class FeatureFactoryService {
      * Retrieve the {@link DataTypeDescriptor} associated to given fileName
      * @param fileName
      * @return {@link DataTypeDescriptor}
-     * @throws ModuleException
+     * @throws ModuleException    @Autowired
+    Gson gson;
      */
     public DataTypeDescriptor findDataTypeDescriptor(String fileName) throws ModuleException {
         Set<DataTypeDescriptor> types = descriptors.stream().filter(dt -> dt.matches(fileName))
@@ -151,18 +168,35 @@ public class FeatureFactoryService {
     }
 
     /**
-     * Get a {@link Feature} for the given fileLocation by reading the associated {@link DataTypeDescriptor}
-     * @param fileLocation
-     * @param model
-     * @return {@link Feature}
-     * @throws ModuleException
+     * Generate a {@link Feature} according to specified parameters and by reading the associated {@link DataTypeDescriptor}
      */
-    public Feature getFeature(String fileLocation, String model, OffsetDateTime creationDate) throws ModuleException {
+    public Feature getFeature(JsonObject parameters, String model, OffsetDateTime creationDate) throws ModuleException {
+
+        // Retrieve required and optional parameters
+        String fileLocation = fp.getParameter(parameters, LOCATION_MEMBER_NAME, String.class);
+        Optional<IGeometry> geometry = fp.getOptionalParameter(parameters, GEOMETRY_MEMBER_NAME, IGeometry.class);
+        // Prepare properties before parsing
+        FeatureProperties.beforeRead(parameters);
+        Optional<Set<IProperty<?>>> properties = fp.getOptionalParameter(parameters,
+                                                                         FeatureProperties.PROPERTIES_FIELD_NAME,
+                                                                         new TypeToken<Set<IProperty<?>>>() {
+                                                                         }.getType());
+
+        // Generate feature
         String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
         String id = String.format("%s:%s", dataDesc.getType(),
                                   UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString());
         Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
+
+        // 0. Apply additional properties from parameters
+        if (geometry.isPresent()) {
+            toCreate.setGeometry(geometry.get());
+        }
+        if (properties.isPresent()) {
+            toCreate.setProperties(properties.get());
+        }
+
         // 1. Add all dynamic properties read from data descriptor
         addSpecificProperties(toCreate, fileName, dataDesc);
 
