@@ -222,9 +222,6 @@ public class DataTypeDescriptor {
 
     /**
      * Parse a date without time with the given format.
-     * @param date
-     * @param format
-     * @return
      * @throws ModuleException
      */
     public OffsetDateTime parseDate(String date, String format) throws ModuleException {
@@ -238,9 +235,6 @@ public class DataTypeDescriptor {
 
     /**
      * Parse a date with time with the given format.
-     * @param date
-     * @param format
-     * @return
      * @throws ModuleException
      */
     public OffsetDateTime parseDateTime(String date, String format) throws ModuleException {
@@ -265,8 +259,6 @@ public class DataTypeDescriptor {
 
     /**
      * Check if the current {@link DataTypeDescriptor} matches the given fileName
-     * @param fileName
-     * @return
      */
     public boolean matches(String fileName) {
         boolean matches = true;
