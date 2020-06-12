@@ -206,6 +206,27 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         if (debugDTD.isPresent()) {
             testWithProperties(urlPrefix, debugDTD.get(), modelName, creationDate);
             testWithFakeProperties(urlPrefix, debugDTD.get(), modelName, creationDate);
+            testWithUnknownPattern(urlPrefix, modelName, creationDate);
+        }
+    }
+
+    private void testWithUnknownPattern(String urlPrefix, String modelName, OffsetDateTime creationDate) {
+        // Prepare parameters
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty(FeatureFactoryService.LOCATION_MEMBER_NAME,
+                               "gpfs://" + urlPrefix + "/" + "FAKE_FILE.test");
+
+        // Process feature
+        Feature feature;
+        try {
+            feature = featureFactory.getFeature(parameters, modelName, creationDate).withHistory("test");
+            LOGGER.debug(feature.getProperties().toString());
+            Errors errors = validationService.validate(feature, ValidationMode.CREATION);
+            if (errors.hasErrors()) {
+                Assert.fail();
+            }
+        } catch (ModuleException e) {
+            Assert.fail();
         }
     }
 
@@ -215,7 +236,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         JsonObject parameters = new JsonObject();
         parameters.addProperty(FeatureFactoryService.LOCATION_MEMBER_NAME,
                                "gpfs://" + urlPrefix + "/" + dtd.getExample().get(0));
-        // Add bad property
+        // Add property
         JsonObject swot = new JsonObject();
         // swot.addProperty("fake", "value");
         swot.addProperty("station", "IVK");
