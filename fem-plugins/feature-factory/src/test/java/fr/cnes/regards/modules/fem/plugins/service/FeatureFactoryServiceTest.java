@@ -217,17 +217,13 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                                "gpfs://" + urlPrefix + "/" + "FAKE_FILE.test");
 
         // Process feature
-        Feature feature;
         try {
-            feature = featureFactory.getFeature(parameters, modelName, creationDate).withHistory("test");
-            LOGGER.debug(feature.getProperties().toString());
-            Errors errors = validationService.validate(feature, ValidationMode.CREATION);
-            if (errors.hasErrors()) {
-                Assert.fail();
-            }
+            featureFactory.getFeature(parameters, modelName, creationDate).withHistory("test");
         } catch (ModuleException e) {
-            Assert.fail();
+            LOGGER.info("Expected exception", e);
+            return;
         }
+        Assert.fail();
     }
 
     private void testWithProperties(String urlPrefix, DataTypeDescriptor dtd, String modelName,
@@ -276,6 +272,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         try {
             featureFactory.getFeature(parameters, modelName, creationDate).withHistory("test");
         } catch (ModuleException e) {
+            LOGGER.info("Expected exception", e);
             return;
         }
         Assert.fail();
