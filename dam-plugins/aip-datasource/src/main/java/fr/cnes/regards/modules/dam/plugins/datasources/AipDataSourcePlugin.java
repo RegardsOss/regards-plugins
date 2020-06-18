@@ -57,6 +57,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+import fr.cnes.regards.framework.amqp.IInstanceSubscriber;
+import fr.cnes.regards.framework.amqp.domain.IHandler;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -90,6 +92,7 @@ import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.project.domain.ProjectUpdateEvent;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
@@ -103,7 +106,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 @Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
         description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
         license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
-public class AipDataSourcePlugin implements IAipDataSourcePlugin {
+public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<ProjectUpdateEvent> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
@@ -174,6 +177,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
     @Autowired
     private IModelAttrAssocService modelAttrAssocService;
 
+    @Autowired
+    private IInstanceSubscriber subscriber;
+
     @Value("${zuul.prefix}")
     private String urlPrefix;
 
@@ -192,6 +198,13 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
             description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
 
+    @Override
+    public void handle(String tenant, ProjectUpdateEvent projectEvent) {
+        if (projects.get(projectEvent.getProject().getName()) != null) {
+            projects.put(projectEvent.getProject().getName(), projectEvent.getProject());
+        }
+    }
+
     /**
      * Init method
      */
@@ -201,6 +214,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin {
         if (this.model == null) {
             throw new ModuleException(String.format("Model '%s' does not exist.", modelName));
         }
+
+        subscriber.subscribeTo(ProjectUpdateEvent.class, this);
 
         List<ModelAttrAssoc> modelAttrAssocs = modelAttrAssocService.getModelAttrAssocs(modelName);
         // Fill map { "properties.titi.tutu", AttributeType.STRING }
