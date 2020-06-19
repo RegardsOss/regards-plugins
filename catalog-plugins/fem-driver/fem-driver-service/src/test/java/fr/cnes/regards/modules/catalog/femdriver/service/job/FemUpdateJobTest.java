@@ -130,4 +130,19 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         });
     }
 
+    // Free testing
+    //    @Test
+    //    public void testUpdateJobWithCrit2() throws ModuleException, InterruptedException, ExecutionException {
+    //        tenantResolver.forceTenant(getDefaultTenant());
+    //        Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
+    //        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
+    //        searchParameters.add("q", "name:plouf");
+    //        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
+    //                null, null, null);
+    //        Set<IProperty<?>> propertyMap = Sets.newHashSet();
+    //        propertyMap.add(IProperty.buildString("name", "plouf"));
+    //        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+    //        Assert.assertNotNull("Job must exist", job);
+    //    }
+
 }

@@ -56,6 +56,7 @@ import fr.cnes.regards.modules.model.service.ModelService;
  * @author sbinda
  *
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractFemJobTest extends AbstractMultitenantServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFemJobTest.class);
@@ -123,6 +124,15 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceTest 
         data.setGroups(null);
         data.setCreationDate(OffsetDateTime.now());
         datas.add(data);
+
+        // 1000+
+        for (int i = 0; i < 1000; i++) {
+            data = createEntity(model, "test" + i, "loop test" + i);
+            data.addProperty(IProperty.buildString("name", "plouf"));
+            data.setGroups(null);
+            data.setCreationDate(OffsetDateTime.now());
+            datas.add(data);
+        }
 
         return datas;
     }
