@@ -109,9 +109,33 @@ public class ChronosRecipientSender implements IRecipientNotifier {
         } else {
             JsonElement obj = element.getAsJsonObject().get(key);
             if (obj != null) {
-                return Optional.of(obj.toString());
+                return Optional.of(obj.getAsString());
             }
         }
         return Optional.empty();
+    }
+
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
+    }
+
+    public void setQueueName(String queueName) {
+        this.queueName = queueName;
+    }
+
+    public void setCreatedByPropertyPath(String createdByPropertyPath) {
+        this.createdByPropertyPath = createdByPropertyPath;
+    }
+
+    public void setUpdatedByPropertyPath(String updatedByPropertyPath) {
+        this.updatedByPropertyPath = updatedByPropertyPath;
+    }
+
+    public void setDeletedByPropertyPath(String deletedByPropertyPath) {
+        this.deletedByPropertyPath = deletedByPropertyPath;
+    }
+
+    public void setGpfsUrlPropertyPath(String gpfsUrlPropertyPath) {
+        this.gpfsUrlPropertyPath = gpfsUrlPropertyPath;
     }
 }
