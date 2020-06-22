@@ -49,7 +49,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
  * @author Sébastien Binda
  *
  */
-@TestPropertySource(locations = { "classpath:local.properties" },
+@TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemDeleteJobTest extends AbstractFemJobTest {
 
