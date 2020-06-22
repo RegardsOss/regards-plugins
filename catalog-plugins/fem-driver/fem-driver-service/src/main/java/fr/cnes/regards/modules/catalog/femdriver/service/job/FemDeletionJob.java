@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
@@ -73,7 +74,7 @@ public class FemDeletionJob extends AbstractJob<Void> {
 
     @Override
     public void run() {
-        PageRequest page = PageRequest.of(0, 1000);
+        Pageable page = PageRequest.of(0, 1000);
         Page<DataObject> results = null;
         do {
             try {
@@ -89,11 +90,11 @@ public class FemDeletionJob extends AbstractJob<Void> {
                 }
                 LOGGER.info("[FEM DRIVER] Sending {} features deletion requests.", features.size());
                 featureClient.deleteFeatures(jobOwner, features, PriorityLevel.NORMAL);
+                page = page.next();
             } catch (ModuleException e) {
                 LOGGER.error("Error retrieving catalog objects.", e);
                 results = null;
             }
         } while ((results != null) && results.hasNext());
     }
-
 }
