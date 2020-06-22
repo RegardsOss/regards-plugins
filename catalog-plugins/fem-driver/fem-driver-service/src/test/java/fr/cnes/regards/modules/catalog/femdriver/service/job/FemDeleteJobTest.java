@@ -49,7 +49,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
  * @author Sébastien Binda
  *
  */
-@TestPropertySource(locations = { "classpath:test.properties" },
+@TestPropertySource(locations = { "classpath:local.properties" },
         properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemDeleteJobTest extends AbstractFemJobTest {
 
@@ -84,7 +84,7 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
                 .findFirst();
         Assert.assertTrue(events.isPresent());
-        Assert.assertEquals(2, events.get().size());
+        Assert.assertEquals(1000, events.get().size());
 
         events.get().forEach(e -> {
             FeatureDeletionRequestEvent event = (FeatureDeletionRequestEvent) e;
