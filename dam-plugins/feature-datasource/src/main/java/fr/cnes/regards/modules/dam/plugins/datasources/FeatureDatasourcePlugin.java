@@ -39,6 +39,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
 
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
@@ -221,17 +223,24 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
     private Storages getStorages() throws DataSourceException {
         if (storages == null) {
             // Remote request to STORAGE
-            ResponseEntity<List<EntityModel<StorageLocationDTO>>> response = storageRestClient.retrieve();
+            try {
+                FeignSecurityManager.asSystem();
+                ResponseEntity<List<EntityModel<StorageLocationDTO>>> response = storageRestClient.retrieve();
 
-            // Manage request error
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new DataSourceException(
-                        "Error while calling STORAGE client (HTTP STATUS : " + response.getStatusCode());
+                // Manage request error
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    throw new DataSourceException(
+                            "Error while calling STORAGE client (HTTP STATUS : " + response.getStatusCode());
+                }
+
+                List<StorageLocationDTO> storageLocationDTOList = response.getBody().stream().map(n -> n.getContent())
+                        .collect(Collectors.toList());
+                storages = Storages.build(storageLocationDTOList);
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
+                throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
+            } finally {
+                FeignSecurityManager.reset();
             }
-
-            List<StorageLocationDTO> storageLocationDTOList = response.getBody().stream().map(n -> n.getContent())
-                    .collect(Collectors.toList());
-            storages = Storages.build(storageLocationDTOList);
         }
         return storages;
     }
