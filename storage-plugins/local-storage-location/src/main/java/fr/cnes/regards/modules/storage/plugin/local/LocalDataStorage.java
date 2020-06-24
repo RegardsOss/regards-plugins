@@ -529,7 +529,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // Moreover semaphore and lock are released by RegardsIS too
             FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
             FileLock zipLock = zipFC.lock();
-            FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()),
+            FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
                                                          env); // NOSONAR
             Path pathInZip = zipFs.getPath(checksum);
             return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
