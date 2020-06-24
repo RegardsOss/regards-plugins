@@ -527,10 +527,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
             // Instead, they are closed thanks to RegardsIS
             // Moreover semaphore and lock are released by RegardsIS too
-            FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ);
+            FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
             FileLock zipLock = zipFC.lock();
             FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()),
-                                                         env);
+                                                         env); // NOSONAR
             Path pathInZip = zipFs.getPath(checksum);
             return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
         } catch (InterruptedException e) {
