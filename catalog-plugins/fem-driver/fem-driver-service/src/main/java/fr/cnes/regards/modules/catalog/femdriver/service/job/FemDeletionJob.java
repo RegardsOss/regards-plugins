@@ -72,25 +72,48 @@ public class FemDeletionJob extends AbstractJob<Void> {
     public void run() {
         Pageable page = PageRequest.of(0, 1000);
         Page<DataObject> results = null;
+        // Add a control value to manage asynchronous on the fly deletion that shift pages.
+        long totalElement = 0;
+        long totalElementCheck = 0;
+        boolean firstPass = true;
         do {
             try {
                 results = serviceHelper.getDataObjects(request, page.getPageNumber(), page.getPageSize());
+                if (firstPass) {
+                    // Set total element to send at first pass before any deletion request.
+                    totalElementCheck = results.getTotalElements();
+                    totalElement = results.getTotalElements();
+                    firstPass = false;
+                }
                 List<FeatureUniformResourceName> features = Lists.newArrayList();
                 for (DataObject dobj : results.getContent()) {
+                    if (totalElementCheck == 0) {
+                        // All elements sended
+                        break;
+                    }
                     try {
                         features.add(FeatureUniformResourceName.fromString(dobj.getIpId().toString()));
+                        totalElementCheck--;
                     } catch (IllegalArgumentException e) {
                         logger.error("Error trying to delete feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
-                logger.info("[FEM DRIVER] Sending {} features deletion requests.", features.size());
+                logger.info("[FEM DRIVER] Sending {} features deletion requests (remaining {}).", features.size(),
+                            totalElementCheck);
                 featureClient.deleteFeatures(jobOwner, features, PriorityLevel.NORMAL);
-                page = page.next();
+
+                if (results.hasNext()) {
+                    page = page.next();
+                } else if (totalElementCheck > 0) {
+                    page = PageRequest.of(0, 1000);
+                } else {
+                    logger.info("All {} features has been deleted!", totalElement);
+                }
             } catch (ModuleException e) {
                 logger.error("Error retrieving catalog objects.", e);
                 results = null;
             }
-        } while ((results != null) && results.hasNext());
+        } while (((results != null) && results.hasNext()) || (totalElementCheck > 0));
     }
 }
