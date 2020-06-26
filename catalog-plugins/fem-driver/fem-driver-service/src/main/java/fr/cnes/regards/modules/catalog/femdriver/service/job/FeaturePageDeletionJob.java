@@ -18,45 +18,69 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.gson.reflect.TypeToken;
 
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterInvalidException;
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterMissingException;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
-import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.feature.client.FeatureClient;
+import fr.cnes.regards.modules.feature.dto.PriorityLevel;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 
 /**
- * @author sbinda
+ *
+ * @author Marc SORDI
  *
  */
-public class FemDeletionJob extends AbstractJob<Void> {
+public class FeaturePageDeletionJob extends AbstractJob<Void> {
 
-    public static final String REQUEST_PARAMETER = "req";
+    public static final String IDS_PARAMETER = "ids";
+
+    private Set<String> ids;
 
     @Autowired
-    private IJobInfoService jobService;
+    private FeatureClient featureClient;
 
-    private SearchRequest request;
+    @Autowired
+    private IJobInfoService jobInfoService;
 
     private String jobOwner;
-
-    @Autowired
-    private FemDriverService femDriverService;
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
             throws JobParameterMissingException, JobParameterInvalidException {
-        request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
-        jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
+        Type type = new TypeToken<Set<String>>() {
+        }.getType();
+        ids = getValue(parameters, IDS_PARAMETER, type);
+        jobOwner = jobInfoService.retrieveJob(this.getJobInfoId()).getOwner();
     }
 
     @Override
     public void run() {
-        femDriverService.scheduleDeletionByPage(request, jobOwner);
+
+        // Prepare features
+        List<FeatureUniformResourceName> features = new ArrayList<>();
+        for (String id : ids) {
+            try {
+                features.add(FeatureUniformResourceName.fromString(id));
+            } catch (IllegalArgumentException e) {
+                logger.error("Error trying to delete feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                             id, e.getMessage());
+            }
+        }
+
+        // Delete features
+        featureClient.deleteFeatures(jobOwner, features, PriorityLevel.NORMAL);
+        logger.info("{} feature deletion requests sended.", features.size());
     }
 }
