@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -21,12 +21,10 @@ package fr.cnes.regards.modules.crawler.service;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -35,20 +33,22 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import com.google.gson.Gson;
+
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
+import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
@@ -72,14 +72,12 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.domain.models.attributes.AttributeType;
 import fr.cnes.regards.modules.dam.gson.entities.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
-import fr.cnes.regards.modules.dam.plugins.datasources.AipDataSourcePlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IAipClient;
 
 @ActiveProfiles({ "noschedule", "IngesterTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
@@ -113,7 +111,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private String driver;
 
     @Autowired
-    private IIngesterService ingesterService;
+    private IngesterService ingesterService;
 
     private List<AbstractAttributeMapping> modelAttrMapping;
 
@@ -177,60 +175,71 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private IEsRepository esRepository;
 
     @Autowired
-    private IAipClient aipClient;
+    private IProjectsClient projectsClient;
+
+    @Autowired
+    private Gson gson;
 
     @Autowired
     private IProjectsClient projectsClient;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
-                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
+                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                        PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf1");
+        conf.setBusinessId("pluginConf1");
+        return conf;
     }
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
-                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1)
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
+                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                        PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf2");
+        conf.setBusinessId("pluginConf2");
+        return conf;
     }
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
-                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName())
-                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
+                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 10),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                        PluginParameterTransformer.toJson(modelAttrMapping)));
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
-    }
-
-    private PluginConfiguration getAipDataSource() {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "model_1")
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 10)
-                .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap()).getParameters();
-
-        return PluginUtils.getPluginConfiguration(parameters, AipDataSourcePlugin.class);
+        PluginConfiguration conf = PluginUtils.getPluginConfiguration(parameters,
+                                                                      PostgreDataSourceFromSingleTablePlugin.class);
+        conf.setLabel("pluginConf3");
+        conf.setBusinessId("pluginConf3");
+        return conf;
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
+                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
+        passwordParam.setDecryptedValue(dbPpassword);
+        parameters.add(passwordParam);
 
         return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
     }
@@ -243,16 +252,10 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                 AttributeType.DATE_ISO8601, "date"));
     }
 
-    /**
-     * No binding with dynamic values, only mandatory ones
-     */
-    private Map<String, String> createBindingMap() {
-        Map<String, String> map = new HashMap<>();
-        return map;
-    }
-
     @Before
     public void setUp() throws Exception {
+
+        PluginUtils.setup(Lists.newArrayList(), gson);
 
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(null);
@@ -302,7 +305,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getBusinessId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -315,27 +318,24 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         dataSourcePluginConf3 = getPostgresDataSource3(dBConnectionConf);
         pluginService.savePluginConfiguration(dataSourcePluginConf3);
 
-        dataSourcePluginConf4 = getAipDataSource();
-        pluginService.savePluginConfiguration(dataSourcePluginConf4);
-
     }
 
     @After
     public void clean() {
         if (dataSourcePluginConf1 != null) {
-            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf1.getId());
+            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf1.getBusinessId());
         }
         if (dataSourcePluginConf2 != null) {
-            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf2.getId());
+            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf2.getBusinessId());
         }
         if (dataSourcePluginConf3 != null) {
-            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf3.getId());
+            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf3.getBusinessId());
         }
         if (dBConnectionConf != null) {
-            Utils.execute(pluginService::deletePluginConfiguration, dBConnectionConf.getId());
+            Utils.execute(pluginService::deletePluginConfiguration, dBConnectionConf.getBusinessId());
         }
         if (dataSourcePluginConf4 != null) {
-            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf4.getId());
+            Utils.execute(pluginService::deletePluginConfiguration, dataSourcePluginConf4.getBusinessId());
         }
 
         if (datasetModel != null) {
@@ -349,10 +349,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Test
     public void test() throws InterruptedException {
-        Mockito.when(aipClient.retrieveAipDataFiles(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(),
-                                                    Mockito.anyInt()))
-                .thenReturn(ResponseEntity.ok(new PagedResources<>(Collections.emptyList(),
-                        new PagedResources.PageMetadata(0, 0, 0, 1))));
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
                 .thenReturn(ResponseEntity.ok(new Resource<>(project)));

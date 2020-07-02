@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -49,14 +49,14 @@ import com.google.common.collect.Lists;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.DataType;
 import fr.cnes.regards.framework.oais.urn.EntityType;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.UniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
-import fr.cnes.regards.framework.utils.plugins.PluginParametersFactory;
+import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
@@ -68,14 +68,15 @@ import fr.cnes.regards.modules.dam.domain.entities.attribute.StringArrayAttribut
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.domain.models.Model;
 import fr.cnes.regards.modules.dam.service.models.IModelService;
-import fr.cnes.regards.modules.storage.domain.AIP;
-import fr.cnes.regards.modules.storage.domain.AIPBuilder;
+import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
 /**
- * @author oroussel
+ * {@link AipDataSourcePlugin} test class
+ *
+ * @author Simon Milhau
  */
-@ContextConfiguration(classes = { AipDataSourceConfiguration.class })
 @TestPropertySource("classpath:aip-datasource-test.properties")
+@ContextConfiguration(classes = { AipDataSourcePluginTestConfiguration.class })
 public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final String MODEL_FILE_NAME = "model.xml";
@@ -92,6 +93,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Before
     public void setUp() throws SQLException, ModuleException, NotAvailablePluginConfigurationException {
+        PluginUtils.setup();
         tenantResolver.forceTenant(getDefaultTenant());
         try {
             // Remove the model if existing
@@ -102,17 +104,19 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         }
         importModel(MODEL_FILE_NAME);
 
-        Map<Long, Object> pluginCacheMap = new HashMap<>();
+        Map<String, Object> pluginCacheMap = new HashMap<>();
 
         // Instantiate the data source plugin
-        Set<PluginParameter> parameters;
-        parameters = PluginParametersFactory.build()
-                .addParameter(DataSourcePluginConstants.BINDING_MAP, createBindingMap())
-                .addParameter(DataSourcePluginConstants.SUBSETTING_TAGS, Arrays.asList(MODEL_NAME))
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, 1800)
-                .addParameter(DataSourcePluginConstants.TAGS, Lists.newArrayList("TOTO", "TITI"))
-                .addParameter(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "SIZE").getParameters();
+        Set<IPluginParam> parameters = IPluginParam
+                .set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
+                                        PluginParameterTransformer.toJson(createBindingMap())),
+                     IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
+                                        PluginParameterTransformer.toJson(Arrays.asList(MODEL_NAME))),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME),
+                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
+                     IPluginParam.build(DataSourcePluginConstants.TAGS,
+                                        PluginParameterTransformer.toJson(Lists.newArrayList("TOTO", "TITI"))),
+                     IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "ALTITUDE.SIZE"));
 
         dsPlugin = PluginUtils.getPlugin(parameters, AipDataSourcePlugin.class, pluginCacheMap);
 
@@ -133,40 +137,36 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         }
     }
 
-    // This method is called by Aip client proxy (from AipDataSourceConfiguration) to provide some AIPs when calling
-    // aip client method
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             UniformResourceName id = new UniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
                     UUID.randomUUID(), 1);
-            AIPBuilder builder = new AIPBuilder(id, Optional.empty(), "sipId" + i, EntityType.DATA, "session 1");
-            builder.addTags(tags);
+            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
+            aip.withContextTags(tags);
 
-            builder.addDescriptiveInformation("label", "libellé du data object " + i);
-            builder.addDescriptiveInformation("START_DATE", OffsetDateTime.now());
-            builder.addDescriptiveInformation("ALT_MAX", 1500 + i);
-            builder.addDescriptiveInformation("HISTORY", new String[] { "H1", "H2", "H3" });
-            builder.addDescriptiveInformation("HISTORY_SET", Arrays.asList("aaaa", "bb", "ccccc", "dddd").stream()
+            aip.withDescriptiveInformation("label", "libellé du data object " + i);
+            aip.withDescriptiveInformation("START_DATE", OffsetDateTime.now());
+            aip.withDescriptiveInformation("ALT_MAX", 1500 + i);
+            aip.withDescriptiveInformation("HISTORY", new String[] { "H1", "H2", "H3" });
+            aip.withDescriptiveInformation("HISTORY_SET", Arrays.asList("aaaa", "bb", "ccccc", "dddd").stream()
                     .collect(Collectors.toSet()));
-            builder.addDescriptiveInformation("HISTORY_LIST", Arrays
+            aip.withDescriptiveInformation("HISTORY_LIST", Arrays
                     .asList("paris", "toulouse", "lyon", "nice", "bordeaux").stream().collect(Collectors.toList()));
-            builder.addDescriptiveInformation("POUET", "POUET");
-            builder.addDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
-
+            aip.withDescriptiveInformation("POUET", "POUET");
+            aip.withDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
             Map<String, String> dateBounds = new HashMap<>();
             dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             dateBounds.put(DataSourcePluginConstants.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
                     .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
-            builder.addDescriptiveInformation("range", dateBounds);
+            aip.withDescriptiveInformation("range", dateBounds);
 
             Map<String, Integer> intBounds = new HashMap<>();
             intBounds.put("ilow", 100);
             intBounds.put("iup", null);
-            builder.addDescriptiveInformation("intrange", intBounds);
-
-            aips.add(builder.build());
+            aip.withDescriptiveInformation("intrange", intBounds);
+            aips.add(aip);
         }
         return aips;
     }
@@ -196,9 +196,6 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                 "properties.descriptiveInformation.intrange.ilow");
         map.put("properties.INT_INTERVAL" + DataSourcePluginConstants.UPPER_BOUND_SUFFIX,
                 "properties.descriptiveInformation.intrange.iup");
-
-        // FIXME
-        // map.put("properties.history", "properties.descriptiveInformation.NIMP");
         return map;
     }
 
@@ -207,7 +204,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Page<DataObjectFeature> page = dsPlugin.findAll(getDefaultTenant(), PageRequest.of(0, 10));
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.getContent());
-        Assert.assertTrue(page.getContent().size() > 0);
+        Assert.assertTrue(page.getContent().size() == 1);
+
         DataObjectFeature feature = page.getContent().get(0);
         Assert.assertEquals("libellé du data object 0", feature.getLabel());
         Assert.assertNotNull(feature.getProperty("START_DATE"));
@@ -231,8 +229,14 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertTrue(feature.getTags().contains("TOTO"));
         Assert.assertTrue(feature.getTags().contains("TITI"));
 
-        Assert.assertTrue(feature.getProperty("SIZE") instanceof LongAttribute);
+        Assert.assertNotNull(feature.getProperty("ALTITUDE.SIZE"));
+        Assert.assertTrue(feature.getProperty("ALTITUDE.SIZE") instanceof LongAttribute);
 
+        Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().isOnline());
+        Assert.assertFalse(feature.getFiles().get(DataType.RAWDATA).iterator().next().isReference());
+
+        Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().getTypes().contains("type1"));
+        Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().getTypes().contains("type2"));
     }
 
     @After

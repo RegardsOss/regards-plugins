@@ -29,6 +29,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Performs conversion from a retrieved feature list into a Regards data object features
@@ -49,6 +51,27 @@ public class FeaturesConverter {
      */
     private static final List<String> imagesAllowedMimeTypes = Arrays.asList(MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE);
 
+    /** Fixed value prefix: when used as first path character, it indicates that the net characters should be handled as a constant input */
+    private static final String FIXED_VALUE_PREFIX = "#";
+
+    /**
+     * Computes if path as parameter should be handled as a fixed value
+     * @param path path
+     * @return true when path as parameter should be considered as a fixed input value, false otherwise
+     */
+    private static boolean isFixedValue(String path){
+        return path.startsWith(FIXED_VALUE_PREFIX);
+    }
+
+    /**
+     * Computes fixed value for prefixed value as parameter
+     * @param prefixedValue prefixed value (pre: there must be the prefix!)
+     * @return fixed value found
+     */
+    private static String getFixedValue(String prefixedValue){
+        return prefixedValue.substring(FIXED_VALUE_PREFIX.length());
+    }
+
     /**
      * Conversion configuration
      */
@@ -64,7 +87,7 @@ public class FeaturesConverter {
     /**
      * Map of target attribute model to source JSON field
      */
-    private final Map<AttributeModel, String> attributeModelToPath = new HashMap<>();
+    private final ConcurrentMap<AttributeModel, String> attributeModelToPath = new ConcurrentHashMap<>();
     /**
      * Current page conversion errors report
      */
@@ -373,9 +396,14 @@ public class FeaturesConverter {
      */
     private Object getAttributeValueByPath(Feature sourceFeature, String path, int featureIndex, String label,
                                            String providerId, String targetAttributePath, boolean mandatory) {
-        // 1 - Extract value from source feature
-        List<String> pathElements = Arrays.asList(path.split("\\."));
+        // 1. Is path a fixed value?
+        if (isFixedValue(path)){
+            // 1.a - yes: exit using user input as constant value
+            return getFixedValue((path));
+        }
+        // 1.b - Not a fixed value, extract value from source feature using path
         Object currentValue = null;
+        List<String> pathElements = Arrays.asList(path.split("\\."));
         for (int i = 0; i < pathElements.size(); i++) {
             String currentPathElement = pathElements.get(i);
             if (i == 0) {
@@ -401,4 +429,6 @@ public class FeaturesConverter {
         }
         return currentValue; // return last found value
     }
+
+
 }

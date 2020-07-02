@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  
  This file is part of REGARDS.
  
@@ -23,13 +23,13 @@
 
     <groupId>fr.cnes.regards.plugins</groupId>
     <artifactId>plugins</artifactId>
-    <version>0.4.1</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-parent</artifactId>
-        <version>0.4.1</version>
+        <version>1.0.1</version>
         <relativePath/>
     </parent>
 
@@ -58,11 +58,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>catalog-security-delegation</artifactId>
-            <classifier>shaded</classifier>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>aip-datasource</artifactId>
             <classifier>shaded</classifier>
@@ -70,6 +65,18 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>postgresql-datasource</artifactId>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+            <artifactId>webservice-datasource</artifactId>
+            <version>1.0.1</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugin</groupId>
+            <artifactId>local-storage-location</artifactId>
+            <version>1.0.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
@@ -86,7 +93,19 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
             <artifactId>custom-command-file-validation</artifactId>
-            <version>0.4.1</version>
+            <version>1.0.1</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
+            <artifactId>ingest-test-plugins</artifactId>
+            <version>1.0.1</version>
+            <classifier>shaded</classifier>
+        </dependency>
+         <dependency>
+            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+            <artifactId>download-plugin</artifactId>
+            <version>1.0.1</version>
             <classifier>shaded</classifier>
         </dependency>
     </dependencies>

@@ -3,26 +3,35 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD catalog-security-delegation-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD webservice-datasource-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD ingest-test-plugins-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
-ADD custom-command-file-validation-0.4.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+ADD custom-command-file-validation-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+# Catalog
+ADD download-plugin-1.0.1-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
 CMD mkdir -p /regards-plugins/storage/ && mkdir -p /regards-plugins/dam/ && mkdir -p /regards-plugins/ingest/ && \
 	# Remove old storage plugins
-	rm -f /regards-plugins/storage/catalog-security-delegation-2*.jar && \
+	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
 	# Remove old dam plugins
-	rm -f /regards-plugins/dam/aip-datasource-2*.jar && \
-	rm -f /regards-plugins/dam/postgresql-datasource-2*.jar && \
+	rm -f /regards-plugins/dam/aip-datasource-*.jar && \
+	rm -f /regards-plugins/dam/postgresql-datasource-*.jar && \
+	rm -f /regards-plugins/dam/webservice-datasource-*.jar && \
 	# Remove old dataprovider plugins
 	rm -f /regards-plugins/dataprovider/custom-command-file-validation*.jar && \
+        # Remove old ingest plugins
+	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
+	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
+	# Remove old catalog plugins
+	rm  -f /regards-plugins/catalog/download-plugin*.jar && \
 	# then lets copy the jars 
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
