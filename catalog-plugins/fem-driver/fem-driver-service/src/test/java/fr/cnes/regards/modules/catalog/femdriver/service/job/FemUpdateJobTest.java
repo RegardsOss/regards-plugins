@@ -89,7 +89,7 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
                 .findFirst();
         Assert.assertTrue(events.isPresent());
-        Assert.assertEquals(2, events.get().size());
+        Assert.assertEquals(1000, events.get().size());
         events.get().forEach(e -> {
             FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) e;
             Assert.assertNotNull("Invalid null event", event.getFeature());
@@ -129,5 +129,20 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
         });
     }
+
+    // Free testing
+    //    @Test
+    //    public void testUpdateJobWithCrit2() throws ModuleException, InterruptedException, ExecutionException {
+    //        tenantResolver.forceTenant(getDefaultTenant());
+    //        Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
+    //        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
+    //        searchParameters.add("q", "name:plouf");
+    //        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
+    //                null, null, null);
+    //        Set<IProperty<?>> propertyMap = Sets.newHashSet();
+    //        propertyMap.add(IProperty.buildString("name", "plouf"));
+    //        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+    //        Assert.assertNotNull("Job must exist", job);
+    //    }
 
 }

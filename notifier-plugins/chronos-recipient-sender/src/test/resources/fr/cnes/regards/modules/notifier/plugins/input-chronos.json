@@ -1,0 +1,15 @@
+{
+    "element": {
+        "history" : {
+            "createdBy":"CreatedBy",
+            "updatedBy":"UpdatedBy",
+            "deletedBy":"DeletedBy"
+        },
+        "properties": {
+            "system": {
+                "gpfs_url": "file://home/geode/test.tar"
+            }
+        }
+    },
+    "action": "CREATION"
+}
