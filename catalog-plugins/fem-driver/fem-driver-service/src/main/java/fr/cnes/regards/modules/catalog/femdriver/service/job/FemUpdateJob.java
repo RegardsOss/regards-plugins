@@ -22,11 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.compress.utils.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
@@ -55,8 +54,6 @@ import fr.cnes.regards.modules.search.domain.SearchRequest;
  */
 public class FemUpdateJob extends AbstractJob<Void> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FemUpdateJob.class);
-
     public static final String REQUEST_PARAMETER = "req";
 
     @Autowired
@@ -83,7 +80,7 @@ public class FemUpdateJob extends AbstractJob<Void> {
 
     @Override
     public void run() {
-        PageRequest page = PageRequest.of(0, 1000);
+        Pageable page = PageRequest.of(0, 1000);
         Page<DataObject> results = null;
         do {
             try {
@@ -104,14 +101,15 @@ public class FemUpdateJob extends AbstractJob<Void> {
                         }
                         features.add(feature);
                     } catch (IllegalArgumentException e) {
-                        LOGGER.error("Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                        logger.error("Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
                                      dobj.getIpId().toString(), e.getMessage());
                     }
                 }
-                LOGGER.info("[FEM DRIVER] Sending {} features update requests.", features.size());
+                logger.info("[FEM DRIVER] Sending {} features update requests.", features.size());
                 featureClient.updateFeatures(jobOwner, features, PriorityLevel.NORMAL);
+                page = page.next();
             } catch (ModuleException e) {
-                LOGGER.error("Error retrieving catalog objects.", e);
+                logger.error("Error retrieving catalog objects.", e);
                 results = null;
             } finally {
                 advanceCompletion();
