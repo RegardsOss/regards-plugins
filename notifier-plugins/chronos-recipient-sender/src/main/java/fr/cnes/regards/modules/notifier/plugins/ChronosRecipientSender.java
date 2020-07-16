@@ -48,7 +48,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
 
     public static final String PLUGIN_ID = "ChronosRecipientSender";
 
-    private static final String OWNER_KEY = "createdBy";
+    private static final String OWNER_KEY = "actionOwner";
 
     private static final String ACTION_KEY = "action";
 
@@ -69,25 +69,31 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             defaultValue = "history.updatedBy")
     private String updatedByPropertyPath;
 
+    @PluginParameter(label = "Feature deleted_by property path", name = "updatedByPropertyPath", optional = true,
+            defaultValue = "history.deletedBy")
+    private String deletedByPropertyPath;
+
     @PluginParameter(label = "Feature updated_by property path", name = "gpfsUrlPropertyPath", optional = true,
             defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
 
     @Override
     public boolean send(JsonElement element, String action) {
-        String createdBy = getValue(element, createdByPropertyPath).orElse(null);
+        Optional<String> createdBy = getValue(element, createdByPropertyPath);
+        Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
+        Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
         String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
         if ((action == null) || (createdBy == null) || (uri == null)) {
             LOGGER.error("Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
                          action, createdByPropertyPath, createdBy, gpfsUrlPropertyPath, uri, element.toString());
             return false;
         } else {
-            String updatedBy = getValue(element, updatedByPropertyPath).orElse(null);
             Map<String, Object> headers = new HashMap<>();
-            headers.put(OWNER_KEY, createdBy);
+            String actionOwner = deletedBy.orElse(updatedBy.orElse(createdBy.get()));
+            headers.put(OWNER_KEY, actionOwner);
             headers.put(ACTION_KEY, action);
-            this.publisher.broadcast(exchange, Optional.ofNullable(queueName), 0,
-                                     ChronosNotificationEvent.build(action, createdBy, updatedBy, uri), headers);
+            this.publisher.broadcast(exchange, Optional.of(queueName), 0,
+                                     ChronosNotificationEvent.build(action, actionOwner, uri), headers);
             return true;
         }
     }
@@ -103,9 +109,33 @@ public class ChronosRecipientSender implements IRecipientNotifier {
         } else {
             JsonElement obj = element.getAsJsonObject().get(key);
             if (obj != null) {
-                return Optional.of(obj.toString());
+                return Optional.of(obj.getAsString());
             }
         }
         return Optional.empty();
+    }
+
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
+    }
+
+    public void setQueueName(String queueName) {
+        this.queueName = queueName;
+    }
+
+    public void setCreatedByPropertyPath(String createdByPropertyPath) {
+        this.createdByPropertyPath = createdByPropertyPath;
+    }
+
+    public void setUpdatedByPropertyPath(String updatedByPropertyPath) {
+        this.updatedByPropertyPath = updatedByPropertyPath;
+    }
+
+    public void setDeletedByPropertyPath(String deletedByPropertyPath) {
+        this.deletedByPropertyPath = deletedByPropertyPath;
+    }
+
+    public void setGpfsUrlPropertyPath(String gpfsUrlPropertyPath) {
+        this.gpfsUrlPropertyPath = gpfsUrlPropertyPath;
     }
 }
