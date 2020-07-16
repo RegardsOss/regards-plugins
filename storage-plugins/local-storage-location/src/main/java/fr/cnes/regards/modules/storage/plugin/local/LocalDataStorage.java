@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.local;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -37,6 +38,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.zip.ZipFile;
 
@@ -485,12 +487,17 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public InputStream retrieve(FileReference fileRef) throws ModuleException {
+    public InputStream retrieve(FileReference fileRef) throws ModuleException, FileNotFoundException {
         if (fileRef.getLocation().getUrl().matches(".*regards_.*\\.zip")) {
             return retrieveFromZip(fileRef);
         } else {
             try {
                 return (new URL(fileRef.getLocation().getUrl())).openStream();
+            } catch (FileNotFoundException e) {
+                String errorMessage = String.format("[LOCAL STORAGE PLUGIN] file %s does not exists.",
+                                                    fileRef.getLocation().getUrl());
+                LOGGER.error(errorMessage, e);
+                throw new FileNotFoundException(errorMessage);
             } catch (IOException e) {
                 String errorMessage = String.format("[LOCAL STORAGE PLUGIN] file %s is not a valid URL to retrieve.",
                                                     fileRef.getLocation().getUrl());
@@ -520,10 +527,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
             // Instead, they are closed thanks to RegardsIS
             // Moreover semaphore and lock are released by RegardsIS too
-            FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ);
+            FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
             FileLock zipLock = zipFC.lock();
-            FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()),
-                                                         env);
+            FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
+                                                         env); // NOSONAR
             Path pathInZip = zipFs.getPath(checksum);
             return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
         } catch (InterruptedException e) {
@@ -552,6 +559,23 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     @Override
     public boolean allowPhysicalDeletion() {
         return allowPhysicalDeletion;
+    }
+
+    @Override
+    public boolean isValidUrl(String urlToValidate, Set<String> errors) {
+        boolean valid = true;
+        try {
+            URL url = new URL(urlToValidate);
+            if (!url.getProtocol().equals("file")) {
+                errors.add(String.format("Invalid url protocol. Expected file bu was %s", url.getProtocol()));
+                valid = false;
+            }
+        } catch (MalformedURLException e) {
+            LOGGER.error(e.getMessage(), e);
+            errors.add(String.format("Invalid url format %s", e.getMessage()));
+            valid = false;
+        }
+        return valid;
     }
 
     private static class RegardsIS extends InputStream {

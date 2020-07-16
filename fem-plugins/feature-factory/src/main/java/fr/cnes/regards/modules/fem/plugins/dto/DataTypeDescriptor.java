@@ -149,6 +149,7 @@ public class DataTypeDescriptor {
         // Init default values
         String propertyName = meta;
         String propertyPath = meta;
+        String propertyFormat = null;
         ITransformer transformer = null;
         PropertyType type = PropertyType.STRING;
         // If property is configured retrieve values
@@ -161,6 +162,7 @@ public class DataTypeDescriptor {
                     propertyName = propertyPath;
                 }
                 type = prop.getType();
+                propertyFormat = prop.getFormat();
                 transformer = prop.getTransformer();
             } else {
                 return Optional.empty();
@@ -179,10 +181,10 @@ public class DataTypeDescriptor {
             }
             switch (type) {
                 case DATE:
-                    property = IProperty.buildDate(propertyName, parseDate(metaValue, prop.getFormat()));
+                    property = IProperty.buildDate(propertyName, parseDate(metaValue, propertyFormat));
                     break;
                 case DATE_TIME:
-                    property = IProperty.buildDate(propertyName, parseDateTime(metaValue, prop.getFormat()));
+                    property = IProperty.buildDate(propertyName, parseDateTime(metaValue, propertyFormat));
                     break;
                 case INTEGER:
                     property = IProperty.buildInteger(propertyName, Integer.valueOf(metaValue));
@@ -220,9 +222,6 @@ public class DataTypeDescriptor {
 
     /**
      * Parse a date without time with the given format.
-     * @param date
-     * @param format
-     * @return
      * @throws ModuleException
      */
     public OffsetDateTime parseDate(String date, String format) throws ModuleException {
@@ -236,9 +235,6 @@ public class DataTypeDescriptor {
 
     /**
      * Parse a date with time with the given format.
-     * @param date
-     * @param format
-     * @return
      * @throws ModuleException
      */
     public OffsetDateTime parseDateTime(String date, String format) throws ModuleException {
@@ -263,8 +259,6 @@ public class DataTypeDescriptor {
 
     /**
      * Check if the current {@link DataTypeDescriptor} matches the given fileName
-     * @param fileName
-     * @return
      */
     public boolean matches(String fileName) {
         boolean matches = true;

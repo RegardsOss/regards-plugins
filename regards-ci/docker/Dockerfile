@@ -3,25 +3,25 @@ ENV REGARDS_HOME /regards
 
 # Copy JARs
 # Storage
-ADD local-storage-location-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
+ADD local-storage-location-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/storage/
 # Dam
-ADD aip-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD feature-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD postgresql-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
-ADD webservice-datasource-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD aip-datasource-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD feature-datasource-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD postgresql-datasource-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
+ADD webservice-datasource-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dam/
 # Ingest
-ADD enhanced-descriptive-aip-generation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
-ADD ingest-test-plugins-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD enhanced-descriptive-aip-generation-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
+ADD ingest-test-plugins-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/ingest/
 # Dataprovider
-ADD custom-command-file-validation-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
+ADD custom-command-file-validation-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/dataprovider/
 # Catalog
-ADD download-metalink-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
-ADD download-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
-ADD fem-driver-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-metalink-plugin-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD download-plugin-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD fem-driver-plugin-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
-ADD feature-factory-plugin-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
+ADD feature-factory-plugin-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
 # Notifier
-ADD chronos-recipient-sender-1.1.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
+ADD chronos-recipient-sender-1.3.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -50,6 +50,9 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/fem/feature-factory-plugin*.jar && \
 	# Remove old notifier plugins
 	rm -f /regards-plugins/notifier/chronos-recipient-sender*.jar && \
+	# Remove old ingest plugins
+	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
+	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
 
 	# copy JARs
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
