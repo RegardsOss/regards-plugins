@@ -31,9 +31,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -41,10 +43,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.feature.domain.plugin.FactoryParameters;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.feature.dto.gson.FeatureProperties;
 import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
 import fr.cnes.regards.modules.fem.plugins.dto.PropertiesEnum;
 import fr.cnes.regards.modules.fem.plugins.dto.SystemPropertiyEnum;
@@ -60,10 +67,17 @@ import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 @Service
 public class FeatureFactoryService {
 
-    /**
-     * Class logger
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryService.class);
+
+    /**
+     * Location parameter path
+     */
+    protected static final String LOCATION_MEMBER_NAME = "location";
+
+    /**
+     * Geometry parameter path
+     */
+    protected static final String GEOMETRY_MEMBER_NAME = "geometry";
 
     /**
      * Name of Feature fragment containing  feature system information
@@ -85,6 +99,9 @@ public class FeatureFactoryService {
      */
     private final Set<DataTypeDescriptor> descriptors = Sets.newConcurrentHashSet();
 
+    @Autowired
+    private FactoryParameters fp;
+
     /**
      * Reads all {@link DataTypeDescriptor}s from configured directory and initialize associated {@link DataTypeDescriptor}s
      * @param directory directory to parse for yml files
@@ -93,42 +110,46 @@ public class FeatureFactoryService {
     public void readConfs(Path directory) throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        Files.list(directory).filter(f -> f.getFileName().toString().endsWith(".yml")).forEach(filePath -> {
-            try {
-                if (Files.isRegularFile(filePath)) {
-                    String dataType = filePath.getFileName().toString()
-                            .substring(0, filePath.getFileName().toString().indexOf("."));
-                    if (!this.descriptors.stream().anyMatch(d -> d.getType().equals(dataType))) {
-                        JsonNode mainNode = mapper.readTree(filePath.toFile());
-                        JsonNode dataNode = mainNode.get(dataType);
-                        DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
-                        if (dt != null) {
-                            dt.setType(dataType);
-                            try {
-                                dt.validate();
-                                descriptors.add(dt);
-                            } catch (ModuleException e) {
-                                LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+
+        try (Stream<Path> directories = Files.list(directory)) {
+            directories.filter(f -> f.getFileName().toString().endsWith(".yml")).forEach(filePath -> {
+                try {
+                    if (Files.isRegularFile(filePath)) {
+                        String dataType = filePath.getFileName().toString()
+                                .substring(0, filePath.getFileName().toString().indexOf("."));
+                        if (!this.descriptors.stream().anyMatch(d -> d.getType().equals(dataType))) {
+                            JsonNode mainNode = mapper.readTree(filePath.toFile());
+                            JsonNode dataNode = mainNode.get(dataType);
+                            DataTypeDescriptor dt = mapper.treeToValue(dataNode, DataTypeDescriptor.class);
+                            if (dt != null) {
+                                dt.setType(dataType);
+                                try {
+                                    dt.validate();
+                                    descriptors.add(dt);
+                                } catch (ModuleException e) {
+                                    LOGGER.error("[{}] Invalid data type. {}", dt.getType(), e.getMessage());
+                                }
+                            } else {
+                                LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
                             }
                         } else {
-                            LOGGER.warn("Unable to parse conf  file {} for  type ", filePath, dataType);
+                            LOGGER.error("[{}] Invalid data type. A data type configuration already exists for this type.",
+                                         dataType);
                         }
-                    } else {
-                        LOGGER.error("[{}] Invalid data type. A data type configuration already exists for this type.",
-                                     dataType);
                     }
+                } catch (IOException e) {
+                    LOGGER.error("Error reading configuration file {}. Cause : {}", filePath, e.getMessage());
                 }
-            } catch (IOException e) {
-                LOGGER.error("Error reading configuration file {}. Cause : {}", filePath, e.getMessage());
-            }
-        });
+            });
+        }
     }
 
     /**
      * Retrieve the {@link DataTypeDescriptor} associated to given fileName
      * @param fileName
      * @return {@link DataTypeDescriptor}
-     * @throws ModuleException
+     * @throws ModuleException    @Autowired
+    Gson gson;
      */
     public DataTypeDescriptor findDataTypeDescriptor(String fileName) throws ModuleException {
         Set<DataTypeDescriptor> types = descriptors.stream().filter(dt -> dt.matches(fileName))
@@ -147,34 +168,54 @@ public class FeatureFactoryService {
     }
 
     /**
-     * Get a {@link Feature} for the given fileLocation by reading the associated {@link DataTypeDescriptor}
-     * @param fileLocation
-     * @param model
-     * @return {@link Feature}
-     * @throws ModuleException
+     * Generate a {@link Feature} according to specified parameters and by reading the associated {@link DataTypeDescriptor}
      */
-    public Feature getFeature(String fileLocation, String model, OffsetDateTime creationDate) throws ModuleException {
+    public Feature getFeature(JsonObject parameters, String model, OffsetDateTime creationDate) throws ModuleException {
+
+        // Retrieve required and optional parameters
+        String fileLocation = fp.getParameter(parameters, LOCATION_MEMBER_NAME, String.class);
+        Optional<IGeometry> geometry = fp.getOptionalParameter(parameters, GEOMETRY_MEMBER_NAME, IGeometry.class);
+        // Prepare properties before parsing
+        FeatureProperties.beforeRead(parameters);
+        Optional<Set<IProperty<?>>> properties = fp.getOptionalParameter(parameters,
+                                                                         FeatureProperties.PROPERTIES_FIELD_NAME,
+                                                                         new TypeToken<Set<IProperty<?>>>() {
+                                                                         }.getType());
+
+        // Generate feature
         String fileName = Paths.get(fileLocation).getFileName().toString();
         DataTypeDescriptor dataDesc = findDataTypeDescriptor(fileName);
         String id = String.format("%s:%s", dataDesc.getType(),
                                   UUID.nameUUIDFromBytes(fileLocation.getBytes()).toString());
         Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
+
+        // 0. Apply additional properties from parameters
+        if (geometry.isPresent()) {
+            toCreate.setGeometry(geometry.get());
+        }
+        if (properties.isPresent()) {
+            toCreate.setProperties(properties.get());
+        }
+
         // 1. Add all dynamic properties read from data descriptor
         addSpecificProperties(toCreate, fileName, dataDesc);
 
         // 2. Add fixed granule type property
         if ((dataDesc.getGranule_type() != null) && !dataDesc.getGranule_type().isEmpty()) {
-            IProperty.mergeProperties(toCreate.getProperties(), Sets
-                    .newHashSet(IProperty.buildObject(SWOT_FRAGMENT, IProperty
-                            .buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(), dataDesc.getGranule_type()))),
-                                      fileLocation);
+            IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(IProperty
+                    .buildObject(SWOT_FRAGMENT,
+                                 IProperty.buildString(PropertiesEnum.GRANULE_TYPE.getPropertyPath(),
+                                                       dataDesc.getGranule_type()))),
+                                      fileLocation, this.getClass().getName());
         }
         // 3. Add fixed data type  property
         if ((dataDesc.getType() != null) && !dataDesc.getType().isEmpty()) {
             IProperty.mergeProperties(toCreate.getProperties(),
-                                      Sets.newHashSet(IProperty.buildObject(DATA_FRAGMENT, IProperty
-                                              .buildString(PropertiesEnum.TYPE.getPropertyPath(), dataDesc.getType()))),
-                                      fileLocation);
+                                      Sets.newHashSet(IProperty
+                                              .buildObject(DATA_FRAGMENT,
+                                                           IProperty.buildString(PropertiesEnum.TYPE.getPropertyPath(),
+                                                                                 dataDesc.getType()))),
+                                      fileLocation, this.getClass().getName());
         }
         // 4. Add fixed system properties
         addSystemProperties(toCreate, fileLocation, creationDate, dataDesc.getType());
@@ -194,7 +235,8 @@ public class FeatureFactoryService {
         for (String meta : dataDesc.getMetadata()) {
             Optional<IProperty<?>> property = dataDesc.getMetaProperty(meta, fileName);
             if (property.isPresent()) {
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(property.get()), fileName,
+                                          this.getClass().getName());
             }
         }
 
@@ -248,8 +290,10 @@ public class FeatureFactoryService {
             if ((startDate != null) && (stopDate != null)) {
                 startDate = dataDesc.buildPropertyFragment("data.start_date", startDate);
                 stopDate = dataDesc.buildPropertyFragment("data.end_date", stopDate);
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName);
-                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName);
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName,
+                                          this.getClass().getName());
+                IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName,
+                                          this.getClass().getName());
             }
         }
 
