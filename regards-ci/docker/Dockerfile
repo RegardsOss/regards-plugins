@@ -37,7 +37,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
 	# Remove old dam plugins
 	rm -f /regards-plugins/dam/aip-datasource-*.jar && \
-	rm -f /regards-plugins/dam/geode-datasource-*.jar && \
+	rm -f /regards-plugins/dam/feature-datasource-*.jar && \
 	rm -f /regards-plugins/dam/postgresql-datasource-*.jar && \
 	rm -f /regards-plugins/dam/webservice-datasource-*.jar && \
 	# Remove old dataprovider plugins
