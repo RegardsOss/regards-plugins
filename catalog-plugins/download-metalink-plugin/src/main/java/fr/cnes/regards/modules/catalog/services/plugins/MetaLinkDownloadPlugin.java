@@ -37,10 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeType;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.security.utils.jwt.JWTService;
 import fr.cnes.regards.framework.security.utils.jwt.exception.JwtException;
 import fr.cnes.regards.framework.urn.DataType;
@@ -78,6 +80,11 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
 
     @Autowired
     private JWTService jwtService;
+
+    @PluginParameter(label = "Download only image files.",
+            description = "If activated, metalink file will only contains image files of the selected products.",
+            defaultValue = "false")
+    private final Boolean onlyImages = Boolean.FALSE;
 
     private static final String METALINK_FILE_NAME = "regards-download.metalink";
 
@@ -199,6 +206,10 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
         for (DataObject dataObject : dataObjects) {
             for (DataFile file : dataObject.getFiles().values()) {
                 if (file.getDataType().equals(DataType.RAWDATA)) {
+                    // If only images are to download, to not add the file with a different mimeType
+                    if (onlyImages && !file.getMimeType().isCompatibleWith(MimeType.valueOf("image/*"))) {
+                        break;
+                    }
                     URL dataFileUrl = getDataFileURL(file);
                     String filename = getDataObjectFileNameForDownload(dataObject, file);
 
