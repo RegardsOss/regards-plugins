@@ -213,7 +213,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         Set<DataFile> files = Sets.newHashSet();
         if ((dataObject != null) && (dataObject.getFiles() != null)) {
             dataObject.getFiles().forEach((type, file) -> {
-                if (DataType.RAWDATA.equals(type) && Boolean.TRUE.equals(file.isOnline()) && (file.getUri() != null)) {
+                if (DataType.RAWDATA.equals(type)
+                        && (Boolean.TRUE.equals(file.isOnline()) || Boolean.TRUE.equals(file.isReference()))
+                        && (file.getUri() != null)) {
                     files.add(file);
                 }
             });
