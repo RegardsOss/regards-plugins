@@ -88,11 +88,11 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     @Autowired
     private IStorageRestClient storageRestClient;
 
-    @Value("${http.proxy.host}")
+    @Value("${http.proxy.host:null}")
     private String proxyHost;
 
-    @Value("${http.proxy.port}")
-    private int proxyPort;
+    @Value("${http.proxy.port:80}")
+    private Integer proxyPort;
 
     @Value("${http.proxy.noproxy:#{null}}")
     private String noProxyHostsString;
@@ -125,7 +125,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     @Override
     public ResponseEntity<StreamingResponseBody> applyOnEntities(List<String> pEntitiesId,
             HttpServletResponse response) {
-        Page<DataObject> results = serviceHelper.getDataObjects(pEntitiesId, 0, 10000);
+        Page<DataObject> results = serviceHelper.getDataObjects(pEntitiesId, 0, maxFilesToDownload);
         return apply(results.getContent(), response);
     }
 
