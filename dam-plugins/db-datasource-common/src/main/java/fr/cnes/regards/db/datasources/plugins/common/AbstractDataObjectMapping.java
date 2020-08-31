@@ -382,6 +382,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * <li>raw data
      * <li>thumbnail
      * <li>label
+     * <li>last flag
      * <li>last update date
      * <li>geometry
      * @param dataObject the current {@link DataObject} to build
@@ -393,6 +394,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         if (attrMapping.isPrimaryKey()) {
             String val = attr.getValue().toString();
             dataObject.setProviderId(val);
+            // providerId being the primary key, we cannot have multiple entities with the same providerId
+            // so we cannot have multiple versions of the same entity
+            dataObject.setLast(true);
         }
 
         // Manage files
