@@ -28,6 +28,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -141,7 +142,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
-                    UUID.randomUUID(), 1);
+                    UUID.randomUUID(), 1, null, null);
             AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
             aip.withContextTags(tags);
 
@@ -149,10 +150,13 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
             aip.withDescriptiveInformation("START_DATE", OffsetDateTime.now());
             aip.withDescriptiveInformation("ALT_MAX", 1500 + i);
             aip.withDescriptiveInformation("HISTORY", new String[] { "H1", "H2", "H3" });
-            aip.withDescriptiveInformation("HISTORY_SET", Arrays.asList("aaaa", "bb", "ccccc", "dddd").stream()
-                    .collect(Collectors.toSet()));
-            aip.withDescriptiveInformation("HISTORY_LIST", Arrays
-                    .asList("paris", "toulouse", "lyon", "nice", "bordeaux").stream().collect(Collectors.toList()));
+            aip.withDescriptiveInformation("HISTORY_SET", new HashSet<>(Arrays.asList("aaaa", "bb", "ccccc", "dddd")));
+            aip.withDescriptiveInformation("HISTORY_LIST",
+                                           new ArrayList<>(Arrays.asList("paris",
+                                                                         "toulouse",
+                                                                         "lyon",
+                                                                         "nice",
+                                                                         "bordeaux")));
             aip.withDescriptiveInformation("POUET", "POUET");
             aip.withDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
             Map<String, String> dateBounds = new HashMap<>();
