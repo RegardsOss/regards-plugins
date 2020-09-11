@@ -35,7 +35,9 @@ import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
 
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
+import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.dto.in.NotificationActionEvent;
+import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 
 @TestPropertySource(
         properties = { "spring.jpa.properties.hibernate.default_schema=chronos", "regards.amqp.enabled=true" })
@@ -63,7 +65,7 @@ public class ChronosRecipientSenderTest extends AbstractMultitenantServiceTest {
 
         NotificationActionEvent event = getEvent("input-chronos.json");
 
-        sender.send(event.getElement(), event.getAction());
+        sender.send(new NotificationRequest(event.getPayload(), event.getMetadata(), event.getRequestId(), event.getRequestDate(), NotificationState.SCHEDULED));
     }
 
     protected NotificationActionEvent getEvent(String name) {

@@ -49,7 +49,7 @@ import com.google.gson.reflect.TypeToken;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.feature.domain.plugin.FactoryParameters;
+import fr.cnes.regards.modules.featureprovider.domain.plugin.FactoryParameters;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.gson.FeatureProperties;
 import fr.cnes.regards.modules.fem.plugins.dto.DataTypeDescriptor;
