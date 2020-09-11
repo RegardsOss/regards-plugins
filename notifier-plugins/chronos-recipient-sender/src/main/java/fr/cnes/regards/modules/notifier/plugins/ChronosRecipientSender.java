@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.JsonElement;
-
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.notifier.plugin.IRecipientNotifier;
+import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
+import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 
 /**
  * Sender to send CHRONOS formatted feature notification
@@ -44,9 +44,9 @@ import fr.cnes.regards.modules.notifier.plugin.IRecipientNotifier;
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class ChronosRecipientSender implements IRecipientNotifier {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSender.class);
-
     public static final String PLUGIN_ID = "ChronosRecipientSender";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSender.class);
 
     private static final String OWNER_KEY = "actionOwner";
 
@@ -78,22 +78,33 @@ public class ChronosRecipientSender implements IRecipientNotifier {
     private String gpfsUrlPropertyPath;
 
     @Override
-    public boolean send(JsonElement element, String action) {
+    public boolean send(NotificationRequest toSend) {
+        JsonElement element = toSend.getPayload();
+        JsonElement metadata = toSend.getMetadata();
         Optional<String> createdBy = getValue(element, createdByPropertyPath);
         Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
         Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
         String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
-        if ((action == null) || (createdBy == null) || (uri == null)) {
-            LOGGER.error("Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
-                         action, createdByPropertyPath, createdBy, gpfsUrlPropertyPath, uri, element.toString());
+        if ((metadata == null) || !createdBy.isPresent() || (uri == null)) {
+            LOGGER.error(
+                    "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
+                    metadata == null ? null : metadata.toString(),
+                    createdByPropertyPath,
+                    createdBy,
+                    gpfsUrlPropertyPath,
+                    uri,
+                    element == null ? null : element.toString());
             return false;
         } else {
             Map<String, Object> headers = new HashMap<>();
             String actionOwner = deletedBy.orElse(updatedBy.orElse(createdBy.get()));
             headers.put(OWNER_KEY, actionOwner);
-            headers.put(ACTION_KEY, action);
-            this.publisher.broadcast(exchange, Optional.of(queueName), 0,
-                                     ChronosNotificationEvent.build(action, actionOwner, uri), headers);
+            headers.put(ACTION_KEY, metadata.toString());
+            this.publisher.broadcast(exchange,
+                                     Optional.of(queueName),
+                                     0,
+                                     ChronosNotificationEvent.build(metadata.toString(), actionOwner, uri),
+                                     headers);
             return true;
         }
     }
@@ -103,7 +114,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             String[] paths = key.split("\\.");
             JsonElement obj = element.getAsJsonObject().get(paths[0]);
             if (obj != null) {
-                String newKey = key.substring(key.indexOf(".") + 1, key.length());
+                String newKey = key.substring(key.indexOf('.') + 1);
                 return this.getValue(obj, newKey);
             }
         } else {
@@ -138,4 +149,5 @@ public class ChronosRecipientSender implements IRecipientNotifier {
     public void setGpfsUrlPropertyPath(String gpfsUrlPropertyPath) {
         this.gpfsUrlPropertyPath = gpfsUrlPropertyPath;
     }
+
 }

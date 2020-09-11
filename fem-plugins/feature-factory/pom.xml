@@ -49,6 +49,10 @@
 			<artifactId>feature-domain</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>fr.cnes.regards.modules.featureprovider</groupId>
+			<artifactId>featureprovider-domain</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.modules.model</groupId>
 			<artifactId>model-client</artifactId>
 		</dependency>

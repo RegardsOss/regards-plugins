@@ -32,8 +32,8 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
-import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
+import fr.cnes.regards.modules.featureprovider.domain.plugin.IFeatureFactoryPlugin;
+import fr.cnes.regards.modules.featureprovider.domain.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.fem.plugins.service.FeatureFactoryService;
 
