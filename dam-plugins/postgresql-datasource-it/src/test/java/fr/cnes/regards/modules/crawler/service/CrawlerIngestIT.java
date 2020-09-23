@@ -62,6 +62,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionResult;
+import fr.cnes.regards.modules.crawler.service.conf.CrawlerPropertiesConfiguration;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
@@ -83,7 +84,6 @@ import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionP
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.service.entities.IDatasetService;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
-import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.ISearchService;
@@ -165,6 +165,9 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
     @Autowired
     private IPluginConfigurationRepository pluginConfRepos;
+
+    @Autowired
+    private CrawlerPropertiesConfiguration crawlerConf;
 
     @Autowired
     private IPublisher publisher;
@@ -365,7 +368,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+        Page<DataObject> objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
                                                             ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
@@ -379,7 +382,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService.search(objectSearchKey, IEsRepository.BULK_SIZE,
+        objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
                                            ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
