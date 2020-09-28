@@ -33,12 +33,12 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.featureprovider.domain.plugin.IFeatureFactoryPlugin;
-import fr.cnes.regards.modules.featureprovider.domain.FeatureReferenceRequest;
+import fr.cnes.regards.modules.featureprovider.domain.FeatureExtractionRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.fem.plugins.service.FeatureFactoryService;
 
 /**
- * Create a {@link Feature} from a {@link FeatureReferenceRequest}
+ * Create a {@link Feature} from a {@link FeatureExtractionRequest}
  * We will use the file name to extract {@link Feature} metadata
  *
  * @author Sébastien Binda

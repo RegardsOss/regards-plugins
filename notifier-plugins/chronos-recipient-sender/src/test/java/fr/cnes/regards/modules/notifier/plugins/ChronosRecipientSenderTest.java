@@ -22,8 +22,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +39,10 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
-
+import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.dto.in.NotificationActionEvent;
@@ -44,20 +53,23 @@ import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 @ActiveProfiles(value = { "testAmqp", "noscheduler" })
 public class ChronosRecipientSenderTest extends AbstractMultitenantServiceTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSenderTest.class);
+    public static final String CHRONOS_EXCHANGE = "chronos.exchange";
 
-    @Autowired
-    private AutowireCapableBeanFactory beanFactory;
+    public static final String CHRONOS_QUEUE = "chronos.queue";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSenderTest.class);
 
     @Autowired
     private Gson gson;
 
+    @Spy
+    private IPublisher publisher;
+
     @Test
     public void sendTest() {
-        ChronosRecipientSender sender = new ChronosRecipientSender();
-        beanFactory.autowireBean(sender);
-        sender.setExchange("chronos.exchange");
-        sender.setQueueName("chronos.queue");
+        ChronosRecipientSender sender = new ChronosRecipientSender(publisher);
+        sender.setExchange(CHRONOS_EXCHANGE);
+        sender.setQueueName(CHRONOS_QUEUE);
         sender.setCreatedByPropertyPath("history.createdBy");
         sender.setUpdatedByPropertyPath("history.updatedBy");
         sender.setDeletedByPropertyPath("history.deletedBy");
@@ -65,7 +77,28 @@ public class ChronosRecipientSenderTest extends AbstractMultitenantServiceTest {
 
         NotificationActionEvent event = getEvent("input-chronos.json");
 
-        sender.send(new NotificationRequest(event.getPayload(), event.getMetadata(), event.getRequestId(), event.getRequestDate(), NotificationState.SCHEDULED));
+        sender.send(Sets.newHashSet(new NotificationRequest(event.getPayload(),
+                                                            event.getMetadata(),
+                                                            event.getRequestId(),
+                                                            event.getRequestDate(),
+                                                            NotificationState.SCHEDULED)));
+        String actionOwner = "DeletedBy";
+        String action = event.getMetadata().getAsJsonObject().get("action").getAsString();
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("actionOwner", actionOwner);
+        headers.put("action", action);
+        ArgumentCaptor<List> listCaptor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(publisher).broadcastAll(Mockito.eq(CHRONOS_EXCHANGE),
+                                               Mockito.eq(Optional.of(CHRONOS_QUEUE)),
+                                               Mockito.eq(0),
+                                               listCaptor.capture(),
+                                               Mockito.eq(headers));
+        Assert.assertTrue("Message send as notification to chronos is not valid",
+                          listCaptor.getValue().contains(ChronosNotificationEvent.build(action,
+                                                                                        actionOwner,
+                                                                                        "file://home/geode/test.tar")));
+        Assert.assertEquals("Message send as notification to chronos is not valid", 1, listCaptor.getValue().size());
+
     }
 
     protected NotificationActionEvent getEvent(String name) {
