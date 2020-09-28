@@ -18,7 +18,10 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.gson.JsonElement;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -77,36 +82,14 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
 
-    @Override
-    public boolean send(NotificationRequest toSend) {
-        JsonElement element = toSend.getPayload();
-        JsonElement metadata = toSend.getMetadata();
-        Optional<String> createdBy = getValue(element, createdByPropertyPath);
-        Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
-        Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
-        String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
-        if ((metadata == null) || !createdBy.isPresent() || (uri == null)) {
-            LOGGER.error(
-                    "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
-                    metadata == null ? null : metadata.toString(),
-                    createdByPropertyPath,
-                    createdBy,
-                    gpfsUrlPropertyPath,
-                    uri,
-                    element == null ? null : element.toString());
-            return false;
-        } else {
-            Map<String, Object> headers = new HashMap<>();
-            String actionOwner = deletedBy.orElse(updatedBy.orElse(createdBy.get()));
-            headers.put(OWNER_KEY, actionOwner);
-            headers.put(ACTION_KEY, metadata.toString());
-            this.publisher.broadcast(exchange,
-                                     Optional.of(queueName),
-                                     0,
-                                     ChronosNotificationEvent.build(metadata.toString(), actionOwner, uri),
-                                     headers);
-            return true;
-        }
+    public ChronosRecipientSender() {
+    }
+
+    /**
+     * This constructor is needed for tests unfortunately
+     */
+    protected ChronosRecipientSender(IPublisher publisher) {
+        this.publisher = publisher;
     }
 
     public Optional<String> getValue(JsonElement element, String key) {
@@ -124,6 +107,42 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
+        ListMultimap<Map<String, Object>, ChronosNotificationEvent> toSend = ArrayListMultimap.create();
+        List<NotificationRequest> errors = new ArrayList<>();
+        for (NotificationRequest request : requestsToSend) {
+            JsonElement element = request.getPayload();
+            JsonElement metadata = request.getMetadata();
+            Optional<String> createdBy = getValue(element, createdByPropertyPath);
+            Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
+            Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
+            String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
+            if ((metadata == null) || !createdBy.isPresent() || (uri == null)) {
+                LOGGER.error(
+                        "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
+                        metadata == null ? null : metadata.toString(),
+                        createdByPropertyPath,
+                        createdBy,
+                        gpfsUrlPropertyPath,
+                        uri,
+                        element == null ? null : element.toString());
+                errors.add(request);
+            } else {
+                Map<String, Object> headers = new HashMap<>();
+                String actionOwner = deletedBy.orElse(updatedBy.orElse(createdBy.get()));
+                headers.put(OWNER_KEY, actionOwner);
+                String action = metadata.getAsJsonObject().get(ACTION_KEY).getAsString();
+                headers.put(ACTION_KEY, action);
+                toSend.put(headers, ChronosNotificationEvent.build(action, actionOwner, uri));
+            }
+        }
+        for (Map<String, Object> headers : toSend.keySet()) {
+            publisher.broadcastAll(exchange, Optional.of(queueName), 0, toSend.get(headers), headers);
+        }
+        return errors;
     }
 
     public void setExchange(String exchange) {
