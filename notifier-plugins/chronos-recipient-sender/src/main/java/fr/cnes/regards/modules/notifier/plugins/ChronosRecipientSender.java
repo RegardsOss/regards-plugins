@@ -133,8 +133,8 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             } else {
                 Map<String, Object> headers = new HashMap<>();
                 String actionOwner = deletedBy.orElse(updatedBy.orElse(createdBy.get()));
-                headers.put(OWNER_KEY, actionOwner);
                 String action = metadata.getAsJsonObject().get(ACTION_KEY).getAsString();
+                headers.put(OWNER_KEY, actionOwner);
                 headers.put(ACTION_KEY, action);
                 toSend.put(headers, ChronosNotificationEvent.build(action, actionOwner, uri));
             }
