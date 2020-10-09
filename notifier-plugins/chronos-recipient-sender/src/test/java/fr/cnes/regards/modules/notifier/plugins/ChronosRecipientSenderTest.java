@@ -35,7 +35,6 @@ import org.mockito.Spy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -45,7 +44,7 @@ import com.google.gson.Gson;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
-import fr.cnes.regards.modules.notifier.dto.in.NotificationActionEvent;
+import fr.cnes.regards.modules.notifier.dto.in.NotificationRequestEvent;
 import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 
 @TestPropertySource(
@@ -75,7 +74,7 @@ public class ChronosRecipientSenderTest extends AbstractMultitenantServiceTest {
         sender.setDeletedByPropertyPath("history.deletedBy");
         sender.setGpfsUrlPropertyPath("properties.system.gpfs_url");
 
-        NotificationActionEvent event = getEvent("input-chronos.json");
+        NotificationRequestEvent event = getEvent("input-chronos.json");
 
         sender.send(Sets.newHashSet(new NotificationRequest(event.getPayload(),
                                                             event.getMetadata(),
@@ -101,10 +100,10 @@ public class ChronosRecipientSenderTest extends AbstractMultitenantServiceTest {
 
     }
 
-    protected NotificationActionEvent getEvent(String name) {
+    protected NotificationRequestEvent getEvent(String name) {
         try (InputStream input = this.getClass().getResourceAsStream(name);
                 Reader reader = new InputStreamReader(input)) {
-            return gson.fromJson(CharStreams.toString(reader), NotificationActionEvent.class);
+            return gson.fromJson(CharStreams.toString(reader), NotificationRequestEvent.class);
         } catch (IOException e) {
             String errorMessage = "Cannot import event";
             LOGGER.debug(errorMessage);
