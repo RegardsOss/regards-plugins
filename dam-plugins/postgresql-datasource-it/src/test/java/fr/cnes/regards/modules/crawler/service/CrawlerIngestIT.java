@@ -368,11 +368,8 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
-<<<<<<< HEAD
-        Page<DataObject> objectsPage = searchService.search(objectSearchKey, IEsRepository.MAX_RESULT_WINDOW,
-=======
+
         Page<DataObject> objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
->>>>>>> #197252_spring_version_update
                                                             ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
@@ -386,11 +383,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-<<<<<<< HEAD
-        objectsPage = searchService.search(objectSearchKey, IEsRepository.MAX_RESULT_WINDOW,
-=======
         objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
->>>>>>> #197252_spring_version_update
                                            ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
