@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.HttpClient;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -20,8 +21,6 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.google.gson.Gson;
 
-import fr.cnes.httpclient.HttpClient;
-import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
@@ -44,7 +43,6 @@ import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "spring.jpa.properties.hibernate.default_schema=public" })
-@RegardsTransactional
 public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransactionalIT {
 
     @Autowired
