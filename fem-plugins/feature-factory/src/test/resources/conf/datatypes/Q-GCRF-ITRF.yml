@@ -1,0 +1,34 @@
+Q-GCRF-ITRF: 
+    name: SWOT_Q_GCRF_ITRF_{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
+    example: ['SWOT_Q_GCRF_ITRF_20200301_150000_20200202_230000_20200204_010000.nc']
+    document: "SWOT-ICD-SYS-0421-CNES"
+    Description: ""
+    granule_type: Day
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 1ko
+        directory: "swot/om/qgcrf"
+        has_path_by_date: False
+        creation: [
+          { period: 7, time: "150000", offset_begin: -520h, offset_end: -494h },
+          { period: 7, time: "150000", offset_begin: -544h, offset_end: -518h },
+          { period: 7, time: "150000", offset_begin: -568h, offset_end: -542h },
+          { period: 7, time: "150000", offset_begin: -592h, offset_end: -566h },
+          { period: 7, time: "150000", offset_begin: -616h, offset_end: -590h },
+          { period: 7, time: "150000", offset_begin: -640h, offset_end: -614h },
+          { period: 7, time: "150000", offset_begin: -664h, offset_end: -638h }
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        

@@ -24,12 +24,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.dam.client.models.IAttributeModelClient;
+import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 
@@ -107,7 +107,7 @@ public class PostgreDataSourcePluginTestConfiguration {
             project.setName(tenant);
             project.setCrs("WGS_84");
             project.setPoleToBeManaged(Boolean.FALSE);
-            return ResponseEntity.ok(new Resource<>(project));
+            return ResponseEntity.ok(new EntityModel<>(project));
         });
         return projectClient;
     }

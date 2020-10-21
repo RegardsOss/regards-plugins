@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
 
 import com.google.gson.Gson;
 
@@ -25,13 +26,12 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.dam.domain.models.ModelAttrAssoc;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.ConversionConfiguration;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.ConversionReport;
-import fr.cnes.regards.modules.dam.service.models.IModelAttrAssocService;
+import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
+import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.templates.service.TemplateService;
-import org.springframework.util.MimeTypeUtils;
 
 /**
  * Plugin to use an OpenSearch compliant webservice as a REGARDS datasource. Fetches data then converts it into REGARDS data to be be indexed.
@@ -214,7 +214,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
         } catch (DataSourceException e) {
             // catch exception to notify administrator, then let it through
             notificationClient.notify(e.getMessage(), "Webservice data source plugin", NotificationLevel.ERROR,
-                    MimeTypeUtils.TEXT_PLAIN, DefaultRole.ADMIN);
+                                      MimeTypeUtils.TEXT_PLAIN, DefaultRole.ADMIN);
             throw e;
         }
 
@@ -231,7 +231,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
                 notificationReport = "No error report could be produced (inner plugin error)";
             }
             notificationClient.notify(notificationReport, "Webservice data source plugin", notificationLevel,
-                    MimeTypeUtils.TEXT_HTML, DefaultRole.ADMIN);
+                                      MimeTypeUtils.TEXT_HTML, DefaultRole.ADMIN);
         }
 
         return converter.getConvertedPage();

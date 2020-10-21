@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -35,12 +34,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 
+import com.google.common.collect.Maps;
+
+import com.zaxxer.hikari.pool.HikariPool;
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
+import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -74,8 +78,9 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     public void setUp() throws SQLException, NotAvailablePluginConfigurationException {
         IDBConnectionPlugin plgConn;
 
-        plgConn = PluginUtils.getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class,
-                                        new HashMap<>());
+        plgConn = PluginUtils.getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null,
+                                                                  getPostGreSqlParameters()),
+                                        Maps.newHashMap());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(plgConn.testConnection());
@@ -85,8 +90,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     @Requirement("REGARDS_DSL_DAM_ARC_100")
     @Purpose("The system allows to define a connection to a data source")
     public void getPostGreSqlConnection() throws NotAvailablePluginConfigurationException {
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
+        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration
+                .build(DefaultPostgreConnectionPlugin.class, null, getPostGreSqlParameters()), Maps.newHashMap());
 
         Assert.assertNotNull(sqlConn);
 
@@ -97,8 +102,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     @Test
     public void getMaxPoolSizeWithClose()
             throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
+        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration
+                .build(DefaultPostgreConnectionPlugin.class, null, getPostGreSqlParameters()), Maps.newHashMap());
 
         Assert.assertNotNull(sqlConn);
 
@@ -110,8 +115,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
 
     @Test
     public void getMaxPoolSizeWithoutClose() throws InterruptedException, NotAvailablePluginConfigurationException {
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
+        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration
+                .build(DefaultPostgreConnectionPlugin.class, null, getPostGreSqlParameters()), Maps.newHashMap());
 
         Assert.assertNotNull(sqlConn);
 
@@ -127,8 +132,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     public void getMaxPoolSizeWithCloseByThread()
             throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
 
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(getPostGreSqlParameters(), DefaultPostgreConnectionPlugin.class, new HashMap<>());
+        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration
+                .build(DefaultPostgreConnectionPlugin.class, null, getPostGreSqlParameters()), Maps.newHashMap());
 
         Assert.assertNotNull(sqlConn);
 
@@ -168,11 +173,16 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         passwordParam.setDecryptedValue("unknown");
         parameters.add(passwordParam);
 
-        final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
-                .getPlugin(parameters, DefaultPostgreConnectionPlugin.class, new HashMap<>());
-
-        Assert.assertNotNull(sqlConn);
-        Assert.assertFalse(sqlConn.testConnection());
+        try {
+            final DefaultPostgreConnectionPlugin sqlConn = PluginUtils
+                    .getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters), Maps.newHashMap());
+        } catch (PluginUtilsRuntimeException e) {
+            // we do not rely on expected attribute from Test annotation because we want to be sure the test is successful
+            // because we could not create the pool due to bad credential
+            // and not due to other errors that could throw PluginUtilsRuntimeException
+            LOG.debug(e.getMessage(), e);
+            Assert.assertTrue(e.getCause() instanceof HikariPool.PoolInitializationException);
+        }
     }
 
     private Set<IPluginParam> getPostGreSqlParameters() {

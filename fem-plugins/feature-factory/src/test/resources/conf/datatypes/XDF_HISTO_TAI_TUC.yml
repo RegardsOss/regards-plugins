@@ -1,0 +1,28 @@
+XDF_HISTO_TAI_TUC:
+    name: SMM_TUC_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ""
+    example: ['SMM_TUC_AXXCNE20200303_120000_20180403_120000_20220201_120000']
+    document: "SWOT-ICD-SYS-0421-CNES"
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata: [CreationDateTime, StartDateTime, EndDateTime]
+    simu_method: 
+        name: period
+        file_size: 1ko
+        directory: "commun/tai_tuc"
+        has_path_by_date: False
+        creation: [
+          { period: 0, time: "120000", offset_begin: -700d, offset_end: 700d },
+          ] 
+    CHRONOS:
+        storage_server : GEODE
+        input_dir : ""
+        output_dir : ""
+        source: Notification
+        has_path_by_date: False
+        geode_sync_duration: 6m
+        lifetime_duration: ""
+        pcm_metadata: []
+        
