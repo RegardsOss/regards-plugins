@@ -45,8 +45,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>fr.cnes.regards.modules.feature</groupId>
-			<artifactId>feature-domain</artifactId>
+			<groupId>fr.cnes.regards.modules.featureprovider</groupId>
+			<artifactId>featureprovider-domain</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.model</groupId>
