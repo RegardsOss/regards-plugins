@@ -66,7 +66,7 @@ import fr.cnes.regards.modules.search.domain.SearchRequest;
  */
 @Plugin(description = "Plugin to allow download on multiple data selection by creating a metalink file.",
         id = "MetaLinkPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr",
-        license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+        license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss", markdown = "metalink-download.md")
 @CatalogServicePlugin(applicationModes = { ServiceScope.MANY }, entityTypes = { EntityType.DATA })
 public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin implements IEntitiesServicePlugin {
 
