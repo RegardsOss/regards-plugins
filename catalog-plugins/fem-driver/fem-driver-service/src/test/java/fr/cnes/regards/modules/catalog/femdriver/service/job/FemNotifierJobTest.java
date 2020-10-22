@@ -39,7 +39,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.feature.dto.event.in.FeatureNotificationRequestEvent;
+import fr.cnes.regards.modules.feature.dto.event.in.NotificationRequestEvent;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 
@@ -87,7 +87,7 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
         Assert.assertEquals(1000, events.get().size());
 
         events.get().forEach(e -> {
-            FeatureNotificationRequestEvent event = (FeatureNotificationRequestEvent) e;
+            NotificationRequestEvent event = (NotificationRequestEvent) e;
             Assert.assertNotNull("Invalid null event", event);
             Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
         });
@@ -115,7 +115,7 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
         Assert.assertEquals(1, events.get().size());
 
         events.get().forEach(e -> {
-            FeatureNotificationRequestEvent event = (FeatureNotificationRequestEvent) e;
+            NotificationRequestEvent event = (NotificationRequestEvent) e;
             Assert.assertNotNull("Invalid null event", event);
             Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
         });
