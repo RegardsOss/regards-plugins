@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,14 +32,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.feature.dto.event.in.NotificationRequestEvent;
+import fr.cnes.regards.modules.feature.dto.event.in.FeatureNotificationRequestEvent;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 
@@ -68,12 +67,16 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
     }
 
     @Test
-    public void testNotifyJob() throws ModuleException, InterruptedException, ExecutionException {
+    public void testNotifyJob() throws InterruptedException {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
-        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                null, null, null);
+        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        null,
+                                                        null,
+                                                        null);
         femDriverService.scheduleNotification(searchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
@@ -81,13 +84,13 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(Objects::nonNull)
                 .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1000, events.get().size());
 
         events.get().forEach(e -> {
-            NotificationRequestEvent event = (NotificationRequestEvent) e;
+            FeatureNotificationRequestEvent event = (FeatureNotificationRequestEvent) e;
             Assert.assertNotNull("Invalid null event", event);
             Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
         });
@@ -95,12 +98,16 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
     }
 
     @Test
-    public void testNotifyJobWithCrit() throws ModuleException, InterruptedException, ExecutionException {
+    public void testNotifyJobWithCrit() throws InterruptedException {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
-        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                Sets.newHashSet(datas.get(0).getIpId().toString()), null, null);
+        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        Sets.newHashSet(datas.get(0).getIpId().toString()),
+                                                        null,
+                                                        null);
 
         femDriverService.scheduleNotification(searchRequest);
         int loop = 0;
@@ -109,13 +116,13 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(Objects::nonNull)
                 .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1, events.get().size());
 
         events.get().forEach(e -> {
-            NotificationRequestEvent event = (NotificationRequestEvent) e;
+            FeatureNotificationRequestEvent event = (FeatureNotificationRequestEvent) e;
             Assert.assertNotNull("Invalid null event", event);
             Assert.assertNotNull("Deletion  feature urn is mandatory", event.getUrn());
         });
