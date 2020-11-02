@@ -18,44 +18,18 @@
  */
 package fr.cnes.regards.modules.catalog.services.plugin;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-
 import feign.Response;
+import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
@@ -70,6 +44,32 @@ import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Plugin(description = "Plugin to allow download on multiple data selection by creating an archive.",
         id = "DownloadPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr",
@@ -84,6 +84,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     @Autowired
     private IServiceHelper serviceHelper;
+
+    @Autowired
+    private IAuthenticationResolver authResolver;
 
     @Autowired
     private IStorageRestClient storageRestClient;
@@ -239,16 +242,53 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
      */
     private void createZipArchive(OutputStream outputStream, Map<DataObject, Set<DataFile>> dataFiles) {
         try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
+            List<Pair<DataFile, String>> downloadErrorFiles = new ArrayList<>();
             for (Entry<DataObject, Set<DataFile>> entry : dataFiles.entrySet()) {
                 DataObject dataobject = entry.getKey();
                 Set<DataFile> dataobjectFiles = entry.getValue();
                 for (DataFile file : dataobjectFiles) {
-                    writeDataFileIntoZip(file, dataobject, zos);
+                    writeDataFileIntoZip(file, dataobject, zos, downloadErrorFiles);
                 }
+            }
+            if (!downloadErrorFiles.isEmpty()) {
+                zos.putNextEntry(new ZipEntry("NOTICE.txt"));
+                StringJoiner joiner = new StringJoiner("\n");
+                downloadErrorFiles.forEach(p ->
+                    joiner.add(String.format(
+                        "Failed to download file (%s): %s.",
+                        p.getLeft().getFilename(),
+                        p.getRight()
+                    ))
+                );
+                ByteStreams.copy(IOUtils.toInputStream(joiner.toString(), StandardCharsets.UTF_8), zos);
+                zos.closeEntry();
             }
         } catch (IOException e) {
             LOGGER.error("Error creating zip archive file for download", e);
         }
+    }
+
+    private String humanizeError(Optional<Response> response) {
+        return response
+            .map(r -> {
+                Response.Body body = r.body();
+                boolean nullBody = body == null;
+                switch (r.status()) {
+                    case 429:
+                        if (nullBody)
+                            return "Download failed due to exceeded quota";
+
+                        try (InputStream is = body.asInputStream()) {
+                            return IOUtils.toString(is, StandardCharsets.UTF_8);
+                        } catch (IOException|NullPointerException e) {
+                            return "Download failed due to exceeded quota";
+                        }
+                    default:
+                        return String.format("Server returned HTTP error code %d", r.status());
+                }
+            })
+            .orElse("Server returned no content")
+            ;
     }
 
     /**
@@ -257,7 +297,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
      * @param dataobject {@link DataObject} of the given {@link DataFile}
      * @param zos {@link ZipOutputStream} to write into
      */
-    private void writeDataFileIntoZip(DataFile file, DataObject dataobject, ZipOutputStream zos) {
+    private void writeDataFileIntoZip(DataFile file, DataObject dataobject, ZipOutputStream zos, List<Pair<DataFile, String>> downloadErrorFiles) {
         String fileName = getDataObjectFileNameForDownload(dataobject, file);
         try {
             LOGGER.debug(String.format("Adding file %s into ZIP archive", fileName));
@@ -269,12 +309,15 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
             } else {
                 // Retrieve file from storage by its checksum
                 try {
-                    FeignSecurityManager.asSystem();
+                    // To download through storage client we must be authenticate as user in order to
+                    // impact the download quotas, but we upgrade the privileges so that the request passes.
+                    FeignSecurityManager.asUser(authResolver.getUser(), DefaultRole.PROJECT_ADMIN.name());
                     Response response = storageRestClient.downloadFile(file.getChecksum());
                     if ((response.status() == HttpStatus.OK.value()) && (response.body() != null)) {
                         ByteStreams.copy(response.body().asInputStream(), zos);
                     } else {
                         LOGGER.error("Error downloading file {} from storage", file.getChecksum());
+                        downloadErrorFiles.add(Pair.of(file, humanizeError(Optional.of(response))));
                     }
                 } finally {
                     FeignSecurityManager.reset();
@@ -282,6 +325,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
             }
         } catch (IOException e) {
             LOGGER.error(String.format("Error downloading file %s", file.getUri()), e);
+            downloadErrorFiles.add(Pair.of(file, "I/O error during download"));
         } finally {
             try {
                 zos.closeEntry();
