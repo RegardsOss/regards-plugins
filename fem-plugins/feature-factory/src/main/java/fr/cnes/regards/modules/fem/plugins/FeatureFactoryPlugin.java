@@ -27,18 +27,17 @@ import java.time.OffsetDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.JsonObject;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.feature.domain.plugin.IFeatureFactoryPlugin;
-import fr.cnes.regards.modules.feature.domain.request.FeatureReferenceRequest;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.featureprovider.domain.FeatureExtractionRequest;
+import fr.cnes.regards.modules.featureprovider.domain.plugin.IFeatureFactoryPlugin;
 import fr.cnes.regards.modules.fem.plugins.service.FeatureFactoryService;
 
 /**
- * Create a {@link Feature} from a {@link FeatureReferenceRequest}
+ * Create a {@link Feature} from a {@link FeatureExtractionRequest}
  * We will use the file name to extract {@link Feature} metadata
  *
  * @author Sébastien Binda
@@ -81,8 +80,8 @@ public class FeatureFactoryPlugin implements IFeatureFactoryPlugin {
             try {
                 factoryService.readConfs(confPath);
             } catch (IOException e) {
-                throw new ModuleException(
-                        String.format("Error during plugin initialisation. Cause : %s", e.getMessage()));
+                throw new ModuleException(String.format("Error during plugin initialisation. Cause : %s",
+                                                        e.getMessage()));
             }
         } else {
             throw new ModuleException(String.format("Invalid configuration directory at %s", configDirectory));
