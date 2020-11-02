@@ -18,6 +18,8 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import java.util.Objects;
+
 import fr.cnes.regards.framework.amqp.event.Event;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.amqp.event.JsonMessageConverter;
@@ -57,4 +59,21 @@ public class ChronosNotificationEvent implements ISubscribable {
         return uri;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChronosNotificationEvent that = (ChronosNotificationEvent) o;
+        return Objects.equals(action, that.action) && Objects.equals(actionOwner, that.actionOwner) && Objects
+                .equals(uri, that.uri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(action, actionOwner, uri);
+    }
 }
