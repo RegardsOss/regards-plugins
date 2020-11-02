@@ -32,7 +32,6 @@ CMD mkdir -p /regards-plugins/storage/ && \
     mkdir -p /regards-plugins/catalog/ && \
     mkdir -p /regards-plugins/fem/ && \
     mkdir -p /regards-plugins/notifier/ && \
-
 	# Remove old storage plugins
 	rm -f /regards-plugins/storage/local-storage-location-*.jar && \
 	# Remove old dam plugins
@@ -53,7 +52,6 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	# Remove old ingest plugins
 	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
 	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
-
 	# copy JARs
 	cp ${REGARDS_HOME}/plugins/storage/*.jar /regards-plugins/storage/ && \
 	cp ${REGARDS_HOME}/plugins/dam/*.jar /regards-plugins/dam/ && \
