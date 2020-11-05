@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.http.client.HttpClient;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +80,7 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
      * Tests theia like conversion. Nota: It is not a TU, but it helps here to know when the configuration does not work anymore
      */
     @Test
+    @Ignore("Theia is actually inaccessible because of SSL issues")
     public void testTheiaLike() throws DataSourceException, ModuleException {
         // 1 - Mock returned model
         IModelAttrAssocService modelAttrAssocService = Mockito.mock(IModelAttrAssocService.class);
