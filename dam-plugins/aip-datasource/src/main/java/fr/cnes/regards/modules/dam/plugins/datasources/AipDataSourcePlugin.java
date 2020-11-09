@@ -171,10 +171,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
     private Map<String, String> bindingMap;
 
-    @PluginParameter(name = "overlap",
-            description = "Overlap so that AIP search starts from the specified date minus the overlap in second",
-            label = "Overlap in second")
-    private final Long overlap = 60L;
+    //    @PluginParameter(name = "overlap",
+    //            description = "Overlap so that AIP search starts from the specified date minus the overlap in second",
+    //            label = "Overlap in second")
+    //    private final Long overlap = 60L;
 
     @Autowired
     private IModelService modelService;
@@ -324,7 +324,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                     .map(n -> n.getContent()).collect(Collectors.toList());
             ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
-                            .withCategories(categories).withLastUpdateFrom(date.minusSeconds(overlap)),
+                            .withCategories(categories).withLastUpdateFrom(date.minusSeconds(60L)),
                                 pageable.getPageNumber(), pageable.getPageSize());
             Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
