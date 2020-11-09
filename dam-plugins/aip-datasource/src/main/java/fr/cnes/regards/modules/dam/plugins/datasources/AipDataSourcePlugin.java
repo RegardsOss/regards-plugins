@@ -322,10 +322,16 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
+            // Manage overlap
+            OffsetDateTime from = date;
+            if (date != null) {
+                from = date.minusSeconds(60L);
+            }
+
             ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
-                            .withCategories(categories).withLastUpdateFrom(date.minusSeconds(60L)),
-                                pageable.getPageNumber(), pageable.getPageSize());
+                            .withCategories(categories).withLastUpdateFrom(from), pageable.getPageNumber(),
+                                pageable.getPageSize());
             Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
                 List<DataObjectFeature> list = new ArrayList<>();
