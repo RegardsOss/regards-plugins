@@ -155,12 +155,16 @@ public class FeatureFactoryService {
         Set<DataTypeDescriptor> types = descriptors.stream().filter(dt -> dt.matches(fileName))
                 .collect(Collectors.toSet());
         if (types.size() > 1) {
-            throw new ModuleException(String
+            String errorMessage = String
                     .format("More than one dataType match for the fileName %s. -> %s", fileName,
-                            types.stream().map(DataTypeDescriptor::getType).collect(Collectors.toList()).toString()));
+                            types.stream().map(DataTypeDescriptor::getType).collect(Collectors.toList()).toString());
+            LOGGER.error(errorMessage);
+            throw new ModuleException(errorMessage);
         }
         if (types.isEmpty()) {
-            throw new ModuleException(String.format("No dataType match for the fileName %s", fileName));
+            String errorMessage = String.format("No dataType match for the fileName %s", fileName);
+            LOGGER.error(errorMessage);
+            throw new ModuleException(errorMessage);
         }
         DataTypeDescriptor dt = types.iterator().next();
         LOGGER.debug("Desriptor {} found for file {}", dt.getType(), fileName);
