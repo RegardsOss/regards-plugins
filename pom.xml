@@ -17,13 +17,14 @@
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.plugins</groupId>
-    <artifactId>plugins</artifactId>
-    <packaging>pom</packaging>
+	<groupId>fr.cnes.regards.plugins</groupId>
+	<artifactId>plugins</artifactId>
+	<packaging>pom</packaging>
 
     <parent>
         <groupId>fr.cnes.regards</groupId>
@@ -32,27 +33,27 @@
         <relativePath/>
     </parent>
 
-    <description>REGARDS official plugins repository</description>
-    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
-    <inceptionYear>2016</inceptionYear>
-    <licenses>
-        <license>
-            <name>GNU General Public License (GNU GPL)</name>
-            <url>http://www.gnu.org/licenses/gpl.html</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <organization>
-        <name>CNES</name>
-        <url>https://cnes.fr/fr</url>
-    </organization>
-    <developers>
-        <developer>
-            <name>REGARDS Team</name>
-            <organization>CS Systèmes d'Information</organization>
-            <organizationUrl>http://www.c-s.fr</organizationUrl>
-        </developer>
-    </developers>
+	<description>REGARDS official plugins repository</description>
+	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+	<inceptionYear>2016</inceptionYear>
+	<licenses>
+		<license>
+			<name>GNU General Public License (GNU GPL)</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<organization>
+		<name>CNES</name>
+		<url>https://cnes.fr/fr</url>
+	</organization>
+	<developers>
+		<developer>
+			<name>REGARDS Team</name>
+			<organization>CS Systèmes d'Information</organization>
+			<organizationUrl>http://www.c-s.fr</organizationUrl>
+		</developer>
+	</developers>
 
 
     <dependencies>
@@ -133,57 +134,83 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/jars</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <retryPushCount>0</retryPushCount>
-                    <skipDockerBuild>false</skipDockerBuild>
-                    <forceTags>true</forceTags>
-                    <imageName>${docker.registry.host}/rs-plugins</imageName>
-                    <serverId>REGARDS-DockerHub</serverId>
-                    <registryUrl>${docker.registry.host}</registryUrl>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                    </imageTags>
-                    <dockerDirectory>regards-ci/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}/jars</directory>
-                            <include>*</include>
-                        </resource>
-                    </resources>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/jars</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-yml</id>
+						<!-- here the phase you need -->
+						<phase>initialize</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/datatypes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>fem-plugins/feature-factory/src/test/resources/conf/datatypes</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<retryPushCount>0</retryPushCount>
+					<skipDockerBuild>false</skipDockerBuild>
+					<forceTags>true</forceTags>
+					<imageName>${docker.registry.host}/rs-plugins</imageName>
+					<serverId>REGARDS-DockerHub</serverId>
+					<registryUrl>${docker.registry.host}</registryUrl>
+					<imageTags>
+						<imageTag>${project.version}</imageTag>
+					</imageTags>
+					<dockerDirectory>regards-ci/docker</dockerDirectory>
+					<resources>
+						<resource>
+							<targetPath>/datatypes</targetPath>
+							<directory>${project.build.directory}/datatypes</directory>
+							<include>*</include>
+						</resource>
+						<resource>
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}/jars</directory>
+							<include>*</include>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 
-    <modules>
-    	<module>authentication-plugins</module>
-    	<module>catalog-plugins</module>
-    	<module>dataprovider-plugins</module>
-        <module>dam-plugins</module>
-        <module>fem-plugins</module>
-        <module>storage-plugins</module>
-        <module>ingest-plugins</module>
-        <module>notifier-plugins</module>
-    </modules>
+	<modules>
+		<module>authentication-plugins</module>
+		<module>catalog-plugins</module>
+		<module>dataprovider-plugins</module>
+		<module>dam-plugins</module>
+		<module>fem-plugins</module>
+		<module>storage-plugins</module>
+		<module>ingest-plugins</module>
+		<module>notifier-plugins</module>
+	</modules>
 </project>
