@@ -58,6 +58,8 @@ import fr.cnes.regards.modules.fem.plugins.dto.SystemPropertiyEnum;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 
+import static fr.cnes.regards.modules.fem.plugins.dto.PropertiesEnum.Constants.*;
+
 /**
  * Factory to create {@link Feature}s from a String fileName and an associated  {@link DataTypeDescriptor}
  *
@@ -251,22 +253,22 @@ public class FeatureFactoryService {
     /**
      * Check date start/end date property are not missing
      * @param toCreate
-     * @param fileLocation
+     * @param fileName
      * @param dataDesc
      */
     private void handleMissingDateProperties(Feature toCreate, String fileName, DataTypeDescriptor dataDesc) {
         Map<String, IProperty<?>> map = IProperty.getPropertyMap(toCreate.getProperties());
-        IProperty<?> startDate = map.get("data.start_date");
-        IProperty<?> stopDate = map.get("data.end_date");
-        IProperty<?> productionDate = map.get("data.production_date");
-        IProperty<?> dayDate = map.get("swot.day_date");
+        IProperty<?> startDate = map.get(DATA_START_DATE);
+        IProperty<?> stopDate = map.get(DATA_END_DATE);
+        IProperty<?> productionDate = map.get(DATA_PRODUCTION_DATE);
+        IProperty<?> dayDate = map.get(SWOT_DAY_DATE);
         if ((startDate == null) && (stopDate == null)) {
             switch (dataDesc.getType()) {
                 case "HISTO_OEF":
                     if (productionDate != null) {
                         OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
-                        startDate = IProperty.buildDate("start_date", date);
-                        stopDate = IProperty.buildDate("end_date", date.plusYears(10L));
+                        startDate = IProperty.buildDate(START_DATE, date);
+                        stopDate = IProperty.buildDate(END_DATE, date.plusYears(10L));
                     }
                     break;
                 case "ECLIPSE":
@@ -275,15 +277,15 @@ public class FeatureFactoryService {
                 case "L1_DORIS_RINEX_INVALID":
                     if (dayDate != null) {
                         OffsetDateTime date = (OffsetDateTime) dayDate.getValue();
-                        startDate = IProperty.buildDate("start_date", date);
-                        stopDate = IProperty.buildDate("end_date", date.plusHours(1L));
+                        startDate = IProperty.buildDate(START_DATE, date);
+                        stopDate = IProperty.buildDate(END_DATE, date.plusHours(1L));
                     }
                     break;
                 case "L0A_GPSP_Packet":
                     if (productionDate != null) {
                         OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
-                        startDate = IProperty.buildDate("start_date", date);
-                        stopDate = IProperty.buildDate("end_date", date);
+                        startDate = IProperty.buildDate(START_DATE, date);
+                        stopDate = IProperty.buildDate(END_DATE, date);
                     }
                     break;
                 default:
@@ -292,8 +294,8 @@ public class FeatureFactoryService {
                     break;
             }
             if ((startDate != null) && (stopDate != null)) {
-                startDate = dataDesc.buildPropertyFragment("data.start_date", startDate);
-                stopDate = dataDesc.buildPropertyFragment("data.end_date", stopDate);
+                startDate = dataDesc.buildPropertyFragment(DATA_START_DATE, startDate);
+                stopDate = dataDesc.buildPropertyFragment(DATA_END_DATE, stopDate);
                 IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(startDate), fileName,
                                           this.getClass().getName());
                 IProperty.mergeProperties(toCreate.getProperties(), Sets.newHashSet(stopDate), fileName,
