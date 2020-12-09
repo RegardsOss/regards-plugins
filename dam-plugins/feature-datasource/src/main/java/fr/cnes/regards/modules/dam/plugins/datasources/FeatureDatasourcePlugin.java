@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +111,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
     /**
      * Map of {@link Project}s by tenant
      */
-    private final Map<String, Project> projects = new HashMap<>();
+    private final Map<String, Project> projects = new ConcurrentHashMap<>();
 
     /**
      * Storage cache for online and offline storages. Only used if at least one feature has files.
@@ -150,8 +151,8 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
             result.add(initDataObjectFeature(tenant, em));
         }
         return new PageImpl<DataObjectFeature>(result,
-                PageRequest.of(new Long(page.getMetadata().getNumber()).intValue(),
-                               new Long(page.getMetadata().getSize()).intValue()),
+                PageRequest.of(Long.valueOf(page.getMetadata().getNumber()).intValue(),
+                               Long.valueOf(page.getMetadata().getSize()).intValue()),
                 page.getMetadata().getTotalElements());
     }
 

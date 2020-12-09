@@ -275,8 +275,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                 boolean nullBody = body == null;
                 switch (r.status()) {
                     case 429:
-                        if (nullBody)
+                        if (nullBody) {
                             return "Download failed due to exceeded quota";
+                        }
 
                         try (InputStream is = body.asInputStream()) {
                             return IOUtils.toString(is, StandardCharsets.UTF_8);
