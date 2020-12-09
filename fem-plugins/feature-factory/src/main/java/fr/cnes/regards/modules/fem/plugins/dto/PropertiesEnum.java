@@ -41,33 +41,33 @@ public enum PropertiesEnum {
 
     /** DATA Fragment */
 
-    RANGE_START_DATE("RangeBeginningDateTime", "data.start_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    RANGE_START_DATE("RangeBeginningDateTime", Constants.DATA_START_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
-    RANGE_END_DATE("RangeEndingDateTime", "data.end_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    RANGE_END_DATE("RangeEndingDateTime", Constants.DATA_END_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
-    DATE_TIME_BEGIN_TM("DateTimeBeginTM", "data.start_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    DATE_TIME_BEGIN_TM("DateTimeBeginTM", Constants.DATA_START_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
-    DATE_TIME_END_TM("DateTimeEndTM", "data.end_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    DATE_TIME_END_TM("DateTimeEndTM", Constants.DATA_END_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
-    CREATION_DATE_TIME("CreationDateTime", "data.production_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'_'HHmmss"),
+    CREATION_DATE_TIME("CreationDateTime", Constants.DATA_PRODUCTION_DATE, Constants.PATTERN_8___6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8___6),
 
-    START_DATE_TIME("StartDateTime", "data.start_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'_'HHmmss"),
+    START_DATE_TIME("StartDateTime", Constants.DATA_START_DATE, Constants.PATTERN_8___6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8___6),
 
-    END_DATE_TIME("EndDateTime", "data.end_date", "[0-9]{8}_[0-9]{6}", PropertyType.DATE_TIME, "yyyyMMdd'_'HHmmss"),
+    END_DATE_TIME("EndDateTime", Constants.DATA_END_DATE, Constants.PATTERN_8___6, PropertyType.DATE_TIME, Constants.FORMAT_8___6),
 
-    PRODUCTION_DATE_TIME("ProductionDateTime", "data.production_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    PRODUCTION_DATE_TIME("ProductionDateTime", Constants.DATA_PRODUCTION_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
-    DATE_CREATION_FILE("DateCreationFile", "data.production_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
+    DATE_CREATION_FILE("DateCreationFile", Constants.DATA_PRODUCTION_DATE, "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
 
-    DATETIME_CREATION_FILE("DateTimeCreationFile", "data.production_date", "[0-9]{8}T[0-9]{6}", PropertyType.DATE_TIME,
-            "yyyyMMdd'T'HHmmss"),
+    DATETIME_CREATION_FILE("DateTimeCreationFile", Constants.DATA_PRODUCTION_DATE, Constants.PATTERN_8_T_6, PropertyType.DATE_TIME,
+        Constants.FORMAT_8_T_6),
 
     TYPE("TYPE", "type", ".*", PropertyType.STRING),
 
@@ -85,7 +85,7 @@ public enum PropertiesEnum {
 
     SOURCE_TYPE("SourceType", null, "O|T|S", PropertyType.STRING),
 
-    SENSING_DATE_TIME("SensingDateDay", "swot.day_date", "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
+    SENSING_DATE_TIME("SensingDateDay", Constants.SWOT_DAY_DATE, "[0-9]{8}", PropertyType.DATE, "yyyyMMdd"),
 
     CYCLE_ID("CycleID", "swot.cycle_number", "[0-9]{3}", PropertyType.INTEGER),
 
@@ -224,4 +224,16 @@ public enum PropertiesEnum {
         return transformer;
     }
 
+    public static class Constants {
+        public static final String PATTERN_8_T_6 = "[0-9]{8}T[0-9]{6}";
+        public static final String PATTERN_8___6 = "[0-9]{8}_[0-9]{6}";
+        public static final String FORMAT_8_T_6 = "yyyyMMdd'T'HHmmss";
+        public static final String FORMAT_8___6 = "yyyyMMdd'_'HHmmss";
+        public static final String START_DATE = "start_date";
+        public static final String DATA_START_DATE = "data." + START_DATE;
+        public static final String END_DATE = "end_date";
+        public static final String DATA_END_DATE = "data." + END_DATE;
+        public static final String DATA_PRODUCTION_DATE = "data.production_date";
+        public static final String SWOT_DAY_DATE = "swot.day_date";
+    }
 }
