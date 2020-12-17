@@ -9,7 +9,7 @@
     <description>Webservice datasource. Those datasources pull data from an opensearch webservice and convert them in
         REGARDS DATA. They allow user specifying authentication to pull data and use corresponding files.
     </description>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0</version>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
     <inceptionYear>2016</inceptionYear>
@@ -35,7 +35,7 @@
     <parent>
         <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
         <artifactId>dam-plugins</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.0</version>
     </parent>
 
     <dependencies>
