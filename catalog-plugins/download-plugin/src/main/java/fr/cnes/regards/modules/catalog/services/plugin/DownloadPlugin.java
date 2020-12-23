@@ -68,6 +68,7 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.catalog.services.domain.ServicePluginParameters;
 import fr.cnes.regards.modules.catalog.services.domain.ServiceScope;
 import fr.cnes.regards.modules.catalog.services.domain.annotations.CatalogServicePlugin;
 import fr.cnes.regards.modules.catalog.services.domain.plugins.IEntitiesServicePlugin;
@@ -77,7 +78,6 @@ import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.AbstractCatalogServicePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 
 @Plugin(description = "Plugin to allow download on multiple data selection by creating an archive.",
@@ -135,18 +135,11 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> applyOnEntities(List<String> pEntitiesId,
-            HttpServletResponse response) {
-        Page<DataObject> results = serviceHelper.getDataObjects(pEntitiesId, 0, maxFilesToDownload);
-        return apply(results.getContent(), response);
-    }
-
-    @Override
-    public ResponseEntity<StreamingResponseBody> applyOnQuery(SearchRequest searchRequest, EntityType pEntityType,
+    public ResponseEntity<StreamingResponseBody> apply(ServicePluginParameters parameters,
             HttpServletResponse response) {
         Page<DataObject> results;
         try {
-            results = serviceHelper.getDataObjects(searchRequest, 0, 10000);
+            results = serviceHelper.getDataObjects(parameters.getSearchRequest(), 0, 10000);
             return apply(results.getContent(), response);
         } catch (ModuleException e) {
             String message = String.format("Error applying service. Cause : %s", e.getMessage());
