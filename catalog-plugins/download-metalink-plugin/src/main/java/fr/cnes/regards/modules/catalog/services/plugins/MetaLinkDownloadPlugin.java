@@ -47,6 +47,7 @@ import fr.cnes.regards.framework.security.utils.jwt.JWTService;
 import fr.cnes.regards.framework.security.utils.jwt.exception.JwtException;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.catalog.services.domain.ServicePluginParameters;
 import fr.cnes.regards.modules.catalog.services.domain.ServiceScope;
 import fr.cnes.regards.modules.catalog.services.domain.annotations.CatalogServicePlugin;
 import fr.cnes.regards.modules.catalog.services.domain.plugins.IEntitiesServicePlugin;
@@ -89,19 +90,11 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     private static final String METALINK_FILE_NAME = "regards-download.metalink";
 
     @Override
-    public ResponseEntity<StreamingResponseBody> applyOnEntities(List<String> pEntitiesId,
-            HttpServletResponse response) {
-        return CatalogPluginResponseFactory.createStreamSuccessResponse(response, streamMetalinkXml(pEntitiesId),
-                                                                        METALINK_FILE_NAME,
-                                                                        MediaType.APPLICATION_OCTET_STREAM);
-    }
-
-    @Override
-    public ResponseEntity<StreamingResponseBody> applyOnQuery(SearchRequest searchRequest, EntityType pEntityType,
+    public ResponseEntity<StreamingResponseBody> apply(ServicePluginParameters parameters,
             HttpServletResponse response) {
         Page<DataObject> results;
         try {
-            results = serviceHelper.getDataObjects(searchRequest, 0, 1);
+            results = serviceHelper.getDataObjects(parameters.getSearchRequest(), 0, 1);
             if (results.getTotalElements() > 10_000) {
                 return CatalogPluginResponseFactory
                         .createSuccessResponse(response, CatalogPluginResponseType.JSON, String
@@ -116,9 +109,9 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
                                                                       message);
         }
 
-        return CatalogPluginResponseFactory.createStreamSuccessResponse(response, streamMetalinkXml(searchRequest),
-                                                                        METALINK_FILE_NAME,
-                                                                        MediaType.APPLICATION_OCTET_STREAM);
+        return CatalogPluginResponseFactory
+                .createStreamSuccessResponse(response, streamMetalinkXml(parameters.getSearchRequest()),
+                                             METALINK_FILE_NAME, MediaType.APPLICATION_OCTET_STREAM);
     }
 
     private StreamingResponseBody streamMetalinkXml(SearchRequest searchRequest) {
@@ -148,43 +141,6 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
                 xtw.flush();
                 xtw.close();
             } catch (XMLStreamException | ModuleException e) {
-                LOGGER.error("Error writting response", e);
-            } finally {
-                out.flush();
-            }
-            LOGGER.debug("Wrtting data done. ");
-        };
-        return stream;
-    }
-
-    private StreamingResponseBody streamMetalinkXml(List<String> entityIds) {
-        StreamingResponseBody stream = out -> {
-            LOGGER.debug("Start writting metalink ... ");
-            try {
-                Page<DataObject> results;
-                int pageIndex = 0;
-                // Create XML metalink object
-                XMLOutputFactory xof = XMLOutputFactory.newInstance();
-                XMLStreamWriter xtw = null;
-                xtw = xof.createXMLStreamWriter(out);
-                xtw.writeStartDocument("utf-8", "1.0");
-                xtw.writeStartElement("metalink");
-                xtw.writeAttribute("xmlns", "http://www.metalinker.org");
-                xtw.writeStartElement("files");
-                do {
-                    results = serviceHelper.getDataObjects(entityIds, pageIndex, 1000);
-                    LOGGER.debug("Wrtting {} data ... ", results.getSize());
-                    LOGGER.debug("Wrtting {} data done. ", results.getSize());
-                    downloadOrderMetalink(results.getContent(), xtw);
-                    xtw.flush();
-                    pageIndex++;
-                } while (results.hasNext());
-                xtw.writeEndElement();
-                xtw.writeEndElement();
-                xtw.writeEndDocument();
-                xtw.flush();
-                xtw.close();
-            } catch (XMLStreamException e) {
                 LOGGER.error("Error writting response", e);
             } finally {
                 out.flush();
