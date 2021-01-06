@@ -33,6 +33,8 @@ public class GpfsProtocolHandler {
 
     private static boolean initialized = false;
 
+    private GpfsProtocolHandler() {}
+
     public static void initializeProtocol() {
         if (!initialized) {
             URL.setURLStreamHandlerFactory(protocol -> {

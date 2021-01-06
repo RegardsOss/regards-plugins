@@ -171,6 +171,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
     private Map<String, String> bindingMap;
 
+    //    @PluginParameter(name = "overlap",
+    //            description = "Overlap so that AIP search starts from the specified date minus the overlap in second",
+    //            label = "Overlap in second")
+    //    private final Long overlap = 60L;
+
     @Autowired
     private IModelService modelService;
 
@@ -317,9 +322,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
             List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody().stream()
                     .map(n -> n.getContent()).collect(Collectors.toList());
+            // Manage overlap
+            OffsetDateTime from = date;
+            if (date != null) {
+                from = date.minusSeconds(60L);
+            }
+
             ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
                     .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
-                            .withCategories(categories).withLastUpdateFrom(date), pageable.getPageNumber(),
+                            .withCategories(categories).withLastUpdateFrom(from), pageable.getPageNumber(),
                                 pageable.getPageSize());
             Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
@@ -370,6 +381,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
         // Add session information for session monitoring.
         feature.setSessionOwner(aipEntity.getSessionOwner());
         feature.setSession(aipEntity.getSession());
+
+        feature.setLast(aipEntity.isLast());
 
         // Sum size of all RAW DATA Files
         Long rawDataFilesSize = 0L;

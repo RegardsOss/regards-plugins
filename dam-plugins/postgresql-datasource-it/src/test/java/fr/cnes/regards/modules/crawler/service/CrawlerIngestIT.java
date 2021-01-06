@@ -368,6 +368,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("searchService : " + searchService);
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
+
         Page<DataObject> objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
                                                             ICriterion.eq("tags", dataset.getIpId().toString()));
         Assert.assertEquals(1L, objectsPage.getTotalElements());

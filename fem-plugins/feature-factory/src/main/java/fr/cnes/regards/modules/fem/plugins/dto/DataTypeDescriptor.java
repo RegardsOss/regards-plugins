@@ -229,7 +229,9 @@ public class DataTypeDescriptor {
             return OffsetDateTime.of(LocalDate.parse(date, DateTimeFormatter.ofPattern(format)).atStartOfDay(),
                                      ZoneOffset.UTC);
         } catch (Exception e) {
-            throw new ModuleException(String.format("Parse date exception %s", e.getMessage()));
+            String errorMessage = String.format("Parse date exception %s", e.getMessage());
+            LOGGER.error(errorMessage, e);
+            throw new ModuleException(errorMessage);
         }
     }
 
@@ -241,7 +243,9 @@ public class DataTypeDescriptor {
         try {
             return OffsetDateTime.of(LocalDateTime.parse(date, DateTimeFormatter.ofPattern(format)), ZoneOffset.UTC);
         } catch (Exception e) {
-            throw new ModuleException(String.format("Parse date exception %s", e.getMessage()));
+            String errorMessage = String.format("Parse date time exception %s", e.getMessage());
+            LOGGER.error(errorMessage, e);
+            throw new ModuleException(errorMessage);
         }
     }
 

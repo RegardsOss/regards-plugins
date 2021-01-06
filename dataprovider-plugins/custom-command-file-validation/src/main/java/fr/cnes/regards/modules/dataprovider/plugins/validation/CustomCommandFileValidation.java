@@ -80,8 +80,11 @@ public class CustomCommandFileValidation implements IValidationPlugin {
                 // Because some native platforms only provide limited buffer size for standard input and output streams,
                 // failure to promptly write the input stream or read the output stream of the subprocess may cause the subprocess to block,
                 // and even deadlock.
-                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                while ((reader.readLine()) != null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                    //noinspection StatementWithEmptyBody
+                    while ((reader.readLine()) != null) {
+                        // Consume stream.
+                    }
                 }
                 p.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             } catch (IOException | InterruptedException e) {
