@@ -70,8 +70,7 @@
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-            <artifactId>webservice-datasource</artifactId>
-            <version>1.0.1</version>
+            <artifactId>postgresql-datasource</artifactId>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>

@@ -148,11 +148,6 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
     }
 
     @Override
-    protected String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date) throws DataSourceException {
-        return OffsetDateTimeAdapter.format(date);
-    }
-
-    @Override
     public int getRefreshRate() {
         return refreshRate;
     }

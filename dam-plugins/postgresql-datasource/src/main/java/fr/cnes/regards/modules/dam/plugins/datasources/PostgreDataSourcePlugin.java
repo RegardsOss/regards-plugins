@@ -118,9 +118,4 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
     protected String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date) throws DataSourceException {
         return OffsetDateTimeAdapter.format(date);
     }
-
-    @Override
-    protected String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date) throws DataSourceException {
-        return OffsetDateTimeAdapter.format(date);
-    }
 }
