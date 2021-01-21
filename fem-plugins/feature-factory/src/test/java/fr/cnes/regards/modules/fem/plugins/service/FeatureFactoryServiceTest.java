@@ -165,6 +165,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
         String urlPrefix = "/directory/sub/";
+        int nbError=0;
         for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
                 try {
@@ -193,11 +194,15 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                     //                                      com.google.common.io.Files.equal(result, Paths
                     //                                              .get("src/test/resources/features", d.getType() + ".json").toFile()));
                 } catch (ModuleException e) {
-                    LOGGER.error("--------> [{}] Invalid data descriptor cause : {}", d.getType(), e.getMessage());
-                    Assert.fail(String.format("[%s] Invalid data descriptor cause : %s", d.getType(), e.getMessage()));
+                    LOGGER.error("--------> [{}] Invalid data descriptor cause :", d.getType(), e);
+                    nbError++;
+                } catch (Exception e) {
+                    LOGGER.error(e.getMessage(), e);
+                    nbError++;
                 }
             }
         }
+        Assert.assertEquals(0, nbError);
         Assert.assertEquals(112, featureFactory.getDescriptors().size());
 
         // Test error cases

@@ -127,7 +127,7 @@ public class DataTypeDescriptor {
     /**
      * Regex to read a property name from the given template
      */
-    private static String propertyPattern = "\\{\\{ [a-zA-Z]* \\}\\}";
+    private static String propertyPattern = "\\{\\{ [a-zA-Z0-9]* \\}\\}";
 
     /**
      * {@link Pattern} to read a property name from the given template

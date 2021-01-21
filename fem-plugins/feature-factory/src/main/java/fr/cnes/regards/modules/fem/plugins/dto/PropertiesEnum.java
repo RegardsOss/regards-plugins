@@ -105,7 +105,9 @@ public enum PropertiesEnum {
 
     SCENE_ID("SceneID", "swot.scene_id", "[0-9]{3}", PropertyType.INTEGER),
 
-    BASIN_ID("BassinID", "swot.bassin_id", "[0-9]{3}", PropertyType.STRING);
+    BASIN_ID("BassinID", "swot.bassin_id", "[0-9]{3}", PropertyType.STRING),
+
+    VERSION_3("Version3", null, "[0-9]{3}", PropertyType.STRING);
 
     private String name;
 
