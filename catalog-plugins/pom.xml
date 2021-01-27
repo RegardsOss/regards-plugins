@@ -56,5 +56,6 @@
 		<module>download-metalink-plugin</module>
 		<module>download-plugin</module>
 		<module>fem-driver</module>
+        <module>stac</module>
     </modules>
 </project>
