@@ -17,9 +17,9 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 import io.vavr.control.Try;
 
 import java.time.format.DateTimeFormatter;

@@ -17,31 +17,29 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain.properties;
+package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
+
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import io.vavr.collection.List;
+import io.vavr.control.Try;
 
 /**
- * This enumeration lists all the supported STAC property types.
- *
- * @author gandrieu
+ * Defines methods to create ItemSearchBody from simpler components
  */
-public enum PropertyType {
+public interface ItemSearchBodyFactory {
 
-    DURATION,
-    DATETIME,
-    URL,
-    STRING,
+    // @formatter:off
 
-    ANGLE,
-    LENGTH,
-    PERCENTAGE,
-    NUMBER,
+    Try<ItemSearchBody> parseItemSearch(
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            List<String> collections,
+            List<String> ids,
+            String fields,
+            String query,
+            String sortBy
+    );
 
-    GEOMETRY,
-    BBOX,
-
-    BOOLEAN,
-
-    OBJECT,
-    ;
-
+    // @formatter:on
 }

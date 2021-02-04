@@ -22,17 +22,17 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.ItemCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
@@ -45,6 +45,12 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 @RequestMapping(STAC_SEARCH_PATH)
 public class ItemSearchController {
 
+    private final ItemSearchBodyFactory itemSearchBodyFactory;
+
+    @Autowired
+    public ItemSearchController(ItemSearchBodyFactory itemSearchBodyFactory) {
+        this.itemSearchBodyFactory = itemSearchBodyFactory;
+    }
 
     @Operation(summary = "search with simple filtering",
             description = "Retrieve Items matching filters. Intended as a shorthand API for simple queries.")
@@ -81,15 +87,8 @@ public class ItemSearchController {
     )
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ItemCollection> complex(
-            @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
-            @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
-            @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
-            @RequestParam(name = COLLECTIONS_QUERY_PARAM, required = false) List<String> collections,
-            @RequestParam(name = IDS_QUERY_PARAM, required = false) List<String> ids,
-            @RequestParam(name = FIELDS_QUERY_PARAM, required = false) String fields,
-            @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
-            @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy
-    ) throws ModuleException {
+            @RequestBody ItemSearchBody itemSearch
+            ) throws ModuleException {
         // TODO
         return null;
     }

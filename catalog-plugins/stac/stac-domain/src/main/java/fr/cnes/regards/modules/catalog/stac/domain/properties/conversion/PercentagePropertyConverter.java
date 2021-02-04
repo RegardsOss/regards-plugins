@@ -17,9 +17,9 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -32,8 +32,13 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
     public enum PercentageBase {
         /** Means that the percentage is expressed as a ratio: a number between 0 and 1 */
         ONE,
-        /** Means that the percentage is expressed as percentage points: a number between 0 and 100 */
-        HUNDRED
+        /** Means that the percentage is expressed as percentage points: a number between 0 and 100 ; default value. */
+        HUNDRED,
+        ;
+
+        public static PercentageBase parsePercentageBase(String format) {
+            return Try.of(() -> PercentageBase.valueOf(format.trim())).getOrElse(PercentageBase.HUNDRED);
+        }
     }
 
     private final PercentageBase stacBase;

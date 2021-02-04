@@ -25,7 +25,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- *
+ * Definition of the configuration for a STAC property, defining which model attribute
+ * it corresponds to and how to convert from the one to the other.
  */
 @Data
 @AllArgsConstructor
@@ -57,13 +58,6 @@ public class StacPropertyConfiguration {
     private String stacExtension;
 
     @PluginParameter(
-            name = "stacType",
-            label = "STAC property type",
-            description = "Defines the type and eventual format conversion details for this property."
-    )
-    private StacPropertyTypeConfiguration stacType;
-
-    @PluginParameter(
             name = "stacComputeExtent",
             label = "compute extent",
             description = "Whether an extent should be computed for this property in the collections"
@@ -78,11 +72,38 @@ public class StacPropertyConfiguration {
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
-            name = "spatial4jConfiguration",
-            label = "Configuration for spatial4j",
-            description = "This property configures the spatial4j library, allowing to compute bounding boxes from geometries."
+            name = "stacType",
+            label = "Property type",
+            description = "Should take a value among: " +
+                    "'DURATION', " +
+                    "'DATETIME', " +
+                    "'URL', " +
+                    "'STRING', " +
+                    "'ANGLE', " +
+                    "'LENGTH', " +
+                    "'PERCENTAGE', " +
+                    "'NUMBER', " +
+                    "'GEOMETRY', " +
+                    "'BBOX', " +
+                    "'BOOLEAN', " +
+                    "'OBJECT'."
     )
-    private Spatial4jConfiguration spatial4jConfiguration;
+    private String stacType;
 
+    @PluginParameter(
+            name = "stacFormat",
+            label = "Format for the STAC value",
+            description = "This parameter describes the format for values in STAC." +
+                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. "
+    )
+    private String stacFormat;
+
+    @PluginParameter(
+            name = "regardsFormat",
+            label = "Format for the REGARDS value",
+            description = "This parameter describes the format for values in REGARDS." +
+                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. "
+    )
+    private String regardsFormat;
 
 }

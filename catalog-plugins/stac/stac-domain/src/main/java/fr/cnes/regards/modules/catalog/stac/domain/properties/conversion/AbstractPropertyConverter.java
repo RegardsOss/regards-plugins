@@ -17,30 +17,28 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 import io.vavr.control.Try;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
- * Lists a bunch of constant values defined by the STAC specification.
+ * Provides the generic mechanics to convert from a value of type X to a value of type Y,
+ * and vice-versa.
+ *
+ * @param <ST> the STAC type
+ * @param <RT> the REGARDS type
  */
-public class StacSpecConstants {
+public abstract class AbstractPropertyConverter<ST, RT> {
 
-    public static String STAC_DEFAULT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+   private final PropertyType type;
 
-    public static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(STAC_DEFAULT_FORMAT);
+   public AbstractPropertyConverter(PropertyType type) {
+      this.type = type;
+   }
 
-    public interface PropertyName {
-        String DATETIME_PROPERTY_NAME = "datetime";
-        String TAGS_PROPERTY_NAME = "tags";
-        String ID_PROPERTY_NAME = "ipId";
-    }
+   public abstract Try<ST> convertRegardsToStac(RT value);
 
-    public static  Try<OffsetDateTime> parseDatetime(String repr) {
-        return Try.of(() -> OffsetDateTime.from(StacSpecConstants.DATE_FORMAT.parse(repr)));
-    }
+   public abstract Try<RT> convertStacToRegards(ST value);
 
 }

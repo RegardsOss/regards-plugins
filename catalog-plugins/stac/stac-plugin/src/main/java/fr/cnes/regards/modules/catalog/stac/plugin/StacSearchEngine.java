@@ -23,13 +23,20 @@ import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.Spatial4jConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.domain.StacSearchDescription;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacPropertyConfigurationToDomainPropertyMapper;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.domain.plugin.IEntityLinkBuilder;
 import fr.cnes.regards.modules.search.domain.plugin.ISearchEngine;
 import fr.cnes.regards.modules.search.domain.plugin.SearchContext;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -45,15 +52,26 @@ import java.util.List;
         url = "https://github.com/RegardsOss",
         markdown = "StacEnginePlugin.md"
 )
-public class StacSearchEngine implements ISearchEngine<Object, StacSearchDescription, Object, List<String>> {
+@Data @AllArgsConstructor @NoArgsConstructor
+public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, Object, List<String>> {
 
     static final String PLUGIN_ID = "StacSearchEngine";
 
+    @Autowired
+    private StacPropertyConfigurationToDomainPropertyMapper propMapper;
+
     @PluginParameter(
-            name = "paramConfigurations",
-            label = "Parameters configuration",
-            markdown = "StacEngineParamConfiguration.md")
-    private List<StacPropertyConfiguration> paramConfigurations = Lists.newArrayList();
+            name = "stacProperties",
+            label = "STAC properties",
+            markdown = "StacEngineParamPropertiesConfiguration.md")
+    private List<StacPropertyConfiguration> stacProperties = Lists.newArrayList();
+
+    @PluginParameter(
+            name = "spatial4jConfiguration",
+            label = "Configuration for spatial4j",
+            description = "This property configures the spatial4j library, allowing to compute bounding boxes from geometries."
+    )
+    private Spatial4jConfiguration spatial4jConfiguration;
 
     @Override
     public boolean supports(SearchType searchType) {
@@ -73,5 +91,9 @@ public class StacSearchEngine implements ISearchEngine<Object, StacSearchDescrip
     @Override
     public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder) throws ModuleException {
         return null;
+    }
+
+    public io.vavr.collection.List<StacProperty> getConfiguredProperties() {
+        return propMapper.getConfiguredProperties(stacProperties);
     }
 }

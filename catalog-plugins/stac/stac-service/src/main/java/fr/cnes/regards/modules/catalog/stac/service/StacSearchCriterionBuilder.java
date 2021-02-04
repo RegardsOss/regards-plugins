@@ -17,12 +17,19 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain;
+package fr.cnes.regards.modules.catalog.stac.service;
+
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import io.vavr.collection.List;
+import io.vavr.control.Try;
 
 /**
- * TODO: STACSearchDescription description
- *
- * @author gandrieu
+ * Interface defining the methods for transforming {@link ItemSearchBody} into {@link ICriterion}
  */
-public class StacSearchDescription {
+public interface StacSearchCriterionBuilder {
+
+    Try<ICriterion> toCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody);
+
 }

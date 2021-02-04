@@ -20,7 +20,10 @@
 package fr.cnes.regards.modules.catalog.stac.domain;
 
 import com.google.gson.GsonBuilder;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.DateIntervalTypeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.QueryObjectTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.testutils.serde.AbstractGsonSerdeTest;
@@ -50,13 +53,20 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
                     ? generator.nextObject(ItemSearchBody.BooleanQueryObject.class)
                     : generator.nextObject(ItemSearchBody.NumberQueryObject.class)
                 : generator.nextObject(ItemSearchBody.StringQueryObject.class);
+        })
+        .randomize(DateInterval.class, () -> {
+            return generator.nextBoolean() ? DateInterval.single(generator.nextObject(OffsetDateTime.class))
+                : generator.nextBoolean() ? DateInterval.from(generator.nextObject(OffsetDateTime.class))
+                : generator.nextBoolean() ? DateInterval.to(generator.nextObject(OffsetDateTime.class))
+                : DateInterval.of(generator.nextObject(OffsetDateTime.class), generator.nextObject(OffsetDateTime.class));
         });
     }
 
     @Override
     protected GsonBuilder updateGsonBuilder(GsonBuilder builder) {
         builder.registerTypeAdapter(BBox.class, new BBox.BBoxTypeAdapter());
-        builder.registerTypeAdapter(ItemSearchBody.QueryObject.class, new ItemSearchBody.QueryObjectTypeAdapter());
+        builder.registerTypeAdapter(ItemSearchBody.QueryObject.class, new QueryObjectTypeAdapter());
+        builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());
         return builder;
     }
 }

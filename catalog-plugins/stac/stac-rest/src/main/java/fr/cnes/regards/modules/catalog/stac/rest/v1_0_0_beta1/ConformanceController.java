@@ -22,7 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.api.ConformanceResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ConformanceResponse;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

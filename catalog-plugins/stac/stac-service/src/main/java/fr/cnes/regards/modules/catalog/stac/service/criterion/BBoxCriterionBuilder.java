@@ -17,27 +17,25 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
-import fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.PropertyType;
-import io.vavr.control.Try;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import io.vavr.collection.List;
+import io.vavr.control.Option;
+import org.springframework.stereotype.Component;
 
 /**
- * Use this property converter when there is no need for conversion.
+ * Builder for bbox criteria.
  */
-public class IdentityPropertyConverter<X> extends AbstractPropertyConverter<X, X> {
-
-    public IdentityPropertyConverter(PropertyType type) {
-        super(type);
-    }
+@Component
+public class BBoxCriterionBuilder implements CriterionBuilder<BBox> {
 
     @Override
-    public Try<X> convertRegardsToStac(X value) {
-        return Try.success(value);
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties, BBox bbox) {
+        return Option.of(bbox)
+                .map(bb -> ICriterion.intersectsBbox(bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY()));
     }
 
-    @Override
-    public Try<X> convertStacToRegards(X value) {
-        return Try.success(value);
-    }
 }

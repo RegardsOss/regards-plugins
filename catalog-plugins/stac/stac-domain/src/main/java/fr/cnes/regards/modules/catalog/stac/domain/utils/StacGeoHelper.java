@@ -17,34 +17,34 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain;
+package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.Spatial4jConfiguration;
 import io.vavr.control.Try;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Provides utilities to compute geometry-related values.
  */
+@Component
 public class StacGeoHelper {
 
     private final Gson gson;
-    private final Spatial4jConfiguration spatial4jConfig;
 
-    public StacGeoHelper(Gson gson, Spatial4jConfiguration spatial4jConfig) {
+    @Autowired
+    public StacGeoHelper(Gson gson) {
         this.gson = gson;
-        this.spatial4jConfig = spatial4jConfig;
     }
 
-    public Try<BBox> computeBBox(IGeometry p) {
+    public Try<BBox> computeBBox(IGeometry p, GeoJSONReader reader) {
         return Try.of(() -> {
             String json = gson.toJson(p);
-            GeoJSONReader reader = spatial4jConfig.geoJsonReader();
             Shape shape = reader.read(json);
             Rectangle boundingBox = shape.getBoundingBox();
             return new BBox(

@@ -17,28 +17,30 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
-import fr.cnes.regards.modules.catalog.stac.plugin.domain.properties.PropertyType;
-import io.vavr.control.Try;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
+import lombok.Value;
+import lombok.With;
 
 /**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
- *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
+ * Represents a configured STAC property.
  */
-public abstract class AbstractPropertyConverter<ST, RT> {
+@Value @With
+public class StacProperty<S, R> {
 
-   private final PropertyType type;
+    String modelAttributeName;
 
-   public AbstractPropertyConverter(PropertyType type) {
-      this.type = type;
-   }
+    String stacPropertyName;
 
-   public abstract Try<ST> convertRegardsToStac(RT value);
+    String extension;
 
-   public abstract Try<RT> convertStacToRegards(ST value);
+    Boolean computeExtent;
+
+    Integer dynamicCollectionLevel;
+
+    PropertyType type;
+
+    AbstractPropertyConverter<S, R> converter;
 
 }
