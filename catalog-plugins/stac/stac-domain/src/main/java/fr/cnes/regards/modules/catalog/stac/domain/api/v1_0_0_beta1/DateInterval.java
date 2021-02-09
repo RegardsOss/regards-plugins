@@ -35,7 +35,7 @@ import static org.apache.commons.lang3.StringUtils.split;
 /**
  * Represents a date or an interval between dates.
  */
-@Value(staticConstructor = "of")
+@Value
 public class DateInterval {
 
     public static final String OPEN_END = "..";
@@ -56,6 +56,9 @@ public class DateInterval {
     }
     public static DateInterval to(OffsetDateTime d) {
         return new DateInterval(OffsetDateTime.MIN, d);
+    }
+    public static DateInterval of(OffsetDateTime f, OffsetDateTime t) {
+        return new DateInterval(f, t);
     }
 
     public String repr() {

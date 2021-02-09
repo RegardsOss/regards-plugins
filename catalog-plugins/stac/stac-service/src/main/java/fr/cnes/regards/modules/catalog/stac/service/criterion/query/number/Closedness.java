@@ -17,30 +17,15 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties;
-
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
-import lombok.Value;
-import lombok.With;
+package fr.cnes.regards.modules.catalog.stac.service.criterion.query.number;
 
 /**
- * Represents a configured STAC property.
+ * Describes if an interval end is closed or open (strict or not).
  */
-@Value @With
-public class StacProperty {
-
-    String modelAttributeName;
-
-    String stacPropertyName;
-
-    String extension;
-
-    Boolean computeExtent;
-
-    Integer dynamicCollectionLevel;
-
-    PropertyType type;
-
-    AbstractPropertyConverter converter;
-
+public enum Closedness {
+    /** Non strict */
+    OPEN,
+    /** Strict*/
+    CLOSED
+    ;
 }

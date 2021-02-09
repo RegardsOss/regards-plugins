@@ -23,5 +23,19 @@
             <groupId>fr.cnes.regards.modules.indexer</groupId>
             <artifactId>indexer-domain</artifactId>
         </dependency>
+
+        <!--=== TEST ===-->
+        <dependency>
+            <groupId>fr.cnes.regards.framework.test</groupId>
+            <artifactId>regards-integration-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-vavr</artifactId>
+            <version>0.2.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>

@@ -24,13 +24,11 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.*;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilderHelper.andAllPresent;
 
 /**
  * Base implementation for {@link StacSearchCriterionBuilder}.
@@ -68,9 +66,8 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     }
 
     @Override
-    public Try<ICriterion> toCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
-        return Try.of(() ->
-            andAllPresent(
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
+        return andAllPresent(
                 bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
                 collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
                 dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
@@ -78,14 +75,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                 identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
                 geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
                 queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery())
-            )
-            .getOrElse(ICriterion::all)
-        );
+            );
     }
-
-
-
-
-
 
 }

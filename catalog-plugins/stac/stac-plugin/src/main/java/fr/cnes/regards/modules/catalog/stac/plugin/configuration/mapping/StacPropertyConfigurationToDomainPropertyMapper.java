@@ -25,7 +25,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.Abstrac
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PropertyConverterFactory;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import io.vavr.collection.List;
-import io.vavr.collection.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +41,8 @@ public class StacPropertyConfigurationToDomainPropertyMapper {
         this.propertyConverterFactory = propertyConverterFactory;
     }
 
-    public List<StacProperty> getConfiguredProperties(java.util.List<StacPropertyConfiguration> paramConfigurations) {
-        return Stream.ofAll(paramConfigurations)
+    public List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
+        return paramConfigurations
                 .map(s -> {
                     PropertyType type = PropertyType.parse(s.getStacType());
                     AbstractPropertyConverter converter = propertyConverterFactory.getConverter(

@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.ItemCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.swagger.v3.oas.annotations.Operation;
@@ -104,11 +105,11 @@ public class OGCFeaturesController {
             @ApiResponse(responseCode = "404", description = "Feature not found.")
     })
     @ResourceAccess(
-            description = "fetch features",
+            description = "fetch a single feature",
             role = DefaultRole.REGISTERED_USER
     )
     @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<ItemCollection> feature(
+    public ResponseEntity<Item> feature(
             @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @PathVariable(name = ITEM_ID_PARAM) String featureId
     ) throws ModuleException {

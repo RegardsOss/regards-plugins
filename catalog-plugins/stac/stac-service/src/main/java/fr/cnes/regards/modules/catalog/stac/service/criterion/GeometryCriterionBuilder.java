@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
  * <p>
  *   <strong>Notes:</strong>
  *   <ul>
- *     <li>Geometry criterion is only implemented for polygons and multipolygins.</li>
+ *     <li>Geometry criterion is only implemented for polygons and multipolygons.</li>
  *   </ul>
  * </p>
  */

@@ -22,7 +22,6 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PercentagePropertyConverter.PercentageBase.parsePercentageBase;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Base implementation for {@link PropertyConverterFactory}
@@ -36,18 +35,6 @@ public class PropertyConverterFactoryImpl implements PropertyConverterFactory {
             String regardsFormat
     ) {
         switch (type) {
-            case DATETIME:
-                if (isNotBlank(regardsFormat)) {
-                    if (isNotBlank(stacFormat)) {
-                        return new DatetimePropertyConverter(stacFormat, regardsFormat);
-                    }
-                    else {
-                        return new DatetimePropertyConverter(regardsFormat);
-                    }
-                }
-                else {
-                    return new IdentityPropertyConverter<>(type);
-                }
             case PERCENTAGE: return new PercentagePropertyConverter(parsePercentageBase(stacFormat), parsePercentageBase(regardsFormat));
             default: return new IdentityPropertyConverter<>(type);
         }

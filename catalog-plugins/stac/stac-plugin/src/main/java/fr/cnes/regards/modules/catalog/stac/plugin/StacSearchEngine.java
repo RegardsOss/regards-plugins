@@ -41,6 +41,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
+
 @Plugin(
         id = StacSearchEngine.PLUGIN_ID,
         version = "1.0.0",
@@ -61,10 +63,17 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private StacPropertyConfigurationToDomainPropertyMapper propMapper;
 
     @PluginParameter(
-            name = "stacProperties",
-            label = "STAC properties",
-            markdown = "StacEngineParamPropertiesConfiguration.md")
-    private List<StacPropertyConfiguration> stacProperties = Lists.newArrayList();
+            name = "stacDatetimeProperty",
+            label = "STAC datetime property",
+            description = "Mandatory configuration for the datetime property, corresponding to the" +
+                    " 'temporal' aspect of the STAC spec.")
+    private StacPropertyConfiguration stacDatetimeProperty;
+
+    @PluginParameter(
+            name = "stacExtraProperties",
+            label = "STAC extra properties",
+            description = "List of other STAC properties to be mapped to model attributes.")
+    private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
     @PluginParameter(
             name = "spatial4jConfiguration",
@@ -94,6 +103,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     }
 
     public io.vavr.collection.List<StacProperty> getConfiguredProperties() {
-        return propMapper.getConfiguredProperties(stacProperties);
+        return propMapper.getConfiguredProperties(
+            io.vavr.collection.List.ofAll(stacExtraProperties)
+                .prepend(stacDatetimeProperty.withStacPropertyName(DATETIME_PROPERTY_NAME)));
     }
 }

@@ -17,27 +17,31 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.criterion;
+package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.BooleanQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 
-import java.util.function.Function;
+import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.eq;
 
 /**
- * Helper methods for criterion building.
+ * Criterion builder for a {@link BooleanQueryObject}
  */
-public class CriterionBuilderHelper {
+public class BooleanQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<BooleanQueryObject> {
 
-    public static Option<ICriterion> withAll(List<ICriterion> criteria, Function<Iterable<ICriterion>, ICriterion> combinator) {
-        return criteria.isEmpty() ? Option.none()
-                : criteria.size() == 1 ? Option.of(criteria.get(0))
-                : Option.of(combinator.apply(criteria));
+    public BooleanQueryCriterionBuilder(String stacPropName) {
+        super(stacPropName);
     }
 
-    public static Option<ICriterion> andAllPresent(Option<ICriterion>... criteria) {
-        return withAll(List.of(criteria).flatMap(opt -> opt), ICriterion::and);
+    @Override
+    public Option<ICriterion> buildCriterion(String attr, List<StacProperty> properties, BooleanQueryObject value) {
+        return andAllPresent(
+                Option.of(value.getEq()).map(eq -> eq(attr, eq)),
+                Option.of(value.getNeq()).map(neq -> eq(attr, !neq))
+        );
     }
 
 }

@@ -23,12 +23,13 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.With;
 
 /**
  * Definition of the configuration for a STAC property, defining which model attribute
  * it corresponds to and how to convert from the one to the other.
  */
-@Data
+@Data @With
 @AllArgsConstructor
 @NoArgsConstructor
 public class StacPropertyConfiguration {

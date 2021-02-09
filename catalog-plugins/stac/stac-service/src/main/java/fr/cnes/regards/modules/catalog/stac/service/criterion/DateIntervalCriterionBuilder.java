@@ -39,13 +39,17 @@ public class DateIntervalCriterionBuilder implements CriterionBuilder<DateInterv
         Option<StacProperty> datetimeProperty = datetimeProperty(properties);
 
         if (datetime == null) { return Option.none(); }
-        return datetimeProperty.map(p -> datetime.isSingleDate()
-                ? ICriterion.between(p.getModelAttributeName(), datetime.getFrom(), datetime.getTo())
-                : ICriterion.eq(p.getModelAttributeName(), datetime.getFrom())
+        return datetimeProperty.map(p -> {
+                    boolean singleDate = datetime.isSingleDate();
+                    return singleDate
+                        ? ICriterion.eq(p.getModelAttributeName(), datetime.getFrom())
+                        : ICriterion.between(p.getModelAttributeName(), datetime.getFrom(), datetime.getTo());
+                }
         );
     }
 
     public Option<StacProperty> datetimeProperty(List<StacProperty> properties) {
         return properties.find(p -> DATETIME_PROPERTY_NAME.equals(p.getStacPropertyName()));
     }
+
 }

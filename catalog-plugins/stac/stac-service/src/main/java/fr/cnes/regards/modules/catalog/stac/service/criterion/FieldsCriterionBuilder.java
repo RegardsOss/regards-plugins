@@ -26,8 +26,6 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
 
-import static fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilderHelper.withAll;
-
 /**
  * Build criteria for presence/absence of fields.
  */
@@ -36,6 +34,7 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, Fields fields) {
+        if (fields == null) { return Option.none(); }
         Option<ICriterion> includes = fields.getIncludes()
                 .map(inc -> propertyNameFor(properties, inc))
                 .map(ICriterion::attributeExists)

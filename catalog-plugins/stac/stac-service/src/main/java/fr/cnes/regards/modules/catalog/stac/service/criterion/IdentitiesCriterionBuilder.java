@@ -36,7 +36,7 @@ public class IdentitiesCriterionBuilder implements CriterionBuilder<List<String>
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> ids) {
         if (ids == null || ids.isEmpty()) { return Option.none(); }
-        return Option.of(ICriterion.or(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id))));
+        return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id)), ICriterion::or);
     }
 
 }

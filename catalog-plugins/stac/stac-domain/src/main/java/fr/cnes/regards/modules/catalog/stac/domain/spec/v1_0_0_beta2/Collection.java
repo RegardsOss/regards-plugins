@@ -25,6 +25,8 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import lombok.Value;
+import lombok.With;
 
 /**
  * The STAC Collection specification is a set of JSON fields to describe a set of Items in a STAC Catalog,
@@ -38,6 +40,7 @@ import io.vavr.collection.Map;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/collection-spec.md">Description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/json-schema/collection.json">JSON schema</a>
  */
+@Value @With
 public class Collection {
 
     @SerializedName("stac_version")
