@@ -11,7 +11,10 @@
         <version>1.4.1-SNAPSHOT</version>
         <relativePath />
     </parent>
+
+    <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
     <artifactId>stac</artifactId>
+
     <packaging>pom</packaging>
 
     <modules>
