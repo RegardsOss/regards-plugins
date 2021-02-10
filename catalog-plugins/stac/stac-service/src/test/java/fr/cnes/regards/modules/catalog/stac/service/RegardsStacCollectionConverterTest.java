@@ -1,6 +1,7 @@
 package fr.cnes.regards.modules.catalog.stac.service;
 
 
+import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter.IRegardsStacCollectionConverter;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.Matchers.is;
@@ -16,8 +18,9 @@ import static org.junit.Assert.assertThat;
 
 
 @ActiveProfiles("test")
-@RunWith(SpringRunner.class)
-public class RegardsStacCollectionConverterTest {
+@TestPropertySource(
+        properties = { "regards.multitenant.database.url=jdbc:postgresql://localhost:5432/rs_testdb_${user.name}" })
+public class RegardsStacCollectionConverterTest extends AbstractMultitenantServiceTest {
     @Autowired
     IRegardsStacCollectionConverter converter;
 
