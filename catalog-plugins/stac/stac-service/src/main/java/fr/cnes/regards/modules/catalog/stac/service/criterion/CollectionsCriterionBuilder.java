@@ -23,12 +23,14 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import org.springframework.stereotype.Component;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.TAGS_PROPERTY_NAME;
 
 /**
  * Build criteria for list of collections.
  */
+@Component
 public class CollectionsCriterionBuilder implements CriterionBuilder<List<String>> {
 
     @Override
