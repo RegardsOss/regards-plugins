@@ -58,6 +58,12 @@ public class OGCFeaturesController {
         return null;
     }
 
+    /**
+     * Get the stac collection from Regards collection
+     * @param collectionId this is the urn
+     * @return
+     * @throws ModuleException
+     */
     @Operation(summary = "describe the feature collection with id `collectionId`",
             description = "A single Feature Collection for the given if collectionId. " +
                     "Request this endpoint to get a full list of metadata for the Feature Collection.")
