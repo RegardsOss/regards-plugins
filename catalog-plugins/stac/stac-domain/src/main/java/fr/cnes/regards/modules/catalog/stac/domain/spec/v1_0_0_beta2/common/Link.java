@@ -22,8 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common;
 import lombok.Value;
 import lombok.With;
 
-import java.net.URL;
-import java.util.Map;
+import java.net.URI;
 
 /**
  * This object describes a relationship with another entity. Data providers are advised
@@ -37,15 +36,21 @@ import java.util.Map;
 @Value @With
 public class Link {
 
-    URL href;
+    URI href;
     String rel;
     String type;
-    String hreflang;
     String title;
-    Integer length;
-    String method;
-    Map<String, Object> headers;
-    Map<String, Object> body;
-    Boolean merge;
+
+    /**
+     * List of relations name constants.
+     */
+    public interface Relations {
+        String SELF = "self";
+        String ROOT = "root";
+        String PARENT = "parent";
+        String COLLECTION = "collection";
+        String DERIVED_FROM = "derived_from";
+        String ALTERNATE = "alternate";
+    }
 
 }

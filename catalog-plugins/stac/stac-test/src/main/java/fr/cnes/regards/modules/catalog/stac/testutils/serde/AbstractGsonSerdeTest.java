@@ -17,48 +17,21 @@
 */
 package fr.cnes.regards.modules.catalog.stac.testutils.serde;
 
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import fr.cnes.regards.framework.geojson.coordinates.Position;
-import fr.cnes.regards.framework.geojson.geometry.IGeometry;
-import fr.cnes.regards.framework.geojson.geometry.LineString;
-import fr.cnes.regards.framework.geojson.geometry.Polygon;
-import fr.cnes.regards.framework.geojson.gson.GeometryTypeAdapterFactory;
-import fr.cnes.regards.framework.gson.adapters.*;
-import fr.cnes.regards.framework.gson.adapters.actuator.ApplicationMappingsAdapter;
-import fr.cnes.regards.framework.gson.adapters.actuator.BeanDescriptorAdapter;
-import fr.cnes.regards.framework.gson.adapters.actuator.HealthAdapter;
-import fr.cnes.regards.framework.gson.strategy.GsonIgnoreExclusionStrategy;
-import fr.cnes.regards.modules.catalog.stac.testutils.random.VavrWrappersRegistry;
-import io.github.xshadov.easyrandom.vavr.VavrRandomizerRegistry;
-import io.vavr.collection.List;
-import io.vavr.gson.VavrGson;
+import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
+import fr.cnes.regards.modules.catalog.stac.testutils.random.RandomAwareTest;
 import org.assertj.core.api.Assertions;
 import org.jeasy.random.EasyRandom;
-import org.jeasy.random.EasyRandomParameters;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.actuate.beans.BeansEndpoint;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.web.mappings.MappingsEndpoint;
-import org.springframework.util.MimeType;
-import org.springframework.util.MultiValueMap;
-
-import java.nio.file.Path;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 /**
  * Base marshalling/unmarshalling test (for DTOs, etc.).
  *
  * @author gandrieu
  */
-public abstract class AbstractGsonSerdeTest<T> {
+public abstract class AbstractGsonSerdeTest<T> implements GsonAwareTest, RandomAwareTest {
 
     protected abstract Class<T> testedType();
 
@@ -92,103 +65,6 @@ public abstract class AbstractGsonSerdeTest<T> {
             }
             Assertions.assertThat(actualJson).isEqualTo(expectedJson);
         }
-    }
-
-    protected abstract void updateRandomParameters(EasyRandom generator, EasyRandomParameters params);
-
-    protected <T> List<T> randomList(Class<T> type, int num) {
-        return List.ofAll(random.objects(type, num));
-    }
-
-    protected <T> T randomInstance(Class<T> type) {
-        return random.nextObject(type);
-    }
-
-    protected EasyRandom easyRandom() {
-        VavrWrappersRegistry vavrWrappersRegistry = new VavrWrappersRegistry();
-        VavrRandomizerRegistry vavrRandomizerRegistry = new VavrRandomizerRegistry();
-
-        EasyRandomParameters parameters = new EasyRandomParameters();
-        parameters.randomizerRegistry(vavrWrappersRegistry);
-        parameters.randomizerRegistry(vavrRandomizerRegistry);
-
-        EasyRandom generator = new EasyRandom(parameters);
-        vavrRandomizerRegistry.setEasyRandom(generator);
-        vavrWrappersRegistry.setEasyRandom(generator);
-
-        parameters.collectionSizeRange(0, 10)
-                .randomize(Duration.class, () -> Duration.ofSeconds(generator.nextInt(3600 * 24 * 10)))
-                .randomize(IGeometry.class, () -> makeRandomGeometry(generator))
-                .randomize(OffsetDateTime.class, () -> getOffsetDateTime(generator))
-                .randomize(LocalDateTime.class, () -> getLocalDateTime(generator))
-                .randomize(Object.class, () -> generator.nextObject(JsonObject.class));
-
-        updateRandomParameters(generator, parameters);
-        return generator;
-    }
-
-    protected IGeometry makeRandomGeometry(EasyRandom generator) {
-        if (generator.nextBoolean()) {
-            return IGeometry.polygon(IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[]{
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble())
-            })));
-        }
-        else {
-            return IGeometry.lineString(
-                    generator.nextDouble(), generator.nextDouble(),
-                    generator.nextDouble(), generator.nextDouble(),
-                    generator.nextDouble(), generator.nextDouble());
-        }
-    }
-
-    protected LocalDateTime getLocalDateTime(EasyRandom generator) {
-        return LocalDateTime.now().withNano(0).minusSeconds(generator.nextInt(3600 * 24 * 10));
-    }
-
-    protected OffsetDateTime getOffsetDateTime(EasyRandom generator) {
-        return OffsetDateTime.now().withNano(0).minusSeconds(generator.nextInt(3600 * 24 * 10))
-                .withOffsetSameInstant(ZoneOffset.UTC);
-    }
-
-    protected Gson gson() {
-        GsonBuilder builder = gsonBuilder();
-        return builder.create();
-    }
-
-    /**
-     * Override this to add specific type adapters.
-     * @param builder
-     * @return the updated builder
-     */
-    protected GsonBuilder updateGsonBuilder(GsonBuilder builder) {
-        return builder;
-    }
-
-    protected GsonBuilder gsonBuilder() {
-        GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe());
-        builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe());
-
-        GeometryTypeAdapterFactory factory = new GeometryTypeAdapterFactory();
-        factory.registerSubtype(Polygon.class, "POLYGON");
-        factory.registerSubtype(LineString.class, "LINESTRING");
-        builder.registerTypeAdapterFactory(factory);
-
-        builder.registerTypeAdapter(MimeType.class, new MimeTypeAdapter().nullSafe());
-        builder.registerTypeHierarchyAdapter(Multimap.class, new MultimapAdapter());
-        builder.registerTypeHierarchyAdapter(MultiValueMap.class, new MultiValueMapAdapter());
-        builder.addSerializationExclusionStrategy(new GsonIgnoreExclusionStrategy());
-        builder.registerTypeAdapter(Health.class, new HealthAdapter());
-        builder.registerTypeAdapter(BeansEndpoint.BeanDescriptor.class, new BeanDescriptorAdapter());
-        builder.registerTypeAdapter(MappingsEndpoint.ApplicationMappings.class, new ApplicationMappingsAdapter());
-        VavrGson.registerAll(builder);
-
-        builder = updateGsonBuilder(builder);
-        return builder;
     }
 
 }

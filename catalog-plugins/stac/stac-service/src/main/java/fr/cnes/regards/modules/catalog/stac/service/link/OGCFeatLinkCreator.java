@@ -1,4 +1,5 @@
-/* Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+/*
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,16 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import io.vavr.control.Try;
 
-public class ItemCollectionTest extends AbstractDomainSerdeTest<ItemCollectionResponse> {
+import java.net.URI;
 
-    @Override
-    protected Class<ItemCollectionResponse> testedType() {
-        return ItemCollectionResponse.class;
-    }
+/**
+ * Interface providing methods to build links for collections/items.
+ */
+public interface OGCFeatLinkCreator {
+    Try<URI> createRootLink();
 
+    Try<URI> createCollectionLink(Collection collection);
+    Try<URI> createItemLink(Item item);
 }

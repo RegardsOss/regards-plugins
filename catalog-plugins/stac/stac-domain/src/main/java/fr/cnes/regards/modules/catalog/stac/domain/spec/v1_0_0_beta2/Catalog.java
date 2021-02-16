@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
 
 import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
 import lombok.Value;
@@ -35,7 +36,7 @@ import lombok.With;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/catalog-spec/json-schema/catalog.json">json schema</a>
  */
 @Value @With
-public class Catalog {
+public class Catalog implements LinkCollection<Catalog> {
 
     @SerializedName("stac_version")
     String stacVersion;

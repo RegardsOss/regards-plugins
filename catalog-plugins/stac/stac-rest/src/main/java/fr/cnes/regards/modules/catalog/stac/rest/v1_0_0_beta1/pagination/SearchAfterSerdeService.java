@@ -1,4 +1,5 @@
-/* Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+/*
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,16 +17,17 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 
-import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import io.vavr.collection.List;
+import io.vavr.control.Try;
 
-public class ItemCollectionTest extends AbstractDomainSerdeTest<ItemCollectionResponse> {
+/**
+ * Serialization for searchAfter parameter.
+ */
+public interface SearchAfterSerdeService {
 
-    @Override
-    protected Class<ItemCollectionResponse> testedType() {
-        return ItemCollectionResponse.class;
-    }
+    String serialize(List<Object> searchAfter);
+    Try<List<Object>> deserialize(String repr);
 
 }

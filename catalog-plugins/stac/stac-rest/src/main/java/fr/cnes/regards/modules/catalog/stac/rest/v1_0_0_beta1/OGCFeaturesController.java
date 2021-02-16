@@ -25,7 +25,7 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.ItemCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -50,7 +50,7 @@ public class OGCFeaturesController {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The feature collections shared by this API.") })
     @ResourceAccess(
             description = "the feature collections in the dataset",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CollectionsResponse> collections() throws ModuleException {
@@ -73,7 +73,7 @@ public class OGCFeaturesController {
     })
     @ResourceAccess(
             description = "describe the feature collection with id `collectionId`",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(path = STAC_COLLECTION_PATH_SUFFIX, method = RequestMethod.GET)
     public ResponseEntity<Collection> collection(
@@ -91,10 +91,10 @@ public class OGCFeaturesController {
     })
     @ResourceAccess(
             description = "fetch features",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<ItemCollection> features(
+    public ResponseEntity<ItemCollectionResponse> features(
             @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
@@ -112,7 +112,7 @@ public class OGCFeaturesController {
     })
     @ResourceAccess(
             description = "fetch a single feature",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
     public ResponseEntity<Item> feature(

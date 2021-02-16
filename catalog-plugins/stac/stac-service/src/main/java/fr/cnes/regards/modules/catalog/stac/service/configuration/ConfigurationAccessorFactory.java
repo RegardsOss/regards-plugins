@@ -1,4 +1,5 @@
-/* Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+/*
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,16 +17,13 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.service.configuration;
 
-import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+/**
+ * Provides access to values present in the STAC plugin configuration.
+ */
+public interface ConfigurationAccessorFactory {
 
-public class ItemCollectionTest extends AbstractDomainSerdeTest<ItemCollectionResponse> {
-
-    @Override
-    protected Class<ItemCollectionResponse> testedType() {
-        return ItemCollectionResponse.class;
-    }
+    ConfigurationAccessor makeConfigurationAccessor();
 
 }

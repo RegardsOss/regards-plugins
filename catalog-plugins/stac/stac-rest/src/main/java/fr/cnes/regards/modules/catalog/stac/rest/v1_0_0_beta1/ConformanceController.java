@@ -46,7 +46,7 @@ public class ConformanceController {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The URIs of all conformance classes supported by the server.") })
     @ResourceAccess(
             description = "information about specifications that this API conforms to",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ConformanceResponse> conformance() throws ModuleException {

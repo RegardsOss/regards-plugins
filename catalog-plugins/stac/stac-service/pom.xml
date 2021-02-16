@@ -55,6 +55,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.search</groupId>
+            <artifactId>search-service</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>jpa-multitenant-regards-test</artifactId>
             <scope>test</scope>
