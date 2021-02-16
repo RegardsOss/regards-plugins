@@ -48,7 +48,7 @@ public class CoreController {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Links to the API definition and Feature Collections") })
     @ResourceAccess(
             description = "landing page",
-            role = DefaultRole.REGISTERED_USER
+            role = DefaultRole.PUBLIC
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CoreResponse> conformance() throws ModuleException {

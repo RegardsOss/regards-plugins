@@ -29,6 +29,9 @@ public interface StacApiConstants {
     String COLLECTION_ID_PARAM = "collectionId";
     String ITEM_ID_PARAM = "itemId";
 
+    String SEARCH_ITEMBODY_QUERY_PARAM = "itemBody";
+    String SEARCH_SEARCHAFTER_QUERY_PARAM = "searchAfter";
+
     String LIMIT_QUERY_PARAM = "limit";
     String BBOX_QUERY_PARAM = "bbox";
     String DATETIME_QUERY_PARAM = "datetime";

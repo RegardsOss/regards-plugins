@@ -1,4 +1,5 @@
-/* Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+/*
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,16 +17,26 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 
-import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import java.util.Base64;
 
-public class ItemCollectionTest extends AbstractDomainSerdeTest<ItemCollectionResponse> {
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-    @Override
-    protected Class<ItemCollectionResponse> testedType() {
-        return ItemCollectionResponse.class;
+/**
+ * Utilities to go from/to base64.
+ */
+public interface Base64Codec {
+
+    Base64.Encoder ENCODER = Base64.getEncoder();
+    Base64.Decoder DECODER = Base64.getDecoder();
+
+    default String toBase64(String content) {
+        return ENCODER.encodeToString(content.getBytes(UTF_8));
+    }
+
+    default String fromBase64(String b64) {
+        return new String(DECODER.decode(b64), UTF_8);
     }
 
 }

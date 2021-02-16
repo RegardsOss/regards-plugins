@@ -38,8 +38,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemS
  * Implementation for the ItemSearchBodyFactory interface.
  */
 @Component
-public
-class ItemSearchBodyFactoryImpl {
+public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
 
     private final Gson gson;
 

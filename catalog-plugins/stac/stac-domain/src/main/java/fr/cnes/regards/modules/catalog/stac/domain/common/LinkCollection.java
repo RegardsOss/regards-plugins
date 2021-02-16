@@ -1,4 +1,5 @@
-/* Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+/*
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,16 +17,25 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.domain.common;
 
-import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 
-public class ItemCollectionTest extends AbstractDomainSerdeTest<ItemCollectionResponse> {
+/**
+ * Interface providing utilities to work with links.
+ *
+ * As many of the STAC entities have links, this interface helps
+ * adding some links easily.
+ */
+public interface LinkCollection<T extends LinkCollection<T>> {
 
-    @Override
-    protected Class<ItemCollectionResponse> testedType() {
-        return ItemCollectionResponse.class;
+    List<Link> getLinks();
+    T withLinks(List<Link> links);
+
+    default T addLinks(Link... links) {
+        return withLinks(getLinks().appendAll(Stream.of(links)));
     }
 
 }

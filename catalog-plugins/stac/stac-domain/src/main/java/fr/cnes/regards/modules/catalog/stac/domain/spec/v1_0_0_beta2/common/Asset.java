@@ -19,11 +19,12 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common;
 
+import fr.cnes.regards.framework.urn.DataType;
 import io.vavr.collection.Set;
 import lombok.Value;
 import lombok.With;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.OffsetDateTime;
 
 /**
@@ -36,16 +37,25 @@ import java.time.OffsetDateTime;
 @Value @With
 public class Asset {
 
-    URL href;
+    URI href;
     String title;
     String description;
+
+    /** Media type of the asset */
+    String type;
+
+    Set<String> roles;
+
+    OffsetDateTime datetime;
+    OffsetDateTime created;
+    OffsetDateTime updated;
 
     /**
      * Common STAC media types.
      *
      * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md#media-types"></a>
      */
-    interface MediaType {
+    public interface MediaType {
         String IMAGE_TIFF_GEOTIFF = "image/tiff; application=geotiff";
         String IMAGE_TIFF_GEOTIFF_CLOUD_OPTIMIZED = "image/tiff; application=geotiff; profile=cloud-optimized";
         String IMAGE_JPEG2000 = "image/jp2";
@@ -58,8 +68,6 @@ public class Asset {
         String APPLICATION_XHDF5 = "application/x-hdf5";
         String APPLICATION_XHDF = "application/x-hdf";
     }
-    /** Media type of the asset */
-    String type;
 
     /**
      * Like the Link rel field, the roles field can be given any value, however here are a few standardized role names.
@@ -71,12 +79,25 @@ public class Asset {
         String OVERVIEW = "overview";
         String DATA = "data";
         String METADATA = "metadata";
+
+        static String fromDataType(DataType dataType) {
+            switch (dataType) {
+                case QUICKLOOK_HD:
+                case QUICKLOOK_MD:
+                case QUICKLOOK_SD:
+                    return Asset.Roles.OVERVIEW;
+                case THUMBNAIL:
+                    return Asset.Roles.THUMBNAIL;
+                case DOCUMENT:
+                case DESCRIPTION:
+                    return Asset.Roles.METADATA;
+                case RAWDATA:
+                case AIP:
+                case OTHER:
+                default:
+                    return Asset.Roles.DATA;
+            }
+        }
     }
-    Set<String> roles;
-
-    OffsetDateTime datetime;
-    OffsetDateTime created;
-    OffsetDateTime updated;
-
 
 }

@@ -17,9 +17,11 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
+package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
 import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
 import lombok.Value;
@@ -32,7 +34,7 @@ import lombok.With;
  * @see <a href="https://api.stacspec.org/v1.0.0-beta.1/item-search/#operation/getItemSearch">definition</a>
  */
 @Value @With
-public class ItemCollection {
+public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
 
     @SerializedName("stac_version")
     String stacVersion;
@@ -48,6 +50,7 @@ public class ItemCollection {
     List<Item> features;
     List<Link> links;
 
+    @Value @With
     public static class Context {
         int returned;
         Integer limit;

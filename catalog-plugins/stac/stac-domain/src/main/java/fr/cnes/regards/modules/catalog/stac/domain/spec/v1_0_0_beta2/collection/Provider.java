@@ -37,7 +37,7 @@ import java.net.URL;
 @Value @With
 public class Provider {
 
-    enum Role {
+    public enum ProviderRole {
         @SerializedName("licensor") LICENSOR,
         @SerializedName("producer") PRODUCER,
         @SerializedName("processor") PROCESSOR,
@@ -47,5 +47,5 @@ public class Provider {
     String name;
     String description;
     URL url;
-    List<Role> roles;
+    List<ProviderRole> roles;
 }

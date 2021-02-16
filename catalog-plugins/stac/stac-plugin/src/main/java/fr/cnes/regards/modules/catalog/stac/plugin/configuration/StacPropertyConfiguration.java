@@ -29,9 +29,7 @@ import lombok.With;
  * Definition of the configuration for a STAC property, defining which model attribute
  * it corresponds to and how to convert from the one to the other.
  */
-@Data @With
-@AllArgsConstructor
-@NoArgsConstructor
+@Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacPropertyConfiguration {
 
     @PluginParameter(
@@ -59,16 +57,19 @@ public class StacPropertyConfiguration {
     private String stacExtension;
 
     @PluginParameter(
-            name = "stacComputeExtent",
-            label = "compute extent",
-            description = "Whether an extent should be computed for this property in the collections"
+            name = "stacComputeSummary",
+            label = "compute summary",
+            description = "Whether a summary should be computed for this property in the collections." +
+                    " Only applicable for stacType value among 'DATETIME', 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
     private Boolean stacComputeExtent;
 
     @PluginParameter(
             name = "stacDynamicCollectionLevel",
-            label = "",
-            description = ""
+            label = "STAC dynamic collection level",
+            description = "For dynamic collections, use this parameter as the given level." +
+                    " Levels start at 1, and there must be only one STAC property defined for each level.",
+            optional = true
     )
     private Integer stacDynamicCollectionLevel;
 
@@ -95,7 +96,8 @@ public class StacPropertyConfiguration {
             name = "stacFormat",
             label = "Format for the STAC value",
             description = "This parameter describes the format for values in STAC." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. "
+                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            optional = true
     )
     private String stacFormat;
 
@@ -103,7 +105,8 @@ public class StacPropertyConfiguration {
             name = "regardsFormat",
             label = "Format for the REGARDS value",
             description = "This parameter describes the format for values in REGARDS." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. "
+                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            optional = true
     )
     private String regardsFormat;
 

@@ -24,10 +24,10 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.Spatial4jConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacPropertyConfigurationToDomainPropertyMapper;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.domain.plugin.IEntityLinkBuilder;
 import fr.cnes.regards.modules.search.domain.plugin.ISearchEngine;
@@ -40,8 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
 
 @Plugin(
         id = StacSearchEngine.PLUGIN_ID,
@@ -57,10 +55,10 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.Prop
 @Data @AllArgsConstructor @NoArgsConstructor
 public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, Object, List<String>> {
 
-    static final String PLUGIN_ID = "StacSearchEngine";
+    public static final String PLUGIN_ID = "StacSearchEngine";
 
     @Autowired
-    private StacPropertyConfigurationToDomainPropertyMapper propMapper;
+    private StacConfigurationDomainAccessor propMapper;
 
     @PluginParameter(
             name = "stacDatetimeProperty",
@@ -74,6 +72,12 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "STAC extra properties",
             description = "List of other STAC properties to be mapped to model attributes.")
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
+
+    @PluginParameter(
+            name = "stacCollectionDatasetProperties",
+            label = "Dataset properties",
+            description = "Configure STAC collection properties for selected datasets.")
+    private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
     @PluginParameter(
             name = "spatial4jConfiguration",
@@ -102,9 +106,4 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
         return null;
     }
 
-    public io.vavr.collection.List<StacProperty> getConfiguredProperties() {
-        return propMapper.getConfiguredProperties(
-            io.vavr.collection.List.ofAll(stacExtraProperties)
-                .prepend(stacDatetimeProperty.withStacPropertyName(DATETIME_PROPERTY_NAME)));
-    }
 }

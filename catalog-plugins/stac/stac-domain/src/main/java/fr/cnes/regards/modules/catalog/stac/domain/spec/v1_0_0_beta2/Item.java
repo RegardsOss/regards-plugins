@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
 
 import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
@@ -38,7 +39,7 @@ import lombok.With;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/json-schema/item.json">json schema</a>
  */
 @Value @With
-public class Item {
+public class Item implements LinkCollection<Item> {
 
     @SerializedName("stac_version")
     String stacVersion;

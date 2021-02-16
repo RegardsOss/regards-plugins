@@ -38,7 +38,7 @@ import java.time.OffsetDateTime;
 public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T> {
 
     @Override
-    protected void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
+    public void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
         params.randomize(Extent.Temporal.class, () ->
             new Extent.Temporal(List.range(0, generator.nextInt(10))
                 .map(i -> Tuple.of(
@@ -63,7 +63,7 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
     }
 
     @Override
-    protected GsonBuilder updateGsonBuilder(GsonBuilder builder) {
+    public GsonBuilder updateGsonBuilder(GsonBuilder builder) {
         builder.registerTypeAdapter(BBox.class, new BBox.BBoxTypeAdapter());
         builder.registerTypeAdapter(ItemSearchBody.QueryObject.class, new QueryObjectTypeAdapter());
         builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());

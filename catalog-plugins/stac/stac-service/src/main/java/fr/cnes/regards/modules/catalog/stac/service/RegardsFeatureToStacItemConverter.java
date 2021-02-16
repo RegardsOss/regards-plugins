@@ -17,30 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties;
+package fr.cnes.regards.modules.catalog.stac.service;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
-import lombok.Value;
-import lombok.With;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import io.vavr.collection.List;
+import io.vavr.control.Try;
 
 /**
- * Represents a configured STAC property.
+ * Interface describing how to convert Regards DataObjects to features.
  */
-@Value @With
-public class StacProperty {
+public interface RegardsFeatureToStacItemConverter {
 
-    String modelAttributeName;
-
-    String stacPropertyName;
-
-    String extension;
-
-    Boolean computeSummary;
-
-    Integer dynamicCollectionLevel;
-
-    PropertyType type;
-
-    AbstractPropertyConverter converter;
+    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature);
 
 }
