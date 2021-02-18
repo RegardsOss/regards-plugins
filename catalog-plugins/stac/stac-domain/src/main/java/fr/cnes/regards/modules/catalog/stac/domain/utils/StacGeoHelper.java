@@ -22,18 +22,32 @@ package fr.cnes.regards.modules.catalog.stac.domain.utils;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
+import io.vavr.Tuple;
+import io.vavr.Tuple3;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
+import org.locationtech.spatial4j.shape.Point;
 import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
+import org.locationtech.spatial4j.shape.jts.JtsShapeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.function.Function;
 
 /**
  * Provides utilities to compute geometry-related values.
  */
 @Component
 public class StacGeoHelper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StacGeoHelper.class);
 
     private final Gson gson;
 
@@ -42,18 +56,46 @@ public class StacGeoHelper {
         this.gson = gson;
     }
 
-    public Try<BBox> computeBBox(IGeometry p, GeoJSONReader reader) {
+    public Function<JtsSpatialContextFactory, JtsSpatialContextFactory> updateFactory(boolean geo) {
+        return factory -> {
+            factory.geo = geo;
+            factory.shapeFactoryClass = JtsShapeFactory.class;
+            return factory;
+        };
+    }
+
+    public GeoJSONReader makeGeoJSONReader(Function<JtsSpatialContextFactory, JtsSpatialContextFactory> updateFactory) {
+        JtsSpatialContextFactory factory = updateFactory.apply(new JtsSpatialContextFactory());
+        return new GeoJSONReader(new JtsSpatialContext(factory), factory);
+    }
+
+    public Option<Tuple3<IGeometry, BBox, Centroid>> computeBBoxCentroid(IGeometry geometry, GeoJSONReader reader) {
         return Try.of(() -> {
-            String json = gson.toJson(p);
+            String json = putTypeInFirstPosition(gson.toJson(geometry));
+            LOGGER.debug("\n\tGeometry: {}\n\tJSON: {}", geometry, json);
+
             Shape shape = reader.read(json);
+
             Rectangle boundingBox = shape.getBoundingBox();
-            return new BBox(
-                boundingBox.getMinX(),
-                boundingBox.getMaxX(),
-                boundingBox.getMinY(),
-                boundingBox.getMaxY()
+            BBox bbox = new BBox(
+                    boundingBox.getMinX(),
+                    boundingBox.getMinY(),
+                    boundingBox.getMaxX(),
+                    boundingBox.getMaxY()
             );
-        });
+
+            Point center = shape.getCenter();
+            Centroid centroid = new Centroid(center.getX(), center.getY());
+
+            return Tuple.of(geometry, bbox, centroid);
+        })
+        .onFailure(t -> LOGGER.warn("Could not create BBox for geometry {}", geometry, t))
+        .toOption();
+    }
+
+    private String putTypeInFirstPosition(String json) {
+        String type = json.replaceFirst("(.*)(\"type\"\\s*:\\s*\"[^\"]*?\")(.*)", "$2");
+        return "{" + type + "," + json.replaceFirst("\\{", "");
     }
 
 }

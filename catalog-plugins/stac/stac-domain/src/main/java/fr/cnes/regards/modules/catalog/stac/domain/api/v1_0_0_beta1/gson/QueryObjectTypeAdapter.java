@@ -36,7 +36,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.DATE_FORMAT;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
 
 /**
  * Gson type adapter for QueryObject and subclasses.
@@ -89,28 +89,28 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
             ItemSearchBody.DatetimeQueryObject dqo = (ItemSearchBody.DatetimeQueryObject) value;
             out.beginObject();
             if (dqo.getEq() != null) {
-                out.name("eq").value(DATE_FORMAT.format(dqo.getEq()));
+                out.name("eq").value(STAC_DATETIME_FORMATTER.format(dqo.getEq()));
             }
             if (dqo.getNeq() != null) {
-                out.name("neq").value(DATE_FORMAT.format(dqo.getNeq()));
+                out.name("neq").value(STAC_DATETIME_FORMATTER.format(dqo.getNeq()));
             }
             if (dqo.getGt() != null) {
-                out.name("gt").value(DATE_FORMAT.format(dqo.getGt()));
+                out.name("gt").value(STAC_DATETIME_FORMATTER.format(dqo.getGt()));
             }
             if (dqo.getLt() != null) {
-                out.name("lt").value(DATE_FORMAT.format(dqo.getLt()));
+                out.name("lt").value(STAC_DATETIME_FORMATTER.format(dqo.getLt()));
             }
             if (dqo.getGte() != null) {
-                out.name("gte").value(DATE_FORMAT.format(dqo.getGte()));
+                out.name("gte").value(STAC_DATETIME_FORMATTER.format(dqo.getGte()));
             }
             if (dqo.getLte() != null) {
-                out.name("lte").value(DATE_FORMAT.format(dqo.getLte()));
+                out.name("lte").value(STAC_DATETIME_FORMATTER.format(dqo.getLte()));
             }
             if (dqo.getIn() != null) {
                 out.name("in");
                 out.beginArray();
                 for (OffsetDateTime in : dqo.getIn()) {
-                    out.value(DATE_FORMAT.format(in));
+                    out.value(STAC_DATETIME_FORMATTER.format(in));
                 }
                 out.endArray();
             }
@@ -243,7 +243,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
         } else if (peek == JsonToken.STRING) {
             String strValue = in.nextString();
             try {
-                return OffsetDateTime.from(DATE_FORMAT.parse(strValue));
+                return OffsetDateTime.from(STAC_DATETIME_FORMATTER.parse(strValue));
             } catch (DateTimeParseException e) {
                 return strValue;
             }

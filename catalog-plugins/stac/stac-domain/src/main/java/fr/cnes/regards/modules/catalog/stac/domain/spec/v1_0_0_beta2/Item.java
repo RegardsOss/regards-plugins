@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
 
 import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
@@ -28,6 +29,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import io.vavr.collection.Set;
 import lombok.Value;
 import lombok.With;
 
@@ -42,21 +44,21 @@ import lombok.With;
 public class Item implements LinkCollection<Item> {
 
     @SerializedName("stac_version")
-    String stacVersion;
+    String stacVersion = StacSpecConstants.Version.STAC_SPEC_VERSION;
 
     @SerializedName("stac_extensions")
-    List<String> stacExtensions;
+    Set<String> stacExtensions;
 
     String id;
     BBox bbox;
     IGeometry geometry;
     Centroid centroid;
 
-    enum TypeEnum {
+    public enum TypeEnum {
         @SerializedName("Feature")
         FEATURE
     }
-    TypeEnum type;
+    TypeEnum type = TypeEnum.FEATURE;
 
     String collection;
 

@@ -63,6 +63,15 @@
             <artifactId>search-service</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+            <artifactId>stac-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>jpa-multitenant-regards-test</artifactId>
             <scope>test</scope>

@@ -22,9 +22,12 @@ package fr.cnes.regards.modules.catalog.stac.testutils.gson;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.cnes.regards.framework.geojson.geometry.LineString;
-import fr.cnes.regards.framework.geojson.geometry.Polygon;
+import fr.cnes.regards.framework.geojson.GeoJsonType;
+import fr.cnes.regards.framework.geojson.coordinates.Position;
+import fr.cnes.regards.framework.geojson.gson.FeatureTypeAdapterFactory;
+import fr.cnes.regards.framework.geojson.gson.GeoJsonTypeAdapter;
 import fr.cnes.regards.framework.geojson.gson.GeometryTypeAdapterFactory;
+import fr.cnes.regards.framework.geojson.gson.PositionTypeAdapter;
 import fr.cnes.regards.framework.gson.adapters.*;
 import fr.cnes.regards.framework.gson.adapters.actuator.ApplicationMappingsAdapter;
 import fr.cnes.regards.framework.gson.adapters.actuator.BeanDescriptorAdapter;
@@ -62,10 +65,10 @@ public interface GsonAwareTest {
         builder.registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe());
         builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe());
 
-        GeometryTypeAdapterFactory factory = new GeometryTypeAdapterFactory();
-        factory.registerSubtype(Polygon.class, "POLYGON");
-        factory.registerSubtype(LineString.class, "LINESTRING");
-        builder.registerTypeAdapterFactory(factory);
+        builder.registerTypeAdapterFactory(new FeatureTypeAdapterFactory());
+        builder.registerTypeAdapter(Position.class, new PositionTypeAdapter());
+        builder.registerTypeAdapter(GeoJsonType.class, new GeoJsonTypeAdapter());
+        builder.registerTypeAdapterFactory(new GeometryTypeAdapterFactory());
 
         builder.registerTypeAdapter(MimeType.class, new MimeTypeAdapter().nullSafe());
         builder.registerTypeHierarchyAdapter(Multimap.class, new MultimapAdapter());

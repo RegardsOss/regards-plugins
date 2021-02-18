@@ -25,7 +25,6 @@ import lombok.Value;
 import lombok.With;
 
 import java.net.URI;
-import java.time.OffsetDateTime;
 
 /**
  * An asset is an object that contains a link to data associated with the Item that can be downloaded or streamed.
@@ -45,10 +44,6 @@ public class Asset {
     String type;
 
     Set<String> roles;
-
-    OffsetDateTime datetime;
-    OffsetDateTime created;
-    OffsetDateTime updated;
 
     /**
      * Common STAC media types.

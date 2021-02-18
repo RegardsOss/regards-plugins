@@ -38,6 +38,10 @@ public class BBox {
     double maxX;
     double maxY;
 
+    public Centroid centroid() {
+        return new Centroid((minX+maxX)/2d, (minY+maxY)/2d);
+    }
+
     public static class BBoxTypeAdapter extends TypeAdapter<BBox> {
         @Override
         public void write(JsonWriter out, BBox value) throws IOException {

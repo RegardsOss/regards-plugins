@@ -40,27 +40,28 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest
     @Override
     public void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
-        params.randomize(Extent.Temporal.class, () ->
+        params
+            .randomize(Extent.Temporal.class, () ->
                 new Extent.Temporal(List.range(0, generator.nextInt(10))
-                        .map(i -> Tuple.of(
-                                generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class)),
-                                generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class))
-                        ))
+                    .map(i -> Tuple.of(
+                            generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class)),
+                            generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class))
+                    ))
                 )
-        )
-                .randomize(ItemSearchBody.QueryObject.class, () -> {
-                    return generator.nextBoolean()
-                            ? generator.nextBoolean()
-                            ? generator.nextObject(ItemSearchBody.BooleanQueryObject.class)
-                            : generator.nextObject(ItemSearchBody.NumberQueryObject.class)
-                            : generator.nextObject(ItemSearchBody.StringQueryObject.class);
-                })
-                .randomize(DateInterval.class, () -> {
-                    return generator.nextBoolean() ? DateInterval.single(generator.nextObject(OffsetDateTime.class))
-                            : generator.nextBoolean() ? DateInterval.from(generator.nextObject(OffsetDateTime.class))
-                            : generator.nextBoolean() ? DateInterval.to(generator.nextObject(OffsetDateTime.class))
-                            : DateInterval.of(generator.nextObject(OffsetDateTime.class), generator.nextObject(OffsetDateTime.class));
-                });
+            )
+            .randomize(ItemSearchBody.QueryObject.class, () -> {
+                return generator.nextBoolean()
+                        ? generator.nextBoolean()
+                        ? generator.nextObject(ItemSearchBody.BooleanQueryObject.class)
+                        : generator.nextObject(ItemSearchBody.NumberQueryObject.class)
+                        : generator.nextObject(ItemSearchBody.StringQueryObject.class);
+            })
+            .randomize(DateInterval.class, () -> {
+                return generator.nextBoolean() ? DateInterval.single(generator.nextObject(OffsetDateTime.class))
+                        : generator.nextBoolean() ? DateInterval.from(generator.nextObject(OffsetDateTime.class))
+                        : generator.nextBoolean() ? DateInterval.to(generator.nextObject(OffsetDateTime.class))
+                        : DateInterval.of(generator.nextObject(OffsetDateTime.class), generator.nextObject(OffsetDateTime.class));
+            });
     }
 
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest

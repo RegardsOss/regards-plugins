@@ -6,6 +6,4 @@ public class BBoxTest extends AbstractDomainSerdeTest<BBox> {
 
     @Override protected Class<BBox> testedType() { return BBox.class; }
 
-    @Override protected boolean logValues() { return true; }
-
 }

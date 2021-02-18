@@ -26,7 +26,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorServiceImpl;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchOtherPageItemBodySerdeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -51,13 +51,13 @@ public class ItemSearchController {
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;
     private final SearchOtherPageItemBodySerdeService searchTokenSerde;
-    private final LinkCreatorService linkCreatorService;
+    private final LinkCreatorServiceImpl linkCreatorService;
 
     @Autowired
     public ItemSearchController(
             ItemSearchBodyFactory itemSearchBodyFactory,
             SearchOtherPageItemBodySerdeService searchTokenSerde,
-            LinkCreatorService linkCreatorService) {
+            LinkCreatorServiceImpl linkCreatorService) {
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.searchTokenSerde = searchTokenSerde;
         this.linkCreatorService = linkCreatorService;
