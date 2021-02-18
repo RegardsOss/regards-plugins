@@ -26,8 +26,8 @@ import lombok.Value;
 
 import java.time.OffsetDateTime;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.DATE_FORMAT;
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.parseDatetime;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.parseStacDatetime;
 import static java.time.OffsetDateTime.MAX;
 import static java.time.OffsetDateTime.MIN;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -64,12 +64,12 @@ public class DateInterval {
     public String repr() {
         String repr;
         if (isSingleDate()) {
-            repr = DATE_FORMAT.format(from);
+            repr = STAC_DATETIME_FORMATTER.format(from);
         }
         else {
-            repr = (MIN.equals(from) ? OPEN_END : DATE_FORMAT.format(from))
+            repr = (MIN.equals(from) ? OPEN_END : STAC_DATETIME_FORMATTER.format(from))
                     + SEPARATOR
-                    + (MAX.equals(to) ? OPEN_END : DATE_FORMAT.format(to));
+                    + (MAX.equals(to) ? OPEN_END : STAC_DATETIME_FORMATTER.format(to));
         }
         return repr;
     }
@@ -85,13 +85,13 @@ public class DateInterval {
                 );
         }
         else {
-            return parseDatetime(repr).map(DateInterval::single);
+            return parseStacDatetime(repr).map(DateInterval::single);
         }
     }
 
     private static Try<OffsetDateTime> parseDateOrDefault(String repr, OffsetDateTime def) {
         if (OPEN_END.equals(repr)) { return Try.success(def); }
-        else { return parseDatetime(repr); }
+        else { return parseStacDatetime(repr); }
     }
 
 }

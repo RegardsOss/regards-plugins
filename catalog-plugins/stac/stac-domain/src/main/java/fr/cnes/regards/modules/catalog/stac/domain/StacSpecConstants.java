@@ -29,9 +29,10 @@ import java.time.format.DateTimeFormatter;
  */
 public class StacSpecConstants {
 
-    public static String STAC_DEFAULT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-
-    public static DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern(STAC_DEFAULT_FORMAT);
+    public interface Version {
+        String STAC_SPEC_VERSION = "1.0.0-beta.2";
+        String STAC_API_VERSION = "1.0.0-beta.1";
+    }
 
     public interface PropertyName {
         String DATETIME_PROPERTY_NAME = "datetime";
@@ -39,8 +40,9 @@ public class StacSpecConstants {
         String ID_PROPERTY_NAME = "ipId";
     }
 
-    public static  Try<OffsetDateTime> parseDatetime(String repr) {
-        return Try.of(() -> OffsetDateTime.from(StacSpecConstants.DATE_FORMAT.parse(repr)));
+    public static DateTimeFormatter STAC_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static  Try<OffsetDateTime> parseStacDatetime(String repr) {
+        return Try.of(() -> OffsetDateTime.from(StacSpecConstants.STAC_DATETIME_FORMATTER.parse(repr)));
     }
 
 }

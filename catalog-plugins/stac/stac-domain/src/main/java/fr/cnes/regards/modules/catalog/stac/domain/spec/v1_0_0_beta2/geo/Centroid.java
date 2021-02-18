@@ -29,7 +29,7 @@ import lombok.With;
 @Value @With
 public class Centroid {
 
-    @SerializedName("lat") double lattitude;
     @SerializedName("lon") double longitude;
+    @SerializedName("lat") double lattitude;
 
 }

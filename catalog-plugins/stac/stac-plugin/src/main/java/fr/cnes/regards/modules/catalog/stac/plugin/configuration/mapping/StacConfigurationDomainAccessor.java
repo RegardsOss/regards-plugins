@@ -37,6 +37,9 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationA
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.io.GeoJSONReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -104,10 +107,22 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
                 return plugin
-                        .map(StacSearchEngine::getStacCollectionDatasetProperties)
-                        .map(List::ofAll)
-                        .getOrElse(List.empty())
-                        .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+                    .map(StacSearchEngine::getStacCollectionDatasetProperties)
+                    .map(List::ofAll)
+                    .getOrElse(List.empty())
+                    .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+            }
+
+            @Override
+            public GeoJSONReader getGeoJSONReader() {
+                JtsSpatialContextFactory factory = plugin.map(StacSearchEngine::getSpatial4jConfiguration)
+                    .map(s4jconf -> {
+                        JtsSpatialContextFactory f = new JtsSpatialContextFactory();
+                        f.geo = s4jconf.isGeo();
+                        return f;
+                    })
+                    .getOrElse(JtsSpatialContextFactory::new);
+                return new GeoJSONReader(new JtsSpatialContext(factory), factory);
             }
         };
     }
