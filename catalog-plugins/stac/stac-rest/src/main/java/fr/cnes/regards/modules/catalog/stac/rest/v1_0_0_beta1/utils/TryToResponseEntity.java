@@ -17,20 +17,18 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
 
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import io.vavr.control.Try;
+import org.springframework.http.ResponseEntity;
 
 /**
- * This interface allows to create link creators used in the stac-service services.
+ * Utility methods to build {@link ResponseEntity}.
  */
-public interface LinkCreatorService {
+public interface TryToResponseEntity {
 
-    OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth);
-
-    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody);
+    default <T> ResponseEntity<T> toResponseEntity(Try<T> tryT) {
+        return tryT.map(ResponseEntity::ok).get();
+    }
 
 }

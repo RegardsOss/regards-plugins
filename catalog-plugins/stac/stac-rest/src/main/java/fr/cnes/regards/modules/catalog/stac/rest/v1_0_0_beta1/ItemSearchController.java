@@ -22,20 +22,25 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
+import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorServiceImpl;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchAfterSerdeService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchOtherPageItemBodySerdeService;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
+import fr.cnes.regards.modules.catalog.stac.service.ItemSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
@@ -47,20 +52,27 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  */
 @RestController
 @RequestMapping(STAC_SEARCH_PATH)
-public class ItemSearchController {
+public class ItemSearchController implements TryToResponseEntity {
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;
+    private final SearchAfterSerdeService searchAfterSerde;
     private final SearchOtherPageItemBodySerdeService searchTokenSerde;
-    private final LinkCreatorServiceImpl linkCreatorService;
+    private final LinkCreatorService linkCreatorService;
+    private final ItemSearchService itemSearchService;
 
     @Autowired
     public ItemSearchController(
             ItemSearchBodyFactory itemSearchBodyFactory,
+            SearchAfterSerdeService searchAfterSerde,
             SearchOtherPageItemBodySerdeService searchTokenSerde,
-            LinkCreatorServiceImpl linkCreatorService) {
+            LinkCreatorService linkCreatorService,
+            ItemSearchService itemSearchService
+    ) {
         this.itemSearchBodyFactory = itemSearchBodyFactory;
+        this.searchAfterSerde = searchAfterSerde;
         this.searchTokenSerde = searchTokenSerde;
         this.linkCreatorService = linkCreatorService;
+        this.itemSearchService = itemSearchService;
     }
 
     @Operation(summary = "search with simple filtering",
@@ -84,8 +96,16 @@ public class ItemSearchController {
             @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
             @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy
     ) throws ModuleException {
-        Try<ItemSearchBody> itemSearchBodies = itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy);
-        return null;
+        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        return toResponseEntity(itemSearchBodyFactory
+            .parseItemSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
+            .flatMap(itemSearchBody -> itemSearchService.search(
+                itemSearchBody,
+                Option.none(),
+                linkCreatorService.makeOGCFeatLinkCreator(auth),
+                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+            )));
     }
 
     @Operation(summary = "search with complex filtering",
@@ -99,15 +119,23 @@ public class ItemSearchController {
     )
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ItemCollectionResponse> complex(
-            @RequestBody ItemSearchBody itemSearch
-            ) throws ModuleException {
-        // TODO
-        return null;
+            @RequestBody ItemSearchBody itemSearchBody
+    ) throws ModuleException {
+        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        return toResponseEntity(itemSearchService.search(
+            itemSearchBody,
+            Option.none(),
+            linkCreatorService.makeOGCFeatLinkCreator(auth),
+            linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+        ));
     }
 
-    @Operation(summary = "continue to next/previous search page",
-            description = "Pagination for search in STAC is done through links, this endpoint provides the way to reuse" +
-                    "the same search parameters but skip to an offset of results.")
+    @Operation(
+            summary = "continue to next/previous search page",
+            description = "Pagination for search in STAC is done through links," +
+                    " this endpoint provides the way to reuse" +
+                    " the same search parameters but skip to an offset of results.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "An ItemCollection.")
     })
@@ -118,11 +146,21 @@ public class ItemSearchController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> otherPage(
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
-            @RequestParam(name = SEARCH_SEARCHAFTER_QUERY_PARAM, required = false) String searchAfter,
+            @RequestParam(name = SEARCH_SEARCHAFTER_QUERY_PARAM, required = false) String searchAfterBase64,
             @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM, required = false) String itemBodyBase64
     ) throws ModuleException {
+        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
-        return null;
+        return toResponseEntity(searchTokenSerde.deserialize(itemBodyBase64)
+            .flatMap(itemSearchBody -> searchAfterSerde.deserialize(searchAfterBase64)
+                .flatMap(searchAfter -> itemSearchService.search(
+                        itemSearchBody,
+                        Option.of(searchAfter),
+                        linkCreatorService.makeOGCFeatLinkCreator(auth),
+                        linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+                ))
+            )
+        );
     }
 
 }

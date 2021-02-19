@@ -17,20 +17,33 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
+package fr.cnes.regards.modules.catalog.stac.service;
 
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import io.vavr.collection.List;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
+import org.springframework.stereotype.Service;
 
 /**
- * This interface allows to create link creators used in the stac-service services.
+ * Implementation for {@link ItemSearchService}
  */
-public interface LinkCreatorService {
+@Service
+public class ItemSearchServiceImpl implements ItemSearchService {
 
-    OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth);
+    
 
-    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody);
+    @Override
+    public Try<ItemCollectionResponse> search(
+            ItemSearchBody itemSearchBody,
+            Option<List<Object>> seachAfter,
+            OGCFeatLinkCreator featLinkCreator,
+            SearchPageLinkCreator searchPageLinkCreator
+    ) {
+        return null;
+    }
 
 }

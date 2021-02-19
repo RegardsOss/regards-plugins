@@ -119,42 +119,42 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
     }
 
     @Override
-    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer limit, ItemSearchBody itemSearchBody) {
+    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
             @Override
             public Try<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                ItemSearchController.class,
-                                getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                                limit,
-                                extractSearchAfter(itemCollection.getFeatures().lastOption()),
-                                itemSearchBody
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                            ItemSearchController.class,
+                            getMethodNamedInClass(ItemSearchController.class, "otherPage"),
+                            itemSearchBody.getLimit(),
+                            extractSearchAfter(itemCollection.getFeatures().lastOption()),
+                            itemSearchBody
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(appendAuthParams(auth));
             }
 
             @Override
             public Try<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                ItemSearchController.class,
-                                getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                                limit,
-                                extractSearchAfter(itemCollection.getFeatures().headOption()),
-                                itemSearchBody
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        ItemSearchController.class,
+                        getMethodNamedInClass(ItemSearchController.class, "otherPage"),
+                        itemSearchBody.getLimit(),
+                        extractSearchAfter(itemCollection.getFeatures().headOption()),
+                        itemSearchBody
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(appendAuthParams(auth));
             }
 
             private String extractSearchAfter(Option<Item> optItem) {
                 List<Object> values = optItem.map(item -> itemSearchBody.getSortBy()
-                        .map(ItemSearchBody.SortBy::getField)
-                        .map(field -> item.getProperties().get(field).getOrNull())
+                    .map(ItemSearchBody.SortBy::getField)
+                    .map(field -> item.getProperties().get(field).getOrNull())
                 )
-                        .getOrElse(List::empty);
+                .getOrElse(List::empty);
                 return searchAfterSerdeService.serialize(values);
             }
         };
@@ -162,8 +162,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
 
     private <T> Method getMethodNamedInClass(Class<T> type, String methodName) {
         return Stream.of(type.getDeclaredMethods())
-                .filter(m -> methodName.equals(m.getName()))
-                .head();
+            .filter(m -> methodName.equals(m.getName()))
+            .head();
     }
 
     private Tuple2<String, String> makeAuthParam(
@@ -173,15 +173,15 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
         UserDetails user = auth.getUser();
         String role = user.getRole();
         return DefaultRole.PUBLIC.name().equals(role)
-                ? Tuple.of("scope", tenant)
-                : Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
+            ? Tuple.of("scope", tenant)
+            : Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
     }
 
     private CheckedFunction1<URI, Try<URI>> appendAuthParams (JWTAuthentication auth) {
         return uri -> {
             Tuple2<String, String> authParam = makeAuthParam(auth);
             return Try.of(() ->
-                    UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
+                UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
             );
         };
     }
