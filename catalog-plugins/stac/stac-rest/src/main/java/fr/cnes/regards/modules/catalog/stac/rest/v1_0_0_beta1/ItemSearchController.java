@@ -28,7 +28,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchAfterSerdeService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchOtherPageItemBodySerdeService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.ItemSearchService;
@@ -36,7 +35,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +44,10 @@ import org.springframework.web.bind.annotation.*;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
- * Search API
+ * Search API.
+ *
+ * We add a non-standard 0-based <code>page</code> query param for pagination. Links to next/prev page are done using the
+ * {@link #otherPage(String, Integer)} endpoint.
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/item-search">Description</a>>
  */
@@ -55,7 +56,6 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 public class ItemSearchController implements TryToResponseEntity {
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;
-    private final SearchAfterSerdeService searchAfterSerde;
     private final SearchOtherPageItemBodySerdeService searchTokenSerde;
     private final LinkCreatorService linkCreatorService;
     private final ItemSearchService itemSearchService;
@@ -63,13 +63,11 @@ public class ItemSearchController implements TryToResponseEntity {
     @Autowired
     public ItemSearchController(
             ItemSearchBodyFactory itemSearchBodyFactory,
-            SearchAfterSerdeService searchAfterSerde,
             SearchOtherPageItemBodySerdeService searchTokenSerde,
             LinkCreatorService linkCreatorService,
             ItemSearchService itemSearchService
     ) {
         this.itemSearchBodyFactory = itemSearchBodyFactory;
-        this.searchAfterSerde = searchAfterSerde;
         this.searchTokenSerde = searchTokenSerde;
         this.linkCreatorService = linkCreatorService;
         this.itemSearchService = itemSearchService;
@@ -88,6 +86,7 @@ public class ItemSearchController implements TryToResponseEntity {
     public ResponseEntity<ItemCollectionResponse> simple(
             HttpRequest request,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
             @RequestParam(name = COLLECTIONS_QUERY_PARAM, required = false) List<String> collections,
@@ -102,7 +101,7 @@ public class ItemSearchController implements TryToResponseEntity {
             .parseItemSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
             .flatMap(itemSearchBody -> itemSearchService.search(
                 itemSearchBody,
-                Option.none(),
+                page,
                 linkCreatorService.makeOGCFeatLinkCreator(auth),
                 linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
             )));
@@ -119,13 +118,14 @@ public class ItemSearchController implements TryToResponseEntity {
     )
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ItemCollectionResponse> complex(
-            @RequestBody ItemSearchBody itemSearchBody
+            @RequestBody ItemSearchBody itemSearchBody,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
     ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(itemSearchService.search(
             itemSearchBody,
-            Option.none(),
+            page,
             linkCreatorService.makeOGCFeatLinkCreator(auth),
             linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
         ));
@@ -145,21 +145,18 @@ public class ItemSearchController implements TryToResponseEntity {
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> otherPage(
-            @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
-            @RequestParam(name = SEARCH_SEARCHAFTER_QUERY_PARAM, required = false) String searchAfterBase64,
-            @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM, required = false) String itemBodyBase64
+            @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM, required = false) String itemBodyBase64,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
     ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(searchTokenSerde.deserialize(itemBodyBase64)
-            .flatMap(itemSearchBody -> searchAfterSerde.deserialize(searchAfterBase64)
-                .flatMap(searchAfter -> itemSearchService.search(
-                        itemSearchBody,
-                        Option.of(searchAfter),
-                        linkCreatorService.makeOGCFeatLinkCreator(auth),
-                        linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
-                ))
-            )
+            .flatMap(itemSearchBody -> itemSearchService.search(
+                itemSearchBody,
+                page,
+                linkCreatorService.makeOGCFeatLinkCreator(auth),
+                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+            ))
         );
     }
 

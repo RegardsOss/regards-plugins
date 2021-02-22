@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
 import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
@@ -37,7 +38,7 @@ import lombok.With;
 public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
 
     @SerializedName("stac_version")
-    String stacVersion;
+    String stacVersion = StacSpecConstants.Version.STAC_API_VERSION;
     @SerializedName("stac_extensions")
     List<String> stacExtensions;
 
@@ -45,7 +46,7 @@ public class ItemCollectionResponse implements LinkCollection<ItemCollectionResp
         @SerializedName("FeatureCollection")
         FEATURE_COLLECTION
     }
-    TypeEnum type;
+    TypeEnum type = TypeEnum.FEATURE_COLLECTION;
 
     List<Item> features;
     List<Link> links;
@@ -54,7 +55,7 @@ public class ItemCollectionResponse implements LinkCollection<ItemCollectionResp
     public static class Context {
         int returned;
         Integer limit;
-        Integer matched;
+        Long matched;
     }
     Context context;
 

@@ -29,7 +29,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchAfterSerdeService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.CheckedFunction1;
