@@ -49,7 +49,7 @@ public class ItemSearchBody {
 
     @Value
     public static class SortBy {
-        enum Direction {
+        public enum Direction {
             @SerializedName("asc") ASC, @SerializedName("desc") DESC;
         }
         String field;

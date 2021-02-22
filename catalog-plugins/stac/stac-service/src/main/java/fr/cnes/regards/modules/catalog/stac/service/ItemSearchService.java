@@ -23,8 +23,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
-import io.vavr.collection.List;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 
 /**
@@ -34,7 +32,7 @@ public interface ItemSearchService {
 
     Try<ItemCollectionResponse> search(
             ItemSearchBody itemSearchBody,
-            Option<List<Object>> seachAfter,
+            Integer offset,
             OGCFeatLinkCreator featLinkCreator,
             SearchPageLinkCreator searchPageLinkCreator
     );
