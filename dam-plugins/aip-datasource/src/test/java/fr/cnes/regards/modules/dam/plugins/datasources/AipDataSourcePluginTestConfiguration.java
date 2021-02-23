@@ -40,6 +40,7 @@ import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfiguration;
 import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 @Configuration
 public class AipDataSourcePluginTestConfiguration {
@@ -52,6 +53,11 @@ public class AipDataSourcePluginTestConfiguration {
     @Bean
     public IProjectUsersClient userClientMock() {
         return Mockito.mock(IProjectUsersClient.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
     }
 
     @Bean
