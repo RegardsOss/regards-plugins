@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 @Configuration
 public class TestConfiguration {
@@ -24,5 +25,10 @@ public class TestConfiguration {
     @Bean
     public IProjectsClient projectsClientMock() {
         return Mockito.mock(IProjectsClient.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClientMock() {
+        return Mockito.mock(IToponymsClient.class);
     }
 }
