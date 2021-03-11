@@ -36,6 +36,7 @@ import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 @Profile("IngesterGeometryTest")
 @Configuration
@@ -73,5 +74,10 @@ public class IngesterGeometryConfiguration {
     @Bean
     public IResourceService getResourceService() {
         return Mockito.mock(IResourceService.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
     }
 }

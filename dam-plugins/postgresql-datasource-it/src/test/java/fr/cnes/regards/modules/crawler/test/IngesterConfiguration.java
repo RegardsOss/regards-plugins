@@ -34,6 +34,7 @@ import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 @Profile("IngesterTest")
 @Configuration
@@ -85,5 +86,10 @@ public class IngesterConfiguration {
     @Bean
     public IProjectUsersClient projectUsersClient() {
         return Mockito.mock(IProjectUsersClient.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
     }
 }
