@@ -17,28 +17,19 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import io.vavr.collection.List;
 import io.vavr.control.Try;
 
 /**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
- *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
+ * Interface allowing to serialize/deserialize URNs corresponding to
+ * list of dyn collection level values.
  */
-public abstract class AbstractPropertyConverter<ST, RT> {
+public interface DynCollLevelValueSerdeService {
 
-   private final StacPropertyType type;
-
-   public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
-
-   public abstract Try<ST> convertRegardsToStac(RT value);
-
-   public abstract Try<RT> convertStacToRegards(ST value);
+    String serialize(List<RestDynCollLevelValue> values);
+    Try<List<RestDynCollLevelValue>> deserialize(String repr);
+    boolean isListOfDynCollLevelValues(String urn);
 
 }

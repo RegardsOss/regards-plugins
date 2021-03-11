@@ -17,28 +17,23 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import io.vavr.control.Try;
+import com.google.gson.annotations.SerializedName;
+import lombok.Value;
+import lombok.With;
 
 /**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
- *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
+ * REST layer dynamic collection level value, allows to represent .
  */
-public abstract class AbstractPropertyConverter<ST, RT> {
+@Value @With
+public class RestDynCollLevelValue {
 
-   private final StacPropertyType type;
-
-   public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
-
-   public abstract Try<ST> convertRegardsToStac(RT value);
-
-   public abstract Try<RT> convertStacToRegards(ST value);
+    @SerializedName("p")
+    String name;
+    @SerializedName("l")
+    String level;
+    @SerializedName("v")
+    String value;
 
 }

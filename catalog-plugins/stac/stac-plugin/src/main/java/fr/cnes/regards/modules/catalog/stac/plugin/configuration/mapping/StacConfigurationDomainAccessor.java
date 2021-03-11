@@ -22,10 +22,11 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PropertyConverterFactory;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider.ProviderRole;
 import fr.cnes.regards.modules.catalog.stac.plugin.StacSearchEngine;
@@ -59,13 +60,16 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
     private final IPluginService pluginService;
 
+    private final RegardsPropertyAccessorFactory regardsPropertyAccessorFactory;
+
     @Autowired
     public StacConfigurationDomainAccessor(
             PropertyConverterFactory propertyConverterFactory,
-            IPluginService pluginService
-    ) {
+            IPluginService pluginService,
+            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory) {
         this.propertyConverterFactory = propertyConverterFactory;
         this.pluginService = pluginService;
+        this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
     }
 
     @Override
@@ -87,7 +91,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
             @Override
             public List<Provider> getProviders(String datasetUrn) {
                 return getCollectionConfigs(datasetUrn)
-                        .flatMap(cc -> cc.getProviders())
+                        .flatMap(CollectionConfiguration::getProviders)
                         .map(pc -> getProvider(pc));
             }
 
@@ -101,7 +105,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
             public String getLicense(String datasetUrn) {
                 return getCollectionConfigs(datasetUrn)
                     .headOption()
-                    .map(cc -> cc.getLicense())
+                    .map(CollectionConfiguration::getLicense)
                     .getOrNull();
             }
 
@@ -137,23 +141,34 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations
                 .map(s -> {
-                    PropertyType type = PropertyType.parse(s.getStacType());
+                    StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
                     AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
-                            type,
-                            s.getStacFormat(),
-                            s.getRegardsFormat()
+                        stacType,
+                        s.getStacFormat(),
+                        s.getRegardsFormat()
                     );
                     return new StacProperty(
-                            s.getModelAttributeName(),
-                            s.getStacPropertyName(),
-                            s.getStacExtension(),
-                            s.getStacComputeExtent(),
-                            s.getStacDynamicCollectionLevel(),
-                            type,
-                            converter
+                        extractPropertyAccessor(s, stacType),
+                        s.getStacPropertyName(),
+                        s.getStacExtension(),
+                        s.getStacComputeSummary() && canComputeSummary(stacType),
+                        s.getStacDynamicCollectionLevel(),
+                        stacType,
+                        converter
                     );
                 })
                 .toList();
+    }
+
+    private RegardsPropertyAccessor extractPropertyAccessor(
+            StacPropertyConfiguration sPropConfig,
+            StacPropertyType stacType
+    ) {
+        return this.regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
+    }
+
+    private boolean canComputeSummary(StacPropertyType type) {
+        return type.canBeSummarized();
     }
 
     private Option<StacSearchEngine> getPlugin() {

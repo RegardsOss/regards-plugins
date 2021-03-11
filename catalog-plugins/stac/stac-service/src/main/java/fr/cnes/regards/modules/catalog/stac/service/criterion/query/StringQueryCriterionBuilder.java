@@ -22,10 +22,12 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 
-import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.*;
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
+import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 
 /**
  * Criterion builder for a {@link StringQueryObject}
@@ -37,7 +39,7 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     }
 
     @Override
-    public Option<ICriterion> buildCriterion(String attr, List<StacProperty> properties, StringQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, StringQueryObject queryObject) {
         return andAllPresent(
                 Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
                 Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),

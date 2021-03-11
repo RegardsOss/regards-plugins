@@ -17,28 +17,27 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import io.vavr.control.Try;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import io.vavr.collection.List;
+import lombok.Value;
+import lombok.With;
 
 /**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
- *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
+ * Dynamic collection definition, giving the list of properties to look for.
  */
-public abstract class AbstractPropertyConverter<ST, RT> {
+@Value @With
+public class DynamicCollectionDefinition {
 
-   private final StacPropertyType type;
+    List<StacProperty> properties;
 
-   public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
+    /*
+    public static Option<DynamicCollectionDefinition> fromAllStacSproperties(List<StacProperty> allProperties) {
+        return new DynamicCollectionDefinition(allProperties.filter(sp -> sp.getDynamicCollectionLevel() != null)
+                .sortBy(StacProperty::getDynamicCollectionLevel));
+    }
 
-   public abstract Try<ST> convertRegardsToStac(RT value);
-
-   public abstract Try<RT> convertStacToRegards(ST value);
+     */
 
 }

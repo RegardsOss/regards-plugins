@@ -37,7 +37,11 @@ public interface RandomAwareTest {
     default void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {}
 
     default <T> List<T> randomList(Class<T> type, int num) {
-        return List.ofAll(easyRandom().objects(type, num));
+        return randomList(easyRandom(), type, num);
+    }
+
+    default <T> List<T> randomList(EasyRandom easyRandom, Class<T> type, int num) {
+        return List.ofAll(easyRandom.objects(type, num));
     }
 
     default <T> T randomInstance(Class<T> type) {

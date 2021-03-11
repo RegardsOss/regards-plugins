@@ -17,28 +17,25 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import io.vavr.control.Try;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 
 /**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
+ * TODO: DynCollLevel description
  *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
+ * @author gandrieu
  */
-public abstract class AbstractPropertyConverter<ST, RT> {
+public abstract class DynCollLevel<T> {
 
-   private final StacPropertyType type;
+    StacProperty property;
+    Object value;
 
-   public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> getValueType() {
+        return (Class<T>)value.getClass();
+    }
 
-   public abstract Try<ST> convertRegardsToStac(RT value);
 
-   public abstract Try<RT> convertStacToRegards(ST value);
 
 }

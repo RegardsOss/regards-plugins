@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
 
 import java.util.Base64;
 

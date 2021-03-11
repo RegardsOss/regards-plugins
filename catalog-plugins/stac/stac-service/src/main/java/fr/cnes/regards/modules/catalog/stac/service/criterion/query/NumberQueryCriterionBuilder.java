@@ -20,16 +20,18 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.NumberQueryObject;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.query.number.DoubleInterval;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 
-import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.eq;
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
+
 
 /**
  * Criterion builder for a {@link NumberQueryObject}
@@ -43,11 +45,10 @@ public class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     }
 
     @Override
-    public Option<ICriterion> buildCriterion(String attr, List<StacProperty> properties, NumberQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, NumberQueryObject queryObject) {
         AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName)
                 .map(StacProperty::getConverter)
-                .getOrElse(new IdentityPropertyConverter<>(PropertyType.NUMBER));
-
+                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
 
         return andAllPresent(
             combineIntervals(attr, List.of(
@@ -70,9 +71,9 @@ public class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
         return Option.of(lt).toTry().flatMap(converter::convertStacToRegards).toOption();
     }
 
-    private Option<ICriterion> combineIntervals(String attr, List<Option<DoubleInterval>> intervals) {
+    private Option<ICriterion> combineIntervals(AttributeModel attr, List<Option<DoubleInterval>> intervals) {
         return intervals.flatMap(opt -> opt)
             .reduceLeftOption(DoubleInterval::combine)
-            .map(i -> i.toCriterion(attr));
+            .map(i -> i.toCriterion(attr.getFullJsonPath()));
     }
 }

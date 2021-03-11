@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Try;
 
 /**
@@ -27,7 +27,7 @@ import io.vavr.control.Try;
  */
 public class IdentityPropertyConverter<X> extends AbstractPropertyConverter<X, X> {
 
-    public IdentityPropertyConverter(PropertyType type) {
+    public IdentityPropertyConverter(StacPropertyType type) {
         super(type);
     }
 

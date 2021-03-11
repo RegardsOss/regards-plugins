@@ -17,28 +17,24 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
+package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModelBuilder;
 import io.vavr.control.Try;
 
-/**
- * Provides the generic mechanics to convert from a value of type X to a value of type Y,
- * and vice-versa.
- *
- * @param <ST> the STAC type
- * @param <RT> the REGARDS type
- */
-public abstract class AbstractPropertyConverter<ST, RT> {
+public interface RegardsPropertyAccessorAwareTest {
 
-   private final StacPropertyType type;
+    default AttributeModel attr(String name, StacPropertyType sPropType) {
+        return AttributeModelBuilder.build(name, sPropType.getPropertyType(), "").get();
+    }
 
-   public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
-
-   public abstract Try<ST> convertRegardsToStac(RT value);
-
-   public abstract Try<RT> convertStacToRegards(ST value);
+    default RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value) {
+        return new RegardsPropertyAccessor(
+                name, attr(name, sPropType), d -> Try.success(value), value.getClass()
+        );
+    }
 
 }

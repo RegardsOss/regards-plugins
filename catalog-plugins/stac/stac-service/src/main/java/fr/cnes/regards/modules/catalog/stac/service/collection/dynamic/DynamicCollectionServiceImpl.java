@@ -28,6 +28,8 @@ import io.vavr.collection.Map;
  */
 public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
+
+
     @Override
     public String extractDynamicCollectionName(
             List<StacProperty> properties,

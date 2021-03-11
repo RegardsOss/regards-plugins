@@ -21,7 +21,10 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.Fields;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
@@ -36,12 +39,12 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, Fields fields) {
         if (fields == null) { return Option.none(); }
         Option<ICriterion> includes = fields.getIncludes()
-                .map(inc -> propertyNameFor(properties, inc))
-                .map(ICriterion::attributeExists)
+                .flatMap(inc -> propertyNameFor(properties, inc))
+                .map(IFeatureCriterion::attributeExists)
                 .reduceLeftOption(ICriterion::and);
         Option<ICriterion> excludes = fields.getExcludes()
-                .map(inc -> propertyNameFor(properties, inc))
-                .map(ICriterion::attributeExists)
+                .flatMap(inc -> propertyNameFor(properties, inc))
+                .map(IFeatureCriterion::attributeExists)
                 .map(ICriterion::not)
                 .reduceLeftOption(ICriterion::and);
         return withAll(
@@ -50,10 +53,10 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
         );
     }
 
-    private String propertyNameFor(List<StacProperty> properties, String attrName) {
+    private Option<AttributeModel> propertyNameFor(List<StacProperty> properties, String attrName) {
         return properties.find(p -> attrName.equals(p.getStacPropertyName()))
-                .map(StacProperty::getModelAttributeName)
-                .getOrElse(attrName);
+                .map(StacProperty::getRegardsPropertyAccessor)
+                .map(RegardsPropertyAccessor::getAttributeModel);
     }
 
 }

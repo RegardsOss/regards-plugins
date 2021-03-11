@@ -1,9 +1,11 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.NumberQueryObject;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.indexer.domain.criterion.*;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -13,15 +15,16 @@ import static fr.cnes.regards.modules.catalog.stac.service.criterion.query.Numbe
 import static fr.cnes.regards.modules.indexer.domain.criterion.ComparisonOperator.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NumberQueryCriterionBuilderTest {
+public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
 
     @Test
     public void testBuildCriterionEmpty() {
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.DATETIME,
-                new IdentityPropertyConverter<>(PropertyType.DATETIME)
+                accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d),
+                 "stacProp",
+                "", false, 0, StacPropertyType.PERCENTAGE,
+                new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp")
@@ -33,10 +36,12 @@ public class NumberQueryCriterionBuilderTest {
     @Test
     public void testBuildCriterionEq() {
         // GIVEN
+        RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.STRING,
-                new IdentityPropertyConverter<>(PropertyType.STRING)
+                regardsAttr,
+                 "stacProp",
+                "", false, 0, StacPropertyType.PERCENTAGE,
+                new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
 
         double value = 12d;
@@ -49,7 +54,7 @@ public class NumberQueryCriterionBuilderTest {
         assertThat(criterion.get()).isInstanceOf(RangeCriterion.class);
 
         RangeCriterion<Double> doubleRangeCriterion = (RangeCriterion<Double>) criterion.get();
-        assertThatRangeGoesFromTo(doubleRangeCriterion, "regardsAttr",
+        assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(),
                 GREATER, 12d - DOUBLE_COMPARISON_PRECISION,
                 LESS,12d + DOUBLE_COMPARISON_PRECISION
         );
@@ -58,10 +63,12 @@ public class NumberQueryCriterionBuilderTest {
     @Test
     public void testBuildCriterionNeq() {
         // GIVEN
+        RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.STRING,
-                new IdentityPropertyConverter<>(PropertyType.STRING)
+                regardsAttr,
+                 "stacProp",
+                "", false, 0, StacPropertyType.PERCENTAGE,
+                new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
 
         double value = 12d;
@@ -75,7 +82,8 @@ public class NumberQueryCriterionBuilderTest {
         assertThat(criterion.get()).isInstanceOf(NotCriterion.class);
 
         RangeCriterion<Double> doubleRangeCriterion = (RangeCriterion<Double>) ((NotCriterion)criterion.get()).getCriterion();
-        assertThatRangeGoesFromTo(doubleRangeCriterion, "regardsAttr",
+        assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(),
+
                 GREATER, 12d - DOUBLE_COMPARISON_PRECISION,
                 LESS,12d + DOUBLE_COMPARISON_PRECISION
         );
@@ -84,10 +92,12 @@ public class NumberQueryCriterionBuilderTest {
     @Test
     public void testBuildCriterionLtGte() {
         // GIVEN
+        RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.STRING,
-                new IdentityPropertyConverter<>(PropertyType.STRING)
+                regardsAttr,
+                 "stacProp",
+                "", false, 0, StacPropertyType.STRING,
+                new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
 
         double value = 12d;
@@ -99,7 +109,7 @@ public class NumberQueryCriterionBuilderTest {
         assertThat(criterion).isNotEmpty();
 
         RangeCriterion<Double> doubleRangeCriterion = (RangeCriterion<Double>)criterion.get();
-        assertThatRangeGoesFromTo(doubleRangeCriterion, "regardsAttr",
+        assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(),
                 GREATER_OR_EQUAL, 12d,
                 LESS,13d + DOUBLE_COMPARISON_PRECISION
         );
@@ -108,10 +118,12 @@ public class NumberQueryCriterionBuilderTest {
     @Test
     public void testBuildCriterionIn() {
         // GIVEN
+        RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.STRING,
-                new IdentityPropertyConverter<>(PropertyType.STRING)
+                regardsAttr,
+                "stacProp",
+                "", false, 0, StacPropertyType.STRING,
+                new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
 
         NumberQueryObject qo = new NumberQueryObject(null, null, null, null, null, null,
@@ -125,12 +137,12 @@ public class NumberQueryCriterionBuilderTest {
         java.util.List<ICriterion> innerCrits = ((OrCriterion) criterion.get()).getCriterions();
         assertThat(innerCrits).hasSize(2);
         assertThatRangeGoesFromTo(
-                (RangeCriterion<Double>)innerCrits.get(0), "regardsAttr",
+                (RangeCriterion<Double>)innerCrits.get(0), regardsAttr.getAttributeModel().getFullJsonPath(),
                 GREATER_OR_EQUAL, 12d - DOUBLE_COMPARISON_PRECISION,
                 LESS_OR_EQUAL,12d + DOUBLE_COMPARISON_PRECISION
         );
         assertThatRangeGoesFromTo(
-                (RangeCriterion<Double>)innerCrits.get(1), "regardsAttr",
+                (RangeCriterion<Double>)innerCrits.get(1), regardsAttr.getAttributeModel().getFullJsonPath(),
                 GREATER_OR_EQUAL, 13d - DOUBLE_COMPARISON_PRECISION,
                 LESS_OR_EQUAL,13d + DOUBLE_COMPARISON_PRECISION
         );

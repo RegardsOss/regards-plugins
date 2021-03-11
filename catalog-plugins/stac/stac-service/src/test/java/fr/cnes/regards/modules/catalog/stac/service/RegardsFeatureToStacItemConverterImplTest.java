@@ -8,7 +8,7 @@ import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
@@ -88,9 +88,10 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest 
 
         List<StacProperty> stacProperties = List.of(
             new StacProperty(
-                "regardsAttr", "stacProp",
-                "", false, 0, PropertyType.DATETIME,
-                new IdentityPropertyConverter<>(PropertyType.DATETIME)
+                null, // FIXME" regardsAttr",
+                "stacProp",
+                "", false, 0, StacPropertyType.DATETIME,
+                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
             )
         );
         FeatureUniformResourceName itemIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,

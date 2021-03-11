@@ -33,12 +33,22 @@ import lombok.With;
 public class StacPropertyConfiguration {
 
     @PluginParameter(
-            name = "modelAttributeName",
-            label = "Model attribute name",
+            name = "regardsPropertyName",
+            label = "Regards property name",
             description = "This parameter determines which attribute model parameter" +
                     " to map to a STAC property."
     )
-    private String modelAttributeName;
+    private String modelPropertyName;
+
+    @PluginParameter(
+            name = "regardsPropertyJsonPath",
+            label = "Model property JSON path",
+            description = "If the target REGARDS property is of type JSON, " +
+                    " this parameter determines the path in the JSON structure where to read the value.",
+            optional = true
+    )
+    private String modelPropertyJSONPath;
+
 
     @PluginParameter(
             name = "stacPropertyName",
@@ -62,7 +72,7 @@ public class StacPropertyConfiguration {
             description = "Whether a summary should be computed for this property in the collections." +
                     " Only applicable for stacType value among 'DATETIME', 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
-    private Boolean stacComputeExtent;
+    private Boolean stacComputeSummary;
 
     @PluginParameter(
             name = "stacDynamicCollectionLevel",

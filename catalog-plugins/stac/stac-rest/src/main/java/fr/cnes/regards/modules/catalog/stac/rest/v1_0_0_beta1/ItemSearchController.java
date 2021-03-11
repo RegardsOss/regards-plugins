@@ -103,7 +103,7 @@ public class ItemSearchController implements TryToResponseEntity {
                 itemSearchBody,
                 page,
                 linkCreatorService.makeOGCFeatLinkCreator(auth),
-                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
             )));
     }
 
@@ -127,7 +127,7 @@ public class ItemSearchController implements TryToResponseEntity {
             itemSearchBody,
             page,
             linkCreatorService.makeOGCFeatLinkCreator(auth),
-            linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+            linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
         ));
     }
 
@@ -155,7 +155,7 @@ public class ItemSearchController implements TryToResponseEntity {
                 itemSearchBody,
                 page,
                 linkCreatorService.makeOGCFeatLinkCreator(auth),
-                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
             ))
         );
     }

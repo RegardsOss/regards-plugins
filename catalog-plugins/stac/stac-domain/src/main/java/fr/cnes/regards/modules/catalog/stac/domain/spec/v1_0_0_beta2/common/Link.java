@@ -51,6 +51,8 @@ public class Link {
         String COLLECTION = "collection";
         String DERIVED_FROM = "derived_from";
         String ALTERNATE = "alternate";
+        String NEXT = "next";
+        String PREV = "prev";
     }
 
 }

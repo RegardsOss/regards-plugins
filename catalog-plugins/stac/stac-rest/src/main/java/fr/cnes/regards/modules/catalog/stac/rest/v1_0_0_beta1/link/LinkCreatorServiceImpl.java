@@ -34,10 +34,11 @@ import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.CheckedFunction1;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Service;
@@ -46,22 +47,25 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import static io.vavr.control.Option.none;
+
 /**
  * Allows to generate link creators.
  */
 @Service
 public class LinkCreatorServiceImpl implements LinkCreatorService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
+
     private final JWTService jwtService;
-    private final SearchAfterSerdeService searchAfterSerdeService;
+
+    // @formatter:off
 
     @Autowired
     public LinkCreatorServiceImpl(
-            JWTService jwtService,
-            SearchAfterSerdeService searchAfterSerdeService
+            JWTService jwtService
     ) {
         this.jwtService = jwtService;
-        this.searchAfterSerdeService = searchAfterSerdeService;
     }
 
     @Override
@@ -118,43 +122,36 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
     }
 
     @Override
-    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody) {
+    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page, ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
-            @Override
-            public Try<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
+
+            private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 return Try.of(() ->
-                    WebMvcLinkBuilder.linkTo(
-                            ItemSearchController.class,
-                            getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                            itemSearchBody.getLimit(),
-                            extractSearchAfter(itemCollection.getFeatures().lastOption()),
-                            itemSearchBody
-                    ).toUri()
+                        WebMvcLinkBuilder.linkTo(
+                                ItemSearchController.class,
+                                getMethodNamedInClass(ItemSearchController.class, "otherPage"),
+                                itemSearchBody,
+                                i
+                        ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth));
+                        .flatMapTry(appendAuthParams(auth))
+                        .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
+                        .toOption();
             }
 
             @Override
-            public Try<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
-                return Try.of(() ->
-                    WebMvcLinkBuilder.linkTo(
-                        ItemSearchController.class,
-                        getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                        itemSearchBody.getLimit(),
-                        extractSearchAfter(itemCollection.getFeatures().headOption()),
-                        itemSearchBody
-                    ).toUri()
-                )
-                .flatMapTry(appendAuthParams(auth));
+            public Option<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
+                return createPageLink(page + 1, itemSearchBody, auth);
             }
 
-            private String extractSearchAfter(Option<Item> optItem) {
-                List<Object> values = optItem.map(item -> itemSearchBody.getSortBy()
-                    .map(ItemSearchBody.SortBy::getField)
-                    .map(field -> item.getProperties().get(field).getOrNull())
-                )
-                .getOrElse(List::empty);
-                return searchAfterSerdeService.serialize(values);
+            @Override
+            public Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection) {
+                return page == 0 ? none() : createPageLink(page - 1, itemSearchBody, auth);
+            }
+
+            @Override
+            public Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
+                return createPageLink(page, itemSearchBody, auth);
             }
         };
     }
@@ -184,5 +181,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             );
         };
     }
+
+    // @formatter:on
 
 }

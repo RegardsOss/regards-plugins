@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -42,8 +43,8 @@ public class DateIntervalCriterionBuilder implements CriterionBuilder<DateInterv
         return datetimeProperty.map(p -> {
                     boolean singleDate = datetime.isSingleDate();
                     return singleDate
-                        ? ICriterion.eq(p.getModelAttributeName(), datetime.getFrom())
-                        : ICriterion.between(p.getModelAttributeName(), datetime.getFrom(), datetime.getTo());
+                        ? IFeatureCriterion.eq(p.getRegardsPropertyAccessor().getAttributeModel(), datetime.getFrom())
+                        : IFeatureCriterion.between(p.getRegardsPropertyAccessor().getAttributeModel(), datetime.getFrom(), datetime.getTo());
                 }
         );
     }

@@ -226,7 +226,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     }
 
     private Option<StacProperty> findCorrespondingStacProperty(IProperty<?> regardsProp, List<StacProperty> properties) {
-        return properties.find(sp -> regardsProp.getName().equals(sp.getModelAttributeName()));
+        return properties.find(sp -> regardsProp.getName().equals(sp.getRegardsPropertyAccessor()));
     }
 
 }

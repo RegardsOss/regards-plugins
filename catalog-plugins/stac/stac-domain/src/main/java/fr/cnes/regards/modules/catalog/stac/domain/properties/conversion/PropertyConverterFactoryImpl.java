@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PercentagePropertyConverter.PercentageBase.parsePercentageBase;
 
@@ -30,7 +30,7 @@ public class PropertyConverterFactoryImpl implements PropertyConverterFactory {
 
     @Override
     public AbstractPropertyConverter<?, ?> getConverter(
-            PropertyType type,
+            StacPropertyType type,
             String stacFormat,
             String regardsFormat
     ) {

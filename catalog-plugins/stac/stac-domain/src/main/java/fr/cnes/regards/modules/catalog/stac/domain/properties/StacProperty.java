@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
 import lombok.Value;
 import lombok.With;
 
@@ -29,7 +30,7 @@ import lombok.With;
 @Value @With
 public class StacProperty {
 
-    String modelAttributeName;
+    RegardsPropertyAccessor regardsPropertyAccessor;
 
     String stacPropertyName;
 
@@ -39,7 +40,7 @@ public class StacProperty {
 
     Integer dynamicCollectionLevel;
 
-    PropertyType type;
+    StacPropertyType stacType;
 
     AbstractPropertyConverter converter;
 
