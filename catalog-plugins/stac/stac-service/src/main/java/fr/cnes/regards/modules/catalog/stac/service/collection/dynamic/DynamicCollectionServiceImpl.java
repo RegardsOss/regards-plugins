@@ -22,10 +22,12 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import org.springframework.stereotype.Component;
 
 /**
  * Default implementation for {@link DynamicCollectionService}.
  */
+@Component
 public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     @Override

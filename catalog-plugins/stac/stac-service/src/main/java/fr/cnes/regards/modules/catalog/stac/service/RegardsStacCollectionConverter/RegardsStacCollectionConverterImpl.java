@@ -5,6 +5,7 @@ import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.EntityOperationForbiddenException;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
@@ -84,7 +85,7 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
                 .ofEpochMilli(dateTimeTo), ZoneId.systemDefault()));
         Extent extent = new Extent(new Extent.Spatial(List.of(new BBox(-180, -90, 180, 90))),
                 new Extent.Temporal(List.of(new Tuple2<>(from, to))));
-        Collection collection = new Collection("1.0.0-beta2",
+        Collection collection = new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),
                 damCollection.getCollection().getLabel(),
                 damCollection.getCollection().getId().toString(),

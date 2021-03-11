@@ -34,4 +34,26 @@ public class StacGeoHelperTest implements GsonAwareTest {
         assertThat(result.get()._3).isEqualTo(new Centroid(1d,1d));
     }
 
+    @Test
+    public void testComputeBBoxPolygonAntemeridian() {
+        Polygon polygon = IGeometry.simplePolygon(178d, 1d, -178d, 1d, -178d, -1d, 178d, -1d);
+        Option<Tuple3<IGeometry, BBox, Centroid>> result = helper.computeBBoxCentroid(polygon, reader);
+        System.out.println(result);
+        assertThat(result).isNotEmpty();
+        assertThat(result.get()._1).isSameAs(polygon);
+        assertThat(result.get()._2).isEqualTo(new BBox(178d,-1d,-178d,1d));
+        assertThat(result.get()._3).isEqualTo(new Centroid(180d,0d));
+    }
+
+    @Test
+    public void testComputeBBoxPolygonAntemeridianCcw() {
+        Polygon polygon = IGeometry.simplePolygon(178d, -1d, -178d, -1d, -178d, 1d, 178d, 1d);
+        Option<Tuple3<IGeometry, BBox, Centroid>> result = helper.computeBBoxCentroid(polygon, reader);
+        System.out.println(result);
+        assertThat(result).isNotEmpty();
+        assertThat(result.get()._1).isSameAs(polygon);
+        assertThat(result.get()._2).isEqualTo(new BBox(178d,-1d,-178d,1d));
+        assertThat(result.get()._3).isEqualTo(new Centroid(180d,0d));
+    }
+
 }
