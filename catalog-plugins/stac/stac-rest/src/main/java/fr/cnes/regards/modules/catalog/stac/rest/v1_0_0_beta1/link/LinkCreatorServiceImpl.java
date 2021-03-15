@@ -77,24 +77,24 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             @Override
             public Try<URI> createRootLink() {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(CoreController.class, "root")
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        CoreController.class,
+                        getMethodNamedInClass(CoreController.class, "root")
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(appendAuthParams(auth));
             }
 
             @Override
             public Try<URI> createCollectionLink(String collectionId) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "collection"),
-                                collectionId
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "collection"),
+                        collectionId
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(appendAuthParams(auth));
             }
 
             @Override
@@ -105,14 +105,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             @Override
             public Try<URI> createItemLink(String collectionId, String itemId) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "item"),
-                                collectionId,
-                                itemId
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "item"),
+                        collectionId,
+                        itemId
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(appendAuthParams(auth));
             }
 
             @Override
@@ -128,16 +128,16 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                ItemSearchController.class,
-                                getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                                itemSearchBody,
-                                i
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        ItemSearchController.class,
+                        getMethodNamedInClass(ItemSearchController.class, "otherPage"),
+                        itemSearchBody,
+                        i
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth))
-                        .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
-                        .toOption();
+                .flatMapTry(appendAuthParams(auth))
+                .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
+                .toOption();
             }
 
             @Override
