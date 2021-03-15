@@ -4,7 +4,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.indexer.domain.criterion.DateMatchCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.DateRangeCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;

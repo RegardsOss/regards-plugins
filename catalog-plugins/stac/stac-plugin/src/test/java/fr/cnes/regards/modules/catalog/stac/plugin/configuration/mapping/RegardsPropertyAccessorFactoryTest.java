@@ -3,7 +3,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.path.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;

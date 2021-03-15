@@ -20,22 +20,20 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import io.vavr.control.Try;
+import lombok.Value;
 
 /**
- * TODO: DynCollLevel description
- *
- * @author gandrieu
+ * A dynamic collection level value consists of a StacProperty, along with a value.
  */
-public abstract class DynCollLevel<T> {
+@Value
+public class DynCollLevelValue {
 
     StacProperty property;
     Object value;
 
-    @SuppressWarnings("unchecked")
-    public <T> Class<T> getValueType() {
-        return (Class<T>)value.getClass();
+    public <T> Try<T> getGenericValue() {
+        return Try.of(() -> (T) value);
     }
-
-
 
 }
