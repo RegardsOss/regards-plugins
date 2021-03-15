@@ -35,13 +35,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+
 /**
  * Conformance page
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features"></a>
  */
 @RestController
-@RequestMapping(StacApiConstants.STAC_CONFORMANCE_PATH)
+@RequestMapping(
+        path = StacApiConstants.STAC_CONFORMANCE_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
 public class ConformanceController implements TryToResponseEntity {
 
     public static final List<String> CONFORMANCES = List.of(

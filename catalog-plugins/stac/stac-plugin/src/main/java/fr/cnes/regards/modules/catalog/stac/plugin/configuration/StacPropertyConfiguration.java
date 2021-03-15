@@ -49,12 +49,12 @@ public class StacPropertyConfiguration {
     )
     private String modelPropertyJSONPath;
 
-
     @PluginParameter(
             name = "stacPropertyName",
             label = "STAC property name",
             description = "This parameter determines the name of" +
-                    " the STAC property corresponding to the model attribute name."
+                    " the STAC property corresponding to the model attribute name.",
+            optional = true
     )
     private String stacPropertyName;
 
@@ -62,7 +62,8 @@ public class StacPropertyConfiguration {
             name = "stacExtension",
             label = "Name or URL of the STAC extension",
             description = "If this STAC property is not native, give the name of its extension," +
-                    " or its URL if the extension is not part defined in the standard."
+                    " or its URL if the extension is not part defined in the standard.",
+            optional = true
     )
     private String stacExtension;
 
@@ -87,7 +88,6 @@ public class StacPropertyConfiguration {
             name = "stacType",
             label = "Property type",
             description = "Should take a value among: " +
-                    "'DURATION', " +
                     "'DATETIME', " +
                     "'URL', " +
                     "'STRING', " +
@@ -98,7 +98,8 @@ public class StacPropertyConfiguration {
                     "'GEOMETRY', " +
                     "'BBOX', " +
                     "'BOOLEAN', " +
-                    "'OBJECT'."
+                    "'OBJECT'. Default is 'STRING', unless for the mandatory datetime property in which case it is 'DATETIME'.",
+            optional = true
     )
     private String stacType;
 

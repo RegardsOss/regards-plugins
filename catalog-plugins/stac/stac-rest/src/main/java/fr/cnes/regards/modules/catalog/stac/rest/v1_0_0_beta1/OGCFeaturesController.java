@@ -33,6 +33,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
@@ -41,7 +42,11 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features"></a>
  */
 @RestController
-@RequestMapping(STAC_COLLECTIONS_PATH)
+@RequestMapping(
+        path = STAC_COLLECTIONS_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
 public class OGCFeaturesController {
 
     @Operation(summary = "the feature collections in the dataset",

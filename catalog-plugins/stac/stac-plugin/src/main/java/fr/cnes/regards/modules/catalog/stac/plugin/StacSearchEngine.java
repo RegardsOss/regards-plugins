@@ -25,7 +25,6 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.Spatial4jConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -63,13 +62,15 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(
             name = "stacTitle",
             label = "STAC title",
-            description = "Title for the root STAC catalog.")
+            description = "Title for the root STAC catalog.",
+            optional = true)
     private String stacTitle;
 
     @PluginParameter(
             name = "stacDescription",
             label = "STAC description",
-            description = "Description for the root STAC catalog.")
+            description = "Description for the root STAC catalog.",
+            optional = true)
     private String stacDescription;
 
     @PluginParameter(
@@ -82,7 +83,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(
             name = "stacExtraProperties",
             label = "STAC extra properties",
-            description = "List of other STAC properties to be mapped to model attributes.")
+            description = "List of other STAC properties to be mapped to model attributes.",
+            optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
     @PluginParameter(
@@ -90,13 +92,6 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "Dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
-
-    @PluginParameter(
-            name = "spatial4jConfiguration",
-            label = "Configuration for spatial4j",
-            description = "This property configures the spatial4j library, allowing to compute bounding boxes from geometries."
-    )
-    private Spatial4jConfiguration spatial4jConfiguration;
 
     @Override
     public boolean supports(SearchType searchType) {

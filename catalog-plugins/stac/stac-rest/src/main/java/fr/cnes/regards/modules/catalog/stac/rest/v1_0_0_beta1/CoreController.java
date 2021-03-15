@@ -26,7 +26,6 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CoreResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
@@ -45,13 +44,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+
 /**
  * Core, landing page
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/core"></a>
  */
 @RestController
-@RequestMapping(StacApiConstants.STAC_PATH)
+@RequestMapping(
+        path = StacApiConstants.STAC_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
 public class CoreController implements TryToResponseEntity {
 
     private final ConfigurationAccessorFactory configFactory;
@@ -90,7 +95,7 @@ public class CoreController implements TryToResponseEntity {
                 runtimeTenantResolver.getTenant(),
                 config.getDescription(),
                 List.of(linker.makeOGCFeatLinkCreator(auth).createRootLink())
-                    .flatMap(t -> t.map(uri -> new Link(uri, Link.Relations.ROOT, Asset.MediaType.APPLICATION_JSON, title))),
+                    .flatMap(t -> t.map(uri -> new Link(uri, Link.Relations.ROOT, APPLICATION_JSON, title))),
                 ConformanceController.CONFORMANCES
         )));
     }

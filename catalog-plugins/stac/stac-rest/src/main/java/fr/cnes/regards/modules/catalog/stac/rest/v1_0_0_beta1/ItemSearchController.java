@@ -41,6 +41,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
@@ -52,7 +53,11 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/item-search">Description</a>>
  */
 @RestController
-@RequestMapping(STAC_SEARCH_PATH)
+@RequestMapping(
+        path = STAC_SEARCH_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
 public class ItemSearchController implements TryToResponseEntity {
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;

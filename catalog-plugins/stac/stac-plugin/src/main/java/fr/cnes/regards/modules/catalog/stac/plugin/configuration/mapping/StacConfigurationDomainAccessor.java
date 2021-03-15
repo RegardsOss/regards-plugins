@@ -23,11 +23,11 @@ import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PropertyConverterFactory;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider.ProviderRole;
 import fr.cnes.regards.modules.catalog.stac.plugin.StacSearchEngine;
@@ -36,6 +36,7 @@ import fr.cnes.regards.modules.catalog.stac.plugin.configuration.ProviderConfigu
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -65,17 +66,20 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
     private final IRuntimeTenantResolver runtimeTenantResolver;
 
+    private final ProjectGeoSettings geoSettings;
+
     @Autowired
     public StacConfigurationDomainAccessor(
             PropertyConverterFactory propertyConverterFactory,
             IPluginService pluginService,
             RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
-            IRuntimeTenantResolver runtimeTenantResolver
-    ) {
+            IRuntimeTenantResolver runtimeTenantResolver,
+            ProjectGeoSettings geoSettings) {
         this.propertyConverterFactory = propertyConverterFactory;
         this.pluginService = pluginService;
         this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
         this.runtimeTenantResolver = runtimeTenantResolver;
+        this.geoSettings = geoSettings;
     }
 
     @Override
@@ -141,13 +145,8 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public GeoJSONReader getGeoJSONReader() {
-                JtsSpatialContextFactory factory = plugin.map(StacSearchEngine::getSpatial4jConfiguration)
-                    .map(s4jconf -> {
-                        JtsSpatialContextFactory f = new JtsSpatialContextFactory();
-                        f.geo = s4jconf.isGeo();
-                        return f;
-                    })
-                    .getOrElse(JtsSpatialContextFactory::new);
+                JtsSpatialContextFactory factory = new JtsSpatialContextFactory();
+                factory.geo = geoSettings.getShouldManagePolesOnGeometries();
                 return new GeoJSONReader(new JtsSpatialContext(factory), factory);
             }
         };
