@@ -108,7 +108,7 @@ public class OGCFeaturesController {
             description = "fetch a single feature",
             role = DefaultRole.PUBLIC
     )
-    @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
+    @RequestMapping(path = STAC_ITEM_PATH_SUFFIX, method = RequestMethod.GET)
     public ResponseEntity<Item> feature(
             @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @PathVariable(name = ITEM_ID_PARAM) String featureId

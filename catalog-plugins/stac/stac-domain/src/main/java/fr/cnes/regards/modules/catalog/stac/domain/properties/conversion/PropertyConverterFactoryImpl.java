@@ -20,12 +20,14 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import org.springframework.stereotype.Component;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.PercentagePropertyConverter.PercentageBase.parsePercentageBase;
 
 /**
  * Base implementation for {@link PropertyConverterFactory}
  */
+@Component
 public class PropertyConverterFactoryImpl implements PropertyConverterFactory {
 
     @Override

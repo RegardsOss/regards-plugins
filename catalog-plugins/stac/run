@@ -1,0 +1,23 @@
+#!/bin/bash
+
+case $1 in
+build)
+    mvn clean install -DskipTests=true
+;;
+deploy)
+    scp ./stac-plugin/target/stac-plugin-1.4.1-SNAPSHOT-shaded.jar root@vm-perf.cloud-espace.si.c-s.fr:/DATA/sandbox/vm-perf/workspace/regards/plugins/catalog/
+;;
+undeploy)
+    ssh root@vm-perf.cloud-espace.si.c-s.fr 'rm -f /DATA/sandbox/vm-perf/workspace/regards/plugins/catalog/stac-plugin-1.4.1-SNAPSHOT-shaded.jar'
+;;
+catalog)
+    case $2 in
+    reboot)
+        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/reboot.sh rs-catalog'
+    ;;
+    logs)
+        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/logs.sh rs-catalog -f'
+    ;;
+    esac
+;;
+esac

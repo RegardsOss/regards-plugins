@@ -143,7 +143,7 @@ public class ItemSearchController implements TryToResponseEntity {
         description = "continue to next/previous search page",
         role = DefaultRole.PUBLIC
     )
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(path="paginate", method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> otherPage(
             @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM, required = false) String itemBodyBase64,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
