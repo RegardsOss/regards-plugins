@@ -36,7 +36,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -89,7 +88,6 @@ public class ItemSearchController implements TryToResponseEntity {
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> simple(
-            HttpRequest request,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,

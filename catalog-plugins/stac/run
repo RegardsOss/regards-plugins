@@ -1,25 +1,32 @@
 #!/bin/bash
 
+#### CONSTANTS
+JAR_VERSION="1.4.1-SNAPSHOT"
+JAR_NAME="stac-plugin-$JAR_VERSION-shaded.jar"
+
+USER_HOST="root@vm-perf.cloud-espace.si.c-s.fr"
+
+VMPERF_PATH="/DATA/sandbox/vm-perf/"
+VMPERF_CATALOG_PATH="$VMPERF_PATH/workspace/regards/plugins/catalog"
+
+#### COMMANDS
 case $1 in
 build)
     mvn clean install -DskipTests=true
 ;;
 deploy)
-    scp ./stac-plugin/target/stac-plugin-1.4.1-SNAPSHOT-shaded.jar root@vm-perf.cloud-espace.si.c-s.fr:/DATA/sandbox/vm-perf/workspace/regards/plugins/catalog/
+    scp "./stac-plugin/target/$JAR_NAME" "$USER_HOST:$VMPERF_CATALOG_PATH/"
 ;;
 undeploy)
-    ssh root@vm-perf.cloud-espace.si.c-s.fr 'rm -f /DATA/sandbox/vm-perf/workspace/regards/plugins/catalog/stac-plugin-1.4.1-SNAPSHOT-shaded.jar'
+    ssh "$USER_HOST" "rm -f $VMPERF_CATALOG_PATH/$JAR_NAME"
 ;;
 catalog)
     case $2 in
     reboot)
-        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/reboot.sh rs-catalog'
+        ssh "$USER_HOST" "$VMPERF_PATH/cli/reboot.sh rs-catalog"
     ;;
     logs)
-        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/logs.sh rs-catalog -f'
-    ;;
-    logs-stac)
-        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/logs.sh rs-catalog -f | grep Stac'
+        ssh "$USER_HOST" "$VMPERF_PATH/cli/logs.sh rs-catalog -f"
     ;;
     esac
 ;;

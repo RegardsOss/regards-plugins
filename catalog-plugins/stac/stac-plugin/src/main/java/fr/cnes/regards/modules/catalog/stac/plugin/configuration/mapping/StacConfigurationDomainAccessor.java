@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
@@ -211,8 +212,14 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     }
 
     private List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {
-        return getConfiguredProperties(List.ofAll(plugin.getStacExtraProperties())
-                .prepend(plugin.getStacDatetimeProperty().withStacPropertyName(DATETIME_PROPERTY_NAME)));
+        java.util.List<StacPropertyConfiguration> propConfigs = Option
+            .of(plugin.getStacExtraProperties())
+            .getOrElse(new ArrayList<>());
+        StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty()
+            .withStacPropertyName(DATETIME_PROPERTY_NAME)
+            .withStacType(StacPropertyType.DATETIME.name());
+        return getConfiguredProperties(List.ofAll(propConfigs)
+            .prepend(datetimeProp));
     }
 
 }

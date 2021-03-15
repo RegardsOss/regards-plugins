@@ -19,17 +19,19 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import lombok.Value;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.parseStacDatetime;
-import static java.time.OffsetDateTime.MAX;
-import static java.time.OffsetDateTime.MIN;
+
 import static org.apache.commons.lang3.StringUtils.split;
 
 /**
@@ -37,6 +39,10 @@ import static org.apache.commons.lang3.StringUtils.split;
  */
 @Value
 public class DateInterval {
+
+    public static final ZoneId UTC = ZoneId.of("UTC");
+    private static final OffsetDateTime MAX = OffsetDateTime.now(UTC).plusYears(100L);
+    private static final OffsetDateTime MIN = OffsetDateTime.ofInstant(Instant.EPOCH, UTC).minusYears(100);
 
     public static final String OPEN_END = "..";
     public static final String SEPARATOR = "/";
@@ -48,14 +54,17 @@ public class DateInterval {
         return from.equals(to);
     }
 
+    public static DateInterval largest() {
+        return new DateInterval(MIN, MAX);
+    }
     public static DateInterval single(OffsetDateTime d) {
         return new DateInterval(d, d);
     }
     public static DateInterval from(OffsetDateTime d) {
-        return new DateInterval(d, OffsetDateTime.MAX);
+        return new DateInterval(d, MAX);
     }
     public static DateInterval to(OffsetDateTime d) {
-        return new DateInterval(OffsetDateTime.MIN, d);
+        return new DateInterval(MIN, d);
     }
     public static DateInterval of(OffsetDateTime f, OffsetDateTime t) {
         return new DateInterval(f, t);
@@ -75,7 +84,10 @@ public class DateInterval {
     }
 
     public static Try<DateInterval> parseDateInterval(String repr) {
-        if (repr.contains(SEPARATOR)) {
+        if (StringUtils.isBlank(repr)) {
+            return Try.of(DateInterval::largest);
+        }
+        else if (repr.contains(SEPARATOR)) {
             return Try.of(() -> List.of(split(repr, SEPARATOR)))
                 .map(parts -> Tuple.of(parts.get(0), parts.get(1)))
                 .flatMap(parts -> parseDateOrDefault(parts._1(), MIN)
