@@ -124,7 +124,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
                 .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
             searchPageLinkCreator.createNextPageLink(response)
                 .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
-            searchPageLinkCreator.createNextPageLink(response)
+            searchPageLinkCreator.createPrevPageLink(response)
                 .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
         )
         .flatMap(l -> l);
