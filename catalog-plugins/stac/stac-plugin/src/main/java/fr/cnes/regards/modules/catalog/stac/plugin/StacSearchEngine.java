@@ -61,6 +61,18 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private StacConfigurationDomainAccessor propMapper;
 
     @PluginParameter(
+            name = "stacTitle",
+            label = "STAC title",
+            description = "Title for the root STAC catalog.")
+    private String stacTitle;
+
+    @PluginParameter(
+            name = "stacDescription",
+            label = "STAC description",
+            description = "Description for the root STAC catalog.")
+    private String stacDescription;
+
+    @PluginParameter(
             name = "stacDatetimeProperty",
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +

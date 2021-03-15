@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -62,20 +63,41 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
     private final RegardsPropertyAccessorFactory regardsPropertyAccessorFactory;
 
+    private final IRuntimeTenantResolver runtimeTenantResolver;
+
     @Autowired
     public StacConfigurationDomainAccessor(
             PropertyConverterFactory propertyConverterFactory,
             IPluginService pluginService,
-            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory) {
+            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
+            IRuntimeTenantResolver runtimeTenantResolver
+    ) {
         this.propertyConverterFactory = propertyConverterFactory;
         this.pluginService = pluginService;
         this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
+        this.runtimeTenantResolver = runtimeTenantResolver;
     }
 
     @Override
     public ConfigurationAccessor makeConfigurationAccessor() {
         final Option<StacSearchEngine> plugin = getPlugin();
         return new ConfigurationAccessor() {
+            @Override
+            public String getTitle() {
+                return plugin.map(StacSearchEngine::getStacTitle).getOrElse(() ->{
+                    String tenant = runtimeTenantResolver.getTenant();
+                    return "STAC Catalog " + tenant;
+                });
+            }
+
+            @Override
+            public String getDescription() {
+                return plugin.map(StacSearchEngine::getStacDescription).getOrElse(() ->{
+                    String tenant = runtimeTenantResolver.getTenant();
+                    return "STAC Catalog " + tenant;
+                });
+            }
+
             @Override
             public boolean hasStacConfiguration() {
                 return plugin.isDefined();

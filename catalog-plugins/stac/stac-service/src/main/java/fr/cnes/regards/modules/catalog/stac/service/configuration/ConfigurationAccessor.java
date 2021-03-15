@@ -50,4 +50,7 @@ public interface ConfigurationAccessor {
 
     GeoJSONReader getGeoJSONReader();
 
+    String getTitle();
+    String getDescription();
+
 }

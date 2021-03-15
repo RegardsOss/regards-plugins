@@ -18,6 +18,9 @@ catalog)
     logs)
         ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/logs.sh rs-catalog -f'
     ;;
+    logs-stac)
+        ssh root@vm-perf.cloud-espace.si.c-s.fr '/DATA/sandbox/vm-perf/cli/logs.sh rs-catalog -f | grep Stac'
+    ;;
     esac
 ;;
 esac

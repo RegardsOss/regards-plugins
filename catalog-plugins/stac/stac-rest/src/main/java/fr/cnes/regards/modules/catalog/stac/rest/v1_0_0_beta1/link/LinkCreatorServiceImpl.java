@@ -27,6 +27,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -78,7 +79,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
                 return Try.of(() ->
                         WebMvcLinkBuilder.linkTo(
                                 OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "collections")
+                                getMethodNamedInClass(CoreController.class, "root")
                         ).toUri()
                 )
                         .flatMapTry(appendAuthParams(auth));
