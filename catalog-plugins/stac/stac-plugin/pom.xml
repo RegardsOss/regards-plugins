@@ -84,6 +84,7 @@
                                     <include>fr.cnes.regards.framework.modules.workspace:*</include>
                                     <include>fr.cnes.regards.framework.modules.jobs:*</include>
                                     <include>fr.cnes.regards.modules.feature:*</include>
+                                    <include>org.noggit:*</include>
                                 </includes>
                             </artifactSet>
                             <transformers>

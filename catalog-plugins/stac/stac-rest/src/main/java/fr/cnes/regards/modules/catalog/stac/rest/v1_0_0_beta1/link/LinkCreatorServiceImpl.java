@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
+import com.google.gson.Gson;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.framework.security.utils.jwt.JWTService;
@@ -30,11 +31,14 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.CheckedFunction1;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -48,25 +52,29 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
 import static io.vavr.control.Option.none;
 
 /**
  * Allows to generate link creators.
  */
 @Service
-public class LinkCreatorServiceImpl implements LinkCreatorService {
+public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
 
     private final JWTService jwtService;
+    private final Gson gson;
 
     // @formatter:off
 
     @Autowired
     public LinkCreatorServiceImpl(
-            JWTService jwtService
-    ) {
+            JWTService jwtService,
+            Gson gson) {
         this.jwtService = jwtService;
+        this.gson = gson;
     }
 
     @Override
@@ -127,15 +135,21 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
         return new SearchPageLinkCreator() {
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
+                String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         ItemSearchController.class,
                         getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                        itemSearchBody,
+                        itemBodyB64,
                         i
                     ).toUri()
                 )
                 .flatMapTry(appendAuthParams(auth))
+                .flatMapTry(appendParams(HashMap.of(
+                    SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64,
+                    PAGE_QUERY_PARAM, "" + i
+                )))
+                .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u))
                 .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
                 .toOption();
             }
@@ -177,9 +191,25 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
     private CheckedFunction1<URI, Try<URI>> appendAuthParams (JWTAuthentication auth) {
         return uri -> {
             Tuple2<String, String> authParam = makeAuthParam(auth);
+            LOGGER.debug("URI before adding token: {}", uri);
             return Try.of(() ->
                 UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
-            );
+            )
+            .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u));
+        };
+    }
+
+
+    private CheckedFunction1<URI, Try<URI>> appendParams (Map<String, String> params) {
+        return uri -> {
+            LOGGER.debug("URI before adding token: {}", uri);
+            return Try.of(() -> {
+                UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(uri);
+                return params.foldLeft(
+                    uriBuilder,
+                    (ub, kv) -> ub.queryParam(kv._1, kv._2)
+                ).build().toUri();
+            });
         };
     }
 

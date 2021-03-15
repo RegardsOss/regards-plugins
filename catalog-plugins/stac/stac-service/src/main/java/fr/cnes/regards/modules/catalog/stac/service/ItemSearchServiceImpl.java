@@ -82,7 +82,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     @Override
     public Try<ItemCollectionResponse> search(
         ItemSearchBody itemSearchBody,
-        Integer offset,
+        Integer page,
         OGCFeatLinkCreator featLinkCreator,
         SearchPageLinkCreator searchPageLinkCreator
     ) {
@@ -90,7 +90,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         ICriterion crit = critBuilder.buildCriterion(stacProperties, itemSearchBody).getOrElse(ICriterion.all());
         LOGGER.debug("Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
 
-        Pageable pageable = pageable(itemSearchBody, offset, stacProperties);
+        Pageable pageable = pageable(itemSearchBody, page, stacProperties);
 
         return Try.of(() -> catalogSearchService.<DataObject>search(crit, SearchType.DATAOBJECTS, null, pageable))
             .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));

@@ -49,6 +49,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+import static io.vavr.Predicates.isNotNull;
+
 /**
  * Default implementation for {@link RegardsFeatureToStacItemConverter} interface.
  */
@@ -76,6 +78,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     @Override
     public Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature) {
+        LOGGER.debug("Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return Try.of(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String,Object> featureStacProperties = extractStacPropertyKeyValues(feature, properties);
@@ -84,7 +87,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             String collection = extractCollection(feature, properties, featureStacProperties);
             String itemId = feature.getIpId().toString();
 
-            return new Item(
+            Item result = new Item(
                     extensions,
                     itemId,
                     geo._2,
@@ -95,17 +98,20 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                     extractLinks(itemId, collection, linkCreator),
                     extractAssets(feature)
             );
-        });
+            LOGGER.debug("Result Item={}", result);
+            return result;
+        })
+        .onFailure(t -> LOGGER.error(t.getMessage(), t));
     }
 
     private Map<String, Asset> extractAssets(DataObject feature) {
-        return Stream.ofAll(feature.getFeature().getFiles().entries())
-            .toMap(entry -> extractAsset(entry.getValue()))
-        ;
+        Map<String, Asset> nullUnsafe = Stream.ofAll(feature.getFeature().getFiles().entries())
+                .toMap(entry -> extractAsset(entry.getValue()));
+        return nullUnsafe.filterKeys(isNotNull());
     }
 
-    private Tuple2<? extends String, ? extends Asset> extractAsset(DataFile value) {
-        return Tuple.of(
+    private Tuple2<String, Asset> extractAsset(DataFile value) {
+        Tuple2<String, Asset> result = Tuple.of(
             value.getChecksum(),
             new Asset(
                 value.asUri(),
@@ -125,6 +131,8 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 HashSet.of(assetTypeFromDatatype(value.getDataType()))
             )
         );
+        LOGGER.debug("Found asset: \n\tDataFile={} ; \n\tAsset={}", value, result);
+        return result;
     }
 
     private String assetTypeFromDatatype(DataType dataType) {
@@ -202,11 +210,13 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     private Map<String, Object> extractStacPropertyKeyValues(DataObject feature, List<StacProperty> properties) {
         return HashSet.ofAll(feature.getFeature().getProperties())
-            .flatMap(regardsProp ->
+            .map(regardsProp ->
                 findCorrespondingStacProperty(regardsProp, properties)
                     .map(sp -> extractPropertyRegardsKeyValue(regardsProp, sp))
+                    .getOrElse(() -> Tuple.of(regardsProp.getName(), regardsProp.getValue()))
             )
-            .toMap(kv -> kv);
+            .toMap(kv -> kv)
+            .filterKeys(isNotNull());
     }
 
     private Tuple2<String, Object> extractPropertyRegardsKeyValue(IProperty<?> regardsProp, StacProperty sp) {
@@ -216,7 +226,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     @SuppressWarnings("unchecked")
     private Object convertRegardsToStacValue(IProperty<?> regardsProp, StacProperty sp) {
         return sp.getConverter()
-            .convertRegardsToStac(regardsProp.getValue())
+            .convertRegardsToStac(extractValue(regardsProp))
             .onFailure(t -> LOGGER.warn("Could not convert regards property {}={} to stac property {}",
                     regardsProp.getName(),
                     regardsProp.getValue(),
@@ -225,8 +235,21 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             .getOrElse(regardsProp.getValue());
     }
 
+    private Object extractValue(IProperty<?> regardsProp) {
+        Object value = regardsProp.getValue();
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue();
+        }
+        else {
+            return value;
+        }
+    }
+
     private Option<StacProperty> findCorrespondingStacProperty(IProperty<?> regardsProp, List<StacProperty> properties) {
-        return properties.find(sp -> regardsProp.getName().equals(sp.getRegardsPropertyAccessor()));
+        return properties.find(sp -> {
+            String regardsAttributeName = sp.getRegardsPropertyAccessor().getRegardsAttributeName();
+            return regardsProp.getName().equals(regardsAttributeName);
+        });
     }
 
 }

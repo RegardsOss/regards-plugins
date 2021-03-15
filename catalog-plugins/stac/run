@@ -15,18 +15,18 @@ build)
     mvn clean install -DskipTests=true
 ;;
 deploy)
-    scp "./stac-plugin/target/$JAR_NAME" "$USER_HOST:$VMPERF_CATALOG_PATH/"
+    sshpass -p password scp "./stac-plugin/target/$JAR_NAME" "$USER_HOST:$VMPERF_CATALOG_PATH/"
 ;;
 undeploy)
-    ssh "$USER_HOST" "rm -f $VMPERF_CATALOG_PATH/$JAR_NAME"
+    sshpass -p password ssh "$USER_HOST" "rm -f $VMPERF_CATALOG_PATH/$JAR_NAME"
 ;;
 catalog)
     case $2 in
     reboot)
-        ssh "$USER_HOST" "$VMPERF_PATH/cli/reboot.sh rs-catalog"
+        sshpass -p password ssh "$USER_HOST" "$VMPERF_PATH/cli/reboot.sh rs-catalog"
     ;;
     logs)
-        ssh "$USER_HOST" "$VMPERF_PATH/cli/logs.sh rs-catalog -f"
+        sshpass -p password ssh "$USER_HOST" "$VMPERF_PATH/cli/logs.sh rs-catalog -f"
     ;;
     esac
 ;;
