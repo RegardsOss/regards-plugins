@@ -38,6 +38,8 @@ import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,6 +56,8 @@ import static org.springframework.data.domain.Sort.Order.desc;
 @Service
 public class ItemSearchServiceImpl implements ItemSearchService {
 
+    private static final HashSet<String> SEARCH_EXTENSIONS = HashSet.empty();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ItemSearchServiceImpl.class);
 
     private final StacSearchCriterionBuilder critBuilder;
     private final CatalogSearchService catalogSearchService;
@@ -84,6 +88,8 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     ) {
         List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
         ICriterion crit = critBuilder.buildCriterion(stacProperties, itemSearchBody).getOrElse(ICriterion.all());
+        LOGGER.debug("Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
+
         Pageable pageable = pageable(itemSearchBody, offset, stacProperties);
 
         return Try.of(() -> catalogSearchService.<DataObject>search(crit, SearchType.DATAOBJECTS, null, pageable))
@@ -98,14 +104,14 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     ) {
         return Try.of(() -> {
             ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(
-                    facetPage.getSize(),
+                    facetPage.getNumberOfElements(),
                     facetPage.getPageable().getPageSize(),
                     facetPage.getTotalElements()
             );
             ItemCollectionResponse response = new ItemCollectionResponse(
-                HashSet.empty(),
+                SEARCH_EXTENSIONS,
                 extractStacItems(Stream.ofAll(facetPage.get()), stacProperties, featLinkCreator),
-                List.empty(),
+                List.empty(), // resolved later
                 context
             );
             return response.withLinks(extractLinks(searchPageLinkCreator, response));

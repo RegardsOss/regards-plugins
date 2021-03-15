@@ -43,6 +43,8 @@ import io.vavr.control.Try;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +60,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.Prop
  */
 @Component
 public class StacConfigurationDomainAccessor implements ConfigurationAccessorFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StacConfigurationDomainAccessor.class);
 
     private final PropertyConverterFactory propertyConverterFactory;
 
@@ -163,6 +167,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations
                 .map(s -> {
+                    LOGGER.debug("Convertng stac prop config: {}", s);
                     StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
                     AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
                         stacType,

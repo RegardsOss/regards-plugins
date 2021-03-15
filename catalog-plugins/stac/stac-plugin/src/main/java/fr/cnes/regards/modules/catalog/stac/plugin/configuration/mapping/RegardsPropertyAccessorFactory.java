@@ -79,15 +79,20 @@ public class RegardsPropertyAccessorFactory {
         Tuple2<Class<?>, Function<DataObject, Try<?>>> classFunctionTuple2 =
                 makeValueTypeAndExtractionFn(sPropType, attrName, jsonPath);
 
-        return new RegardsPropertyAccessor(
+        RegardsPropertyAccessor result = new RegardsPropertyAccessor(
                 sPropConfig.getModelPropertyName(),
                 attr,
                 classFunctionTuple2._2,
                 classFunctionTuple2._1
         );
+
+        LOGGER.debug("Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
+
+        return result;
     }
 
     private AttributeModel loadAttribute(String attrName, StacPropertyConfiguration sPropConfig, StacPropertyType sPropType) {
+        LOGGER.debug("Loading attribute name={} type={} config={}", attrName, sPropType, sPropConfig);
         AttributeModel attribute = Try
             .of(() -> finder.findByName(attrName))
             .getOrElseGet(t -> {

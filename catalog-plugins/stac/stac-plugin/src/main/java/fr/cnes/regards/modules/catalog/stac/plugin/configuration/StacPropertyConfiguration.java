@@ -33,7 +33,7 @@ import lombok.With;
 public class StacPropertyConfiguration {
 
     @PluginParameter(
-            name = "regardsPropertyName",
+            name = "modelPropertyName",
             label = "Regards property name",
             description = "This parameter determines which attribute model parameter" +
                     " to map to a STAC property."
@@ -41,7 +41,7 @@ public class StacPropertyConfiguration {
     private String modelPropertyName;
 
     @PluginParameter(
-            name = "regardsPropertyJsonPath",
+            name = "modelPropertyJSONPath",
             label = "Model property JSON path",
             description = "If the target REGARDS property is of type JSON, " +
                     " this parameter determines the path in the JSON structure where to read the value.",
