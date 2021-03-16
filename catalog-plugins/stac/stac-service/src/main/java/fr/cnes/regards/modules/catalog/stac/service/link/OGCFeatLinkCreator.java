@@ -31,6 +31,8 @@ import java.net.URI;
 public interface OGCFeatLinkCreator {
     Try<URI> createRootLink();
 
+    Try<URI> createCollectionsLink();
+
     Try<URI> createCollectionLink(String collectionId);
     Try<URI> createItemLink(String collectionId, String itemId);
 

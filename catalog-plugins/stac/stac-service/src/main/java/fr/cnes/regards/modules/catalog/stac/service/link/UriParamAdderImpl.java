@@ -54,6 +54,7 @@ public class UriParamAdderImpl implements UriParamAdder {
 
     @Override
     public CheckedFunction1<URI, Try<URI>> appendAuthParams (JWTAuthentication auth) {
+        if (auth == null) { return Try::success; }
         return uri -> {
             Tuple2<String, String> authParam = makeAuthParam(auth);
             LOGGER.debug("URI before adding token: {}", uri);

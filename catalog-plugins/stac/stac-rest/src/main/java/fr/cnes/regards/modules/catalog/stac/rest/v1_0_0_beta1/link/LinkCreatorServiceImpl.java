@@ -88,6 +88,17 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             }
 
             @Override
+            public Try<URI> createCollectionsLink() {
+                return Try.of(() ->
+                        WebMvcLinkBuilder.linkTo(
+                                OGCFeaturesController.class,
+                                getMethodNamedInClass(OGCFeaturesController.class, "collections")
+                        ).toUri()
+                )
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth));
+            }
+
+            @Override
             public Try<URI> createCollectionLink(String collectionId) {
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
@@ -127,6 +138,18 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     @Override
     public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page, ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
+
+            @Override
+            public Option<URI> searchAll() {
+                return Try.of(() ->
+                        WebMvcLinkBuilder.linkTo(
+                                ItemSearchController.class,
+                                getMethodNamedInClass(ItemSearchController.class, "simple")
+                        ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .toOption();
+            }
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));

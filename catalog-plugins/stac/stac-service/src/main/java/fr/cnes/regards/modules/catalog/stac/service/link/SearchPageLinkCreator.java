@@ -29,6 +29,8 @@ import java.net.URI;
  */
 public interface SearchPageLinkCreator {
 
+    Option<URI> searchAll();
+
     Option<URI> createNextPageLink(ItemCollectionResponse itemCollection);
 
     Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection);
