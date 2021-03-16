@@ -20,10 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
 import com.google.gson.Gson;
-import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.framework.security.utils.jwt.JWTService;
-import fr.cnes.regards.framework.security.utils.jwt.UserDetails;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
@@ -34,11 +31,8 @@ import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesControl
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
-import io.vavr.CheckedFunction1;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import io.vavr.collection.HashMap;
-import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -47,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -64,16 +57,17 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
 
-    private final JWTService jwtService;
+    private final UriParamAdder uriParamAdder;
     private final Gson gson;
 
     // @formatter:off
 
     @Autowired
     public LinkCreatorServiceImpl(
-            JWTService jwtService,
-            Gson gson) {
-        this.jwtService = jwtService;
+            UriParamAdder uriParamAdder,
+            Gson gson
+    ) {
+        this.uriParamAdder = uriParamAdder;
         this.gson = gson;
     }
 
@@ -90,7 +84,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         getMethodNamedInClass(CoreController.class, "root")
                     ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
@@ -102,7 +96,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         collectionId
                     ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
@@ -120,7 +114,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         itemId
                     ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
@@ -144,8 +138,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         i
                     ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth))
-                .flatMapTry(appendParams(HashMap.of(
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .flatMapTry(uriParamAdder.appendParams(HashMap.of(
                     SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64,
                     PAGE_QUERY_PARAM, "" + i
                 )))
@@ -175,42 +169,6 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         return Stream.of(type.getDeclaredMethods())
             .filter(m -> methodName.equals(m.getName()))
             .head();
-    }
-
-    private Tuple2<String, String> makeAuthParam(
-            JWTAuthentication auth
-    ) {
-        String tenant = auth.getTenant();
-        UserDetails user = auth.getUser();
-        String role = user.getRole();
-        return DefaultRole.PUBLIC.name().equals(role)
-            ? Tuple.of("scope", tenant)
-            : Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
-    }
-
-    private CheckedFunction1<URI, Try<URI>> appendAuthParams (JWTAuthentication auth) {
-        return uri -> {
-            Tuple2<String, String> authParam = makeAuthParam(auth);
-            LOGGER.debug("URI before adding token: {}", uri);
-            return Try.of(() ->
-                UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
-            )
-            .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u));
-        };
-    }
-
-
-    private CheckedFunction1<URI, Try<URI>> appendParams (Map<String, String> params) {
-        return uri -> {
-            LOGGER.debug("URI before adding token: {}", uri);
-            return Try.of(() -> {
-                UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(uri);
-                return params.foldLeft(
-                    uriBuilder,
-                    (ub, kv) -> ub.queryParam(kv._1, kv._2)
-                ).build().toUri();
-            });
-        };
     }
 
     // @formatter:on

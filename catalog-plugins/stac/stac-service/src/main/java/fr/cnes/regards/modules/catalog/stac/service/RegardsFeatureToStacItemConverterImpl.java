@@ -33,6 +33,7 @@ import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCo
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
@@ -63,17 +64,20 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     private final ConfigurationAccessorFactory configurationAccessorFactory;
     private final DynamicCollectionService dynamicCollectionService;
     private final IRuntimeTenantResolver runtimeTenantResolver;
+    private final UriParamAdder uriParamAdder;
 
     public RegardsFeatureToStacItemConverterImpl(
             StacGeoHelper geoHelper,
             ConfigurationAccessorFactory configurationAccessorFactory,
             DynamicCollectionService dynamicCollectionService,
-            IRuntimeTenantResolver runtimeTenantResolver
+            IRuntimeTenantResolver runtimeTenantResolver,
+            UriParamAdder uriParamAdder
     ) {
         this.geoHelper = geoHelper;
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynamicCollectionService = dynamicCollectionService;
         this.runtimeTenantResolver = runtimeTenantResolver;
+        this.uriParamAdder = uriParamAdder;
     }
 
     @Override
@@ -86,6 +90,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
             String collection = extractCollection(feature, properties, featureStacProperties);
             String itemId = feature.getIpId().toString();
+            Tuple2<String, String> authParam = uriParamAdder.makeAuthParam();
 
             Item result = new Item(
                     extensions,
@@ -96,7 +101,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                     collection,
                     featureStacProperties,
                     extractLinks(itemId, collection, linkCreator),
-                    extractAssets(feature)
+                    extractAssets(feature, authParam)
             );
             LOGGER.debug("Result Item={}", result);
             return result;
@@ -104,17 +109,18 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         .onFailure(t -> LOGGER.error(t.getMessage(), t));
     }
 
-    private Map<String, Asset> extractAssets(DataObject feature) {
+    private Map<String, Asset> extractAssets(DataObject feature, Tuple2<String, String> authParam) {
+
         Map<String, Asset> nullUnsafe = Stream.ofAll(feature.getFeature().getFiles().entries())
-                .toMap(entry -> extractAsset(entry.getValue()));
+                .toMap(entry -> extractAsset(entry.getValue(), authParam));
         return nullUnsafe.filterKeys(isNotNull());
     }
 
-    private Tuple2<String, Asset> extractAsset(DataFile value) {
+    private Tuple2<String, Asset> extractAsset(DataFile value, Tuple2<String, String> authParam) {
         Tuple2<String, Asset> result = Tuple.of(
-            value.getChecksum(),
+            value.getFilename(),
             new Asset(
-                value.asUri(),
+                authdUri(value.asUri(), authParam),
                 value.getFilename(),
                 String.format("File size: %d bytes" +
                     "\n\nIs reference: %b" +
@@ -131,8 +137,14 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 HashSet.of(assetTypeFromDatatype(value.getDataType()))
             )
         );
-        LOGGER.debug("Found asset: \n\tDataFile={} ; \n\tAsset={}", value, result);
+        LOGGER.debug("Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
         return result;
+    }
+
+    private URI authdUri(URI uri, Tuple2<String, String> authParam) {
+        return Try.success(uri)
+            .flatMapTry(uriParamAdder.appendParams(HashMap.of(authParam)))
+            .getOrElse(uri);
     }
 
     private String assetTypeFromDatatype(DataType dataType) {

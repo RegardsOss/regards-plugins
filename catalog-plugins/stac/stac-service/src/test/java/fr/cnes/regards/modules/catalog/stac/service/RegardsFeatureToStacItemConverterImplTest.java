@@ -8,8 +8,8 @@ import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
@@ -19,7 +19,10 @@ import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdderImpl;
 import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
@@ -28,6 +31,7 @@ import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import io.vavr.Tuple;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.junit.Test;
@@ -41,11 +45,12 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest {
+public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest, RegardsPropertyAccessorAwareTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsFeatureToStacItemConverterImplTest.class);
 
@@ -62,16 +67,20 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest 
     ConfigurationAccessorFactory configurationAccessorFactory = mock(ConfigurationAccessorFactory.class);
 
     IRuntimeTenantResolver runtimeTenantResolver = mock(IRuntimeTenantResolver.class);
+    UriParamAdder uriParamAdder = mock(UriParamAdderImpl.class);
 
     RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(
             new StacGeoHelper(gson),
             configurationAccessorFactory,
             new DynamicCollectionServiceImpl(),
-            runtimeTenantResolver
-    );
+            runtimeTenantResolver,
+            uriParamAdder);
 
     @Test
     public void convertFeatureToItem() throws Exception {
+        when(uriParamAdder.makeAuthParam()).thenAnswer(i -> Tuple.of("token", "theJwtToken"));
+        when(uriParamAdder.appendParams(any())).thenCallRealMethod();
+
         when(configurationAccessorFactory.makeConfigurationAccessor())
                 .thenReturn(configurationAccessor);
         when(configurationAccessor.getGeoJSONReader())
@@ -88,7 +97,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest 
 
         List<StacProperty> stacProperties = List.of(
             new StacProperty(
-                null, // FIXME" regardsAttr",
+                accessor("reagrdsAttr", StacPropertyType.DATETIME, OffsetDateTime.now()),
                 "stacProp",
                 "", false, 0, StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
@@ -135,6 +144,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest 
                     && l.getRel().equals(Link.Relations.SELF)
             );
         assertThat(item.getAssets()).hasSize(2);
+        assertThat(item.getAssets().head()._2.getHref()).matches(uri -> uri.getQuery().contains("token=theJwtToken"));
 
     }
 
