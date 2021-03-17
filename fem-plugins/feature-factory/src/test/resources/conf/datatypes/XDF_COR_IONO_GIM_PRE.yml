@@ -1,9 +1,9 @@
-XDF_UNCORRECTED_SURFACE_PRESSURE_ANA:
-    name: SMM_PSA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
+XDF_COR_IONO_GIM_PRE:
+    name: SWOT_ION_AXFCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
         }}
     Description: ''
     example:
-    - SMM_PSA_AXVCNE20200303_060000_20200302_180000_20200302_180000
+    - SWOT_ION_AXFCNE20200303_065500_20200302_000000_20200302_235959
     document: SWOT-ICD-SYS-0421-CNES
     granule_type: Segment
     tar_content: []
@@ -15,26 +15,14 @@ XDF_UNCORRECTED_SURFACE_PRESSURE_ANA:
     - EndDateTime
     simu_method:
         name: period
-        file_size: 3300ko
-        directory: commun/meteo/uncorrected_surface_pressure
+        file_size: 1mo
+        directory: swot/gim
         has_path_by_date: false
         creation:
         -   period: 1
-            time: '180000'
-            offset_begin: -18h
-            offset_end: -18h
-        -   period: 1
-            time: '180000'
-            offset_begin: -12h
-            offset_end: -12h
-        -   period: 1
-            time: '060000'
-            offset_begin: -18h
-            offset_end: -18h
-        -   period: 1
-            time: '060000'
-            offset_begin: -12h
-            offset_end: -12h
+            time: '065500'
+            offset_begin: -111300
+            offset_end: -24901
     CHRONOS:
         storage_server: GEODE
         source: Notification
@@ -49,11 +37,11 @@ XDF_UNCORRECTED_SURFACE_PRESSURE_ANA:
         SDS_notified: 'False'
         SDS_queue: ''
         SDS_filter: ''
-        REGARDS_notified: 'False'
-        REGARDS_queue: ''
-        REGARDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
         is_datalake: 'True'
         is_archived: 'False'
         is_distributed: 'False'
-    real_path: traitement/commun/meteo/uncorrected_surface_pressure
+    real_path: traitement/swot/gim
     NASorGPFS: NAS

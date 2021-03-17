@@ -1,28 +1,53 @@
-XDF_AMR_STAT_COEFF: 
-    name: SWOT_RAD_{{ FileIdentifier }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
-    Description: ""
-    example: ['SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc', 'SWOT_RAD_MAP_AX_20200303T120000_20200303T120000_20200303T120000.nc']
-    document: "SWOT-ICD-SYS-0421-CNES"
+XDF_AMR_STAT_COEFF:
+    name: SWOT_RAD_{{ FileIdentifier }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime
+        }}_{{ ProductionDateTime }}JPL.nc
+    Description: ''
+    example:
+    - SWOT_RAD_CHD__AX_20200303T120000_20200303T120000_20200303T120000JPL.nc
+    - SWOT_RAD_MAP__AX_20200303T120000_20200303T120000_20200303T120000JPL.nc
+    document: ICS K2 RAD
     granule_type: Segment
     tar_content: []
     mission: MM
-    Nature: Product
-    metadata: [FileIdentifier, ProductionDateTime, RangeBeginningDateTime, RangeEndingDateTime]
-    FileIdentifier: [ CHD_AX, MAP_AX ] 
-    simu_method: 
+    Nature: SAD
+    metadata:
+    - FileIdentifier
+    - ProductionDateTime
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    FileIdentifier:
+    - CHD__AX
+    - MAP__AX
+    simu_method:
         name: period
         file_size: 1ko
-        directory: "swot/amr_stat_coef"
-        has_path_by_date: False
-        creation: [
-          { period: 21, time: "120000", offset_begin: -21j, offset_end: 0j }
-          ] 
+        directory: swot/amr_stat_coef
+        has_path_by_date: false
+        creation:
+        -   period: 0
+            time: '120000'
+            offset_begin: -300
+            offset_end: 300j
     CHRONOS:
-        storage_server : GEODE
-        input_dir : ""
-        output_dir : ""
+        storage_server: GEODE
         source: Notification
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: ''
+        is_distributed: ''
+    real_path: traitement/swot/amr_stat_coef
+    NASorGPFS: GPFS
+    

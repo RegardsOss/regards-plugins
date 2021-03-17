@@ -1,27 +1,47 @@
 LTM_RI:
-    name: PSWOT_RI_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
-    Description: ""
-    example: ['PSWOT_RI_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc']
-    document: "SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD"
+    name: PSWOT_RI1_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
+        }}.nc
+    Description: ''
+    example:
+    - PSWOT_RI1_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc
+    document: SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD
     granule_type: Segment
     tar_content: []
     mission: SWOT
-    Nature: TM
-    metadata: [CreationDateTime, StartDateTime, EndDateTime]
-    simu_method: 
+    Nature: Product
+    metadata:
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
+    simu_method:
         name: period
         file_size: 1mo
-        directory: "swot/ltm/"
-        has_path_by_date: False
-        creation: [
-          { period: 1, time: "110000", offset_begin: -300j, offset_end: -11h },
-          ] 
+        directory: swot/ltm/
+        has_path_by_date: false
+        creation:
+        -   period: 1
+            time: '110000'
+            offset_begin: -300j
+            offset_end: -11h
     CHRONOS:
-        storage_server : GEODE
-        intput_dir : ""
-        output_dir : "swot/ltm/"
-        source: Notification
-        has_path_by_date: False
+        storage_server: GEODE
+        source: Production
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'False'
+        is_archived: 'True'
+        is_distributed: 'False'
+    real_path: traitement/swot/ltm
+    NASorGPFS: GPFS

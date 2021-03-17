@@ -162,7 +162,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         resovlver.forceTenant(tenant);
         GpfsProtocolHandler.initializeProtocol();
         String modelName = this.importModel("model_geode.xml");
-        featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes"));
+        featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes/invalid"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
         String urlPrefix = "/directory/sub/";
         int nbError=0;
@@ -203,7 +203,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
             }
         }
         Assert.assertEquals(0, nbError);
-        Assert.assertEquals(112, featureFactory.getDescriptors().size());
+        Assert.assertEquals(108, featureFactory.getDescriptors().size());
 
         // Test error cases
         Optional<DataTypeDescriptor> debugDTD = featureFactory.getDescriptors().stream()

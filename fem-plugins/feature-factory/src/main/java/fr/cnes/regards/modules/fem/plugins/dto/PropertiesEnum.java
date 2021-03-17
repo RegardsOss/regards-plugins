@@ -107,7 +107,7 @@ public enum PropertiesEnum {
 
     BASIN_ID("BassinID", "swot.bassin_id", "[0-9]{3}", PropertyType.STRING),
 
-    VERSION_3("Version3", null, "[0-9]{3}", PropertyType.STRING);
+    VERSION_3("Version3", "swot.product_version", "[0-9]{3}", PropertyType.STRING);
 
     private String name;
 

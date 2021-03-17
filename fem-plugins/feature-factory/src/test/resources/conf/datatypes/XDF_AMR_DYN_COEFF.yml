@@ -1,28 +1,46 @@
-XDF_AMR_DYN_COEFF: 
-    name: SWOT_RAD_CAL_A_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}.nc
-    Description: ""
-    document: "SWOT-ICD-SYS-0421-CNES"
-    example: ['SWOT_RAD_CAL_A_20200223T120000_20200223T120000_20200223T120000.nc']
+XDF_AMR_DYN_COEFF:
+    name: SWOT_RAD_CAL__AX_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}_JPL.nc
+    Description: ''
+    document: SWOT-ICD-SYS-0421-CNES
+    example:
+    - SWOT_RAD_CAL__AX_20231031T235959_20231020T112233_20231120T112233_JPL.nc
     granule_type: Segment
     tar_content: []
-    mission: MM
-    Nature: Product
-    metadata: [ProductionDateTime, RangeBeginningDateTime, RangeEndingDateTime]
-    simu_method: 
+    mission: SWOT
+    Nature: DAD
+    metadata:
+    - ProductionDateTime
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    simu_method:
         name: period
         file_size: 1ko
-        directory: "swot/amr_dyn_coef"
-        has_path_by_date: False
-        creation: [
-          { period: 21, time: "120000", offset_begin: -21j, offset_end: 0j }
-          ] 
+        directory: swot/amr_dyn_coef
+        has_path_by_date: false
+        creation:
+        -   period: 21
+            time: '120000'
+            offset_begin: -21j
+            offset_end: 0j
     CHRONOS:
-        storage_server : GEODE
-        input_dir : ""
-        output_dir : ""
+        storage_server: GEODE
         source: Notification
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
-        
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: 'False'
+        is_distributed: 'False'
+    real_path: traitement/swot/amr_dyn_coef
+    NASorGPFS: GPFS
