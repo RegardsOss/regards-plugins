@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -35,6 +35,7 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 /**
  * @author sbinda
@@ -93,6 +94,11 @@ public class TestConfiguration {
     @Primary
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
     }
 
 }
