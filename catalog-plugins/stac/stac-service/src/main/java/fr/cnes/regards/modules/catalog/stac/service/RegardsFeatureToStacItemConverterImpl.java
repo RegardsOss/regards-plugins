@@ -23,13 +23,13 @@ import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollService;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -62,20 +62,17 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     
     private final StacGeoHelper geoHelper;
     private final ConfigurationAccessorFactory configurationAccessorFactory;
-    private final DynamicCollectionService dynamicCollectionService;
     private final IRuntimeTenantResolver runtimeTenantResolver;
     private final UriParamAdder uriParamAdder;
 
     public RegardsFeatureToStacItemConverterImpl(
             StacGeoHelper geoHelper,
             ConfigurationAccessorFactory configurationAccessorFactory,
-            DynamicCollectionService dynamicCollectionService,
             IRuntimeTenantResolver runtimeTenantResolver,
             UriParamAdder uriParamAdder
     ) {
         this.geoHelper = geoHelper;
         this.configurationAccessorFactory = configurationAccessorFactory;
-        this.dynamicCollectionService = dynamicCollectionService;
         this.runtimeTenantResolver = runtimeTenantResolver;
         this.uriParamAdder = uriParamAdder;
     }
@@ -88,7 +85,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             Map<String,Object> featureStacProperties = extractStacPropertyKeyValues(feature, properties);
             Set<String> extensions = extractExtensions(featureStacProperties);
             Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
-            String collection = extractCollection(feature, properties, featureStacProperties);
+            String collection = extractCollection(feature).getOrNull();
             String itemId = feature.getIpId().toString();
             Tuple2<String, String> authParam = uriParamAdder.makeAuthParam();
 
@@ -177,16 +174,11 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         return new Link(uri, rel, Asset.MediaType.APPLICATION_JSON, title);
     }
 
-    private String extractCollection(DataObject feature, List<StacProperty> properties, Map<String, Object> stacProperties) {
+    private Option<String> extractCollection(DataObject feature) {
         return HashSet.ofAll(feature.getTags())
             .filter(tag -> tag.startsWith("URN:"))
             .filter(tag -> tag.contains(":DATASET:"))
-            .headOption()
-            .getOrElse(() -> extractDynamicCollection(properties, stacProperties));
-    }
-
-    private String extractDynamicCollection(List<StacProperty> properties, Map<String, Object> featureStacProperties) {
-        return dynamicCollectionService.extractDynamicCollectionName(properties, featureStacProperties);
+            .headOption();
     }
 
     private Tuple3<IGeometry, BBox, Centroid> extractGeo(DataObject feature, GeoJSONReader geoJSONReader) {

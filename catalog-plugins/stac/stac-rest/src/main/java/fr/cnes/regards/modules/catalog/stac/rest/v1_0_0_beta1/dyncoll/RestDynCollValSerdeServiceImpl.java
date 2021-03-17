@@ -20,42 +20,37 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
-import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
-
 /**
- * Base implementation for {@link DynCollLevelValueSerdeService}.
+ * Base implementation for {@link RestDynCollValSerdeService}.
  */
 @Service
-public class DynCollLevelValueSerdeServiceImpl implements DynCollLevelValueSerdeService, Base64Codec {
+public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeService, Base64Codec {
 
     public static final String URN_PREFIX = "URN:DYNCOLL:";
-    private static final Type TYPE_TOKEN_TYPE = new TypeToken<List<RestDynCollLevelValue>>() {}.getType();
 
     private final Gson gson;
 
     @Autowired
-    public DynCollLevelValueSerdeServiceImpl(Gson gson) {
+    public RestDynCollValSerdeServiceImpl(Gson gson) {
         this.gson = gson;
     }
 
     @Override
-    public String serialize(List<RestDynCollLevelValue> values) {
+    public String serialize(RestDynCollVal values) {
         return URN_PREFIX + toBase64(gson.toJson(values));
     }
 
     @Override
-    public Try<List<RestDynCollLevelValue>> deserialize(String repr) {
+    public Try<RestDynCollVal> deserialize(String repr) {
         return Try.of(() -> {
             String b64 = repr.replaceFirst(URN_PREFIX, "");
             String json = fromBase64(b64);
-            return gson.fromJson(json, TYPE_TOKEN_TYPE);
+            return gson.fromJson(json, RestDynCollVal.class);
         });
     }
 

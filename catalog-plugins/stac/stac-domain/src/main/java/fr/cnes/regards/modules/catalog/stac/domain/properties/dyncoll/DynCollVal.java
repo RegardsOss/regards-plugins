@@ -17,19 +17,33 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
+import lombok.Value;
+
 
 /**
- * Interface allowing to serialize/deserialize URNs corresponding to
- * list of dyn collection level values.
+ * TODO: DynCollVal description
+ *
+ * @author gandrieu
  */
-public interface DynCollLevelValueSerdeService {
+@Value
+public class DynCollVal {
 
-    String serialize(List<RestDynCollLevelValue> values);
-    Try<List<RestDynCollLevelValue>> deserialize(String repr);
-    boolean isListOfDynCollLevelValues(String urn);
+    DynCollDef definition;
+    List<DynCollSublevelVal> sublevels;
+
+    public Option<DynCollSublevelDef> nextSublevel() {
+        return Option.none(); // TODO
+    }
+
+    public ICriterion toCriterion() {
+        return ICriterion.all(); // TODO
+    }
 
 }

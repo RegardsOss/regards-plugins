@@ -180,6 +180,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
                         s.getStacExtension(),
                         s.getStacComputeSummary() && canComputeSummary(stacType),
                         s.getStacDynamicCollectionLevel(),
+                        s.getStacDynamicCollectionFormat(),
                         stacType,
                         converter
                     );

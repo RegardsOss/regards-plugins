@@ -25,7 +25,8 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsProp", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
                 "stacProp",
-                "", false, 0, StacPropertyType.DATETIME,
+                "", false, 0, null,
+                StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
         ));
         // WHEN
@@ -41,7 +42,8 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
                 "stacProp",
-                "", false, 0, StacPropertyType.STRING,
+                "", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
         ));
 
@@ -65,7 +67,8 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
                 "stacProp",
-                "", false, 0, StacPropertyType.DATETIME,
+                "", false, 0, null,
+                StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
         ));
 

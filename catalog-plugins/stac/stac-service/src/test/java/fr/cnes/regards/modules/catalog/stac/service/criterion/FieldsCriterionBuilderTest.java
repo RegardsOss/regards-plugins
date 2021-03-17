@@ -54,7 +54,8 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor,
                 "inc1",
-                "inc", false, 0, StacPropertyType.STRING,
+                "inc", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
         Fields fields = new Fields(List.of("inc1", "inc2"), List.empty());
@@ -88,7 +89,8 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
                 new StacProperty(
                         accessor,
                         "exc1",
-                        "exc", false, 0, StacPropertyType.STRING,
+                        "exc", false, 0, null,
+                        StacPropertyType.STRING,
                         new IdentityPropertyConverter<>(StacPropertyType.STRING)
                 )
         );

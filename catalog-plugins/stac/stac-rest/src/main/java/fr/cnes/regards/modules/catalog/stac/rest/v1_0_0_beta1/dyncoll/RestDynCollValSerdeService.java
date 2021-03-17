@@ -17,17 +17,18 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import io.vavr.collection.List;
-import io.vavr.collection.Map;
+import io.vavr.control.Try;
 
 /**
- * Service providing methods dealing with dynamic collections.
+ * Interface allowing to serialize/deserialize URNs corresponding to
+ * list of dyn collection level values.
  */
-public interface DynamicCollectionService {
+public interface RestDynCollValSerdeService {
 
-    String extractDynamicCollectionName(List<StacProperty> properties, Map<String, Object> featureStacProperties);
+    String serialize(RestDynCollVal values);
+    Try<RestDynCollVal> deserialize(String repr);
+    boolean isListOfDynCollLevelValues(String urn);
 
 }

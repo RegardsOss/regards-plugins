@@ -16,7 +16,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
@@ -72,7 +71,6 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
     RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(
             new StacGeoHelper(gson),
             configurationAccessorFactory,
-            new DynamicCollectionServiceImpl(),
             runtimeTenantResolver,
             uriParamAdder);
 
@@ -99,7 +97,8 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
             new StacProperty(
                 accessor("reagrdsAttr", StacPropertyType.DATETIME, OffsetDateTime.now()),
                 "stacProp",
-                "", false, 0, StacPropertyType.DATETIME,
+                "", false, 0, null,
+                StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
             )
         );

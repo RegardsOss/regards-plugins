@@ -22,7 +22,8 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsBool", StacPropertyType.STRING, true),
                 "stacBool",
-                "", false, 0, StacPropertyType.STRING,
+                "", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
         // WHEN
@@ -38,7 +39,8 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsBool", StacPropertyType.STRING, true),
                 "stacBool",
-                "", false, 0, StacPropertyType.STRING,
+                "", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
         BooleanQueryObject bqo = new BooleanQueryObject(true, false);

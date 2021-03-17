@@ -86,7 +86,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someJsonURLProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -112,7 +112,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someJsonBooleanProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -138,7 +138,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someJsonDoubleProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -163,7 +163,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someJsonDateProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -188,7 +188,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someJsonStringProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -213,7 +213,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someDateProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -237,7 +237,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someURLProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -261,7 +261,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someStringProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -285,7 +285,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someBooleanProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );
@@ -309,7 +309,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 "regards:someDoubleProp",
                 "regards",
                 false,
-                null,
+                null, null,
                 sPropType.name(),
                 null, null
         );

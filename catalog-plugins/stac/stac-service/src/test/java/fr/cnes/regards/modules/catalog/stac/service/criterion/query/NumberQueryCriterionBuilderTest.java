@@ -23,7 +23,8 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d),
                  "stacProp",
-                "", false, 0, StacPropertyType.PERCENTAGE,
+                "", false, 0, null,
+                StacPropertyType.PERCENTAGE,
                 new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
         // WHEN
@@ -40,7 +41,8 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         List<StacProperty> properties = List.of(new StacProperty(
                 regardsAttr,
                  "stacProp",
-                "", false, 0, StacPropertyType.PERCENTAGE,
+                "", false, 0, null,
+                StacPropertyType.PERCENTAGE,
                 new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
 
@@ -67,7 +69,8 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         List<StacProperty> properties = List.of(new StacProperty(
                 regardsAttr,
                  "stacProp",
-                "", false, 0, StacPropertyType.PERCENTAGE,
+                "", false, 0, null,
+                StacPropertyType.PERCENTAGE,
                 new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)
         ));
 
@@ -96,7 +99,8 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         List<StacProperty> properties = List.of(new StacProperty(
                 regardsAttr,
                  "stacProp",
-                "", false, 0, StacPropertyType.STRING,
+                "", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
 
@@ -122,7 +126,8 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         List<StacProperty> properties = List.of(new StacProperty(
                 regardsAttr,
                 "stacProp",
-                "", false, 0, StacPropertyType.STRING,
+                "", false, 0, null,
+                StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
 

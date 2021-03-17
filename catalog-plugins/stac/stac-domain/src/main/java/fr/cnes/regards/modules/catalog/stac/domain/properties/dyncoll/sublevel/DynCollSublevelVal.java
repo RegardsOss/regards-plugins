@@ -17,27 +17,23 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import io.vavr.collection.List;
 import lombok.Value;
-import lombok.With;
 
 /**
- * Dynamic collection definition, giving the list of properties to look for.
+ * Value for a sublevel of a dynamic collection.
+ *
+ * For instance, if the dynamic level is
  */
-@Value @With
-public class DynamicCollectionDefinition {
+@Value
+public class DynCollSublevelVal {
 
-    List<StacProperty> properties;
+    /** The corresponding property */
+    StacProperty stacProperty;
 
-    /*
-    public static Option<DynamicCollectionDefinition> fromAllStacSproperties(List<StacProperty> allProperties) {
-        return new DynamicCollectionDefinition(allProperties.filter(sp -> sp.getDynamicCollectionLevel() != null)
-                .sortBy(StacProperty::getDynamicCollectionLevel));
-    }
-
-     */
+    DynCollSublevelDef sublevelDefinition;
+    Object sublevelValue;
 
 }

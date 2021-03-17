@@ -17,32 +17,12 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties;
-
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
-import lombok.Value;
-import lombok.With;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
 /**
- * Represents a configured STAC property.
+ *
  */
-@Value @With
-public class StacProperty {
+public interface DynCollSublevelDef {
 
-    RegardsPropertyAccessor regardsPropertyAccessor;
-
-    String stacPropertyName;
-
-    String extension;
-
-    Boolean computeSummary;
-
-    Integer dynamicCollectionLevel;
-
-    String dynamicCollectionFormat;
-
-    StacPropertyType stacType;
-
-    AbstractPropertyConverter converter;
 
 }

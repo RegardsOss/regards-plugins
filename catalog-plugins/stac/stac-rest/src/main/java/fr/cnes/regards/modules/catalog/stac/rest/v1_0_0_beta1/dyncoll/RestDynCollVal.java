@@ -17,32 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
+import com.google.gson.annotations.SerializedName;
+import io.vavr.collection.List;
 import lombok.Value;
 import lombok.With;
 
 /**
- * Represents a configured STAC property.
+ * Representation of a dynamic collection value as a JSON structure.
  */
 @Value @With
-public class StacProperty {
+public class RestDynCollVal {
 
-    RegardsPropertyAccessor regardsPropertyAccessor;
-
-    String stacPropertyName;
-
-    String extension;
-
-    Boolean computeSummary;
-
-    Integer dynamicCollectionLevel;
-
-    String dynamicCollectionFormat;
-
-    StacPropertyType stacType;
-
-    AbstractPropertyConverter converter;
+    @SerializedName("ls")
+    List<RestDynCollLevelVal> levels;
 
 }

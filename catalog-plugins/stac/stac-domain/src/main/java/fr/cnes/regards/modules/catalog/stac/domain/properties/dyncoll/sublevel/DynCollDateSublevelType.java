@@ -17,23 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
-
-import com.google.gson.annotations.SerializedName;
-import lombok.Value;
-import lombok.With;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
 /**
- * This class describes a value in a dynamic collection identifier.
+ * TODO: DynCollSublevelType description
+ *
+ * @author gandrieu
  */
-@Value @With
-public class DynCollLevelValue {
+public enum DynCollDateSublevelType {
 
-    @SerializedName("p")
-    String name;
-    @SerializedName("l")
-    String level;
-    @SerializedName("v")
-    String value;
+    YEAR,
+    MONTH,
+    DAY,
+    HOUR,
+    MINUTE,
+    SECOND,
 
 }

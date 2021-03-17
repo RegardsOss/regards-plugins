@@ -85,6 +85,14 @@ public class StacPropertyConfiguration {
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
+            name = "stacDynamicCollectionFormat",
+            label = "STAC dynamic collection format",
+            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            optional = true
+    )
+    private String stacDynamicCollectionFormat;
+
+    @PluginParameter(
             name = "stacType",
             label = "Property type",
             description = "Should take a value among: " +

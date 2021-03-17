@@ -17,26 +17,23 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import io.vavr.collection.List;
-import io.vavr.collection.Map;
-import org.springframework.stereotype.Service;
+import com.google.gson.annotations.SerializedName;
+import lombok.Value;
+import lombok.With;
 
 /**
- * Default implementation for {@link DynamicCollectionService}.
+ * REST layer dynamic collection level value, allows to represent .
  */
-@Service
-public class DynamicCollectionServiceImpl implements DynamicCollectionService {
+@Value @With
+public class RestDynCollLevelVal {
 
-    @Override
-    public String extractDynamicCollectionName(
-            List<StacProperty> properties,
-            Map<String, Object> featureStacProperties
-    ) {
-        // TODO
-        return null;
-    }
+    @SerializedName("p")
+    String propertyName;
+    @SerializedName("l")
+    String level;
+    @SerializedName("v")
+    String value;
 
 }

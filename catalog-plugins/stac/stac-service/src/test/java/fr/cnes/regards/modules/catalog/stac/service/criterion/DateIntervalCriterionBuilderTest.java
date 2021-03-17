@@ -36,7 +36,8 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor,
                  "datetime",
-                "", false, 0, StacPropertyType.DATETIME,
+                "", false, 0, null,
+                StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
         ));
         OffsetDateTime now = OffsetDateTime.now();
@@ -57,7 +58,8 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor,
                  "datetime",
-                "", false, 0, StacPropertyType.DATETIME,
+                "", false, 0, null,
+                StacPropertyType.DATETIME,
                 new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
         ));
         OffsetDateTime now = OffsetDateTime.now();
