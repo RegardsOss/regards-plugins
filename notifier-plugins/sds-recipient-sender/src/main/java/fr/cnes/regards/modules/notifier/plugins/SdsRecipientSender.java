@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.Event;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
@@ -94,10 +95,11 @@ public class SdsRecipientSender implements IRecipientNotifier {
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
         List<SdsNotificationEvent> toSend = requestsToSend.stream()
-                .map(request -> new SdsNotificationEvent(gson.toJsonTree(request.getPayload().getAsString().replaceAll(
-                        "file:/([^/])",
-                        "file://$1")), request.getMetadata().getAsJsonObject().get(ACTION_KEY).getAsString()))
-                .collect(Collectors.toList());
+                .map(request -> new SdsNotificationEvent(gson.fromJson(gson.toJson(request.getPayload())
+                                                                               .replaceAll("file:/([^/])", "file://$1"),
+                                                                       JsonObject.class),
+                                                         request.getMetadata().getAsJsonObject().get(ACTION_KEY)
+                                                                 .getAsString())).collect(Collectors.toList());
         this.publisher.broadcastAll(exchange, Optional.ofNullable(queueName), 0, toSend, new HashMap<>());
         // if there is an issue with amqp then none of the message will be sent
         return Collections.emptySet();
