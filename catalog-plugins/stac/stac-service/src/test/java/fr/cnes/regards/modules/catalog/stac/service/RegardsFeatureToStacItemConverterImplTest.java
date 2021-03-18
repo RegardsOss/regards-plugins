@@ -19,6 +19,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
+import fr.cnes.regards.modules.catalog.stac.service.item.RegardsFeatureToStacItemConverterImpl;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdderImpl;

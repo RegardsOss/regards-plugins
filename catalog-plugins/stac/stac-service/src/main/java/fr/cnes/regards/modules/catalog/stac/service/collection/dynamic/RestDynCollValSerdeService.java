@@ -17,24 +17,24 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollVal;
 import io.vavr.control.Try;
 
 /**
- * STAC item searching methods.
+ * Interface allowing to serialize/deserialize URNs corresponding to
+ * list of dyn collection level values.
  */
-public interface ItemSearchService {
+public interface RestDynCollValSerdeService {
 
-    Try<ItemCollectionResponse> search(
-            ItemSearchBody itemSearchBody,
-            Integer page,
-            OGCFeatLinkCreator featLinkCreator,
-            SearchPageLinkCreator searchPageLinkCreator
-    );
+    RestDynCollVal fromDomain(DynCollVal domain);
+    Try<DynCollVal> toDomain(DynCollDef def, RestDynCollVal rest);
+
+    String toUrn(RestDynCollVal values);
+    Try<RestDynCollVal> fromUrn(String repr);
+    boolean isListOfDynCollLevelValues(String urn);
 
 }

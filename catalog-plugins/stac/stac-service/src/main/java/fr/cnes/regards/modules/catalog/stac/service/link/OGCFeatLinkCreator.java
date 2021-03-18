@@ -21,21 +21,20 @@ package fr.cnes.regards.modules.catalog.stac.service.link;
 
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.control.Try;
-
-import java.net.URI;
 
 /**
  * Interface providing methods to build links for collections/items.
  */
-public interface OGCFeatLinkCreator {
-    Try<URI> createRootLink();
+public interface OGCFeatLinkCreator extends StacLinkCreator {
+    Try<Link> createRootLink();
 
-    Try<URI> createCollectionsLink();
+    Try<Link> createCollectionsLink();
 
-    Try<URI> createCollectionLink(String collectionId);
-    Try<URI> createItemLink(String collectionId, String itemId);
+    Try<Link> createCollectionLink(String collectionId, String collectionTitle);
+    Try<Link> createItemLink(String collectionId, String itemId);
 
-    Try<URI> createCollectionLink(Collection collection);
-    Try<URI> createItemLink(Item item);
+    Try<Link> createCollectionLink(Collection collection);
+    Try<Link> createItemLink(Item item);
 }

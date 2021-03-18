@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAcc
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
@@ -141,7 +142,6 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             )
             .toList();
     }
-
 
     private Pageable pageable(ItemSearchBody itemSearchBody, Integer page, List<StacProperty> stacProperties) {
         return PageRequest.of(page, itemSearchBody.getLimit(), sort(itemSearchBody.getSortBy(), stacProperties));

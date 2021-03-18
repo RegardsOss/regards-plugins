@@ -17,23 +17,24 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.service.item;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
-import lombok.Value;
 
 /**
- * A dynamic collection level value consists of a StacProperty, along with a value.
+ * STAC item searching methods.
  */
-@Value
-public class DynCollLevelValue {
+public interface ItemSearchService {
 
-    StacProperty property;
-    Object value;
-
-    public <T> Try<T> getGenericValue() {
-        return Try.of(() -> (T) value);
-    }
+    Try<ItemCollectionResponse> search(
+            ItemSearchBody itemSearchBody,
+            Integer page,
+            OGCFeatLinkCreator featLinkCreator,
+            SearchPageLinkCreator searchPageLinkCreator
+    );
 
 }

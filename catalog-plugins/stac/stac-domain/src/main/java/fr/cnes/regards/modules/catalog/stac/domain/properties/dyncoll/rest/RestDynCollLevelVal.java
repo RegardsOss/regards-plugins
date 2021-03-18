@@ -17,20 +17,22 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest;
 
 import com.google.gson.annotations.SerializedName;
-import io.vavr.collection.List;
+import io.vavr.collection.Map;
 import lombok.Value;
 import lombok.With;
 
 /**
- * Representation of a dynamic collection value as a JSON structure.
+ * REST layer dynamic collection level value, allows to represent levels/sublevels of dynamic collection values.
  */
 @Value @With
-public class RestDynCollVal {
+public class RestDynCollLevelVal {
 
-    @SerializedName("ls")
-    List<RestDynCollLevelVal> levels;
+    @SerializedName("p")
+    String propertyName;
+    @SerializedName("s")
+    Map<String, String> sublevels;
 
 }

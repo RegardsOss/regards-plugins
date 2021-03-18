@@ -20,13 +20,16 @@
 package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection;
 
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import lombok.Value;
 import lombok.With;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 /**
  * The object describes the spatio-temporal extents of the Collection.
@@ -45,9 +48,15 @@ public class Extent {
     public static class Spatial {
         List<BBox> bbox;
     }
-
     @Value @With
     public static class Temporal {
         List<Tuple2<Option<OffsetDateTime>, Option<OffsetDateTime>>> interval;
+    }
+
+    public static Extent maximalExtent() {
+        return new Extent(
+                new Spatial(List.of(new BBox(-180, -90, 180, 90))),
+                new Temporal(List.of(Tuple.of(Option.of(OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"))), null)))
+        );
     }
 }

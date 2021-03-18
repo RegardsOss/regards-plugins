@@ -24,5 +24,6 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
  */
 public interface DynCollSublevelDef {
 
+    String getName();
 
 }

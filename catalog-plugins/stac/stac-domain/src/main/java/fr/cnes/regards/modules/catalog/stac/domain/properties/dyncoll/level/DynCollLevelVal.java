@@ -17,18 +17,19 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
-import io.vavr.control.Try;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import io.vavr.collection.List;
+import lombok.Value;
 
 /**
- * Interface allowing to serialize/deserialize URNs corresponding to
- * list of dyn collection level values.
+ * A dynamic collection single level value.
  */
-public interface RestDynCollValSerdeService {
+@Value
+public class DynCollLevelVal {
 
-    String serialize(RestDynCollVal values);
-    Try<RestDynCollVal> deserialize(String repr);
-    boolean isListOfDynCollLevelValues(String urn);
+    DynCollLevelDef definition;
+    List<DynCollSublevelVal> sublevels;
 
 }

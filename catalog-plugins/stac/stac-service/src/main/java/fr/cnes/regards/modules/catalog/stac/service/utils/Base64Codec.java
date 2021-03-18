@@ -17,20 +17,26 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.utils;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import io.vavr.collection.List;
-import io.vavr.control.Try;
+import java.util.Base64;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * Interface describing how to convert Regards DataObjects to features.
+ * Utilities to go from/to base64.
  */
-public interface RegardsFeatureToStacItemConverter {
+public interface Base64Codec {
 
-    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature);
+    Base64.Encoder ENCODER = Base64.getEncoder();
+    Base64.Decoder DECODER = Base64.getDecoder();
+
+    default String toBase64(String content) {
+        return ENCODER.encodeToString(content.getBytes(UTF_8));
+    }
+
+    default String fromBase64(String b64) {
+        return new String(DECODER.decode(b64), UTF_8);
+    }
 
 }

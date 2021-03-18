@@ -79,6 +79,22 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private String stacDescription;
 
     @PluginParameter(
+            name = "rootStaticCollectionTitle",
+            label = "STAC root static collection title",
+            description = "Displayed label for the static collections root.",
+            defaultValue = "static",
+            optional = true)
+    private String rootStaticCollectionTitle;
+
+    @PluginParameter(
+            name = "rootDynamicCollectionTitle",
+            label = "STAC root dynamic collection title",
+            description = "Displayed label for the dynamic collections root.",
+            defaultValue = "dynamic",
+            optional = true)
+    private String rootDynamicCollectionTitle;
+
+    @PluginParameter(
             name = "stacDatetimeProperty",
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +
@@ -97,6 +113,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "Dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
+
+
 
     @Override
     public boolean supports(SearchType searchType) {
@@ -141,12 +159,12 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
         OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(null);
         SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(null, 0, null);
-        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(URI::toString);
+        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
         return io.vavr.collection.List.of(
                 collectionsLink.map(href -> new Link(href, "search-collections")),
                 collectionsLink.map(href -> new Link(href, "search-datasets")),
                 searchPageLinkCreator.searchAll().map(URI::toString).map(href -> new Link(href, "search-objects")),
-                ogcFeatLinkCreator.createRootLink().map(URI::toString).map(href -> new Link(href, "stac"))
+                ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString()).map(href -> new Link(href, "stac"))
         )
         .flatMap(vl -> vl)
         .toJavaList();

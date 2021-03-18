@@ -17,20 +17,25 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
-import io.vavr.collection.List;
-import lombok.Value;
-import lombok.With;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+
+import java.net.URI;
+import java.util.function.Function;
 
 /**
- * Value for dynamic collections.
+ * Utilities to create STAC links from URIs.
  */
-@Value @With
-public class DynCollVal {
+public interface StacLinkCreator {
 
-    DynCollDef definition;
-    List<DynCollLevelVal> levels;
+    default Function<URI, Link> createLink(String rel, String title) {
+        return uri -> createLink(uri, rel, title);
+    }
+
+    default Link createLink(URI uri, String rel, String title) {
+        return new Link(uri, rel, Asset.MediaType.APPLICATION_JSON, title);
+    }
 
 }

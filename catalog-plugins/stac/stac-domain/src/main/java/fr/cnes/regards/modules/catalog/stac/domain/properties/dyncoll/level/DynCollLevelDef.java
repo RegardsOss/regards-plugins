@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
@@ -32,6 +32,5 @@ public class DynCollLevelDef {
 
     StacProperty stacProperty;
     List<DynCollSublevelDef> sublevels;
-
 
 }
