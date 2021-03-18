@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
+import io.vavr.collection.Set;
 import lombok.Value;
 import lombok.With;
 
@@ -40,7 +41,7 @@ public class ItemCollectionResponse implements LinkCollection<ItemCollectionResp
     @SerializedName("stac_version")
     String stacVersion = StacSpecConstants.Version.STAC_API_VERSION;
     @SerializedName("stac_extensions")
-    List<String> stacExtensions;
+    Set<String> stacExtensions;
 
     enum TypeEnum {
         @SerializedName("FeatureCollection")

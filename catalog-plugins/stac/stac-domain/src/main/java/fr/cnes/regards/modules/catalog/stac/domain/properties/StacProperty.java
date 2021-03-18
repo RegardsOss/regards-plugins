@@ -29,7 +29,7 @@ import lombok.With;
 @Value @With
 public class StacProperty {
 
-    String modelAttributeName;
+    RegardsPropertyAccessor regardsPropertyAccessor;
 
     String stacPropertyName;
 
@@ -39,7 +39,9 @@ public class StacProperty {
 
     Integer dynamicCollectionLevel;
 
-    PropertyType type;
+    String dynamicCollectionFormat;
+
+    StacPropertyType stacType;
 
     AbstractPropertyConverter converter;
 

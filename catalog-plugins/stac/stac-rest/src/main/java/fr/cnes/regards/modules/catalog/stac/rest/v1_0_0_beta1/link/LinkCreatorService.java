@@ -31,6 +31,6 @@ public interface LinkCreatorService {
 
     OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth);
 
-    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody);
+    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page, ItemSearchBody itemSearchBody);
 
 }

@@ -21,8 +21,10 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.QueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilder;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 
@@ -37,19 +39,19 @@ public abstract class AbstractQueryObjectCriterionBuilder<T extends QueryObject>
         this.stacPropName = stacPropName;
     }
 
-    public abstract Option<ICriterion> buildCriterion(String attr, List<StacProperty> properties, T queryObject);
+    public abstract Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, T queryObject);
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, T queryObject) {
         if (queryObject == null) { return Option.none(); }
-        String attr = propertyNameFor(properties, stacPropName);
-        return buildCriterion(attr, properties, queryObject);
+        return propertyNameFor(properties, stacPropName)
+                .flatMap(attr -> buildCriterion(attr, properties, queryObject));
     }
 
-    protected String propertyNameFor(List<StacProperty> properties, String attrName) {
+    protected Option<AttributeModel> propertyNameFor(List<StacProperty> properties, String attrName) {
         return getStacProperty(properties, attrName)
-                .map(StacProperty::getModelAttributeName)
-                .getOrElse(attrName);
+                .map(StacProperty::getRegardsPropertyAccessor)
+                .map(RegardsPropertyAccessor::getAttributeModel);
     }
 
     protected Option<StacProperty> getStacProperty(List<StacProperty> properties, String attrName) {

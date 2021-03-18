@@ -93,6 +93,10 @@ public class StacGeoHelper {
         .toOption();
     }
 
+    /**
+     * Without this dirty hack, GeoJSONReader can not read geometries where the type appears after the coordinates.
+     * https://github.com/locationtech/spatial4j/issues/156
+     */
     private String putTypeInFirstPosition(String json) {
         String type = json.replaceFirst("(.*)(\"type\"\\s*:\\s*\"[^\"]*?\")(.*)", "$2");
         return "{" + type + "," + json.replaceFirst("\\{", "");

@@ -19,49 +19,56 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
-import fr.cnes.regards.framework.security.role.DefaultRole;
+import com.google.gson.Gson;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.framework.security.utils.jwt.JWTService;
-import fr.cnes.regards.framework.security.utils.jwt.UserDetails;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
-import io.vavr.CheckedFunction1;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.collection.List;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
+import io.vavr.collection.HashMap;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
+import static io.vavr.control.Option.none;
 
 /**
  * Allows to generate link creators.
  */
 @Service
-public class LinkCreatorServiceImpl implements LinkCreatorService {
+public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
-    private final JWTService jwtService;
-    private final SearchAfterSerdeService searchAfterSerdeService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
+
+    private final UriParamAdder uriParamAdder;
+    private final Gson gson;
+
+    // @formatter:off
 
     @Autowired
     public LinkCreatorServiceImpl(
-            JWTService jwtService,
-            SearchAfterSerdeService searchAfterSerdeService
+            UriParamAdder uriParamAdder,
+            Gson gson
     ) {
-        this.jwtService = jwtService;
-        this.searchAfterSerdeService = searchAfterSerdeService;
+        this.uriParamAdder = uriParamAdder;
+        this.gson = gson;
     }
 
     @Override
@@ -72,24 +79,35 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             @Override
             public Try<URI> createRootLink() {
                 return Try.of(() ->
+                    WebMvcLinkBuilder.linkTo(
+                        CoreController.class,
+                        getMethodNamedInClass(CoreController.class, "root")
+                    ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
+            }
+
+            @Override
+            public Try<URI> createCollectionsLink() {
+                return Try.of(() ->
                         WebMvcLinkBuilder.linkTo(
                                 OGCFeaturesController.class,
                                 getMethodNamedInClass(OGCFeaturesController.class, "collections")
                         ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
             public Try<URI> createCollectionLink(String collectionId) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "collection"),
-                                collectionId
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "collection"),
+                        collectionId
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
@@ -100,14 +118,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             @Override
             public Try<URI> createItemLink(String collectionId, String itemId) {
                 return Try.of(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "item"),
-                                collectionId,
-                                itemId
-                        ).toUri()
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "item"),
+                        collectionId,
+                        itemId
+                    ).toUri()
                 )
-                        .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth));
             }
 
             @Override
@@ -118,43 +136,54 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
     }
 
     @Override
-    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, ItemSearchBody itemSearchBody) {
+    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page, ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
-            @Override
-            public Try<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
-                return Try.of(() ->
-                    WebMvcLinkBuilder.linkTo(
-                            ItemSearchController.class,
-                            getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                            itemSearchBody.getLimit(),
-                            extractSearchAfter(itemCollection.getFeatures().lastOption()),
-                            itemSearchBody
-                    ).toUri()
-                )
-                .flatMapTry(appendAuthParams(auth));
-            }
 
             @Override
-            public Try<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
+            public Option<URI> searchAll() {
+                return Try.of(() ->
+                        WebMvcLinkBuilder.linkTo(
+                                ItemSearchController.class,
+                                getMethodNamedInClass(ItemSearchController.class, "simple")
+                        ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .toOption();
+            }
+
+            private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
+                String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         ItemSearchController.class,
                         getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                        itemSearchBody.getLimit(),
-                        extractSearchAfter(itemCollection.getFeatures().headOption()),
-                        itemSearchBody
+                        itemBodyB64,
+                        i
                     ).toUri()
                 )
-                .flatMapTry(appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .flatMapTry(uriParamAdder.appendParams(HashMap.of(
+                    SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64,
+                    PAGE_QUERY_PARAM, "" + i
+                )))
+                .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u))
+                .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
+                .toOption();
             }
 
-            private String extractSearchAfter(Option<Item> optItem) {
-                List<Object> values = optItem.map(item -> itemSearchBody.getSortBy()
-                    .map(ItemSearchBody.SortBy::getField)
-                    .map(field -> item.getProperties().get(field).getOrNull())
-                )
-                .getOrElse(List::empty);
-                return searchAfterSerdeService.serialize(values);
+            @Override
+            public Option<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
+                return createPageLink(page + 1, itemSearchBody, auth);
+            }
+
+            @Override
+            public Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection) {
+                return page == 0 ? none() : createPageLink(page - 1, itemSearchBody, auth);
+            }
+
+            @Override
+            public Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
+                return createPageLink(page, itemSearchBody, auth);
             }
         };
     }
@@ -165,24 +194,6 @@ public class LinkCreatorServiceImpl implements LinkCreatorService {
             .head();
     }
 
-    private Tuple2<String, String> makeAuthParam(
-            JWTAuthentication auth
-    ) {
-        String tenant = auth.getTenant();
-        UserDetails user = auth.getUser();
-        String role = user.getRole();
-        return DefaultRole.PUBLIC.name().equals(role)
-            ? Tuple.of("scope", tenant)
-            : Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
-    }
-
-    private CheckedFunction1<URI, Try<URI>> appendAuthParams (JWTAuthentication auth) {
-        return uri -> {
-            Tuple2<String, String> authParam = makeAuthParam(auth);
-            return Try.of(() ->
-                UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
-            );
-        };
-    }
+    // @formatter:on
 
 }

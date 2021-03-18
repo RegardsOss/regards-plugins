@@ -21,14 +21,15 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * Default impl for {@link SearchOtherPageItemBodySerdeService}.
  */
-@Component
+@Service
 public class SearchOtherPageItemBodySerdeServiceImpl implements SearchOtherPageItemBodySerdeService, Base64Codec {
 
     private final Gson gson;

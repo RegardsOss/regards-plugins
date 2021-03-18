@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Try;
 
 /**
@@ -31,9 +31,9 @@ import io.vavr.control.Try;
  */
 public abstract class AbstractPropertyConverter<ST, RT> {
 
-   private final PropertyType type;
+   private final StacPropertyType type;
 
-   public AbstractPropertyConverter(PropertyType type) {
+   public AbstractPropertyConverter(StacPropertyType type) {
       this.type = type;
    }
 

@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
 
 import java.net.URI;
 
@@ -29,9 +29,13 @@ import java.net.URI;
  */
 public interface SearchPageLinkCreator {
 
-    Try<URI> createNextPageLink(ItemCollectionResponse itemCollection);
+    Option<URI> searchAll();
 
-    Try<URI> createSelfPageLink(ItemCollectionResponse itemCollection);
+    Option<URI> createNextPageLink(ItemCollectionResponse itemCollection);
+
+    Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection);
+
+    Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection);
 
 
 }

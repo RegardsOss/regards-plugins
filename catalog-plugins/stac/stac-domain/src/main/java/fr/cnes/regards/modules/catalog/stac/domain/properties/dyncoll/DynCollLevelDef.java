@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -17,27 +17,21 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.plugin.configuration;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
-import io.vavr.collection.HashMap;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.Map;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import io.vavr.collection.List;
+import lombok.Value;
 
 /**
- * Represents the configuration to be passed to Spatial4j context factory.
  *
- * @author gandrieu
  */
-@Data @AllArgsConstructor @NoArgsConstructor
-public class Spatial4jConfiguration {
+@Value
+public class DynCollLevelDef {
 
-    private boolean geo;
+    StacProperty stacProperty;
+    List<DynCollSublevelDef> sublevels;
 
-    public Map<String, String> toConfigMap() {
-        return HashMap.of("geo", "" + geo).toJavaMap();
-    }
 
 }

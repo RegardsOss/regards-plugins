@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.PropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -45,7 +45,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
     private final PercentageBase regardsBase;
 
     public PercentagePropertyConverter(PercentageBase stacBase, PercentageBase regardsBase) {
-        super(PropertyType.PERCENTAGE);
+        super(StacPropertyType.PERCENTAGE);
         this.stacBase = stacBase;
         this.regardsBase = regardsBase;
     }

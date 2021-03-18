@@ -36,11 +36,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
@@ -52,7 +52,11 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/item-search">Description</a>>
  */
 @RestController
-@RequestMapping(STAC_SEARCH_PATH)
+@RequestMapping(
+        path = STAC_SEARCH_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
 public class ItemSearchController implements TryToResponseEntity {
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;
@@ -84,7 +88,6 @@ public class ItemSearchController implements TryToResponseEntity {
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> simple(
-            HttpRequest request,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
@@ -103,7 +106,7 @@ public class ItemSearchController implements TryToResponseEntity {
                 itemSearchBody,
                 page,
                 linkCreatorService.makeOGCFeatLinkCreator(auth),
-                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
             )));
     }
 
@@ -127,7 +130,7 @@ public class ItemSearchController implements TryToResponseEntity {
             itemSearchBody,
             page,
             linkCreatorService.makeOGCFeatLinkCreator(auth),
-            linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+            linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
         ));
     }
 
@@ -143,9 +146,9 @@ public class ItemSearchController implements TryToResponseEntity {
         description = "continue to next/previous search page",
         role = DefaultRole.PUBLIC
     )
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(path="paginate", method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> otherPage(
-            @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM, required = false) String itemBodyBase64,
+            @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM) String itemBodyBase64,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
     ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -155,7 +158,7 @@ public class ItemSearchController implements TryToResponseEntity {
                 itemSearchBody,
                 page,
                 linkCreatorService.makeOGCFeatLinkCreator(auth),
-                linkCreatorService.makeSearchPageLinkCreator(auth, itemSearchBody)
+                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)
             ))
         );
     }

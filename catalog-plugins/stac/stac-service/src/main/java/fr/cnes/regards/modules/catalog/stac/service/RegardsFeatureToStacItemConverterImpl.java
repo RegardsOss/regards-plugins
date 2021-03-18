@@ -23,16 +23,17 @@ import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollService;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
@@ -49,6 +50,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+import static io.vavr.Predicates.isNotNull;
+
 /**
  * Default implementation for {@link RegardsFeatureToStacItemConverter} interface.
  */
@@ -59,32 +62,34 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     
     private final StacGeoHelper geoHelper;
     private final ConfigurationAccessorFactory configurationAccessorFactory;
-    private final DynamicCollectionService dynamicCollectionService;
     private final IRuntimeTenantResolver runtimeTenantResolver;
+    private final UriParamAdder uriParamAdder;
 
     public RegardsFeatureToStacItemConverterImpl(
             StacGeoHelper geoHelper,
             ConfigurationAccessorFactory configurationAccessorFactory,
-            DynamicCollectionService dynamicCollectionService,
-            IRuntimeTenantResolver runtimeTenantResolver
+            IRuntimeTenantResolver runtimeTenantResolver,
+            UriParamAdder uriParamAdder
     ) {
         this.geoHelper = geoHelper;
         this.configurationAccessorFactory = configurationAccessorFactory;
-        this.dynamicCollectionService = dynamicCollectionService;
         this.runtimeTenantResolver = runtimeTenantResolver;
+        this.uriParamAdder = uriParamAdder;
     }
 
     @Override
     public Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature) {
+        LOGGER.debug("Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return Try.of(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String,Object> featureStacProperties = extractStacPropertyKeyValues(feature, properties);
             Set<String> extensions = extractExtensions(featureStacProperties);
             Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
-            String collection = extractCollection(feature, properties, featureStacProperties);
+            String collection = extractCollection(feature).getOrNull();
             String itemId = feature.getIpId().toString();
+            Tuple2<String, String> authParam = uriParamAdder.makeAuthParam();
 
-            return new Item(
+            Item result = new Item(
                     extensions,
                     itemId,
                     geo._2,
@@ -93,22 +98,26 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                     collection,
                     featureStacProperties,
                     extractLinks(itemId, collection, linkCreator),
-                    extractAssets(feature)
+                    extractAssets(feature, authParam)
             );
-        });
+            LOGGER.debug("Result Item={}", result);
+            return result;
+        })
+        .onFailure(t -> LOGGER.error(t.getMessage(), t));
     }
 
-    private Map<String, Asset> extractAssets(DataObject feature) {
-        return Stream.ofAll(feature.getFeature().getFiles().entries())
-            .toMap(entry -> extractAsset(entry.getValue()))
-        ;
+    private Map<String, Asset> extractAssets(DataObject feature, Tuple2<String, String> authParam) {
+
+        Map<String, Asset> nullUnsafe = Stream.ofAll(feature.getFeature().getFiles().entries())
+                .toMap(entry -> extractAsset(entry.getValue(), authParam));
+        return nullUnsafe.filterKeys(isNotNull());
     }
 
-    private Tuple2<? extends String, ? extends Asset> extractAsset(DataFile value) {
-        return Tuple.of(
-            value.getChecksum(),
+    private Tuple2<String, Asset> extractAsset(DataFile value, Tuple2<String, String> authParam) {
+        Tuple2<String, Asset> result = Tuple.of(
+            value.getFilename(),
             new Asset(
-                value.asUri(),
+                authdUri(value.asUri(), authParam),
                 value.getFilename(),
                 String.format("File size: %d bytes" +
                     "\n\nIs reference: %b" +
@@ -125,6 +134,14 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 HashSet.of(assetTypeFromDatatype(value.getDataType()))
             )
         );
+        LOGGER.debug("Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
+        return result;
+    }
+
+    private URI authdUri(URI uri, Tuple2<String, String> authParam) {
+        return Try.success(uri)
+            .flatMapTry(uriParamAdder.appendParams(HashMap.of(authParam)))
+            .getOrElse(uri);
     }
 
     private String assetTypeFromDatatype(DataType dataType) {
@@ -157,16 +174,11 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         return new Link(uri, rel, Asset.MediaType.APPLICATION_JSON, title);
     }
 
-    private String extractCollection(DataObject feature, List<StacProperty> properties, Map<String, Object> stacProperties) {
+    private Option<String> extractCollection(DataObject feature) {
         return HashSet.ofAll(feature.getTags())
             .filter(tag -> tag.startsWith("URN:"))
             .filter(tag -> tag.contains(":DATASET:"))
-            .headOption()
-            .getOrElse(() -> extractDynamicCollection(properties, stacProperties));
-    }
-
-    private String extractDynamicCollection(List<StacProperty> properties, Map<String, Object> featureStacProperties) {
-        return dynamicCollectionService.extractDynamicCollectionName(properties, featureStacProperties);
+            .headOption();
     }
 
     private Tuple3<IGeometry, BBox, Centroid> extractGeo(DataObject feature, GeoJSONReader geoJSONReader) {
@@ -202,11 +214,13 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     private Map<String, Object> extractStacPropertyKeyValues(DataObject feature, List<StacProperty> properties) {
         return HashSet.ofAll(feature.getFeature().getProperties())
-            .flatMap(regardsProp ->
+            .map(regardsProp ->
                 findCorrespondingStacProperty(regardsProp, properties)
                     .map(sp -> extractPropertyRegardsKeyValue(regardsProp, sp))
+                    .getOrElse(() -> Tuple.of(regardsProp.getName(), regardsProp.getValue()))
             )
-            .toMap(kv -> kv);
+            .toMap(kv -> kv)
+            .filterKeys(isNotNull());
     }
 
     private Tuple2<String, Object> extractPropertyRegardsKeyValue(IProperty<?> regardsProp, StacProperty sp) {
@@ -216,7 +230,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     @SuppressWarnings("unchecked")
     private Object convertRegardsToStacValue(IProperty<?> regardsProp, StacProperty sp) {
         return sp.getConverter()
-            .convertRegardsToStac(regardsProp.getValue())
+            .convertRegardsToStac(extractValue(regardsProp))
             .onFailure(t -> LOGGER.warn("Could not convert regards property {}={} to stac property {}",
                     regardsProp.getName(),
                     regardsProp.getValue(),
@@ -225,8 +239,21 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             .getOrElse(regardsProp.getValue());
     }
 
+    private Object extractValue(IProperty<?> regardsProp) {
+        Object value = regardsProp.getValue();
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue();
+        }
+        else {
+            return value;
+        }
+    }
+
     private Option<StacProperty> findCorrespondingStacProperty(IProperty<?> regardsProp, List<StacProperty> properties) {
-        return properties.find(sp -> regardsProp.getName().equals(sp.getModelAttributeName()));
+        return properties.find(sp -> {
+            String regardsAttributeName = sp.getRegardsPropertyAccessor().getRegardsAttributeName();
+            return regardsProp.getName().equals(regardsAttributeName);
+        });
     }
 
 }

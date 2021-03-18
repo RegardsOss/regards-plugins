@@ -35,6 +35,7 @@ import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 @Profile("CrawlerTest")
 @Configuration
@@ -86,6 +87,11 @@ public class CrawlerConfiguration {
     @Primary
     public IModelAttrAssocService modelAttrAssocService() {
         return Mockito.mock(IModelAttrAssocService.class);
+    }
+
+    @Bean
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
     }
 
 }

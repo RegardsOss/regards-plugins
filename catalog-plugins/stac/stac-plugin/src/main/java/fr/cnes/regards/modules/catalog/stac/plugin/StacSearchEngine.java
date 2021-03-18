@@ -25,20 +25,22 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.Spatial4jConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.search.domain.plugin.IEntityLinkBuilder;
-import fr.cnes.regards.modules.search.domain.plugin.ISearchEngine;
-import fr.cnes.regards.modules.search.domain.plugin.SearchContext;
-import fr.cnes.regards.modules.search.domain.plugin.SearchType;
+import fr.cnes.regards.modules.search.domain.plugin.*;
+import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 
+import java.net.URI;
 import java.util.List;
 
 @Plugin(
@@ -55,10 +57,26 @@ import java.util.List;
 @Data @AllArgsConstructor @NoArgsConstructor
 public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, Object, List<String>> {
 
-    public static final String PLUGIN_ID = "StacSearchEngine";
+    public static final String PLUGIN_ID = "stac";
 
     @Autowired
     private StacConfigurationDomainAccessor propMapper;
+    @Autowired
+    private LinkCreatorService linkCreator;
+
+    @PluginParameter(
+            name = "stacTitle",
+            label = "STAC title",
+            description = "Title for the root STAC catalog.",
+            optional = true)
+    private String stacTitle;
+
+    @PluginParameter(
+            name = "stacDescription",
+            label = "STAC description",
+            description = "Description for the root STAC catalog.",
+            optional = true)
+    private String stacDescription;
 
     @PluginParameter(
             name = "stacDatetimeProperty",
@@ -70,7 +88,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(
             name = "stacExtraProperties",
             label = "STAC extra properties",
-            description = "List of other STAC properties to be mapped to model attributes.")
+            description = "List of other STAC properties to be mapped to model attributes.",
+            optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
     @PluginParameter(
@@ -78,13 +97,6 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "Dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
-
-    @PluginParameter(
-            name = "spatial4jConfiguration",
-            label = "Configuration for spatial4j",
-            description = "This property configures the spatial4j library, allowing to compute bounding boxes from geometries."
-    )
-    private Spatial4jConfiguration spatial4jConfiguration;
 
     @Override
     public boolean supports(SearchType searchType) {
@@ -106,4 +118,37 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
         return null;
     }
 
+    /**
+     * This plugin does not use the default search links on the <code>SearchEngineController</code>, but uses its own
+     * endpoints.
+     *
+     * @return false
+     */
+    @Override
+    public boolean useDefaultConfigurationLinks() {
+        return false;
+    }
+
+    /**
+     * Provide some links to the strategic endpoints, with relations similar to what other {@link ISearchEngine}
+     * instances provide.
+     *
+     * @param searchEngineControllerClass unused
+     * @param element unused
+     * @return a list of usable links, among which one with "rel=stac" for the root of the STAC catalog.
+     */
+    @Override
+    public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
+        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(null);
+        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(null, 0, null);
+        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(URI::toString);
+        return io.vavr.collection.List.of(
+                collectionsLink.map(href -> new Link(href, "search-collections")),
+                collectionsLink.map(href -> new Link(href, "search-datasets")),
+                searchPageLinkCreator.searchAll().map(URI::toString).map(href -> new Link(href, "search-objects")),
+                ogcFeatLinkCreator.createRootLink().map(URI::toString).map(href -> new Link(href, "stac"))
+        )
+        .flatMap(vl -> vl)
+        .toJavaList();
+    }
 }

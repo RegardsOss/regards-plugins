@@ -33,18 +33,28 @@ import lombok.With;
 public class StacPropertyConfiguration {
 
     @PluginParameter(
-            name = "modelAttributeName",
-            label = "Model attribute name",
+            name = "modelPropertyName",
+            label = "Regards property name",
             description = "This parameter determines which attribute model parameter" +
                     " to map to a STAC property."
     )
-    private String modelAttributeName;
+    private String modelPropertyName;
+
+    @PluginParameter(
+            name = "modelPropertyJSONPath",
+            label = "Model property JSON path",
+            description = "If the target REGARDS property is of type JSON, " +
+                    " this parameter determines the path in the JSON structure where to read the value.",
+            optional = true
+    )
+    private String modelPropertyJSONPath;
 
     @PluginParameter(
             name = "stacPropertyName",
             label = "STAC property name",
             description = "This parameter determines the name of" +
-                    " the STAC property corresponding to the model attribute name."
+                    " the STAC property corresponding to the model attribute name.",
+            optional = true
     )
     private String stacPropertyName;
 
@@ -52,7 +62,8 @@ public class StacPropertyConfiguration {
             name = "stacExtension",
             label = "Name or URL of the STAC extension",
             description = "If this STAC property is not native, give the name of its extension," +
-                    " or its URL if the extension is not part defined in the standard."
+                    " or its URL if the extension is not part defined in the standard.",
+            optional = true
     )
     private String stacExtension;
 
@@ -62,7 +73,7 @@ public class StacPropertyConfiguration {
             description = "Whether a summary should be computed for this property in the collections." +
                     " Only applicable for stacType value among 'DATETIME', 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
-    private Boolean stacComputeExtent;
+    private Boolean stacComputeSummary;
 
     @PluginParameter(
             name = "stacDynamicCollectionLevel",
@@ -74,10 +85,17 @@ public class StacPropertyConfiguration {
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
+            name = "stacDynamicCollectionFormat",
+            label = "STAC dynamic collection format",
+            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            optional = true
+    )
+    private String stacDynamicCollectionFormat;
+
+    @PluginParameter(
             name = "stacType",
             label = "Property type",
             description = "Should take a value among: " +
-                    "'DURATION', " +
                     "'DATETIME', " +
                     "'URL', " +
                     "'STRING', " +
@@ -88,7 +106,8 @@ public class StacPropertyConfiguration {
                     "'GEOMETRY', " +
                     "'BBOX', " +
                     "'BOOLEAN', " +
-                    "'OBJECT'."
+                    "'OBJECT'. Default is 'STRING', unless for the mandatory datetime property in which case it is 'DATETIME'.",
+            optional = true
     )
     private String stacType;
 

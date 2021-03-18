@@ -24,13 +24,18 @@ import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ConformanceResponse;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.vavr.collection.List;
+import io.vavr.control.Try;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 
 /**
  * Conformance page
@@ -38,8 +43,21 @@ import org.springframework.web.bind.annotation.RestController;
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features"></a>
  */
 @RestController
-@RequestMapping(StacApiConstants.STAC_CONFORMANCE_PATH)
-public class ConformanceController {
+@RequestMapping(
+        path = StacApiConstants.STAC_CONFORMANCE_PATH,
+        produces = APPLICATION_JSON,
+        consumes = APPLICATION_JSON
+)
+public class ConformanceController implements TryToResponseEntity {
+
+    public static final List<String> CONFORMANCES = List.of(
+        "https://api.stacspec.org/v1.0.0-beta.1/core",
+        "https://api.stacspec.org/v1.0.0-beta.1/item-search",
+        "https://api.stacspec.org/v1.0.0-beta.1/ogcapi-features",
+        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
+        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
+    );
 
     @Operation(summary = "information about specifications that this API conforms to",
             description = "A list of all conformance classes specified in a standard that the server conforms to.")
@@ -50,8 +68,7 @@ public class ConformanceController {
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ConformanceResponse> conformance() throws ModuleException {
-        // TODO
-        return null;
+        return toResponseEntity(Try.of(() -> new ConformanceResponse(CONFORMANCES)));
     }
 
 }

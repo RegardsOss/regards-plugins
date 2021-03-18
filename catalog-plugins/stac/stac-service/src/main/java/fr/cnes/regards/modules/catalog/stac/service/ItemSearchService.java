@@ -32,7 +32,7 @@ public interface ItemSearchService {
 
     Try<ItemCollectionResponse> search(
             ItemSearchBody itemSearchBody,
-            Integer offset,
+            Integer page,
             OGCFeatLinkCreator featLinkCreator,
             SearchPageLinkCreator searchPageLinkCreator
     );
