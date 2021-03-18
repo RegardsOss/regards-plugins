@@ -132,6 +132,12 @@
             <version>1.4.0</version>
             <classifier>shaded</classifier>
         </dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+			<artifactId>sds-recipient-sender</artifactId>
+			<version>1.4.0</version>
+			<classifier>shaded</classifier>
+		</dependency>
     </dependencies>
 
 	<build>
