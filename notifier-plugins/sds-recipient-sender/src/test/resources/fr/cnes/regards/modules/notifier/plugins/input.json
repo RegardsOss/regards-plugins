@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "history": {
+      "createdBy": "CreatedBy",
+      "updatedBy": "UpdatedBy",
+      "deletedBy": "DeletedBy"
+    },
+    "properties": {
+      "system": {
+        "gpfs_url": "file:/home/geode/test.tar",
+        "truc_url": "file://toto/truc"
+      }
+    }
+  },
+  "metadata": {
+    "action": "CREATION"
+  }
+}
