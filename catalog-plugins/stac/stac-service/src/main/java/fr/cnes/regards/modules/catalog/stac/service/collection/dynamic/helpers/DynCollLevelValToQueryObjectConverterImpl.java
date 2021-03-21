@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -25,12 +25,16 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 /**
  * Base implementation for {@link DynCollLevelValToQueryObjectConverter}.
@@ -70,50 +74,67 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
             DynCollLevelVal levelVal,
             StringPrefixLevelDef definition
     ) {
-        String startsWith = levelVal.getSublevels()
-                .map(DynCollSublevelVal::getSublevelValue)
-                .foldLeft("", String::concat);
-
-        return new ItemSearchBody.StringQueryObject(
-            null, null,
-                startsWith,
-            null, null, null
-        );
+        String startsWith = definition.renderValue(levelVal);
+        return ItemSearchBody.StringQueryObject.builder().startsWith(startsWith).build();
     }
 
     private ItemSearchBody.QueryObject datePartsQueryObject(
             DynCollLevelVal levelVal,
             DatePartsLevelDef definition
     ) {
-        return null;
+        List<DynCollSublevelVal> sublevels = levelVal.getSublevels();
+        Integer year = Integer.parseInt(sublevels.get(0).getSublevelValue());
+        Integer month = sublevels.length() <= 1 ? 12 : Integer.parseInt(sublevels.get(1).getSublevelValue());
+        Integer lengthOfMonth = LocalDate.of(year, month, 1).lengthOfMonth();
+
+        String dateStarts = String.format("%d-%02d-01T00:00:00.000Z", year, month);
+        String dateEnds = String.format("%d-%02d-%02dT23:59:59.999Z", year, month, lengthOfMonth);
+
+        String start = definition.renderValue(levelVal);
+
+        String gte = start + dateStarts.substring(start.length());
+        String lte = start + dateEnds.substring(start.length());
+
+        return ItemSearchBody.DatetimeQueryObject.builder()
+            .lte(OffsetDateTime.parse(lte))
+            .gte(OffsetDateTime.parse(gte))
+            .build();
     }
 
     private ItemSearchBody.QueryObject numberRangeQueryObject(
             DynCollLevelVal levelVal,
             NumberRangeLevelDef definition
     ) {
-        String value = null;
-        Double gte = 0d; // TODO
-        Double lte = 0d;
-        return new ItemSearchBody.NumberQueryObject(
-            null, null, null, null,
-                gte, lte, null
-        );
+        String value = levelVal.getSublevels().get(0).getSublevelValue();
+        if (value.startsWith("<")) {
+            double lt = Double.parseDouble(value.replace("<", ""));
+            return ItemSearchBody.NumberQueryObject.builder().lt(lt).build();
+        }
+        else if (value.startsWith(">")) {
+            double gt = Double.parseDouble(value.replace(">", ""));
+            return ItemSearchBody.NumberQueryObject.builder().gt(gt).build();
+        }
+        else if (value.contains(";")) {
+            Double gte = Double.parseDouble(value.replace(";.*", ""));
+            Double lte = Double.parseDouble(value.replace(".*;", ""));
+            return ItemSearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
+        }
+        else {
+            throw new NotImplementedException("Unparsable number range level format");
+        }
     }
 
     private ItemSearchBody.QueryObject exactQueryObject(DynCollLevelVal levelVal) {
         StacPropertyType stacType = levelVal.getDefinition().getStacProperty().getStacType();
         switch (stacType) {
             case STRING:
-                return new ItemSearchBody.StringQueryObject(
-                    levelVal.getSublevels().head().getSublevelValue(),
-                    null, null, null, null, null
-                );
+                return ItemSearchBody.StringQueryObject.builder()
+                    .eq(levelVal.getSublevels().head().getSublevelValue())
+                    .build();
             case NUMBER: case PERCENTAGE: case ANGLE: case LENGTH:
-                return new ItemSearchBody.NumberQueryObject(
-                    Double.parseDouble(levelVal.getSublevels().head().getSublevelValue()),
-                    null, null, null, null, null, null
-                );
+                return ItemSearchBody.NumberQueryObject.builder()
+                    .eq(Double.parseDouble(levelVal.getSublevels().head().getSublevelValue()))
+                    .build();
             default:
                 throw new NotImplementedException("Unsupported exact level definition for type " + stacType.name());
         }

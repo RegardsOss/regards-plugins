@@ -22,14 +22,21 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import io.vavr.collection.List;
 import lombok.Value;
+import lombok.With;
 
 /**
  * A dynamic collection single level value.
  */
-@Value
+@Value @With
 public class DynCollLevelVal {
 
     DynCollLevelDef<?> definition;
     List<DynCollSublevelVal> sublevels;
 
+    public boolean isFullyValued() {
+        return definition.isFullyValued(this);
+    }
+    public boolean isPartiallyValued() {
+        return !isFullyValued();
+    }
 }

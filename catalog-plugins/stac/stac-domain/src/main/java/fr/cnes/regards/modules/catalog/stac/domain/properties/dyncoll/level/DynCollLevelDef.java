@@ -20,8 +20,10 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 
 /**
  * Dynamic collection levels correspond to STAC properties.
@@ -35,9 +37,18 @@ public interface DynCollLevelDef<T extends DynCollSublevelDef> {
 
     DynCollLevelVal parseValues(String repr);
     String renderValue(DynCollLevelVal value);
-
     default String toLabel(String value) {
         return String.format("%s=%s", getStacProperty().getStacPropertyName(), value);
+    }
+
+    boolean isFullyValued(DynCollLevelVal val);
+
+    default Option<DynCollLevelVal> valueIn(DynCollVal val) {
+        return val.getLevels().find(lval -> lval.getDefinition().equals(this));
+    }
+
+    default boolean isValuedIn(DynCollVal val) {
+        return valueIn(val).isDefined();
     }
 
 }

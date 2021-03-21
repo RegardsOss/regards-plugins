@@ -54,4 +54,9 @@ public class ExactValueLevelDef implements DynCollLevelDef<ExactValueSublevelDef
             .map(DynCollSublevelVal::getSublevelValue)
             .getOrElse(toLabel("?"));
     }
+
+    @Override
+    public boolean isFullyValued(DynCollLevelVal val) {
+        return true;
+    }
 }

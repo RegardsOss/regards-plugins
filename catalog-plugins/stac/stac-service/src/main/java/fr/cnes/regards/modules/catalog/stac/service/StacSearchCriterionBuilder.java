@@ -23,6 +23,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilder;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import io.vavr.Value;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -38,7 +39,7 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
 
     default ICriterion toCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
         return Try.of(() -> buildCriterion(properties, itemSearchBody))
-            .flatMapTry(opt -> opt.toTry())
+            .flatMapTry(Value::toTry)
             .getOrElseGet(e -> {
                 LOGGER.error("Could not build criterion for {}", itemSearchBody, e);
                 return ICriterion.all();

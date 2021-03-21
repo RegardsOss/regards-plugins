@@ -52,4 +52,8 @@ public class StringPrefixLevelDef implements DynCollLevelDef<StringPrefixSubleve
             .foldLeft("", String::concat);
     }
 
+    @Override
+    public boolean isFullyValued(DynCollLevelVal val) {
+        return val.getSublevels().size() == sublevels.size();
+    }
 }

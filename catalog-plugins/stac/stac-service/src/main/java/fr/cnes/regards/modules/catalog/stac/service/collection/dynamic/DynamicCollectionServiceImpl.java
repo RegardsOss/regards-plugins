@@ -29,10 +29,11 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelDefParser;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelValToQueryObjectConverter;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.item.RegardsFeatureToStacItemConverter;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,16 +49,19 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final DynCollLevelDefParser dynCollLevelDefParser;
+    private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
     private final RegardsFeatureToStacItemConverter featureToItemConverter;
 
     @Autowired
     public DynamicCollectionServiceImpl(
             RestDynCollValSerdeService restDynCollValSerdeService,
             DynCollLevelDefParser dynCollLevelDefParser,
+            DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             RegardsFeatureToStacItemConverter featureToItemConverter
     ) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.dynCollLevelDefParser = dynCollLevelDefParser;
+        this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.featureToItemConverter = featureToItemConverter;
     }
 
@@ -111,8 +115,10 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     }
 
     @Override
-    public Tuple2<String, ItemSearchBody.QueryObject> toQueryObject(DynCollLevelVal value) {
-        return null;
+    public ItemSearchBody toItemSearchBody(DynCollVal value) {
+        return ItemSearchBody.builder().query(value.getLevels()
+            .flatMap(levelValToQueryObjectConverter::toQueryObject)
+            .toMap(kv -> kv)).build();
     }
 
     @Override

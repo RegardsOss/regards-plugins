@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -18,9 +18,9 @@ public class DynCollLevelDefParserImplTest {
     private DynCollLevelDefParserImpl parser = new DynCollLevelDefParserImpl();
 
     @Test
-    public void testStringPrefix_prefix2A9exact() {
+    public void testStringPrefix_prefix2A9() {
         // GIVEN
-        StacProperty prop = makeProperty(1, "PREFIX(2,A9);EXACT", StacPropertyType.STRING);
+        StacProperty prop = makeProperty(1, "PREFIX(2,A9)", StacPropertyType.STRING);
         // WHEN
         DynCollLevelDef levelDef = parser.parse(prop);
         // THEN
@@ -39,8 +39,6 @@ public class DynCollLevelDefParserImplTest {
         assertThat(sublevel2.getPosition()).isEqualTo(2);
         assertThat(sublevel2.isAlpha()).isTrue();
         assertThat(sublevel2.isDigits()).isTrue();
-
-        assertThat(sublevels.get(2)).isInstanceOf(ExactValueSublevelDef.class);
     }
 
 

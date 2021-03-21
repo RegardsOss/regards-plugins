@@ -17,32 +17,18 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import io.vavr.collection.List;
-import lombok.Value;
-import lombok.With;
+import io.vavr.control.Option;
 
 /**
- * Prefix sublevel, at the given position, applicable to alpha/numeric characters.
+ * Provides the mechanics to generate the next layer of sublevels given
+ * a position in the tree.
  */
-@Value @With
-public class StringPrefixSublevelDef implements DynCollSublevelDef {
+public interface DynCollValNextSublevelHelper {
 
-    int position;
-    boolean alpha;
-    boolean digits;
-
-    @Override
-    public DynCollSublevelType type() {
-        return DynCollSublevelType.StringBased.PREFIX;
-    }
-
-    public List<String> allowedCharacters() {
-        String allowedCharsStr = "" + (alpha ? "abcdefghijklmnopqrstuvwxyz" : "") + (digits ? "0123456789" : "");
-        char[] allowedChars = allowedCharsStr.toCharArray();
-        return List.ofAll(allowedCharsStr.toCharArray())
-            .map(c -> "" + c);
-    }
+    Option<List<DynCollVal>> nextSublevels(DynCollVal val);
 
 }

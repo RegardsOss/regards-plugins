@@ -23,12 +23,10 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 
@@ -53,7 +51,7 @@ public interface DynamicCollectionService {
     boolean hasMoreSublevels(DynCollVal value);
     List<DynCollVal> sublevels(DynCollVal value);
 
-    Tuple2<String, ItemSearchBody.QueryObject> toQueryObject(DynCollLevelVal value);
+    ItemSearchBody toItemSearchBody(DynCollVal value);
 
     List<Item> searchItemsInDynamicCollection(DynCollVal value);
 

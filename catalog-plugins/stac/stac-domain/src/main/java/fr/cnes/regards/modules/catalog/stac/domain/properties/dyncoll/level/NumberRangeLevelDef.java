@@ -51,4 +51,22 @@ public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelD
             .map(DynCollSublevelVal::getSublevelValue)
             .getOrElse(toLabel("?"));
     }
+
+    @Override
+    public boolean isFullyValued(DynCollLevelVal val) {
+        return true;
+    }
+
+    public String toRangeValue(Double from, Double to) {
+        return from == null ? "<" + to
+            : to == null ? ">" + from
+            : String.format("%d;%d", from, to);
+    }
+
+    public String toRangeLabel(Double from, Double to) {
+        String propName = stacProperty.getStacPropertyName();
+        return from == null ? propName + " < " + from
+            : to == null ? propName + " > " + to
+            : from + " < " + propName + " < " + to;
+    }
 }

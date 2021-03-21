@@ -23,12 +23,16 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.*;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.search.service.accessright.AccessRightFilter;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.function.Function;
 
 /**
  * Base implementation for {@link StacSearchCriterionBuilder}.
@@ -37,6 +41,8 @@ import org.springframework.stereotype.Component;
 public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StacSearchCriterionBuilderImpl.class);
+
+    private final AccessRightFilter accessRightFilter;
 
     private final GeometryCriterionBuilder geometryCriterionBuilder;
     private final IdentitiesCriterionBuilder identitiesCriterionBuilder;
@@ -48,6 +54,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
 
     @Autowired
     public StacSearchCriterionBuilderImpl(
+            AccessRightFilter accessRightFilter,
             GeometryCriterionBuilder geometryCriterionBuilder,
             IdentitiesCriterionBuilder identitiesCriterionBuilder,
             FieldsCriterionBuilder fieldsCriterionBuilder,
@@ -56,6 +63,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
             BBoxCriterionBuilder bBoxCriterionBuilder,
             QueryObjectCriterionBuilder queryObjectCriterionBuilder
     ) {
+        this.accessRightFilter = accessRightFilter;
         this.geometryCriterionBuilder = geometryCriterionBuilder;
         this.identitiesCriterionBuilder = identitiesCriterionBuilder;
         this.fieldsCriterionBuilder = fieldsCriterionBuilder;
@@ -68,14 +76,21 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
         return andAllPresent(
-                bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
-                collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
-                dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
-                fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
-                identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
-                geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
-                queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery())
-            );
+            bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
+            collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
+            dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
+            fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
+            identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
+            geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
+            queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery())
+        ).flatMap(addAccessCriteria());
+    }
+
+    public Function<ICriterion, Option<? extends ICriterion>> addAccessCriteria() {
+        return c ->
+            Try.of(() -> accessRightFilter.addAccessRights(c))
+                .onFailure(t -> LOGGER.error("Failed to add access rights to search: {}", t.getMessage(), t))
+                .toOption();
     }
 
 }

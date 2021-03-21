@@ -19,8 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import lombok.Value;
 import lombok.With;
 
@@ -32,5 +35,19 @@ public class DynCollVal {
 
     DynCollDef definition;
     List<DynCollLevelVal> levels;
+
+    public Option<DynCollLevelDef<?>> firstMissingValue() {
+        return definition.getLevels().zipWithIndex()
+            .find(lvlIdx -> lvlIdx._2 == levels.size())
+            .map(Tuple2::_1);
+    }
+
+    public Option<DynCollLevelVal> firstPartiallyValued() {
+        return levels.find(DynCollLevelVal::isPartiallyValued);
+    }
+
+    public boolean isFullyValued() {
+        return firstPartiallyValued().isEmpty() && firstMissingValue().isEmpty();
+    }
 
 }

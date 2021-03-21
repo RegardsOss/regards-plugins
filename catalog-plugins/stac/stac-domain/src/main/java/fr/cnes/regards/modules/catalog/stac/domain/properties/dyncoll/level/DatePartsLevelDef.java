@@ -21,11 +21,15 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DatePartSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import lombok.Value;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.YEAR;
 
 
 /**
@@ -66,7 +70,7 @@ public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
                 .substring(1);
     }
 
-    private String partPrefix(DatetimeBased part) {
+    public String partPrefix(DatetimeBased part) {
         switch (part) {
             case HOUR: return "T";
             case MINUTE: return ":";
@@ -76,10 +80,15 @@ public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return value.getSublevels()
-            .lastOption()
-            .map(DynCollSublevelVal::getSublevelLabel)
-            .getOrElse(toLabel("?"));
+        return toValue(value.getSublevels()
+            .map(sval -> Tuple.of((DatetimeBased) sval.getSublevelDefinition().type(), sval.getSublevelValue())));
     }
+
+    @Override
+    public boolean isFullyValued(DynCollLevelVal val) {
+        DynCollSublevelType deepestReachedinVal = val.getSublevels().lastOption().map(sval -> sval.getSublevelDefinition().type()).getOrElse(YEAR);
+        return deepestDatepart == deepestReachedinVal;
+    }
+
 
 }

@@ -65,12 +65,12 @@ public class ItemSearchBody {
 
     public interface QueryObject {}
 
-    @Value
+    @Value @Builder
     public static class BooleanQueryObject implements QueryObject {
         Boolean eq;
         Boolean neq;
     }
-    @Value
+    @Value @Builder
     public static class NumberQueryObject implements QueryObject {
         Double eq;
         Double neq;
@@ -80,7 +80,7 @@ public class ItemSearchBody {
         Double lte;
         List<Double> in;
     }
-    @Value
+    @Value @Builder
     public static class DatetimeQueryObject implements QueryObject {
         OffsetDateTime eq;
         OffsetDateTime neq;
@@ -90,7 +90,7 @@ public class ItemSearchBody {
         OffsetDateTime lte;
         List<OffsetDateTime> in;
     }
-    @Value
+    @Value @Builder
     public static class StringQueryObject implements QueryObject {
         String eq;
         String neq;
