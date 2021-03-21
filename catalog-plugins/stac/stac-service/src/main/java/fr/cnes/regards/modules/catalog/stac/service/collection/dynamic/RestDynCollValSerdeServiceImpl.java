@@ -106,13 +106,13 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
                 .map(sl -> new DynCollLevelVal(ld, sl)));
     }
 
-    private Try<List<DynCollSublevelVal>> deserializeSublevels(DynCollLevelDef ld, Map<String, String> sublevels) {
+    private Try<List<DynCollSublevelVal>> deserializeSublevels(DynCollLevelDef<?> ld, Map<String, String> sublevels) {
         return Try.sequence(sublevels.map(sl -> deserializeSublevel(ld, sl._1, sl._2))).map(Seq::toList);
     }
 
-    private Try<DynCollSublevelVal> deserializeSublevel(DynCollLevelDef ld, String key, String value) {
+    private Try<DynCollSublevelVal> deserializeSublevel(DynCollLevelDef<?> ld, String key, String value) {
         return ld.getSublevels().find(sld -> sld.getName().equals(key)).toTry()
-            .map(sld -> new DynCollSublevelVal(sld, value));
+            .map(sld -> new DynCollSublevelVal(sld, value, value));// TODO: deal with label here
     }
 
 }

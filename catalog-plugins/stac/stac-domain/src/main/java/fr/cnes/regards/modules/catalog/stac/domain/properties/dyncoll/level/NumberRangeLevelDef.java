@@ -20,24 +20,35 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import io.vavr.collection.List;
+import lombok.Value;
 
 /**
- * Dynamic collection levels correspond to STAC properties.
- * They also have a list of sublevels, defined from the configuration
- * of the format for the level.
+ * Number range specific level definition.
  */
-public interface DynCollLevelDef<T extends DynCollSublevelDef> {
+@Value
+public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelDef> {
 
-    StacProperty getStacProperty();
-    List<T> getSublevels();
+    StacProperty stacProperty;
+    NumberRangeSublevelDef sublevel;
 
-    DynCollLevelVal parseValues(String repr);
-    String renderValue(DynCollLevelVal value);
-
-    default String toLabel(String value) {
-        return String.format("%s=%s", getStacProperty().getStacPropertyName(), value);
+    @Override
+    public List<NumberRangeSublevelDef> getSublevels() {
+        return List.of(sublevel);
     }
 
+    @Override
+    public DynCollLevelVal parseValues(String repr) {
+        return new DynCollLevelVal(this, List.of(new DynCollSublevelVal(sublevel, repr, toLabel(repr))));
+    }
+
+    @Override
+    public String renderValue(DynCollLevelVal value) {
+        return value.getSublevels()
+            .headOption()
+            .map(DynCollSublevelVal::getSublevelValue)
+            .getOrElse(toLabel("?"));
+    }
 }

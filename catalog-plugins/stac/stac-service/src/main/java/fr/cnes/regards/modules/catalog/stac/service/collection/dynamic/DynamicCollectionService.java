@@ -19,14 +19,16 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 
@@ -42,22 +44,18 @@ public interface DynamicCollectionService {
      * @param properties the stac properties defined by the user
      * @return empty if no property is configured to be a dynamic collection level
      */
-    Try<DynCollDef> dynamicCollectionsDefinition(List<StacProperty> properties);
-
-    /**
-     * Use this method to parse the string representation of the level format.
-     * @param levelFormat the format given by the user
-     * @return a default definition if unparsable / empty
-     */
-    DynCollLevelDef parseDynamicCollectionLevelDefinition(String levelFormat);
+    DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties);
 
     Try<String> representDynamicCollectionsValueAsURN(DynCollVal val);
     Try<DynCollVal> parseDynamicCollectionsValueFromURN(String urn, ConfigurationAccessor config);
     boolean isDynamicCollectionValueURN(String urn);
 
-    boolean hasMoreSublevels(DynCollDef def, DynCollVal value);
-    List<DynCollVal> sublevels(DynCollDef def, DynCollVal value);
-    List<Item> searchItemsInDynamicCollection(DynCollDef def, DynCollVal value);
+    boolean hasMoreSublevels(DynCollVal value);
+    List<DynCollVal> sublevels(DynCollVal value);
+
+    Tuple2<String, ItemSearchBody.QueryObject> toQueryObject(DynCollLevelVal value);
+
+    List<Item> searchItemsInDynamicCollection(DynCollVal value);
 
     Try<Collection> buildCollection(
             DynCollVal dynCollVal,

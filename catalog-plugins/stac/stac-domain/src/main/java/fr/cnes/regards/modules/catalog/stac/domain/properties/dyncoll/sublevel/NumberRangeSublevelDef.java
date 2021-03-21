@@ -17,18 +17,28 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import io.vavr.collection.List;
 import lombok.Value;
+import lombok.With;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.NumberBased.RANGE;
 
 /**
- * Dynamic collections definitions, including all levels/sublevels.
+ * Represents a step where values are split between:
+ * - lower than min,
+ * - consecutive step-sized ranges,
+ * - larger than max.
  */
-@Value
-public class DynCollDef {
+@Value @With
+public class NumberRangeSublevelDef implements DynCollSublevelDef {
 
-    List<DynCollLevelDef<?>> levels;
+    double min;
+    double step;
+    double max;
 
+    @Override
+    public DynCollSublevelType type() {
+        return RANGE;
+    }
 }

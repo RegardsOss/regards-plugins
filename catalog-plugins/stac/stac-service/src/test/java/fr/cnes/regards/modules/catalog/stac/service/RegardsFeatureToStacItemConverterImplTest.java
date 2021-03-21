@@ -89,7 +89,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
 
         when(linkCreator.createRootLink())
                 .thenAnswer(i -> Try.success(uri("/root")));
-        when(linkCreator.createCollectionLink(anyString()))
+        when(linkCreator.createCollectionLink(anyString(), anyString()))
                 .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0))));
         when(linkCreator.createItemLink(anyString(), anyString()))
                 .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1))));

@@ -17,18 +17,16 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
-
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import io.vavr.collection.List;
-import lombok.Value;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
 /**
- * Dynamic collections definitions, including all levels/sublevels.
+ * This sublevel uses the exact item values.
  */
-@Value
-public class DynCollDef {
+public class ExactValueSublevelDef implements DynCollSublevelDef {
 
-    List<DynCollLevelDef<?>> levels;
+    @Override
+    public DynCollSublevelType type() {
+        return DynCollSublevelType.Default.EXACT;
+    }
 
 }

@@ -17,20 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 
 /**
- * TODO: DynCollSublevelType description
- *
- * @author gandrieu
+ * Defines methods to parse dynamic collection level definitions.
  */
-public enum DynCollDateSublevelType {
+public interface DynCollLevelDefParser {
 
-    YEAR,
-    MONTH,
-    DAY,
-    HOUR,
-    MINUTE,
-    SECOND,
+    /**
+     * Try to parse the dynamic collection level format,
+     * using EXACT or DAY as sublevels by default or on failure.
+     */
+    DynCollLevelDef<?> parse(StacProperty prop);
 
 }

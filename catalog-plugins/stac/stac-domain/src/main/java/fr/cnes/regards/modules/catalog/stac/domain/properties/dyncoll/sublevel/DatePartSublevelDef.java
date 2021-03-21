@@ -17,18 +17,22 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import io.vavr.collection.List;
 import lombok.Value;
+import lombok.With;
 
 /**
- * Dynamic collections definitions, including all levels/sublevels.
+ * Sublevel representing a date part.
  */
 @Value
-public class DynCollDef {
+@With
+public class DatePartSublevelDef implements DynCollSublevelDef {
 
-    List<DynCollLevelDef<?>> levels;
+    DynCollSublevelType.DatetimeBased type;
 
+    @Override
+    public DynCollSublevelType type() {
+        return type;
+    }
 }

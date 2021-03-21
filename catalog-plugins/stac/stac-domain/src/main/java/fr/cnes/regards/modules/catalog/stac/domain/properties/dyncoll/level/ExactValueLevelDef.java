@@ -19,17 +19,39 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
+
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.ExactValueSublevelDef;
 import io.vavr.collection.List;
 import lombok.Value;
 
+
 /**
- * A dynamic collection single level value.
+ * Exact-value specific level definition.
  */
 @Value
-public class DynCollLevelVal {
+public class ExactValueLevelDef implements DynCollLevelDef<ExactValueSublevelDef> {
 
-    DynCollLevelDef<?> definition;
-    List<DynCollSublevelVal> sublevels;
+    private static final ExactValueSublevelDef SUBLEVEL_DEF = new ExactValueSublevelDef();
 
+    StacProperty stacProperty;
+
+    @Override
+    public List<ExactValueSublevelDef> getSublevels() {
+        return List.of(SUBLEVEL_DEF);
+    }
+
+    @Override
+    public DynCollLevelVal parseValues(String repr) {
+        return new DynCollLevelVal(this, List.of(new DynCollSublevelVal(SUBLEVEL_DEF, repr, toLabel(repr))));
+    }
+
+    @Override
+    public String renderValue(DynCollLevelVal value) {
+        return value.getSublevels()
+            .headOption()
+            .map(DynCollSublevelVal::getSublevelValue)
+            .getOrElse(toLabel("?"));
+    }
 }

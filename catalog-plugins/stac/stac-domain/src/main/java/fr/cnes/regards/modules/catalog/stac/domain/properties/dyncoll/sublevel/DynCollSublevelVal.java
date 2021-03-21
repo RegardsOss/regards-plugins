@@ -29,6 +29,11 @@ import lombok.Value;
 public class DynCollSublevelVal {
 
     DynCollSublevelDef sublevelDefinition;
+
+    /** Used to compute query criterion */
     String sublevelValue;
+
+    /** Used to display the subcollection name */
+    String sublevelLabel;
 
 }

@@ -17,18 +17,23 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import io.vavr.collection.List;
 import lombok.Value;
+import lombok.With;
 
 /**
- * Dynamic collections definitions, including all levels/sublevels.
+ * Prefix sublevel, at the given position, applicable to alpha/numeric characters.
  */
-@Value
-public class DynCollDef {
+@Value @With
+public class StringPrefixSublevelDef implements DynCollSublevelDef {
 
-    List<DynCollLevelDef<?>> levels;
+    int position;
+    boolean alpha;
+    boolean digits;
 
+    @Override
+    public DynCollSublevelType type() {
+        return DynCollSublevelType.StringBased.PREFIX;
+    }
 }
