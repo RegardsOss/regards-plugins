@@ -24,14 +24,13 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelDefParser;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelValToQueryObjectConverter;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
 import fr.cnes.regards.modules.catalog.stac.service.item.RegardsFeatureToStacItemConverter;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.vavr.collection.List;
@@ -50,26 +49,33 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final DynCollLevelDefParser dynCollLevelDefParser;
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
+    private final DynCollValNextSublevelHelper nextSublevelHelper;
     private final RegardsFeatureToStacItemConverter featureToItemConverter;
+    private final StacSearchCriterionBuilder criterionBuilder;
+    private final ItemSearchService itemSearchService;
 
     @Autowired
     public DynamicCollectionServiceImpl(
             RestDynCollValSerdeService restDynCollValSerdeService,
             DynCollLevelDefParser dynCollLevelDefParser,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
-            RegardsFeatureToStacItemConverter featureToItemConverter
+            DynCollValNextSublevelHelper nextSublevelHelper,
+            RegardsFeatureToStacItemConverter featureToItemConverter,
+            StacSearchCriterionBuilder criterionBuilder,
+            ItemSearchService itemSearchService
     ) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.dynCollLevelDefParser = dynCollLevelDefParser;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
+        this.nextSublevelHelper = nextSublevelHelper;
         this.featureToItemConverter = featureToItemConverter;
+        this.criterionBuilder = criterionBuilder;
+        this.itemSearchService = itemSearchService;
     }
 
     @Override
-    public Try<String> representDynamicCollectionsValueAsURN(
-            DynCollVal val
-    ) {
-        return Try.of(() -> restDynCollValSerdeService.toUrn(restDynCollValSerdeService.fromDomain(val)));
+    public String representDynamicCollectionsValueAsURN(DynCollVal val) {
+        return restDynCollValSerdeService.toUrn(restDynCollValSerdeService.fromDomain(val));
     }
 
     @Override
@@ -83,16 +89,12 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     }
 
     @Override
-    public boolean isDynamicCollectionValueURN(
-            String urn
-    ) {
+    public boolean isDynamicCollectionValueURN(String urn) {
         return restDynCollValSerdeService.isListOfDynCollLevelValues(urn);
     }
 
     @Override
-    public DynCollDef dynamicCollectionsDefinition(
-            List<StacProperty> properties
-    ) {
+    public DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties) {
         List<StacProperty> levelProperties = properties
                 .filter(p -> Objects.nonNull(p.getDynamicCollectionLevel()))
                 .sortBy(StacProperty::getDynamicCollectionLevel);
@@ -101,38 +103,10 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     }
 
     @Override
-    public boolean hasMoreSublevels(
-            DynCollVal value
-    ) {
-        return remainingLevels(value).isEmpty();
-    }
-
-    private List<DynCollSublevelDef> remainingLevels(DynCollVal val) {
-        List<DynCollSublevelVal> sublevelVals = val.getLevels().flatMap(DynCollLevelVal::getSublevels);
-        List<DynCollLevelDef<?>> levelDefs = val.getDefinition().getLevels();
-        List<DynCollSublevelDef> sublevelDefs = levelDefs.flatMap(DynCollLevelDef::getSublevels);
-        return sublevelDefs.drop(sublevelVals.length());
-    }
-
-    @Override
     public ItemSearchBody toItemSearchBody(DynCollVal value) {
         return ItemSearchBody.builder().query(value.getLevels()
             .flatMap(levelValToQueryObjectConverter::toQueryObject)
             .toMap(kv -> kv)).build();
-    }
-
-    @Override
-    public List<DynCollVal> sublevels(
-            DynCollVal value
-    ) {
-        return null; // TODO
-    }
-
-    @Override
-    public List<Item> searchItemsInDynamicCollection(
-            DynCollVal value
-    ) {
-        return null; // TODO
     }
 
     @Override

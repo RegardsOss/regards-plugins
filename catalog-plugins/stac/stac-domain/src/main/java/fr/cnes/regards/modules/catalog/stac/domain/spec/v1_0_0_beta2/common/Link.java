@@ -53,6 +53,7 @@ public class Link {
         String ALTERNATE = "alternate";
         String NEXT = "next";
         String PREV = "prev";
+        String ITEMS = "items";
     }
 
 }

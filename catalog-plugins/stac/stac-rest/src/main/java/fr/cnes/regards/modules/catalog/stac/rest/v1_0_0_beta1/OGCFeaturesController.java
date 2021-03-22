@@ -143,14 +143,14 @@ public class OGCFeaturesController implements TryToResponseEntity {
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime
     ) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
-
-        Try<ItemCollectionResponse> result = itemSearchBodyFactory.parseItemSearch(
-                limit, bbox, datetime, List.of(collectionId),
-                null, null, null, null
-            )
-            .flatMap(isb -> itemSearchService.search(isb, 0, linkCreator, SearchPageLinkCreator.USELESS));
-        return toResponseEntity(result);
+        return toResponseEntity(collectionService.getItemsForCollection(
+                collectionId,
+                limit,
+                bbox,
+                datetime,
+                linker.makeOGCFeatLinkCreator(auth),
+                isb -> linker.makeSearchPageLinkCreator(auth, 0, isb)
+        ));
     }
 
     @Operation(summary = "fetch a single feature",

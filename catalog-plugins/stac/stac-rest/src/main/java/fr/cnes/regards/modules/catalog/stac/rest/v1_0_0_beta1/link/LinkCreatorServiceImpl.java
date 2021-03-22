@@ -117,6 +117,19 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             }
 
             @Override
+            public Try<Link> createCollectionItemsLink(String collectionId) {
+                return Try.of(() ->
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "features"),
+                        collectionId, null, null, null
+                    ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(ITEMS, "Collections items"));
+            }
+
+            @Override
             public Try<Link> createCollectionLink(Collection collection) {
                 return createCollectionLink(collection.getId(), collection.getTitle());
             }

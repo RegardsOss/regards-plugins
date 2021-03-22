@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -50,4 +51,11 @@ public class DynCollVal {
         return firstPartiallyValued().isEmpty() && firstMissingValue().isEmpty();
     }
 
+    public String getLowestLevelLabel() {
+        return levels
+            .lastOption()
+            .flatMap(lval -> lval.getSublevels().lastOption())
+            .map(DynCollSublevelVal::getSublevelLabel)
+            .getOrElse(definition.toString());
+    }
 }

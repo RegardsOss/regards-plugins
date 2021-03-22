@@ -20,12 +20,18 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
+
+import java.util.function.Function;
 
 /**
  * Allows to make decisions on how to route collections on the first level.
@@ -51,5 +57,14 @@ public interface CollectionService {
         String collectionId,
         OGCFeatLinkCreator linkCreator,
         ConfigurationAccessor config
+    );
+
+    Try<ItemCollectionResponse> getItemsForCollection(
+        String collectionId,
+        Integer limit,
+        BBox bbox,
+        String datetime,
+        OGCFeatLinkCreator ogcFeatLinkCreator,
+        Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker
     );
 }

@@ -33,6 +33,7 @@ public interface OGCFeatLinkCreator extends StacLinkCreator {
     Try<Link> createCollectionsLink();
 
     Try<Link> createCollectionLink(String collectionId, String collectionTitle);
+    Try<Link> createCollectionItemsLink(String collectionId);
     Try<Link> createItemLink(String collectionId, String itemId);
 
     Try<Link> createCollectionLink(Collection collection);

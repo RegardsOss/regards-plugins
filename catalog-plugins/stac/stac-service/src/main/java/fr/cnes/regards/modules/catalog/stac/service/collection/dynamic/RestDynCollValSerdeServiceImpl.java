@@ -22,16 +22,10 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 import com.google.gson.Gson;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollLevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollVal;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.collection.List;
-import io.vavr.collection.Map;
 import io.vavr.collection.Seq;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,14 +73,7 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
     private RestDynCollLevelVal serializeLevels(DynCollLevelVal dynCollLevelVal) {
         return new RestDynCollLevelVal(
             dynCollLevelVal.getDefinition().getStacProperty().getStacPropertyName(),
-            dynCollLevelVal.getSublevels().toMap(this::serializeSublevels)
-        );
-    }
-
-    private Tuple2<String, String> serializeSublevels(DynCollSublevelVal dynCollSublevelVal) {
-        return Tuple.of(
-            dynCollSublevelVal.getSublevelDefinition().getName(),
-            dynCollSublevelVal.getSublevelValue()
+            dynCollLevelVal.getDefinition().renderValue(dynCollLevelVal)
         );
     }
 
@@ -102,17 +89,7 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
         return def.getLevels()
             .find(ld -> ld.getStacProperty().getStacPropertyName().equals(propertyName))
             .toTry()
-            .flatMap(ld -> this.deserializeSublevels(ld, restDynCollLevelVal.getSublevels())
-                .map(sl -> new DynCollLevelVal(ld, sl)));
-    }
-
-    private Try<List<DynCollSublevelVal>> deserializeSublevels(DynCollLevelDef<?> ld, Map<String, String> sublevels) {
-        return Try.sequence(sublevels.map(sl -> deserializeSublevel(ld, sl._1, sl._2))).map(Seq::toList);
-    }
-
-    private Try<DynCollSublevelVal> deserializeSublevel(DynCollLevelDef<?> ld, String key, String value) {
-        return ld.getSublevels().find(sld -> sld.getName().equals(key)).toTry()
-            .map(sld -> new DynCollSublevelVal(sld, value, value));// TODO: deal with label here
+            .map(ld -> ld.parseValues(restDynCollLevelVal.getValue()));
     }
 
 }

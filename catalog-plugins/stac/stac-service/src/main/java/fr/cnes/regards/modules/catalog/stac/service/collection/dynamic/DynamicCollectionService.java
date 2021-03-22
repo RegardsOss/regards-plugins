@@ -24,7 +24,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.vavr.collection.List;
@@ -44,16 +43,11 @@ public interface DynamicCollectionService {
      */
     DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties);
 
-    Try<String> representDynamicCollectionsValueAsURN(DynCollVal val);
+    String representDynamicCollectionsValueAsURN(DynCollVal val);
     Try<DynCollVal> parseDynamicCollectionsValueFromURN(String urn, ConfigurationAccessor config);
     boolean isDynamicCollectionValueURN(String urn);
 
-    boolean hasMoreSublevels(DynCollVal value);
-    List<DynCollVal> sublevels(DynCollVal value);
-
     ItemSearchBody toItemSearchBody(DynCollVal value);
-
-    List<Item> searchItemsInDynamicCollection(DynCollVal value);
 
     Try<Collection> buildCollection(
             DynCollVal dynCollVal,

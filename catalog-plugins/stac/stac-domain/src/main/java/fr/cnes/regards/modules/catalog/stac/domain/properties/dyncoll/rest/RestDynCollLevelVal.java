@@ -20,7 +20,6 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest;
 
 import com.google.gson.annotations.SerializedName;
-import io.vavr.collection.Map;
 import lombok.Value;
 import lombok.With;
 
@@ -32,7 +31,7 @@ public class RestDynCollLevelVal {
 
     @SerializedName("p")
     String propertyName;
-    @SerializedName("s")
-    Map<String, String> sublevels;
+    @SerializedName("v")
+    String value;
 
 }

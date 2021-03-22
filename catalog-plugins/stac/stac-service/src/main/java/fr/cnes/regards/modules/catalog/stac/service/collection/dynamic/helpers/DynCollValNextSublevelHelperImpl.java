@@ -227,7 +227,6 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     private List<DynCollVal> extractDatePartsNextSublevels(DynCollVal val, DynCollLevelVal lval, DatePartsLevelDef definition) {
-        StacProperty prop = definition.getStacProperty();
         String prevValue = lval.getSublevels().last().getSublevelValue();
         DatePartSublevelDef nextUndefined = definition.getSublevels().get(lval.getSublevels().length());
         DatetimeBased newPartType = nextUndefined.getType();

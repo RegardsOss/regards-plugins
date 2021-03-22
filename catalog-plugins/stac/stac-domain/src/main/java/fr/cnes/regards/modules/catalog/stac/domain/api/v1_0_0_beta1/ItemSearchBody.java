@@ -35,7 +35,7 @@ import java.time.OffsetDateTime;
  *
  * @see <a href="">Description</a>
  */
-@Value @Builder
+@Value @With @Builder
 public class ItemSearchBody {
 
     BBox bbox;

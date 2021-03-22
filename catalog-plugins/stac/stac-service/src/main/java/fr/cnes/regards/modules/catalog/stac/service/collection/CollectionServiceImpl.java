@@ -21,21 +21,38 @@ package fr.cnes.regards.modules.catalog.stac.service.collection;
 
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.RestDynCollValSerdeService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.StacLinkCreator;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.function.Function;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
 
 /**
  * Base implementation for {@link CollectionService}.
@@ -43,14 +60,33 @@ import java.util.Objects;
 @Service
 public class CollectionServiceImpl implements CollectionService, StacLinkCreator {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CollectionServiceImpl.class);
+
     public static final String DEFAULT_DYNAMIC_ID = "dynamic";
     public static final String DEFAULT_STATIC_ID = "static";
 
+    private final ConfigurationAccessorFactory configurationAccessorFactory;
     private final DynamicCollectionService dynCollService;
+    private final DynCollValNextSublevelHelper sublevelHelper;
+    private final RestDynCollValSerdeService restDynCollValSerdeService;
+    private final ItemSearchBodyFactory itemSearchBodyFactory;
+    private final ItemSearchService itemSearchService;
 
     @Autowired
-    public CollectionServiceImpl(DynamicCollectionService dynCollService) {
+    public CollectionServiceImpl(
+            ConfigurationAccessorFactory configurationAccessorFactory,
+            DynamicCollectionService dynCollService,
+            DynCollValNextSublevelHelper sublevelHelper,
+            RestDynCollValSerdeService restDynCollValSerdeService,
+            ItemSearchBodyFactory itemSearchBodyFactory,
+            ItemSearchService itemSearchService
+    ) {
+        this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
+        this.sublevelHelper = sublevelHelper;
+        this.restDynCollValSerdeService = restDynCollValSerdeService;
+        this.itemSearchBodyFactory = itemSearchBodyFactory;
+        this.itemSearchService = itemSearchService;
     }
 
     @Override
@@ -71,11 +107,12 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     @Override
     public Collection buildRootDynamicCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         String name = getRootDynamicCollectionName(config);
+        DynCollDef def = dynCollService.dynamicCollectionsDefinition(config.getStacProperties());
         return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),
-                name, name, "Dynamic collections",
-                dynamicCollectionLinks(linkCreator),
+                name, DEFAULT_DYNAMIC_ID, "Dynamic collections",
+                dynamicCollectionLinks(linkCreator, DEFAULT_DYNAMIC_ID, new DynCollVal(def, List.empty())),
                 List.empty(),
                 "",
                 List.empty(),
@@ -84,8 +121,30 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         );
     }
 
-    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator) {
-        return List.empty(); // TODO
+    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfId, DynCollVal currentVal) {
+
+        List<Link> baseLinks = List.of(
+            linkCreator.createRootLink(),
+            linkCreator.createCollectionLink(selfId, "Self").map(l -> l.withRel(SELF)),
+            linkCreator.createCollectionItemsLink(selfId)
+        )
+        .flatMap(l -> l);
+
+        if (!currentVal.isFullyValued()) {
+            List<Link> sublevelsLinks = sublevelHelper
+                .nextSublevels(currentVal)
+                .getOrElse(List.empty())
+                .map(val -> {
+                    String urn = dynCollService.representDynamicCollectionsValueAsURN(val);
+                    String label = val.getLowestLevelLabel();
+                    return linkCreator.createCollectionLink(urn, label).map(l -> l.withRel(COLLECTION));
+                })
+                .flatMap(t -> t);
+            return baseLinks.appendAll(sublevelsLinks);
+        }
+        else {
+            return baseLinks;
+        }
     }
 
     @Override
@@ -94,7 +153,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),
-                name, name, "Static collections",
+                name, DEFAULT_STATIC_ID, "Static collections",
                 staticCollectionLinks(linkCreator),
                 List.empty(),
                 "",
@@ -158,6 +217,33 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             // TODO: fetch static collection
             return null;
         }
+    }
 
+    @Override
+    public Try<ItemCollectionResponse> getItemsForCollection(
+            String collectionId,
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            OGCFeatLinkCreator ogcFeatLinkCreator,
+            Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker
+    ) {
+        ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
+
+        return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
+            .flatMap(val -> itemSearchBodyFactory
+                .parseItemSearch(
+                    limit, bbox, datetime, List.of(collectionId),
+                    null, null, null, null
+                )
+                .map(isb ->
+                    isb.withQuery(dynCollService.toItemSearchBody(val).getQuery())
+                )
+            )
+            .flatMap(isb ->
+                itemSearchService.search(
+                    isb, 0, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
+                )
+            );
     }
 }
