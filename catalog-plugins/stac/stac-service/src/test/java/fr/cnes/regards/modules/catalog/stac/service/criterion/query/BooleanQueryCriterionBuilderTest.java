@@ -43,7 +43,7 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
                 StacPropertyType.STRING,
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
-        BooleanQueryObject bqo = new BooleanQueryObject(true, false);
+        BooleanQueryObject bqo = BooleanQueryObject.builder().eq(true).neq(false).build();
         // WHEN
         Option<ICriterion> criterion = new BooleanQueryCriterionBuilder("stacBool").buildCriterion(properties, bqo);
         // THEN

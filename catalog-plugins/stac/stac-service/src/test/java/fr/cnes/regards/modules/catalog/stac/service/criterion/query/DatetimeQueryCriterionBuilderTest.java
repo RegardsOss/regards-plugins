@@ -48,7 +48,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         ));
 
         OffsetDateTime now = now();
-        DatetimeQueryObject qo = new DatetimeQueryObject(now, null, null, null, null, null, null);
+        DatetimeQueryObject qo = DatetimeQueryObject.builder().eq(now).build();
         // WHEN
         Option<ICriterion> criterion = new DatetimeQueryCriterionBuilder("stacProp")
                 .buildCriterion(properties, qo);
@@ -73,15 +73,15 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         ));
 
         OffsetDateTime now = now();
-        DatetimeQueryObject qo = new DatetimeQueryObject(
-                now,
-                now.minusDays(1),
-                now.minusMinutes(2),
-                now.plusMinutes(2),
-                now,
-                now,
-                List.of(now)
-        );
+        DatetimeQueryObject qo = DatetimeQueryObject.builder()
+                .eq(now)
+                .neq(now.minusDays(1))
+                .gt(now.minusMinutes(2))
+                .lt(now.plusMinutes(2))
+                .gte(now)
+                .lte(now)
+                .in(List.of(now))
+                .build();
 
         // WHEN
         Option<ICriterion> criterion = new DatetimeQueryCriterionBuilder("stacProp")

@@ -26,7 +26,7 @@ public class DynCollLevelDefParserImplTest {
         // THEN
         assertThat(levelDef.getStacProperty()).isSameAs(prop);
         List<DynCollSublevelDef> sublevels = levelDef.getSublevels();
-        assertThat(sublevels).hasSize(3);
+        assertThat(sublevels).hasSize(2);
 
         assertThat(sublevels.get(0)).isInstanceOf(StringPrefixSublevelDef.class);
         StringPrefixSublevelDef sublevel1 = (StringPrefixSublevelDef) sublevels.get(0);

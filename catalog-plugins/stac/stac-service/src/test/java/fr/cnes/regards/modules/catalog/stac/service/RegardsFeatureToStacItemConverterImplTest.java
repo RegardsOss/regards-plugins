@@ -44,6 +44,7 @@ import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -88,11 +89,14 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                 .thenReturn(tenant);
 
         when(linkCreator.createRootLink())
-                .thenAnswer(i -> Try.success(uri("/root")));
+            .thenAnswer(i -> Try.success(uri("/root"))
+                .map(uri -> new Link(uri, ROOT, "", "")));
         when(linkCreator.createCollectionLink(anyString(), anyString()))
-                .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0))));
+            .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
+                .map(uri -> new Link(uri, COLLECTION, "", "")));
         when(linkCreator.createItemLink(anyString(), anyString()))
-                .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1))));
+            .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                .map(uri -> new Link(uri, SELF, "", "")));
 
         List<StacProperty> stacProperties = List.of(
             new StacProperty(
@@ -131,7 +135,6 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         assertThat(item.getGeometry()).isEqualTo(polygon);
         assertThat(item.getCentroid()).isEqualTo(new Centroid(1d, 1d));
         assertThat(item.getCollection()).isEqualTo(parentDatasetIpId);
-        assertThat(item.getLinks()).hasSize(3);
         assertThat(item.getLinks())
             .hasSize(3)
             .anyMatch(l -> l.getHref().equals(uri("/root"))

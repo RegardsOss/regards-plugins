@@ -26,7 +26,6 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CoreResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
@@ -94,8 +93,7 @@ public class CoreController implements TryToResponseEntity {
                 title,
                 runtimeTenantResolver.getTenant(),
                 config.getDescription(),
-                List.of(linker.makeOGCFeatLinkCreator(auth).createRootLink())
-                    .flatMap(t -> t.map(uri -> new Link(uri, Link.Relations.ROOT, APPLICATION_JSON, title))),
+                List.of(linker.makeOGCFeatLinkCreator(auth).createRootLink()).flatMap(t -> t),
                 ConformanceController.CONFORMANCES
         )));
     }

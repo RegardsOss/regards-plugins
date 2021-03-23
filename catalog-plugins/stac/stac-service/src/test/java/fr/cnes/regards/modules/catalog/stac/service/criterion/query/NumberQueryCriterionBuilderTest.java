@@ -47,7 +47,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         ));
 
         double value = 12d;
-        NumberQueryObject qo = new NumberQueryObject(value, null, null, null, null, null, null);
+        NumberQueryObject qo = NumberQueryObject.builder().eq(value).build();
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp")
                 .buildCriterion(properties, qo);
@@ -75,7 +75,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         ));
 
         double value = 12d;
-        NumberQueryObject qo = new NumberQueryObject(null, value, null, null, null, null, null);
+        NumberQueryObject qo = NumberQueryObject.builder().neq(value).build();
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp")
                 .buildCriterion(properties, qo);
@@ -105,7 +105,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         ));
 
         double value = 12d;
-        NumberQueryObject qo = new NumberQueryObject(null, null, 11d, 13d, 12d, 14d, null);
+        NumberQueryObject qo = NumberQueryObject.builder().gt(11d).lt(13d).gte(12d).lte(14d).build();
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp")
                 .buildCriterion(properties, qo);
@@ -131,8 +131,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
                 new IdentityPropertyConverter<>(StacPropertyType.STRING)
         ));
 
-        NumberQueryObject qo = new NumberQueryObject(null, null, null, null, null, null,
-                List.of(12d, 13d));
+        NumberQueryObject qo = NumberQueryObject.builder().in(List.of(12d, 13d)).build();
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp")
                 .buildCriterion(properties, qo);
