@@ -115,8 +115,8 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
             return ItemSearchBody.NumberQueryObject.builder().gt(gt).build();
         }
         else if (value.contains(";")) {
-            Double gte = Double.parseDouble(value.replace(";.*", ""));
-            Double lte = Double.parseDouble(value.replace(".*;", ""));
+            Double gte = Double.parseDouble(value.replaceFirst(";.*", ""));
+            Double lte = Double.parseDouble(value.replaceFirst(".*;", ""));
             return ItemSearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
         }
         else {

@@ -29,6 +29,7 @@ import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ import static io.micrometer.core.instrument.util.StringUtils.isBlank;
 /**
  * Base implementation for {@link DynCollLevelDefParser}.
  */
+@Component
 public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollLevelDefParserImpl.class);

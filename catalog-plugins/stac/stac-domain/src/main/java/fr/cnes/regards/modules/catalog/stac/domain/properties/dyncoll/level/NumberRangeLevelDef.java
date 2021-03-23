@@ -60,7 +60,7 @@ public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelD
     public String toRangeValue(Double from, Double to) {
         return from == null ? "<" + to
             : to == null ? ">" + from
-            : String.format("%d;%d", from, to);
+            : from + ";" + to;
     }
 
     public String toRangeLabel(Double from, Double to) {

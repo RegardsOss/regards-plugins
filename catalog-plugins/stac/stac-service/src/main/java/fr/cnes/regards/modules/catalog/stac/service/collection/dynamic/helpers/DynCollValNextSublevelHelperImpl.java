@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -29,6 +30,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.Searches;
@@ -63,21 +65,26 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollValNextSublevelHelperImpl.class);
     private static final int TERMS_AGGREGATION_MAX_SIZE = 500;
-    private static final SimpleSearchKey<AbstractEntity<?>> SEARCH_KEY = Searches.onSingleEntity(EntityType.DATA);
 
     private final IEsRepository esRepository;
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
     private final StacSearchCriterionBuilder criterionBuilder;
+    private final IRuntimeTenantResolver tenantResolver;
+    private final ProjectGeoSettings projectGeoSettings;
 
     @Autowired
     public DynCollValNextSublevelHelperImpl(
             IEsRepository esRepository,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
-            StacSearchCriterionBuilder criterionBuilder
+            StacSearchCriterionBuilder criterionBuilder,
+            IRuntimeTenantResolver tenantResolver,
+            ProjectGeoSettings projectGeoSettings
     ) {
         this.esRepository = esRepository;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.criterionBuilder = criterionBuilder;
+        this.tenantResolver = tenantResolver;
+        this.projectGeoSettings = projectGeoSettings;
     }
 
     @Override
@@ -121,7 +128,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
                 .field(regardsAttributePath)
                 .size(TERMS_AGGREGATION_MAX_SIZE);
 
-        Aggregations aggs = esRepository.getAggregations(SEARCH_KEY, criterion, termsAggBuilder);
+        Aggregations aggs = esRepository.getAggregations(searchKey(), criterion, termsAggBuilder);
         Terms termsAgg = aggs.get(termsAggName);
         return List.ofAll(termsAgg.getBuckets())
             .sortBy(MultiBucketsAggregation.Bucket::getKeyAsString)
@@ -144,7 +151,8 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
 
     private List<DynCollVal> extractNumberRangeLevels(DynCollVal val, NumberRangeLevelDef definition) {
         NumberRangeSublevelDef sublevel = definition.getSublevel();
-        return List.rangeBy(sublevel.getMin(), sublevel.getMax(), sublevel.getStep())
+        double step = sublevel.getStep();
+        return List.rangeBy(sublevel.getMin(), sublevel.getMax() + (step / 100d), step)
                 .prepend(null).append(null)
                 .sliding(2).toList()
                 .map(ls -> Tuple.of(ls.get(0), ls.get(1)))
@@ -170,10 +178,11 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
 
-        OffsetDateTime minDate = Try.of(() -> esRepository.minDate(SEARCH_KEY, criterion, regardsAttributePath))
+        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+        OffsetDateTime minDate = Try.of(() -> esRepository.minDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find lowest date for {}, using 1970", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC")));
-        OffsetDateTime maxDate = Try.of(() -> esRepository.maxDate(SEARCH_KEY, criterion, regardsAttributePath))
+        OffsetDateTime maxDate = Try.of(() -> esRepository.maxDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find highest date for {}, using now", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.now(ZoneId.of("UTC")));
 
@@ -273,6 +282,13 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
 
     private String getFullJsonPath(StacProperty prop) {
         return prop.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath();
+    }
+
+    private SimpleSearchKey<AbstractEntity<?>> searchKey() {
+        SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATA);
+        result.setSearchIndex(tenantResolver.getTenant());
+        result.setCrs(projectGeoSettings.getCrs());
+        return result;
     }
 
 }
