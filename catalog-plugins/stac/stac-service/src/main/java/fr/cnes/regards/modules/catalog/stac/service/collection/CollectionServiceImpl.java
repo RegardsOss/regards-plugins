@@ -53,6 +53,7 @@ import java.util.function.Function;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
+import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
 
 /**
  * Base implementation for {@link CollectionService}.
@@ -62,7 +63,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
-    public static final String DEFAULT_DYNAMIC_ID = "dynamic";
     public static final String DEFAULT_STATIC_ID = "static";
 
     private final ConfigurationAccessorFactory configurationAccessorFactory;
@@ -95,18 +95,8 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     }
 
     @Override
-    public String getRootDynamicCollectionName(ConfigurationAccessor config) {
-        return config.getRootDynamicCollectionName();
-    }
-
-    @Override
-    public String getRootStaticCollectionName(ConfigurationAccessor config) {
-        return config.getRootStaticCollectionName();
-    }
-
-    @Override
     public Collection buildRootDynamicCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
-        String name = getRootDynamicCollectionName(config);
+        String name = config.getRootDynamicCollectionName();
         DynCollDef def = dynCollService.dynamicCollectionsDefinition(config.getStacProperties());
         return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
@@ -133,7 +123,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         if (!currentVal.isFullyValued()) {
             List<Link> sublevelsLinks = sublevelHelper
                 .nextSublevels(currentVal)
-                .getOrElse(List.empty())
                 .map(val -> {
                     String urn = dynCollService.representDynamicCollectionsValueAsURN(val);
                     String label = val.getLowestLevelLabel();
@@ -149,7 +138,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     @Override
     public Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator,ConfigurationAccessor config) {
-        String name = getRootStaticCollectionName(config);
+        String name = config.getRootStaticCollectionName();
         return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),

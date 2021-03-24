@@ -47,6 +47,20 @@ public class DynCollVal {
         return levels.find(DynCollLevelVal::isPartiallyValued);
     }
 
+    public Option<DynCollVal> parentValue() {
+        return firstPartiallyValued()
+            .map(pv ->
+                pv.getSublevels().length() == 1
+                ? withLevels(getLevels().dropRight(1))
+                : withLevels(getLevels().dropRight(1).append(pv.withSublevels(pv.getSublevels().dropRight(1))))
+            )
+            .orElse(() ->
+                getLevels().isEmpty()
+                ? Option.none()
+                : Option.of(withLevels(getLevels().dropRight(1)))
+            );
+    }
+
     public boolean isFullyValued() {
         return firstPartiallyValued().isEmpty() && firstMissingValue().isEmpty();
     }
@@ -57,5 +71,12 @@ public class DynCollVal {
             .flatMap(lval -> lval.getSublevels().lastOption())
             .map(DynCollSublevelVal::getSublevelLabel)
             .getOrElse(definition.toString());
+    }
+
+    public String toLabel() {
+        return getLevels()
+            .flatMap(l -> l.getSublevels().lastOption())
+            .map(s -> s.getSublevelLabel())
+            .foldLeft("", (a,b) -> a + " -> " + b);
     }
 }

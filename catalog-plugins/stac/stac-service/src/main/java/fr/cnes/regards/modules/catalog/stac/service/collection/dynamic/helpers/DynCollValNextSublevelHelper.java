@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 
 /**
  * Provides the mechanics to generate the next layer of sublevels given
@@ -29,6 +28,6 @@ import io.vavr.control.Option;
  */
 public interface DynCollValNextSublevelHelper {
 
-    Option<List<DynCollVal>> nextSublevels(DynCollVal val);
+    List<DynCollVal> nextSublevels(DynCollVal val);
 
 }

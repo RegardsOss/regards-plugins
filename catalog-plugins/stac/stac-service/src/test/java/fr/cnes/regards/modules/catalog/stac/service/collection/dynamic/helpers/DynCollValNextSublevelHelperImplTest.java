@@ -17,7 +17,6 @@ import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -105,10 +104,8 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_empty() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def, List.empty()));
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def, List.empty()));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(4);
         assertThat(actual.get(0).getLevels().get(0).getSublevels().get(0).getSublevelValue()).isEqualTo("<0.0");
         assertThat(actual.get(1).getLevels().get(0).getSublevels().get(0).getSublevelValue()).isEqualTo("0.0;10.0");
@@ -119,12 +116,10 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_hasNum() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30")
         )));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(2);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(0).getSublevelValue()).isEqualTo("2020");
         assertThat(actual.get(1).getLevels().get(1).getSublevels().get(0).getSublevelValue()).isEqualTo("2021");
@@ -133,13 +128,11 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_hasNumYear() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30"),
                 datePartsLevelDef.parseValues("2020")
         )));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(12);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(1).getSublevelValue()).isEqualTo("2020-01");
         // ...
@@ -150,13 +143,11 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_hasNumYearMonth() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30"),
                 datePartsLevelDef.parseValues("2020-02")
         )));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(28);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(2).getSublevelValue()).isEqualTo("2020-02-01");
         // ...
@@ -166,13 +157,11 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_hasNumYearMonthDay() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30"),
                 datePartsLevelDef.parseValues("2020-02-16")
         )));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(10);
         assertThat(actual.get(0).getLevels().get(2).getSublevels().get(0).getSublevelValue()).isEqualTo("0");
         // ...
@@ -183,14 +172,12 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_hasNumYearMonthDayFst() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30"),
                 datePartsLevelDef.parseValues("2020-02-16"),
                 stringPrefixLevelDef.parseValues("7")
         )));
         // THEN
-        assertThat(nextVals).isNotEmpty();
-        List<DynCollVal> actual = nextVals.get();
         assertThat(actual).hasSize(10);
         assertThat(actual.get(0).getLevels().get(2).getSublevels().get(1).getSublevelValue()).isEqualTo("70");
         // ...
@@ -200,13 +187,13 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     @Test
     public void nextSublevels_full() {
         // WHEN
-        Option<List<DynCollVal>> nextVals = helper.nextSublevels(new DynCollVal(def,List.of(
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30"),
                 datePartsLevelDef.parseValues("2020-02-16"),
                 stringPrefixLevelDef.parseValues("77")
         )));
         // THEN
-        assertThat(nextVals).isEmpty();
+        assertThat(actual).isEmpty();
     }
 
 }

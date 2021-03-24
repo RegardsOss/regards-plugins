@@ -39,4 +39,8 @@ public class DynCollLevelVal {
     public boolean isPartiallyValued() {
         return !isFullyValued();
     }
+
+    public String renderValue() {
+        return definition.renderValue(this);
+    }
 }

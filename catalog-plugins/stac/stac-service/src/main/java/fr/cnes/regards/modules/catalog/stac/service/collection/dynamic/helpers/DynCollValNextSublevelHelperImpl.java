@@ -34,11 +34,11 @@ import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.Searches;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -88,14 +88,18 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     @Override
-    public Option<List<DynCollVal>> nextSublevels(DynCollVal val) {
+    public List<DynCollVal> nextSublevels(DynCollVal val) {
 
-        if (val.isFullyValued()) { return Option.none(); }
+        if (val.isFullyValued()) {
+            LOGGER.debug("Val is fully valued");
+            return List.empty();
+        }
 
         return val.firstPartiallyValued()
                 .map(pLVal -> extractExistingSublevels(val, pLVal))
                 .orElse(() -> val.firstMissingValue()
-                    .map(missingLDef -> extractNonExistingLevel(val, missingLDef)));
+                    .map(missingLDef -> extractNonExistingLevel(val, missingLDef)))
+                .getOrElse(List::empty);
     }
 
     private List<DynCollVal> extractNonExistingLevel(DynCollVal val, DynCollLevelDef<?> definition) {
@@ -121,6 +125,8 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         StacProperty prop = definition.getStacProperty();
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
+
+        LOGGER.error("extractExactValueLevels regardsAttributePath {}", regardsAttributePath);
 
         String termsAggName = "terms";
         AggregationBuilder termsAggBuilder = AggregationBuilders
@@ -178,13 +184,20 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
 
+        LOGGER.error("extractDatePartsFirstSublevel regardsAttributePath {}", regardsAttributePath);
+
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
         OffsetDateTime minDate = Try.of(() -> esRepository.minDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find lowest date for {}, using 1970", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC")));
+
+        LOGGER.error("extractDatePartsFirstSublevel minDate {}", minDate);
+
         OffsetDateTime maxDate = Try.of(() -> esRepository.maxDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find highest date for {}, using now", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.now(ZoneId.of("UTC")));
+
+        LOGGER.error("extractDatePartsFirstSublevel maxDate {}", maxDate);
 
         int minYear = minDate.getYear();
         int maxYear = maxDate.getYear();
@@ -281,7 +294,11 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     private String getFullJsonPath(StacProperty prop) {
-        return prop.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath();
+        String suffix = "";
+        if (prop.getRegardsPropertyAccessor().getAttributeModel().getType() == PropertyType.STRING) {
+            suffix = ".keyword";
+        }
+        return prop.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath() + suffix;
     }
 
     private SimpleSearchKey<AbstractEntity<?>> searchKey() {

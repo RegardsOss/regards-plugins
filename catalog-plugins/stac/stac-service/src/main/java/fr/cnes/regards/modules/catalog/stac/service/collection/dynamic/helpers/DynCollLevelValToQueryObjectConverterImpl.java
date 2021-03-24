@@ -22,10 +22,9 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
@@ -82,18 +81,34 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
             DynCollLevelVal levelVal,
             DatePartsLevelDef definition
     ) {
-        List<DynCollSublevelVal> sublevels = levelVal.getSublevels();
-        Integer year = Integer.parseInt(sublevels.get(0).getSublevelValue());
-        Integer month = sublevels.length() <= 1 ? 12 : Integer.parseInt(sublevels.get(1).getSublevelValue());
-        Integer lengthOfMonth = LocalDate.of(year, month, 1).lengthOfMonth();
+        DynCollSublevelType.DatetimeBased lastLevel = definition.getSublevels().last().getType();
+        String rendered = levelVal.renderValue();
 
-        String dateStarts = String.format("%d-%02d-01T00:00:00.000Z", year, month);
-        String dateEnds = String.format("%d-%02d-%02dT23:59:59.999Z", year, month, lengthOfMonth);
-
-        String start = definition.renderValue(levelVal);
-
-        String gte = start + dateStarts.substring(start.length());
-        String lte = start + dateEnds.substring(start.length());
+        final String lte;
+        final String gte;
+        switch (lastLevel) {
+            case YEAR:
+                gte = rendered + "-01-01T00:00:00.000Z";
+                lte = rendered + "-12-31T23:59:59.999Z";
+                break;
+            case MONTH:
+                gte = rendered + "-01T00:00:00.000Z";
+                lte = rendered + LocalDate.parse(rendered + "-01").lengthOfMonth() + "T23:59:59.999Z";
+                break;
+            case DAY:
+                gte = rendered + "T00:00:00.000Z";
+                lte = rendered + "T23:59:59.999Z";
+                break;
+            case HOUR:
+                gte = rendered + ":00:00.000Z";
+                lte = rendered + ":59:59.999Z";
+                break;
+            case MINUTE:
+                gte = rendered + ":00.000Z";
+                lte = rendered + ":59.999Z";
+                break;
+            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
+        }
 
         return ItemSearchBody.DatetimeQueryObject.builder()
             .lte(OffsetDateTime.parse(lte))

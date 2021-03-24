@@ -92,7 +92,7 @@ public class RegardsPropertyAccessorFactory {
     }
 
     private AttributeModel loadAttribute(String attrName, StacPropertyConfiguration sPropConfig, StacPropertyType sPropType) {
-        LOGGER.debug("Loading attribute name={} type={} config={}", attrName, sPropType, sPropConfig);
+        LOGGER.error("Loading attribute name={} type={} config={}", attrName, sPropType, sPropConfig);
         AttributeModel attribute = Try
             .of(() -> finder.findByName(attrName))
             .getOrElseGet(t -> {
@@ -102,10 +102,13 @@ public class RegardsPropertyAccessorFactory {
                 return result;
             });
         String realAttrName = Option.of(sPropConfig.getModelPropertyJSONPath())
+            .filter(StringUtils::isNotBlank)
             .map(path -> attrName + "." + path)
             .getOrElse(attrName);
         attribute.setName(realAttrName);
         attribute.setJsonPath(sPropConfig.getModelPropertyJSONPath());
+        LOGGER.error("Loading attribute realAttrName={} jsonPath={}", realAttrName, sPropConfig.getModelPropertyJSONPath());
+        LOGGER.error("Loading attribute {}", attribute);
         return attribute;
     }
 

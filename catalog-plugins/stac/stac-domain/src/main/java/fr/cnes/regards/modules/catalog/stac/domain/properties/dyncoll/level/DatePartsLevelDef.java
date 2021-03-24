@@ -24,7 +24,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
-import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import lombok.Value;
@@ -80,8 +79,7 @@ public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return toValue(value.getSublevels()
-            .map(sval -> Tuple.of((DatetimeBased) sval.getSublevelDefinition().type(), sval.getSublevelValue())));
+        return value.getSublevels().lastOption().map(sval -> sval.getSublevelValue()).getOrElse("");
     }
 
     @Override

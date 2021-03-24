@@ -19,12 +19,16 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelDefParser;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelValToQueryObjectConverter;
@@ -33,18 +37,29 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationA
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
 import fr.cnes.regards.modules.catalog.stac.service.item.RegardsFeatureToStacItemConverter;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 
 /**
  * Base implementation for {@link DynamicCollectionService}.
  */
 @Service
 public class DynamicCollectionServiceImpl implements DynamicCollectionService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicCollectionServiceImpl.class);
+
+    public static final String DEFAULT_DYNAMIC_ID = "dynamic";
 
     private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final DynCollLevelDefParser dynCollLevelDefParser;
@@ -104,17 +119,72 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     @Override
     public ItemSearchBody toItemSearchBody(DynCollVal value) {
-        return ItemSearchBody.builder().query(value.getLevels()
-            .flatMap(levelValToQueryObjectConverter::toQueryObject)
-            .toMap(kv -> kv)).build();
+        return ItemSearchBody.builder()
+            .limit(10_000) // Large because no pagination in items coming from a collection...
+            .query(value.getLevels().flatMap(levelValToQueryObjectConverter::toQueryObject).toMap(kv -> kv))
+            .build();
     }
 
     @Override
     public Try<Collection> buildCollection(
-            DynCollVal restDynCollVal,
+            DynCollVal val,
             OGCFeatLinkCreator linkCreator,
             ConfigurationAccessor config
     ) {
-        return null; // TODO
+        return Try.of(() -> {
+            String selfUrn = representDynamicCollectionsValueAsURN(val);
+            List<Link> baseLinks = List.of(
+                linkCreator.createRootLink(),
+                linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, config.getRootDynamicCollectionName(), ANCESTOR),
+                linkCreator.createCollectionLinkWithRel(selfUrn, val.toLabel(), SELF),
+                getParentLink(val, linkCreator)
+            )
+            .flatMap(t -> t);
+
+            if (val.isFullyValued()) {
+                return itemSearchService.search(toItemSearchBody(val), 0, linkCreator, SearchPageLinkCreator.USELESS)
+                    .flatMap(icr -> createCollectionFrom(val, baseLinks, createItemLinks(icr.getFeatures(), selfUrn, linkCreator)));
+            }
+            else {
+                List<DynCollVal> nextVals = nextSublevelHelper.nextSublevels(val);
+                return createCollectionFrom(val, baseLinks, createChildLinks(nextVals, linkCreator));
+            }
+        })
+        .flatMap(t -> t)
+        .onFailure(t -> LOGGER.error("Failed to generate collection for {}", val, t));
     }
+
+    private Try<Collection> createCollectionFrom(DynCollVal val, List<Link> baseLinks, List<Link> itemLinks) {
+        return Try.of(() -> new Collection(
+                StacSpecConstants.Version.STAC_SPEC_VERSION,
+                List.empty(),
+                val.toLabel(),
+                representDynamicCollectionsValueAsURN(val),
+                val.toLabel(),
+                baseLinks.appendAll(itemLinks),
+                List.empty(),
+                "",
+                List.empty(),
+                Extent.maximalExtent(), // TODO: get computed extent
+                HashMap.empty() // TODO: get computed summary
+        ));
+    }
+
+    private List<Link> createChildLinks(List<DynCollVal> nextVals, OGCFeatLinkCreator linkCreator) {
+        return nextVals
+            .flatMap(val -> linkCreator.createCollectionLinkWithRel(representDynamicCollectionsValueAsURN(val), val.toLabel(), CHILD));
+    }
+
+    private List<Link> createItemLinks(List<Item> features, String selfUrn, OGCFeatLinkCreator linkCreator) {
+        return features
+            .flatMap(item -> linkCreator.createItemLinkWithRel(selfUrn, item.getId(), ITEM));
+    }
+
+    private Option<Link> getParentLink(DynCollVal val, OGCFeatLinkCreator linkCreator) {
+        return val.parentValue().flatMap(parent -> {
+            String parentUrn = representDynamicCollectionsValueAsURN(parent);
+            return linkCreator.createCollectionLinkWithRel(parentUrn, parent.toLabel(), PARENT).toOption();
+        });
+    }
+
 }

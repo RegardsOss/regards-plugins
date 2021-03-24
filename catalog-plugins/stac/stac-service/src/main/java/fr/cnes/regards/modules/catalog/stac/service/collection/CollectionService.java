@@ -40,10 +40,6 @@ public interface CollectionService {
 
     boolean hasDynamicCollections(List<StacProperty> properties);
 
-    String getRootDynamicCollectionName(ConfigurationAccessor config);
-
-    String getRootStaticCollectionName(ConfigurationAccessor config);
-
     Collection buildRootDynamicCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 
     Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);

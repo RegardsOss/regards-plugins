@@ -39,17 +39,17 @@ public class StringPrefixLevelDef implements DynCollLevelDef<StringPrefixSubleve
         List<DynCollSublevelVal> vals = sublevels
             .zip(List.range(1, repr.length() + 1).map(i -> repr.substring(0, i)))
             .map(kv -> {
-                String sublevelValue = kv._2.substring(kv._2.length() - 1);
-                return new DynCollSublevelVal(kv._1, sublevelValue, toLabel(kv._2) + "...");
+                String sublevelValue = kv._2;
+                return new DynCollSublevelVal(kv._1, sublevelValue, toLabel(sublevelValue) + "...");
             });
         return new DynCollLevelVal(this, vals);
     }
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return value.getSublevels()
+        return value.getSublevels().lastOption()
             .map(DynCollSublevelVal::getSublevelValue)
-            .foldLeft("", String::concat);
+            .getOrElse("");
     }
 
     @Override
