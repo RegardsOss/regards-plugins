@@ -121,12 +121,11 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         }
     }
 
+    @SuppressWarnings("unchecked")
     private List<DynCollVal> extractExactValueLevels(DynCollVal val, ExactValueLevelDef definition) {
         StacProperty prop = definition.getStacProperty();
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
-
-        LOGGER.error("extractExactValueLevels regardsAttributePath {}", regardsAttributePath);
 
         String termsAggName = "terms";
         AggregationBuilder termsAggBuilder = AggregationBuilders
@@ -141,9 +140,10 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             .map(bucket -> {
                 String keyString = bucket.getKeyAsString();
 
-                String exactValue = Try.of(() ->
-                        prop.getConverter().convertRegardsToStac(bucket.getKey()).toString()
-                ).getOrElse(keyString);
+                Try<String> tryConvertedValue = prop.getConverter().convertRegardsToStac(bucket.getKey())
+                        .map(Object.class::cast)
+                        .map(Object::toString);
+                String exactValue = tryConvertedValue.getOrElse(keyString);
 
                 String label = String.format("%s=%s (%d elements)", prop.getStacPropertyName(), exactValue, bucket.getDocCount());
 
@@ -184,20 +184,14 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
 
-        LOGGER.error("extractDatePartsFirstSublevel regardsAttributePath {}", regardsAttributePath);
-
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
         OffsetDateTime minDate = Try.of(() -> esRepository.minDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find lowest date for {}, using 1970", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC")));
 
-        LOGGER.error("extractDatePartsFirstSublevel minDate {}", minDate);
-
         OffsetDateTime maxDate = Try.of(() -> esRepository.maxDate(searchKey, criterion, regardsAttributePath))
                 .onFailure(t -> LOGGER.warn("Could not find highest date for {}, using now", regardsAttributePath, t))
                 .getOrElse(() -> OffsetDateTime.now(ZoneId.of("UTC")));
-
-        LOGGER.error("extractDatePartsFirstSublevel maxDate {}", maxDate);
 
         int minYear = minDate.getYear();
         int maxYear = maxDate.getYear();

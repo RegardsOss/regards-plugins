@@ -139,7 +139,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
-                        getMethodNamedInClass(OGCFeaturesController.class, "item"),
+                        getMethodNamedInClass(OGCFeaturesController.class, "feature"),
                         collectionId,
                         itemId
                     ).toUri()

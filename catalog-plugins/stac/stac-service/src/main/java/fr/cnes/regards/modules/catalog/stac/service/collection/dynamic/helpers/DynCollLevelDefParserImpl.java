@@ -70,7 +70,7 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
     }
 
     private static final Pattern NUMBER_FORMAT_PATTERN =
-            Pattern.compile("^(?<min>-?\\d*(?:\\.\\d+)?);(?<step>\\d*(?:\\.\\d+));(?<max>-?\\d*(?:\\.\\d+)?)?$");
+            Pattern.compile("^(?<min>-?\\d*(?:\\.\\d+)?);(?<step>\\d*(?:\\.\\d+)?);(?<max>-?\\d*(?:\\.\\d+)?)?$");
 
     private DynCollLevelDef<?> parseNumberLevelDef(StacProperty prop) {
         String format = Option.of(prop.getDynamicCollectionFormat())

@@ -39,7 +39,7 @@ public class StringPrefixSublevelDef implements DynCollSublevelDef {
     }
 
     public List<String> allowedCharacters() {
-        String allowedCharsStr = "" + (alpha ? "abcdefghijklmnopqrstuvwxyz" : "") + (digits ? "0123456789" : "");
+        String allowedCharsStr = "" + (alpha ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "") + (digits ? "0123456789" : "");
         char[] allowedChars = allowedCharsStr.toCharArray();
         return List.ofAll(allowedCharsStr.toCharArray())
             .map(c -> "" + c);

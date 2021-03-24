@@ -109,6 +109,25 @@ public class DynCollLevelDefParserImplTest {
         assertThat(slr.getMax()).isEqualTo(1, offset);
     }
 
+    @Test
+    public void testRangeIntegers() {
+        // GIVEN
+        StacProperty prop = makeProperty(1, "5;10;95", StacPropertyType.PERCENTAGE);
+        // WHEN
+        DynCollLevelDef levelDef = parser.parse(prop);
+        // THEN
+        assertThat(levelDef.getStacProperty()).isSameAs(prop);
+        List<DynCollSublevelDef> sublevels = levelDef.getSublevels();
+        assertThat(sublevels).hasSize(1);
+        DynCollSublevelDef sl = sublevels.get(0);
+        assertThat(sl).isInstanceOf(NumberRangeSublevelDef.class);
+        NumberRangeSublevelDef slr = (NumberRangeSublevelDef) sl;
+        Offset<Double> offset = offset(0.0001);
+        assertThat(slr.getMin()).isEqualTo(5, offset);
+        assertThat(slr.getStep()).isEqualTo(10, offset);
+        assertThat(slr.getMax()).isEqualTo(95, offset);
+    }
+
     private StacProperty makeProperty(int level, String format, StacPropertyType type) {
         return new StacProperty(
                 null, "theName", "core", false,

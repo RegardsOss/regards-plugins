@@ -65,8 +65,8 @@ public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelD
 
     public String toRangeLabel(Double from, Double to) {
         String propName = stacProperty.getStacPropertyName();
-        return from == null ? propName + " < " + from
-            : to == null ? propName + " > " + to
+        return from == null ? propName + " < " + to
+            : to == null ? propName + " > " + from
             : from + " < " + propName + " < " + to;
     }
 }

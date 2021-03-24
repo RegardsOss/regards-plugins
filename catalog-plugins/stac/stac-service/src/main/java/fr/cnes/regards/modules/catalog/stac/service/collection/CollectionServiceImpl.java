@@ -51,8 +51,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
 
 /**
@@ -101,8 +100,8 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),
-                name, DEFAULT_DYNAMIC_ID, "Dynamic collections",
-                dynamicCollectionLinks(linkCreator, DEFAULT_DYNAMIC_ID, new DynCollVal(def, List.empty())),
+                name, DEFAULT_DYNAMIC_ID, name,
+                dynamicCollectionLinks(linkCreator, DEFAULT_DYNAMIC_ID , name, new DynCollVal(def, List.empty())),
                 List.empty(),
                 "",
                 List.empty(),
@@ -111,12 +110,11 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         );
     }
 
-    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfId, DynCollVal currentVal) {
+    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfId, String selfTitle, DynCollVal currentVal) {
 
         List<Link> baseLinks = List.of(
             linkCreator.createRootLink(),
-            linkCreator.createCollectionLink(selfId, "Self").map(l -> l.withRel(SELF)),
-            linkCreator.createCollectionItemsLink(selfId)
+            linkCreator.createCollectionLinkWithRel(selfId, selfTitle, SELF)
         )
         .flatMap(l -> l);
 
@@ -126,7 +124,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                 .map(val -> {
                     String urn = dynCollService.representDynamicCollectionsValueAsURN(val);
                     String label = val.getLowestLevelLabel();
-                    return linkCreator.createCollectionLink(urn, label).map(l -> l.withRel(COLLECTION));
+                    return linkCreator.createCollectionLinkWithRel(urn, label, CHILD);
                 })
                 .flatMap(t -> t);
             return baseLinks.appendAll(sublevelsLinks);
@@ -234,5 +232,16 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                     isb, 0, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
                 )
             );
+    }
+
+
+    @Override
+    public List<Link> buildRootLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator) {
+        return List.of(
+            linkCreator.createRootLink(),
+            linkCreator.createCollectionLinkWithRel(DEFAULT_STATIC_ID, config.getRootStaticCollectionName(), CHILD),
+            linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, config.getRootDynamicCollectionName(), CHILD)
+        )
+        .flatMap(t -> t);
     }
 }

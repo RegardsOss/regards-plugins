@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 /**
@@ -84,36 +83,45 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         DynCollSublevelType.DatetimeBased lastLevel = definition.getSublevels().last().getType();
         String rendered = levelVal.renderValue();
 
-        final String lte;
-        final String gte;
-        switch (lastLevel) {
-            case YEAR:
-                gte = rendered + "-01-01T00:00:00.000Z";
-                lte = rendered + "-12-31T23:59:59.999Z";
-                break;
-            case MONTH:
-                gte = rendered + "-01T00:00:00.000Z";
-                lte = rendered + LocalDate.parse(rendered + "-01").lengthOfMonth() + "T23:59:59.999Z";
-                break;
-            case DAY:
-                gte = rendered + "T00:00:00.000Z";
-                lte = rendered + "T23:59:59.999Z";
-                break;
-            case HOUR:
-                gte = rendered + ":00:00.000Z";
-                lte = rendered + ":59:59.999Z";
-                break;
-            case MINUTE:
-                gte = rendered + ":00.000Z";
-                lte = rendered + ":59.999Z";
-                break;
-            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
-        }
+        OffsetDateTime gte = getDateLowerBound(lastLevel, rendered);
+        OffsetDateTime lt = getDateHigherBound(lastLevel, gte);
 
         return ItemSearchBody.DatetimeQueryObject.builder()
-            .lte(OffsetDateTime.parse(lte))
-            .gte(OffsetDateTime.parse(gte))
+            .gte(gte)
+            .lt(lt)
             .build();
+    }
+
+    private OffsetDateTime getDateHigherBound(DynCollSublevelType.DatetimeBased lastLevel, OffsetDateTime gte) {
+        switch (lastLevel) {
+            case YEAR:
+                return gte.plusYears(1L);
+            case MONTH:
+                return gte.plusMonths(1L);
+            case DAY:
+                return gte.plusDays(1L);
+            case HOUR:
+                return gte.plusHours(1L);
+            case MINUTE:
+                return gte.plusMinutes(1L);
+            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
+        }
+    }
+
+    private OffsetDateTime getDateLowerBound(DynCollSublevelType.DatetimeBased lastLevel, String rendered) {
+        switch (lastLevel) {
+            case YEAR:
+                return OffsetDateTime.parse(rendered + "-01-01T00:00:00.000Z");
+            case MONTH:
+                return OffsetDateTime.parse(rendered + "-01T00:00:00.000Z");
+            case DAY:
+                return OffsetDateTime.parse(rendered + "T00:00:00.000Z");
+            case HOUR:
+                return OffsetDateTime.parse(rendered + ":00:00.000Z");
+            case MINUTE:
+                return OffsetDateTime.parse(rendered + ":00.000Z");
+            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
+        }
     }
 
     private ItemSearchBody.QueryObject numberRangeQueryObject(

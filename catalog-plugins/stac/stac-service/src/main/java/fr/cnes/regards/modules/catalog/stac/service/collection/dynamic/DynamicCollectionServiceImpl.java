@@ -120,7 +120,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     @Override
     public ItemSearchBody toItemSearchBody(DynCollVal value) {
         return ItemSearchBody.builder()
-            .limit(10_000) // Large because no pagination in items coming from a collection...
+            .limit(100) // Large because no pagination in items coming from a collection...
             .query(value.getLevels().flatMap(levelValToQueryObjectConverter::toQueryObject).toMap(kv -> kv))
             .build();
     }
@@ -142,7 +142,9 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             .flatMap(t -> t);
 
             if (val.isFullyValued()) {
-                return itemSearchService.search(toItemSearchBody(val), 0, linkCreator, SearchPageLinkCreator.USELESS)
+                ItemSearchBody itemSearchBody = toItemSearchBody(val);
+                LOGGER.error("\n\t##### VAL = {}\n\t#####ISB = {}", val, itemSearchBody);
+                return itemSearchService.search(itemSearchBody, 0, linkCreator, SearchPageLinkCreator.USELESS)
                     .flatMap(icr -> createCollectionFrom(val, baseLinks, createItemLinks(icr.getFeatures(), selfUrn, linkCreator)));
             }
             else {
@@ -176,8 +178,10 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     }
 
     private List<Link> createItemLinks(List<Item> features, String selfUrn, OGCFeatLinkCreator linkCreator) {
+        LOGGER.error("Found items: {}", features.length());
+
         return features
-            .flatMap(item -> linkCreator.createItemLinkWithRel(selfUrn, item.getId(), ITEM));
+            .flatMap(item -> linkCreator.createItemLinkWithRel(selfUrn, item.getId(), ITEM).onFailure(t -> LOGGER.error(t.getMessage(), t)));
     }
 
     private Option<Link> getParentLink(DynCollVal val, OGCFeatLinkCreator linkCreator) {

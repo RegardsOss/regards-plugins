@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -63,4 +64,6 @@ public interface CollectionService {
         OGCFeatLinkCreator ogcFeatLinkCreator,
         Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker
     );
+
+    List<Link> buildRootLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator);
 }
