@@ -2,16 +2,12 @@ package fr.cnes.regards.modules.catalog.stac.service;
 
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Point;
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
-import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter.IRegardsStacCollectionConverter;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -20,29 +16,24 @@ import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
-import fr.cnes.regards.modules.indexer.service.IndexerService;
-import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.domain.Model;
-import io.vavr.collection.List;
 import io.vavr.control.Try;
-import org.assertj.core.util.Lists;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAccessor;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -51,20 +42,13 @@ import static org.mockito.Mockito.when;
 @TestPropertySource(locations = {"classpath:test.properties"},
         properties = {"spring.jIAttributeModelClientpa.properties.hibernate.default_schema=public", "regards.elasticsearch.http.port=9200"
                 , "regards.elasticsearch.host:172.26.47.52"})
-//@ContextConfiguration(classes = { RegardsStacCollectionConverterIT.ScanningConfiguration.class })
 public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
 
     public static final String ITEMSTENANT = "PROJECT";
 
-
-//    @Configuration
-//    @ComponentScan(basePackages = "fr.cnes.regards")
-//    public static class ScanningConfiguration {
-//
-//    }
-
+    OffsetDateTime offsetDateTime = OffsetDateTime.of(LocalDateTime.of(2017, 05, 12, 05, 45), ZoneOffset.UTC);
 
     @Autowired
     IRegardsStacCollectionConverter converter;
@@ -72,15 +56,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     @Autowired
     EsRepository repository;
 
-//    @Autowired
-//    Gson gson;
-
     @MockBean
     ProjectGeoSettings projectGeoSettings;
 
     @Before
     public void initMethod(){
-//        PluginUtils.setup(Lists.newArrayList(), gson);
 
         try {
             repository.deleteIndex(ITEMSTENANT);
@@ -100,11 +80,6 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         fr.cnes.regards.modules.dam.domain.entities.Collection collection =
                 new fr.cnes.regards.modules.dam.domain.entities.Collection(collectionModel, ITEMSTENANT, "COL", "collection");
 
-//        DataObject dataObject1 = new DataObject(model1, ITEMSTENANT, "AIP", "label");
-        GeoPoint do1SePoint = new GeoPoint(43.524768,1.4879276);
-        GeoPoint do1NwPoint = new GeoPoint(43.5889203,1.3747632);
-//        collection.setSePoint(do1SePoint);
-//        collection.setNwPoint(do1NwPoint);
 
         CollectionFeature feature = collection.getFeature();
         collection.setId(1L);
@@ -121,19 +96,39 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 //        collection.getFeature().setGeometry(GeoHelper.normalize(point));
 //        collection.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
+        DataObject dataObject1 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+        GeoPoint do1SePoint = new GeoPoint(43.4461681,-0.0369283);
+        GeoPoint do1NwPoint = new GeoPoint(43.7695852,-0.5334374);
+        dataObject1.setId(2L);
+        dataObject1.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.DATA, ITEMSTENANT,
+                UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db1234"), 1, null,
+                null));
+
+        dataObject1.setCreationDate(offsetDateTime);
+        dataObject1.setSePoint(do1SePoint);
+        dataObject1.setNwPoint(do1NwPoint);
+        dataObject1.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
+        dataObject1.setLabel("titi");
+        Point point1 = IGeometry.point(-0.0369283, 43.7695852);
+        dataObject1.setWgs84(GeoHelper.normalize(point1));
+        dataObject1.setNormalizedGeometry(GeoHelper.normalize(point1));
+        dataObject1.getFeature().setGeometry(GeoHelper.normalize(point1));
+        dataObject1.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
+
         DataObject dataObject2 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
-        GeoPoint do2SePoint = new GeoPoint(43.4461681,-0.0369283);
-        GeoPoint do2NwPoint = new GeoPoint(43.7695852,-0.5334374);
+
+        GeoPoint do2SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
+        GeoPoint do2NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
         dataObject2.setId(2L);
         dataObject2.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.DATA, ITEMSTENANT,
-                UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db1234"), 1, null,
+                UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5678"), 1, null,
                 null));
         dataObject2.setCreationDate(OffsetDateTime.now());
         dataObject2.setSePoint(do2SePoint);
         dataObject2.setNwPoint(do2NwPoint);
         dataObject2.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
-        dataObject2.setLabel("titi");
-        Point point2 = IGeometry.point(-0.0369283, 43.7695852);
+        dataObject2.setLabel("korcula");
+        Point point2 = IGeometry.point(17.138151798412633, 42.95009340967441);
         dataObject2.setWgs84(GeoHelper.normalize(point2));
         dataObject2.setNormalizedGeometry(GeoHelper.normalize(point2));
         dataObject2.getFeature().setGeometry(GeoHelper.normalize(point2));
@@ -141,6 +136,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
 
         repository.save(ITEMSTENANT, collection);
+        repository.save(ITEMSTENANT, dataObject1);
         repository.save(ITEMSTENANT, dataObject2);
         repository.refresh(ITEMSTENANT);
 
@@ -153,17 +149,20 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
     @Test
     public void testConvertCollection() {
-        DataObject collection = repository.get(ITEMSTENANT,
-                EntityType.COLLECTION.toString(), "URN:AIP:DATA:" + ITEMSTENANT + ":74f2c965-0136-47f0-93e1-4fd098db1234:V1",
-                DataObject.class);
-
-
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
         Try<Collection> result = converter.convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1")
                 .onFailure(t -> {
                     LOGGER.error("Fail to get Collection and stats");
                     Assert.fail();
                 });
+
+        Assert.assertTrue(result.isSuccess());
+        Assert.assertEquals(-0.5334374,result.get().getExtent().getSpatial().getBbox().get(0).getMinX(), 0.0000001);
+        Assert.assertEquals(43.7695852,result.get().getExtent().getSpatial().getBbox().get(0).getMaxY(), 0.0000001);
+        Assert.assertEquals(17.1381517,result.get().getExtent().getSpatial().getBbox().get(0).getMaxX(), 0.0000001);
+        Assert.assertEquals(42.9500934,result.get().getExtent().getSpatial().getBbox().get(0).getMinY(), 0.0000001);
+
+        Assert.assertEquals(offsetDateTime.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.get().toInstant());
 
     }
 
