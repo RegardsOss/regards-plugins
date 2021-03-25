@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
 import com.google.gson.Gson;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -59,6 +60,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
 
+    private final IRuntimeTenantResolver tenantResolver;
     private final UriParamAdder uriParamAdder;
     private final Gson gson;
 
@@ -66,16 +68,18 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     @Autowired
     public LinkCreatorServiceImpl(
+            IRuntimeTenantResolver tenantResolver,
             UriParamAdder uriParamAdder,
             Gson gson
     ) {
+        this.tenantResolver = tenantResolver;
         this.uriParamAdder = uriParamAdder;
         this.gson = gson;
     }
 
     @Override
     public OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth) {
-        String tenant = auth.getTenant();
+        String tenant = tenantResolver.getTenant();
 
         return new OGCFeatLinkCreator() {
 
