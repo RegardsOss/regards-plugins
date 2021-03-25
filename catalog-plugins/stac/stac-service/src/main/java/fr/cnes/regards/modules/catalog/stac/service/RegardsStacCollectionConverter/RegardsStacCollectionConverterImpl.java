@@ -1,50 +1,42 @@
 package fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter;
 
-import com.google.common.collect.Maps;
 import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.EntityOperationForbiddenException;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
-import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.dam.domain.entities.feature.CollectionFeature;
-import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
-import fr.cnes.regards.modules.search.service.CollectionWithStats;
+import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.service.SearchException;
-import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.elasticsearch.search.DocValueFormat;
 import org.elasticsearch.search.aggregations.bucket.range.ParsedDateRange;
+import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
-import org.joda.time.DateTime;
-import org.joda.time.Instant;
-import org.joda.time.tz.UTCProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.*;
-import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 @Component
 public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectionConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterImpl.class);
+
 
     @Autowired
     private CatalogSearchService catalogSearchService;
@@ -57,39 +49,46 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
 
         UniformResourceName resourceName = UniformResourceName.fromString(urn);
 
-        CollectionWithStats damCollection = null;
+        CollectionWithStats collectionWithStats = null;
         if (resourceName.getEntityType().equals(EntityType.DATASET) ||
                 resourceName.getEntityType().equals(EntityType.COLLECTION)) {
             try {
                 List<QueryableAttribute> creationDate =
-                        List.of(new QueryableAttribute("creationDate", null, true, 0, false));
-                damCollection = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
+                        List.of(new QueryableAttribute("creationDate", null, false, 500, false),
+                                new QueryableAttribute("nwPoint", null, false, 0, false, true),
+                                new QueryableAttribute("sePoint", null, false, 0, false, true));
+                collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
             } catch (EntityOperationForbiddenException | EntityNotFoundException | SearchException e) {
+                LOGGER.error("Failed on retreiving entity");
                 return Try.failure(e);
             }
         } else {
-
+            LOGGER.error("The entity is neither a DATASET nor a COLLECTION");
             return Try.success(null);
         }
 
         ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
         List<Provider> providers = configurationAccessor.getProviders(urn)
                 .map(x -> new Provider(x.getName(), x.getDescription(), x.getUrl(), x.getRoles()));
-        // At the moment, we'd choose to to setup the extent with maximal values
-        ParsedDateRange parsedDateRange = (ParsedDateRange) damCollection.getAggregationList().get(0);
-        Long dateTimeFrom = (Long) parsedDateRange.getBuckets().get(0).getFrom();
+        ParsedStats parsedDateRange = (ParsedStats) collectionWithStats.getAggregationList().get(0);
+        ParsedGeoBounds parsedNWBound = (ParsedGeoBounds) collectionWithStats.getAggregationList().get(1);
+        ParsedGeoBounds parsedSEBound = (ParsedGeoBounds) collectionWithStats.getAggregationList().get(2);
+        Long dateTimeFrom = ((Double)parsedDateRange.getMin()).longValue();
         Option<OffsetDateTime> from = Option.of(OffsetDateTime.ofInstant(java.time.Instant
                 .ofEpochMilli(dateTimeFrom), ZoneId.systemDefault()));
-        Long dateTimeTo = (Long) parsedDateRange.getBuckets().get(0).getTo();
+        Long dateTimeTo = ((Double) parsedDateRange.getMax()).longValue();
         Option<OffsetDateTime> to = Option.of(OffsetDateTime.ofInstant(java.time.Instant
                 .ofEpochMilli(dateTimeTo), ZoneId.systemDefault()));
-        Extent extent = new Extent(new Extent.Spatial(List.of(new BBox(-180, -90, 180, 90))),
+        Extent extent = new Extent(new Extent.Spatial(List.of(new BBox(parsedNWBound.topLeft().getLon(),
+                parsedSEBound.bottomRight().getLat(),
+                parsedSEBound.bottomRight().getLon(),
+                parsedNWBound.topLeft().getLat()))),
                 new Extent.Temporal(List.of(new Tuple2<>(from, to))));
         Collection collection = new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
                 List.empty(),
-                damCollection.getCollection().getLabel(),
-                damCollection.getCollection().getId().toString(),
-                damCollection.getCollection().getModel().getDescription(),
+                collectionWithStats.getCollection().getLabel(),
+                collectionWithStats.getCollection().getId().toString(),
+                collectionWithStats.getCollection().getModel().getDescription(),
                 List.empty(),
                 configurationAccessor.getKeywords(urn),
                 configurationAccessor.getLicense(urn),

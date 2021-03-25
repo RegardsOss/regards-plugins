@@ -89,5 +89,10 @@
 			<artifactId>dam-service</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.toponyms</groupId>
+			<artifactId>toponyms-client</artifactId>
+
+		</dependency>
 	</dependencies>
 </project>
