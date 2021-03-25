@@ -26,6 +26,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacDatetimePropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
@@ -100,7 +101,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +
                     " 'temporal' aspect of the STAC spec.")
-    private StacPropertyConfiguration stacDatetimeProperty;
+    private StacDatetimePropertyConfiguration stacDatetimeProperty;
 
     @PluginParameter(
             name = "stacExtraProperties",
