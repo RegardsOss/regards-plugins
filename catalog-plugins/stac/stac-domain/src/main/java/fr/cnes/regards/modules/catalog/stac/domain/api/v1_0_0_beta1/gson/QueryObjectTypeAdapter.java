@@ -23,6 +23,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -41,6 +42,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC
 /**
  * Gson type adapter for QueryObject and subclasses.
  */
+@GsonTypeAdapter(adapted = ItemSearchBody.QueryObject.class)
 public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObject> {
 
     @Override

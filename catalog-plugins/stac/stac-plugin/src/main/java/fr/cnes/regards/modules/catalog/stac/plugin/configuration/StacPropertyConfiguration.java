@@ -79,7 +79,9 @@ public class StacPropertyConfiguration {
             name = "stacDynamicCollectionLevel",
             label = "STAC dynamic collection level",
             description = "For dynamic collections, use this parameter as the given level." +
-                    " Levels start at 1, and there must be only one STAC property defined for each level.",
+                    " Levels start at 1, and there must be only one STAC property defined for each level." +
+                    " Negative values are ignored.",
+            defaultValue = "-1",
             optional = true
     )
     private Integer stacDynamicCollectionLevel;
