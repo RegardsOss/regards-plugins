@@ -25,7 +25,6 @@ import fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilder;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +36,8 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
     Logger LOGGER = LoggerFactory.getLogger(StacSearchCriterionBuilder.class);
 
     default ICriterion toCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
-        return Try.of(() -> buildCriterion(properties, itemSearchBody))
-            .flatMapTry(opt -> opt.toTry())
-            .getOrElseGet(e -> {
-                LOGGER.error("Could not build criterion for {}", itemSearchBody, e);
-                return ICriterion.all();
-            });
+        return buildCriterion(properties, itemSearchBody)
+            .getOrElse(ICriterion::all);
     }
 
     Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody value);

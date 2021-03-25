@@ -17,15 +17,16 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
@@ -37,6 +38,7 @@ import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,13 +144,15 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             .toList();
     }
 
-
     private Pageable pageable(ItemSearchBody itemSearchBody, Integer page, List<StacProperty> stacProperties) {
-        return PageRequest.of(page, itemSearchBody.getLimit(), sort(itemSearchBody.getSortBy(), stacProperties));
+        return PageRequest.of(page, Option.of(itemSearchBody.getLimit()).getOrElse(10), sort(itemSearchBody.getSortBy(), stacProperties));
     }
 
     private Sort sort(List<ItemSearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {
-        return Sort.by(sortBy.map(sb -> order(stacProperties, sb)).toJavaList());
+        return Option.of(sortBy)
+            .map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList())
+            .map(Sort::by)
+            .getOrElse(Sort::unsorted);
     }
 
     private Sort.Order order(List<StacProperty> stacProperties, ItemSearchBody.SortBy sb) {

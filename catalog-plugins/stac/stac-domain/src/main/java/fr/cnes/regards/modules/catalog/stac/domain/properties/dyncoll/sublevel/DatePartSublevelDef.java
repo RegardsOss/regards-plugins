@@ -17,23 +17,22 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-import com.google.gson.annotations.SerializedName;
 import lombok.Value;
 import lombok.With;
 
 /**
- * REST layer dynamic collection level value, allows to represent .
+ * Sublevel representing a date part.
  */
-@Value @With
-public class RestDynCollLevelVal {
+@Value
+@With
+public class DatePartSublevelDef implements DynCollSublevelDef {
 
-    @SerializedName("p")
-    String propertyName;
-    @SerializedName("l")
-    String level;
-    @SerializedName("v")
-    String value;
+    DynCollSublevelType.DatetimeBased type;
 
+    @Override
+    public DynCollSublevelType type() {
+        return type;
+    }
 }

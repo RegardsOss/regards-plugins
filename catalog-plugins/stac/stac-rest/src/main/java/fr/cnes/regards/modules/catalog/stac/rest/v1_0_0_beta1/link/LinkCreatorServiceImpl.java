@@ -25,10 +25,11 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.Base64Codec;
+import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
 import static io.vavr.control.Option.none;
@@ -73,33 +75,36 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     @Override
     public OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth) {
+        String tenant = auth.getTenant();
 
         return new OGCFeatLinkCreator() {
 
             @Override
-            public Try<URI> createRootLink() {
+            public Try<Link> createRootLink() {
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         CoreController.class,
                         getMethodNamedInClass(CoreController.class, "root")
                     ).toUri()
                 )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(ROOT, String.format("STAC %s root", tenant)));
             }
 
             @Override
-            public Try<URI> createCollectionsLink() {
+            public Try<Link> createCollectionsLink() {
                 return Try.of(() ->
                         WebMvcLinkBuilder.linkTo(
                                 OGCFeaturesController.class,
                                 getMethodNamedInClass(OGCFeaturesController.class, "collections")
                         ).toUri()
                 )
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(COLLECTION, String.format("STAC %s collections", tenant)));
             }
 
             @Override
-            public Try<URI> createCollectionLink(String collectionId) {
+            public Try<Link> createCollectionLink(String collectionId, String collectionTitle) {
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
@@ -107,29 +112,44 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         collectionId
                     ).toUri()
                 )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(COLLECTION, collectionTitle));
             }
 
             @Override
-            public Try<URI> createCollectionLink(Collection collection) {
-                return createCollectionLink(collection.getId());
-            }
-
-            @Override
-            public Try<URI> createItemLink(String collectionId, String itemId) {
+            public Try<Link> createCollectionItemsLink(String collectionId) {
                 return Try.of(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
-                        getMethodNamedInClass(OGCFeaturesController.class, "item"),
+                        getMethodNamedInClass(OGCFeaturesController.class, "features"),
+                        collectionId, null, null, null
+                    ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(ITEMS, "Collections items"));
+            }
+
+            @Override
+            public Try<Link> createCollectionLink(Collection collection) {
+                return createCollectionLink(collection.getId(), collection.getTitle());
+            }
+
+            @Override
+            public Try<Link> createItemLink(String collectionId, String itemId) {
+                return Try.of(() ->
+                    WebMvcLinkBuilder.linkTo(
+                        OGCFeaturesController.class,
+                        getMethodNamedInClass(OGCFeaturesController.class, "feature"),
                         collectionId,
                         itemId
                     ).toUri()
                 )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth));
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .map(createLink(SELF, itemId));
             }
 
             @Override
-            public Try<URI> createItemLink(Item item) {
+            public Try<Link> createItemLink(Item item) {
                 return createItemLink(item.getCollection(), item.getId());
             }
         };

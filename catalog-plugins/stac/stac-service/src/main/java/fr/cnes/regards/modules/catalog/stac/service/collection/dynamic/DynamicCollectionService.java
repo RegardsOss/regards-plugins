@@ -19,15 +19,40 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.vavr.collection.List;
-import io.vavr.collection.Map;
+import io.vavr.control.Try;
 
 /**
- * Service providing methods dealing with dynamic collections.
+ * This interface defines methods to build dynamic collections from their ID.
  */
 public interface DynamicCollectionService {
 
-    String extractDynamicCollectionName(List<StacProperty> properties, Map<String, Object> featureStacProperties);
+    /**
+     * Provide an optional dynamic collections definition from the configured
+     * STAC properties.
+     *
+     * @param properties the stac properties defined by the user
+     * @return empty if no property is configured to be a dynamic collection level
+     */
+    DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties);
+
+    String representDynamicCollectionsValueAsURN(DynCollVal val);
+    Try<DynCollVal> parseDynamicCollectionsValueFromURN(String urn, ConfigurationAccessor config);
+    boolean isDynamicCollectionValueURN(String urn);
+
+    ItemSearchBody toItemSearchBody(DynCollVal value);
+
+    Try<Collection> buildCollection(
+            DynCollVal dynCollVal,
+            OGCFeatLinkCreator linkCreator,
+            ConfigurationAccessor config
+    );
 
 }

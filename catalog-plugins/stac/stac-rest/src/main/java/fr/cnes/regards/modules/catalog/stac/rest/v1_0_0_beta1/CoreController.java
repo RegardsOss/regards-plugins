@@ -26,12 +26,13 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CoreResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
+import fr.cnes.regards.modules.catalog.stac.service.collection.CollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -62,16 +63,19 @@ public class CoreController implements TryToResponseEntity {
     private final ConfigurationAccessorFactory configFactory;
     private final LinkCreatorService linker;
     private final IRuntimeTenantResolver runtimeTenantResolver;
+    private final CollectionService collectionService;
 
     @Autowired
     public CoreController(
             ConfigurationAccessorFactory configFactory,
             LinkCreatorService linker,
-            IRuntimeTenantResolver runtimeTenantResolver
+            IRuntimeTenantResolver runtimeTenantResolver,
+            CollectionService collectionService
     ) {
         this.configFactory = configFactory;
         this.linker = linker;
         this.runtimeTenantResolver = runtimeTenantResolver;
+        this.collectionService = collectionService;
     }
 
     @Operation(summary = "landing page",
@@ -88,14 +92,14 @@ public class CoreController implements TryToResponseEntity {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         String title = config.getTitle();
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
         return toResponseEntity(Try.of(() -> new CoreResponse(
                 StacSpecConstants.Version.STAC_API_VERSION,
                 List.empty(),
                 title,
                 runtimeTenantResolver.getTenant(),
                 config.getDescription(),
-                List.of(linker.makeOGCFeatLinkCreator(auth).createRootLink())
-                    .flatMap(t -> t.map(uri -> new Link(uri, Link.Relations.ROOT, APPLICATION_JSON, title))),
+                collectionService.buildRootLinks(config, linkCreator),
                 ConformanceController.CONFORMANCES
         )));
     }

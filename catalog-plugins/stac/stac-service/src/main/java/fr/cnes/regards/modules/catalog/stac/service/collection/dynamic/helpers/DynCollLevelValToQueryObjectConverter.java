@@ -17,23 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import io.vavr.control.Try;
-import lombok.Value;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
+import io.vavr.Tuple2;
+import io.vavr.control.Option;
 
 /**
- * A dynamic collection level value consists of a StacProperty, along with a value.
+ * Methods allowing to convert level values to QueryObjects.
+ * This will allow to build an ItemSearchBody from the dynamic colection values,
+ * and thus reuse the search mechanism with this query object.
  */
-@Value
-public class DynCollLevelValue {
+public interface DynCollLevelValToQueryObjectConverter {
 
-    StacProperty property;
-    Object value;
-
-    public <T> Try<T> getGenericValue() {
-        return Try.of(() -> (T) value);
-    }
+    Option<Tuple2<String, ItemSearchBody.QueryObject>> toQueryObject(DynCollLevelVal leveVal);
 
 }

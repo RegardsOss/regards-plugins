@@ -17,21 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
+package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import io.vavr.collection.List;
-import lombok.Value;
+import io.vavr.control.Try;
 
 /**
- *
+ * Interface describing how to convert Regards DataObjects to features.
  */
-@Value
-public class DynCollLevelDef {
+public interface RegardsFeatureToStacItemConverter {
 
-    StacProperty stacProperty;
-    List<DynCollSublevelDef> sublevels;
-
+    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature);
 
 }

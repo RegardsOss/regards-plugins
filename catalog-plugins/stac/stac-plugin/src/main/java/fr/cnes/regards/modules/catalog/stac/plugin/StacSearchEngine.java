@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
@@ -39,6 +40,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.URI;
 import java.util.List;
@@ -79,6 +81,22 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private String stacDescription;
 
     @PluginParameter(
+            name = "rootStaticCollectionTitle",
+            label = "STAC root static collection title",
+            description = "Displayed label for the static collections root.",
+            defaultValue = "static",
+            optional = true)
+    private String rootStaticCollectionTitle;
+
+    @PluginParameter(
+            name = "rootDynamicCollectionTitle",
+            label = "STAC root dynamic collection title",
+            description = "Displayed label for the dynamic collections root.",
+            defaultValue = "dynamic",
+            optional = true)
+    private String rootDynamicCollectionTitle;
+
+    @PluginParameter(
             name = "stacDatetimeProperty",
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +
@@ -97,6 +115,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "Dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
+
+
 
     @Override
     public boolean supports(SearchType searchType) {
@@ -139,14 +159,16 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
      */
     @Override
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
-        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(null);
-        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(null, 0, null);
-        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(URI::toString);
+        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(auth);
+        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(auth, 0, ItemSearchBody.builder().limit(100).build());
+        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
         return io.vavr.collection.List.of(
                 collectionsLink.map(href -> new Link(href, "search-collections")),
                 collectionsLink.map(href -> new Link(href, "search-datasets")),
                 searchPageLinkCreator.searchAll().map(URI::toString).map(href -> new Link(href, "search-objects")),
-                ogcFeatLinkCreator.createRootLink().map(URI::toString).map(href -> new Link(href, "stac"))
+                ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString()).map(href -> new Link(href, "stac"))
         )
         .flatMap(vl -> vl)
         .toJavaList();

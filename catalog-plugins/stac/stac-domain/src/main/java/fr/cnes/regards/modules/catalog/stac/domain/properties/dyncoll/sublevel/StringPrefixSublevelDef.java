@@ -19,18 +19,30 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-/**
- * TODO: DynCollSublevelType description
- *
- * @author gandrieu
- */
-public enum DynCollDateSublevelType {
+import io.vavr.collection.List;
+import lombok.Value;
+import lombok.With;
 
-    YEAR,
-    MONTH,
-    DAY,
-    HOUR,
-    MINUTE,
-    SECOND,
+/**
+ * Prefix sublevel, at the given position, applicable to alpha/numeric characters.
+ */
+@Value @With
+public class StringPrefixSublevelDef implements DynCollSublevelDef {
+
+    int position;
+    boolean alpha;
+    boolean digits;
+
+    @Override
+    public DynCollSublevelType type() {
+        return DynCollSublevelType.StringBased.PREFIX;
+    }
+
+    public List<String> allowedCharacters() {
+        String allowedCharsStr = "" + (alpha ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "") + (digits ? "0123456789" : "");
+        char[] allowedChars = allowedCharsStr.toCharArray();
+        return List.ofAll(allowedCharsStr.toCharArray())
+            .map(c -> "" + c);
+    }
 
 }

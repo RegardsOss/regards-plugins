@@ -45,7 +45,6 @@ import java.time.OffsetDateTime;
 
 public interface GsonAwareTest {
 
-
     default Gson gson() {
         GsonBuilder builder = gsonBuilder();
         return builder.create();

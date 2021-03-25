@@ -154,6 +154,16 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
                 factory.geo = geoSettings.getShouldManagePolesOnGeometries();
                 return new GeoJSONReader(new JtsSpatialContext(factory), factory);
             }
+
+            @Override
+            public String getRootDynamicCollectionName() {
+                return plugin.map(StacSearchEngine::getRootDynamicCollectionTitle).getOrElse("dynamic");
+            }
+
+            @Override
+            public String getRootStaticCollectionName() {
+                return plugin.map(StacSearchEngine::getRootStaticCollectionTitle).getOrElse("static");
+            }
         };
     }
 

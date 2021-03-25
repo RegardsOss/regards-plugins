@@ -17,6 +17,14 @@
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>stac-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.search</groupId>
+            <artifactId>search-service</artifactId>
+        </dependency>
 
         <!--=== REGARDS ===-->
         <dependency>
@@ -24,7 +32,19 @@
             <artifactId>indexer-domain</artifactId>
         </dependency>
 
+        <!--=== LIBRARIES ===-->
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
         <!--=== TEST ===-->
+        <dependency>
+            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+            <artifactId>stac-test</artifactId>
+        </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
             <artifactId>regards-integration-test</artifactId>
@@ -37,26 +57,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.dam</groupId>
-            <artifactId>dam-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.search</groupId>
-            <artifactId>search-service</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-            <artifactId>stac-test</artifactId>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.modules.feature</groupId>
             <artifactId>feature-dto</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>compile</scope>
         </dependency>
 
     </dependencies>

@@ -17,26 +17,20 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 
 /**
- * Utilities to go from/to base64.
+ * Defines methods to parse dynamic collection level definitions.
  */
-public interface Base64Codec {
+public interface DynCollLevelDefParser {
 
-    Base64.Encoder ENCODER = Base64.getEncoder();
-    Base64.Decoder DECODER = Base64.getDecoder();
-
-    default String toBase64(String content) {
-        return ENCODER.encodeToString(content.getBytes(UTF_8));
-    }
-
-    default String fromBase64(String b64) {
-        return new String(DECODER.decode(b64), UTF_8);
-    }
+    /**
+     * Try to parse the dynamic collection level format,
+     * using EXACT or DAY as sublevels by default or on failure.
+     */
+    DynCollLevelDef<?> parse(StacProperty prop);
 
 }

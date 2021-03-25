@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.function.Function;
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/item-search#query-parameter-table">definition</a>
  */
+@GsonTypeAdapter(adapted = DateInterval.class)
 public class DateIntervalTypeAdapter extends TypeAdapter<DateInterval> {
 
     @Override

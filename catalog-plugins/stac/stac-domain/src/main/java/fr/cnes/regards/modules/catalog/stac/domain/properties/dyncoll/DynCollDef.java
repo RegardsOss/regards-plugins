@@ -19,15 +19,16 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import io.vavr.collection.List;
 import lombok.Value;
 
 /**
- *
+ * Dynamic collections definitions, including all levels/sublevels.
  */
 @Value
 public class DynCollDef {
 
-    List<DynCollLevelDef> levels;
+    List<DynCollLevelDef<?>> levels;
 
 }

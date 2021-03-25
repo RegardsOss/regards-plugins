@@ -19,31 +19,64 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
-import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import lombok.Value;
-
+import lombok.With;
 
 /**
- * TODO: DynCollVal description
- *
- * @author gandrieu
+ * Value for dynamic collections.
  */
-@Value
+@Value @With
 public class DynCollVal {
 
     DynCollDef definition;
-    List<DynCollSublevelVal> sublevels;
+    List<DynCollLevelVal> levels;
 
-    public Option<DynCollSublevelDef> nextSublevel() {
-        return Option.none(); // TODO
+    public Option<DynCollLevelDef<?>> firstMissingValue() {
+        return definition.getLevels().zipWithIndex()
+            .find(lvlIdx -> lvlIdx._2 == levels.size())
+            .map(Tuple2::_1);
     }
 
-    public ICriterion toCriterion() {
-        return ICriterion.all(); // TODO
+    public Option<DynCollLevelVal> firstPartiallyValued() {
+        return levels.find(DynCollLevelVal::isPartiallyValued);
     }
 
+    public Option<DynCollVal> parentValue() {
+        return firstPartiallyValued()
+            .map(pv ->
+                pv.getSublevels().length() == 1
+                ? withLevels(getLevels().dropRight(1))
+                : withLevels(getLevels().dropRight(1).append(pv.withSublevels(pv.getSublevels().dropRight(1))))
+            )
+            .orElse(() ->
+                getLevels().isEmpty()
+                ? Option.none()
+                : Option.of(withLevels(getLevels().dropRight(1)))
+            );
+    }
+
+    public boolean isFullyValued() {
+        return firstPartiallyValued().isEmpty() && firstMissingValue().isEmpty();
+    }
+
+    public String getLowestLevelLabel() {
+        return levels
+            .lastOption()
+            .flatMap(lval -> lval.getSublevels().lastOption())
+            .map(DynCollSublevelVal::getSublevelLabel)
+            .getOrElse(definition.toString());
+    }
+
+    public String toLabel() {
+        return getLevels()
+            .flatMap(l -> l.getSublevels().lastOption())
+            .map(s -> s.getSublevelLabel())
+            .foldLeft("", (a,b) -> a + " -> " + b);
+    }
 }

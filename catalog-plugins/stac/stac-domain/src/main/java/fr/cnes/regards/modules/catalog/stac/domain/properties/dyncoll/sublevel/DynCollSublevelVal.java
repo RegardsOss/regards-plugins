@@ -19,21 +19,21 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import lombok.Value;
 
 /**
- * Value for a sublevel of a dynamic collection.
- *
- * For instance, if the dynamic level is
+ * Value for a sublevel of a dynamic collection. It is represented by a simple string
+ * and the
  */
 @Value
 public class DynCollSublevelVal {
 
-    /** The corresponding property */
-    StacProperty stacProperty;
-
     DynCollSublevelDef sublevelDefinition;
-    Object sublevelValue;
+
+    /** Used to compute query criterion */
+    String sublevelValue;
+
+    /** Used to display the subcollection name */
+    String sublevelLabel;
 
 }

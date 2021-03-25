@@ -21,21 +21,43 @@ package fr.cnes.regards.modules.catalog.stac.service.link;
 
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.control.Try;
 
-import java.net.URI;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.rel;
 
 /**
  * Interface providing methods to build links for collections/items.
  */
-public interface OGCFeatLinkCreator {
-    Try<URI> createRootLink();
+public interface OGCFeatLinkCreator extends StacLinkCreator {
+    Try<Link> createRootLink();
 
-    Try<URI> createCollectionsLink();
+    Try<Link> createCollectionsLink();
+    default Try<Link> createCollectionsLinkWithRel(String rel) {
+        return createCollectionsLink().map(rel(rel));
+    }
 
-    Try<URI> createCollectionLink(String collectionId);
-    Try<URI> createItemLink(String collectionId, String itemId);
+    Try<Link> createCollectionLink(String collectionId, String collectionTitle);
+    default Try<Link> createCollectionLinkWithRel(String collectionId, String collectionTitle, String rel) {
+        return createCollectionLink(collectionId, collectionTitle).map(rel(rel));
+    }
 
-    Try<URI> createCollectionLink(Collection collection);
-    Try<URI> createItemLink(Item item);
+    Try<Link> createCollectionItemsLink(String collectionId);
+    default Try<Link> createCollectionItemsLinkWithRel(String collectionId, String rel) {
+        return createCollectionItemsLink(collectionId).map(rel(rel));
+    }
+    Try<Link> createItemLink(String collectionId, String itemId);
+    default Try<Link> createItemLinkWithRel(String collectionId, String itemId, String rel) {
+        return createItemLink(collectionId, itemId).map(rel(rel));
+    }
+
+    Try<Link> createCollectionLink(Collection collection);
+    default Try<Link> createCollectionLinkWithRel(Collection collection, String rel) {
+        return createCollectionLink(collection).map(rel(rel));
+    }
+
+    Try<Link> createItemLink(Item item);
+    default Try<Link> createItemLinkWithRel(Item item, String rel) {
+        return createItemLink(item).map(rel(rel));
+    }
 }

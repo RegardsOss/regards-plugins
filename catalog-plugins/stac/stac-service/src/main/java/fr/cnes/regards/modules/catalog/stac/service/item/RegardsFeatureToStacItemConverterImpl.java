@@ -17,13 +17,12 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollService;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
@@ -33,6 +32,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.StacLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
@@ -56,7 +56,7 @@ import static io.vavr.Predicates.isNotNull;
  * Default implementation for {@link RegardsFeatureToStacItemConverter} interface.
  */
 @Component
-public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToStacItemConverter {
+public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToStacItemConverter, StacLinkCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsFeatureToStacItemConverterImpl.class);
     
@@ -160,18 +160,11 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     private List<Link> extractLinks(String itemId, String collection, OGCFeatLinkCreator linkCreator) {
         String tenant = runtimeTenantResolver.getTenant();
         return List.of(
-                linkCreator.createRootLink()
-                        .map(uri -> createLink(uri, Link.Relations.ROOT, "STAC " + tenant + " root")),
-                linkCreator.createCollectionLink(collection)
-                        .map(uri -> createLink(uri, Link.Relations.COLLECTION, "Parent collection")),
-                linkCreator.createItemLink(collection, itemId)
-                        .map(uri -> createLink(uri, Link.Relations.SELF, "Self"))
+            linkCreator.createRootLink(),
+            linkCreator.createCollectionLink(collection, "Item collection"),
+            linkCreator.createItemLink(collection, itemId)
         )
         .flatMap(tl -> tl);
-    }
-
-    private Link createLink(URI uri, String rel, String title) {
-        return new Link(uri, rel, Asset.MediaType.APPLICATION_JSON, title);
     }
 
     private Option<String> extractCollection(DataObject feature) {

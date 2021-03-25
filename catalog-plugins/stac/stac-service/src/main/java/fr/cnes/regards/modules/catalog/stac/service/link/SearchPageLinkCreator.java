@@ -37,5 +37,11 @@ public interface SearchPageLinkCreator {
 
     Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection);
 
+    SearchPageLinkCreator USELESS = new SearchPageLinkCreator() {
+            @Override public Option<URI> searchAll() { return Option.none(); }
+            @Override public Option<URI> createNextPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
+            @Override public Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
+            @Override public Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
+        };
 
 }

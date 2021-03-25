@@ -23,6 +23,7 @@ import lombok.Value;
 import lombok.With;
 
 import java.net.URI;
+import java.util.function.Function;
 
 /**
  * This object describes a relationship with another entity. Data providers are advised
@@ -42,7 +43,7 @@ public class Link {
     String title;
 
     /**
-     * List of relations name constants.
+     * List of common relations name constants.
      */
     public interface Relations {
         String SELF = "self";
@@ -53,6 +54,14 @@ public class Link {
         String ALTERNATE = "alternate";
         String NEXT = "next";
         String PREV = "prev";
+        String ITEMS = "items";
+        String CHILD = "child";
+        String ITEM = "item";
+        String ANCESTOR = "ancestor";
+    }
+
+    public static Function<Link, Link> rel(String rel) {
+        return l -> l.withRel(rel);
     }
 
 }

@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
 import lombok.Value;
 import lombok.With;
 
@@ -42,6 +43,7 @@ public class BBox {
         return new Centroid((minX+maxX)/2d, (minY+maxY)/2d);
     }
 
+    @GsonTypeAdapter(adapted = BBox.class)
     public static class BBoxTypeAdapter extends TypeAdapter<BBox> {
         @Override
         public void write(JsonWriter out, BBox value) throws IOException {

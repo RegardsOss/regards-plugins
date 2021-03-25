@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import lombok.Builder;
 import lombok.Value;
 import lombok.With;
 
@@ -34,7 +35,7 @@ import java.time.OffsetDateTime;
  *
  * @see <a href="">Description</a>
  */
-@Value
+@Value @With @Builder
 public class ItemSearchBody {
 
     BBox bbox;
@@ -64,12 +65,12 @@ public class ItemSearchBody {
 
     public interface QueryObject {}
 
-    @Value
+    @Value @Builder
     public static class BooleanQueryObject implements QueryObject {
         Boolean eq;
         Boolean neq;
     }
-    @Value
+    @Value @Builder
     public static class NumberQueryObject implements QueryObject {
         Double eq;
         Double neq;
@@ -79,7 +80,7 @@ public class ItemSearchBody {
         Double lte;
         List<Double> in;
     }
-    @Value
+    @Value @Builder
     public static class DatetimeQueryObject implements QueryObject {
         OffsetDateTime eq;
         OffsetDateTime neq;
@@ -89,7 +90,7 @@ public class ItemSearchBody {
         OffsetDateTime lte;
         List<OffsetDateTime> in;
     }
-    @Value
+    @Value @Builder
     public static class StringQueryObject implements QueryObject {
         String eq;
         String neq;
