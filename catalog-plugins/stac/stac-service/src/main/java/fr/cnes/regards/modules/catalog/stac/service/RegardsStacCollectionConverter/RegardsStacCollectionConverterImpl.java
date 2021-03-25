@@ -54,7 +54,7 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
                 resourceName.getEntityType().equals(EntityType.COLLECTION)) {
             try {
                 List<QueryableAttribute> creationDate =
-                        List.of(new QueryableAttribute("creationDate", null, false, 500, false),
+                        List.of(new QueryableAttribute("creationDate", null, false, 0, false),
                                 new QueryableAttribute("nwPoint", null, false, 0, false, true),
                                 new QueryableAttribute("sePoint", null, false, 0, false, true));
                 collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
@@ -88,6 +88,7 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
                 List.empty(),
                 collectionWithStats.getCollection().getLabel(),
                 collectionWithStats.getCollection().getId().toString(),
+                //Description needs the good property
                 collectionWithStats.getCollection().getModel().getDescription(),
                 List.empty(),
                 configurationAccessor.getKeywords(urn),

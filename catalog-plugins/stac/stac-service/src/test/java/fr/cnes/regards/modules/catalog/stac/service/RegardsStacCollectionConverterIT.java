@@ -33,7 +33,6 @@ import org.springframework.test.context.TestPropertySource;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.TemporalAccessor;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -48,7 +47,8 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
     public static final String ITEMSTENANT = "PROJECT";
 
-    OffsetDateTime offsetDateTime = OffsetDateTime.of(LocalDateTime.of(2017, 05, 12, 05, 45), ZoneOffset.UTC);
+    OffsetDateTime offsetDateTimeFrom = OffsetDateTime.of(LocalDateTime.of(2017, 05, 12, 05, 45), ZoneOffset.UTC);
+    OffsetDateTime offsetDateTimeTo = OffsetDateTime.now();
 
     @Autowired
     IRegardsStacCollectionConverter converter;
@@ -104,7 +104,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                 UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db1234"), 1, null,
                 null));
 
-        dataObject1.setCreationDate(offsetDateTime);
+        dataObject1.setCreationDate(offsetDateTimeFrom);
         dataObject1.setSePoint(do1SePoint);
         dataObject1.setNwPoint(do1NwPoint);
         dataObject1.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
@@ -123,7 +123,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject2.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.DATA, ITEMSTENANT,
                 UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5678"), 1, null,
                 null));
-        dataObject2.setCreationDate(OffsetDateTime.now());
+        dataObject2.setCreationDate(offsetDateTimeTo);
         dataObject2.setSePoint(do2SePoint);
         dataObject2.setNwPoint(do2NwPoint);
         dataObject2.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
@@ -162,7 +162,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals(17.1381517,result.get().getExtent().getSpatial().getBbox().get(0).getMaxX(), 0.0000001);
         Assert.assertEquals(42.9500934,result.get().getExtent().getSpatial().getBbox().get(0).getMinY(), 0.0000001);
 
-        Assert.assertEquals(offsetDateTime.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.get().toInstant());
+        Assert.assertEquals(offsetDateTimeFrom.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.get().toInstant());
+        Assert.assertEquals(offsetDateTimeTo.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._2.get().toInstant());
+
+        Assert.assertEquals("toto", result.get().getTitle());
+        Assert.assertEquals("1", result.get().getId());
 
     }
 
