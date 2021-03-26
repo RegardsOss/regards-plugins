@@ -10,6 +10,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
@@ -91,12 +92,14 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
 
             Map<String, Object> summary = extentSummaryService.extractSummary(aggregationMap);
 
+            AbstractEntity regardsCollection = collectionWithStats.getCollection();
+
             Collection collection = new Collection(
                     StacSpecConstants.Version.STAC_SPEC_VERSION,
                     List.empty(),
-                    collectionWithStats.getCollection().getLabel(),
-                    collectionWithStats.getCollection().getId().toString(),
-                    collectionWithStats.getCollection().getModel().getDescription(),
+                    regardsCollection.getLabel(),
+                    regardsCollection.getId().toString(),
+                    regardsCollection.getModel().getDescription(),
                     List.empty(),
                     config.getKeywords(urn),
                     config.getLicense(urn),
