@@ -55,3 +55,4 @@ storage-plugins/catalog-security-delegation/dependency-reduced-pom\.xml
 deliver_brutaly\.sh
 
 \.idea/
+acquisition-plugins/microscope/src/test/resources/MICROSCOPE/N0x/N0c_CMSM/N0CCMSM_MISSION_20161027T121959_20180131T132337_V1/MIC_CECT_N0c_MISSION_20161027T121959_20180131T132337_120.tgz
