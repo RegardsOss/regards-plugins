@@ -78,9 +78,13 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             defaultValue = "history.deletedBy")
     private String deletedByPropertyPath;
 
-    @PluginParameter(label = "Feature updated_by property path", name = "gpfsUrlPropertyPath", optional = true,
+    @PluginParameter(label = "Feature gpfs_url property path", name = "gpfsUrlPropertyPath", optional = true,
             defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
+
+    @PluginParameter(label = "Feature filename property path", name = "filenamePropertyPath", optional = true,
+            defaultValue = "properties.system.filename")
+    private String filenamePropertyPath;
 
     public ChronosRecipientSender() {
     }
@@ -120,7 +124,9 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
             Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
             String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
-            if ((metadata == null) || !createdBy.isPresent() || (uri == null)) {
+            // This is business key so filename cannot be null!
+            String filename = getValue(element, filenamePropertyPath).orElse(null);
+            if ((metadata == null) || !createdBy.isPresent() || (filename == null)) {
                 LOGGER.error(
                         "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
                         metadata == null ? null : metadata.toString(),
@@ -136,7 +142,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
                 String action = metadata.getAsJsonObject().get(ACTION_KEY).getAsString();
                 headers.put(OWNER_KEY, actionOwner);
                 headers.put(ACTION_KEY, action);
-                toSend.put(headers, ChronosNotificationEvent.build(action, actionOwner, uri));
+                toSend.put(headers, new ChronosNotificationEvent(action, actionOwner, uri, filename));
             }
         }
         for (Map<String, Object> headers : toSend.keySet()) {
@@ -169,4 +175,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
         this.gpfsUrlPropertyPath = gpfsUrlPropertyPath;
     }
 
+    public void setFilenamePropertyPath(String filenamePropertyPath) {
+        this.filenamePropertyPath = filenamePropertyPath;
+    }
 }

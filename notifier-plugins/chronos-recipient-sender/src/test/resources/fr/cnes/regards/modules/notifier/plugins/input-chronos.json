@@ -7,7 +7,8 @@
     },
     "properties": {
       "system": {
-        "gpfs_url": "file://home/geode/test.tar"
+        "gpfs_url": "file://home/geode/test.tar",
+        "filename": "test.tar"
       }
     }
   },
