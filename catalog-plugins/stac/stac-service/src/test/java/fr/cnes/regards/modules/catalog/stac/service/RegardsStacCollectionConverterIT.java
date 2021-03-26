@@ -82,7 +82,6 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                 new fr.cnes.regards.modules.dam.domain.entities.Collection(collectionModel, ITEMSTENANT, "COL", "collection");
 
 
-        CollectionFeature feature = collection.getFeature();
         collection.setId(1L);
         collection.setTags(Sets.newHashSet("TEST collection"));
         collection.setLabel("toto");
