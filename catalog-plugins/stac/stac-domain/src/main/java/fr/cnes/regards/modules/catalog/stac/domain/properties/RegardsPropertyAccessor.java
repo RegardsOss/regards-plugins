@@ -70,7 +70,24 @@ public class RegardsPropertyAccessor {
      */
     @VisibleForTesting
     public static RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value) {
-        AttributeModel attr = AttributeModelBuilder.build(name, sPropType.getPropertyType(), "").get();
+        return accessor(name, sPropType, value, false);
+    }
+
+    /**
+     * <b>BEWARE</b>
+     * Use with care this factory method. It is meant to be used in tests and
+     * for build StacProperties in very specific contexts. It is mainly meant
+     * to be used in tests and where a StacProperty instance is required but
+     * has not been configured by the user.
+     *
+     * Outside of tests, unless you know exactly why you should use this,
+     * you should prefer using an instance of RegardsPropertyAccessorFactory.
+     */
+    @VisibleForTesting
+    public static RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value, boolean internal) {
+        AttributeModelBuilder build = AttributeModelBuilder.build(name, sPropType.getPropertyType(), "");
+        if (internal) { build = build.isInternal(); }
+        AttributeModel attr = build.get();
         return new RegardsPropertyAccessor(
                 name, attr, d -> Try.success(value), value.getClass()
         );

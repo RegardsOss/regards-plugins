@@ -11,7 +11,6 @@ import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
-import fr.cnes.regards.modules.dam.domain.entities.feature.CollectionFeature;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
@@ -39,8 +38,11 @@ import static org.mockito.Mockito.when;
 
 @ActiveProfiles({"test", "feign"})
 @TestPropertySource(locations = {"classpath:test.properties"},
-        properties = {"spring.jIAttributeModelClientpa.properties.hibernate.default_schema=public", "regards.elasticsearch.http.port=9200"
-                , "regards.elasticsearch.host:172.26.47.52"})
+    properties = {
+        "spring.jpa.properties.hibernate.default_schema=public",
+        "regards.elasticsearch.http.port=9200",
+        "regards.elasticsearch.host=172.26.47.52"
+})
 public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
@@ -52,7 +54,6 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
     @Autowired
     IStaticCollectionService converter;
-
     @Autowired
     EsRepository repository;
 
@@ -91,10 +92,6 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         collection.setIpId(collectionUniformResourceName);
 
         Point point = IGeometry.point(1.3747632, 43.524768);
-//        collection.setWgs84(GeoHelper.normalize(point));
-//        collection.setNormalizedGeometry(GeoHelper.normalize(point));
-//        collection.getFeature().setGeometry(GeoHelper.normalize(point));
-//        collection.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
         DataObject dataObject1 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
         GeoPoint do1SePoint = new GeoPoint(43.4461681,-0.0369283);
@@ -150,7 +147,8 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     @Test
     public void testConvertCollection() {
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
-        Try<Collection> result = converter.convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1")
+        Try<Collection> result = converter
+                .convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1")
                 .onFailure(t -> {
                     LOGGER.error("Fail to get Collection and stats");
                     Assert.fail();

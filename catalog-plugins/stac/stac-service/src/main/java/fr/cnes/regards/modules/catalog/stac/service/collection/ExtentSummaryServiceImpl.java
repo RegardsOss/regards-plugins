@@ -35,6 +35,7 @@ import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -42,20 +43,21 @@ import java.time.ZoneId;
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
+import static java.time.Instant.ofEpochMilli;
 
 /**
- * TODO: ExtentSummaryServiceImpl description
- *
- * @author gandrieu
+ * Base implementation for {@link ExtentSummaryService}.
  */
+@Service
 public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtentSummaryServiceImpl.class);
+    private static final ZoneId UTC = ZoneId.of("UTC");
 
     public static final String NWPOINT_AGGNAME = "nwPoint";
-    public static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""), NWPOINT_AGGNAME, "", false, -1, "", STRING, null);
+    private static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""), NWPOINT_AGGNAME, "", false, -1, "", STRING, null);
     public static final String SEPOINT_AGGNAME = "sePoint";
-    public static final StacProperty SEPOINT_PROP = new StacProperty(accessor(SEPOINT_AGGNAME, STRING, ""), SEPOINT_AGGNAME, "", false, -1, "", STRING, null);
+    private static final StacProperty SEPOINT_PROP = new StacProperty(accessor(SEPOINT_AGGNAME, STRING, ""), SEPOINT_AGGNAME, "", false, -1, "", STRING, null);
 
     @Override
     public List<QueryableAttribute> extentSummaryQueryableAttributes(
@@ -93,25 +95,57 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     @Override
     public Extent extractExtent(Map<StacProperty, Aggregation> aggregationMap) {
-        StacProperty datetimeProp = aggregationMap.keySet()
+        Option<ParsedGeoBounds> parsedNWBound = extractBound(aggregationMap.get(NWPOINT_PROP));
+        Option<ParsedGeoBounds> parsedSEBound = extractBound(aggregationMap.get(SEPOINT_PROP));
+        Extent.Spatial spatial = getSpatial(parsedNWBound, parsedSEBound);
+
+        Extent.Temporal temporal = extractTemporal(aggregationMap);
+
+        return new Extent(spatial, temporal);
+    }
+
+    public Extent.Temporal extractTemporal(Map<StacProperty, Aggregation> aggregationMap) {
+        Option<StacProperty> datetimeProp = aggregationMap.keySet()
                 .filter(p -> p.getStacPropertyName().equals(DATETIME_PROPERTY_NAME))
-                .head();
+                .headOption();
 
-        ParsedStats parsedDateRange = (ParsedStats) aggregationMap.get(datetimeProp);
-        ParsedGeoBounds parsedNWBound = (ParsedGeoBounds) aggregationMap.get(NWPOINT_PROP);
-        ParsedGeoBounds parsedSEBound = (ParsedGeoBounds) aggregationMap.get(SEPOINT_PROP);
+        Option<ParsedStats> parsedStats = datetimeProp.flatMap(aggregationMap::get)
+                .flatMap(agg -> Try.of(() -> (ParsedStats) agg)
+                        .onFailure(t -> LOGGER.error(t.getMessage(), t))
+                        .toOption());
 
-        Long dateTimeFrom = ((Double)parsedDateRange.getMin()).longValue();
-        Option<OffsetDateTime> from = Option.of(OffsetDateTime.ofInstant(java.time.Instant
-                .ofEpochMilli(dateTimeFrom), ZoneId.systemDefault()));
-        Long dateTimeTo = ((Double) parsedDateRange.getMax()).longValue();
-        Option<OffsetDateTime> to = Option.of(OffsetDateTime.ofInstant(java.time.Instant
-                .ofEpochMilli(dateTimeTo), ZoneId.systemDefault()));
-        return new Extent(new Extent.Spatial(List.of(new BBox(parsedNWBound.topLeft().getLon(),
-                parsedSEBound.bottomRight().getLat(),
-                parsedSEBound.bottomRight().getLon(),
-                parsedNWBound.topLeft().getLat()))),
-                new Extent.Temporal(List.of(new Tuple2<>(from, to))));
+        Option<OffsetDateTime> dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin));
+        Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax));
+
+        return new Extent.Temporal(List.of(new Tuple2<>(dateTimeFrom, dateTimeTo)));
+    }
+
+    private Option<OffsetDateTime> extractTemporalBound(Option<Double> timestamp) {
+        return timestamp.map(Double::longValue).flatMap(this::parseDatetime);
+    }
+
+    private Option<OffsetDateTime> parseDatetime(Long ts) {
+        return Try.of(() -> OffsetDateTime.ofInstant(ofEpochMilli(ts), UTC))
+            .onFailure(t -> LOGGER.warn("Could not parse instant from timestamp {}", ts, t))
+            .toOption();
+    }
+
+    private Option<ParsedGeoBounds> extractBound(Option<Aggregation> optAgg) {
+        return optAgg.flatMap(agg -> Try.of(() -> (ParsedGeoBounds) agg)
+                .onFailure(t -> LOGGER.warn(t.getMessage(), t))
+                .toOption());
+    }
+
+    public Extent.Spatial getSpatial(Option<ParsedGeoBounds> parsedNWBound, Option<ParsedGeoBounds> parsedSEBound) {
+        return parsedNWBound.flatMap(nw ->
+            parsedSEBound.map(se ->
+                new Extent.Spatial(List.of(new BBox(
+                    nw.topLeft().getLon(),
+                    se.bottomRight().getLat(),
+                    se.bottomRight().getLon(),
+                    nw.topLeft().getLat()))))
+        )
+        .getOrElse(() -> Extent.maximalExtent().getSpatial());
     }
 
 
@@ -153,6 +187,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private String toAggregationName(StacProperty sp) {
-        return sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath();
+        return Try.of(() -> sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath())
+            .onFailure(t -> LOGGER.error("Failed to get aggregation name for {}", sp, t))
+            .getOrElse(sp.getStacPropertyName());
     }
 }

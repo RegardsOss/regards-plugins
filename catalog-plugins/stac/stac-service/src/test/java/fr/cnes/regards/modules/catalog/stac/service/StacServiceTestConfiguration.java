@@ -2,30 +2,24 @@ package fr.cnes.regards.modules.catalog.stac.service;
 
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.hateoas.IResourceService;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
-import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.OffsetDateTime;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.DATETIME;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.NUMBER;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter.idConverter;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,11 +42,23 @@ public class StacServiceTestConfiguration {
         when(mockConfigurationAccessor.getProviders(anyString())).thenReturn(List.of(
                 new Provider("provider","providerDes",new URL("http","stac",80,"file"),List.of(Provider.ProviderRole.HOST))));
         when(mockConfigurationAccessor.getKeywords(anyString())).thenReturn(List.of("licence"));
+
+        StacProperty datetimeProp = new StacProperty(
+                accessor("creationDate", DATETIME, OffsetDateTime.now(), true),
+                "datetime",
+                "", false, -1, "", DATETIME,
+                idConverter(DATETIME)
+        );
+
+        when(mockConfigurationAccessor.getDatetimeStacProperty()).thenReturn(datetimeProp);
         when(mockConfigurationAccessor.getStacProperties()).thenReturn(List.of(
-                new StacProperty(
-                        new RegardsPropertyAccessor("attrName",new AttributeModel(), null, null),
-                        "propName","ext",false,0, "format",
-                        StacPropertyType.NUMBER, Mockito.mock(AbstractPropertyConverter.class))));
+            datetimeProp,
+            new StacProperty(
+                accessor("attrName", NUMBER, 42),
+                "propName","ext",false,0, "format",
+                NUMBER, idConverter(NUMBER))
+        ));
+
         when(mockConfigurationAccessor.getGeoJSONReader()).thenReturn(mock(GeoJSONReader.class));
 
         when(mockConfigurationAccessorFactory.makeConfigurationAccessor()).thenReturn(mockConfigurationAccessor);
