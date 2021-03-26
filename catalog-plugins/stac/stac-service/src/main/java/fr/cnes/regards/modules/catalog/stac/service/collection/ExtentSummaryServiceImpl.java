@@ -71,7 +71,7 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                 );
 
         List<QueryableAttribute> extentQueryableAttributes = List.of(
-                new QueryableAttribute(datetimePropFullJsonPath, null, false, 500, false),
+                new QueryableAttribute(datetimePropFullJsonPath, null, false, 0, false),
                 new QueryableAttribute(NWPOINT_AGGNAME, null, false, 0, false, true),
                 new QueryableAttribute(SEPOINT_AGGNAME, null, false, 0, false, true)
         );
