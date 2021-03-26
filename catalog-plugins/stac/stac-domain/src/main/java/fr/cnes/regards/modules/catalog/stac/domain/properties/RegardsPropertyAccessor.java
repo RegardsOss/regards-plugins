@@ -19,8 +19,10 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModelBuilder;
 import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -56,4 +58,21 @@ public class RegardsPropertyAccessor {
         return (Class<T>) valueType;
     }
 
+    /**
+     * <b>BEWARE</b>
+     * Use with care this factory method. It is meant to be used in tests and
+     * for build StacProperties in very specific contexts. It is mainly meant
+     * to be used in tests and where a StacProperty instance is required but
+     * has not been configured by the user.
+     *
+     * Outside of tests, unless you know exactly why you should use this,
+     * you should prefer using an instance of RegardsPropertyAccessorFactory.
+     */
+    @VisibleForTesting
+    public static RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value) {
+        AttributeModel attr = AttributeModelBuilder.build(name, sPropType.getPropertyType(), "").get();
+        return new RegardsPropertyAccessor(
+                name, attr, d -> Try.success(value), value.getClass()
+        );
+    }
 }

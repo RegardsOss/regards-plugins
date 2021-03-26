@@ -48,10 +48,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.function.Function;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
 import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
 
 /**
@@ -90,7 +90,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     @Override
     public boolean hasDynamicCollections(List<StacProperty> properties) {
-        return properties.find(p -> Objects.nonNull(p.getDynamicCollectionLevel())).isDefined();
+        return properties.find(StacProperty::isDynamicCollectionLevel).isDefined();
     }
 
     @Override

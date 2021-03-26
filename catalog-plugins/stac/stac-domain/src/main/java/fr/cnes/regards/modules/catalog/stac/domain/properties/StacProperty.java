@@ -45,4 +45,8 @@ public class StacProperty {
 
     AbstractPropertyConverter converter;
 
+    public boolean isDynamicCollectionLevel() {
+        return dynamicCollectionLevel != null && dynamicCollectionLevel >= 0;
+    }
+
 }

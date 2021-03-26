@@ -26,6 +26,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacDatetimePropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
@@ -40,7 +41,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.URI;
 import java.util.List;
@@ -101,7 +101,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +
                     " 'temporal' aspect of the STAC spec.")
-    private StacPropertyConfiguration stacDatetimeProperty;
+    private StacDatetimePropertyConfiguration stacDatetimeProperty;
 
     @PluginParameter(
             name = "stacExtraProperties",
@@ -159,7 +159,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
      */
     @Override
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        JWTAuthentication auth = null; // The link creator will not create token URI params if the given auth is null
 
         OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(auth);
         SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(auth, 0, ItemSearchBody.builder().limit(100).build());
@@ -168,7 +168,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
                 collectionsLink.map(href -> new Link(href, "search-collections")),
                 collectionsLink.map(href -> new Link(href, "search-datasets")),
                 searchPageLinkCreator.searchAll().map(URI::toString).map(href -> new Link(href, "search-objects")),
-                ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString()).map(href -> new Link(href, "stac"))
+                ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString()).map(href -> new Link(href, "search"))
         )
         .flatMap(vl -> vl)
         .toJavaList();

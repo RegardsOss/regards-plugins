@@ -52,8 +52,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
-
 /**
  * Allows to transform property configuration to domain properties, and access
  * configuration in its "domain" form.
@@ -117,6 +115,13 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
                 return plugin
                         .map(StacConfigurationDomainAccessor.this::getConfiguredProperties)
                         .getOrElse(List.empty());
+            }
+
+            @Override
+            public StacProperty getDatetimeStacProperty() {
+                return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyCOnfiguration())
+                    .map(spc -> getConfiguredProperties(List.of(spc)).head())
+                    .getOrNull();
             }
 
             @Override
@@ -231,9 +236,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
         java.util.List<StacPropertyConfiguration> propConfigs = Option
             .of(plugin.getStacExtraProperties())
             .getOrElse(new ArrayList<>());
-        StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty()
-            .withStacPropertyName(DATETIME_PROPERTY_NAME)
-            .withStacType(StacPropertyType.DATETIME.name());
+        StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyCOnfiguration();
         return getConfiguredProperties(List.ofAll(propConfigs)
             .prepend(datetimeProp));
     }

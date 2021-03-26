@@ -47,8 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 
 /**
@@ -111,7 +109,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     @Override
     public DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties) {
         List<StacProperty> levelProperties = properties
-                .filter(p -> Objects.nonNull(p.getDynamicCollectionLevel()))
+                .filter(StacProperty::isDynamicCollectionLevel)
                 .sortBy(StacProperty::getDynamicCollectionLevel);
         List<DynCollLevelDef<?>> levelDefs = levelProperties.map(dynCollLevelDefParser::parse);
         return new DynCollDef(levelDefs);

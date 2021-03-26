@@ -42,6 +42,8 @@ public interface ConfigurationAccessor {
      */
     List<StacProperty> getStacProperties();
 
+    StacProperty getDatetimeStacProperty();
+
     List<Provider> getProviders(String datasetUrn);
 
     List<String> getKeywords(String datasetUrn);
