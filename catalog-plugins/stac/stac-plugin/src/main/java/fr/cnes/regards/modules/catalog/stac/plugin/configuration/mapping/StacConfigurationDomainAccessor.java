@@ -118,6 +118,13 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
             }
 
             @Override
+            public StacProperty getDatetimeStacProperty() {
+                return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyCOnfiguration())
+                    .map(spc -> getConfiguredProperties(List.of(spc)).head())
+                    .getOrNull();
+            }
+
+            @Override
             public List<Provider> getProviders(String datasetUrn) {
                 return getCollectionConfigs(datasetUrn)
                         .flatMap(CollectionConfiguration::getProviders)

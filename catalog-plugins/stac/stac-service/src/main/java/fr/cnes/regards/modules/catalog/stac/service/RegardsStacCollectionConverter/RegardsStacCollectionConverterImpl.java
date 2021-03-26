@@ -7,28 +7,21 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
-import io.vavr.Tuple2;
-import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
-import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
+import org.elasticsearch.search.aggregations.Aggregation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
 @Component
 public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectionConverter {
@@ -36,74 +29,76 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterImpl.class);
 
 
-    @Autowired
-    private CatalogSearchService catalogSearchService;
+    private final CatalogSearchService catalogSearchService;
+    private final ConfigurationAccessorFactory configurationAccessorFactory;
+    private final ExtentSummaryService extentSummaryService;
 
     @Autowired
-    private ConfigurationAccessorFactory configurationAccessorFactory;
+    public RegardsStacCollectionConverterImpl(
+            CatalogSearchService catalogSearchService,
+            ConfigurationAccessorFactory configurationAccessorFactory,
+            ExtentSummaryService extentSummaryService
+    ) {
+        this.catalogSearchService = catalogSearchService;
+        this.configurationAccessorFactory = configurationAccessorFactory;
+        this.extentSummaryService = extentSummaryService;
+    }
 
     @Override
     public Try<Collection> convertRequest(String urn) {
+        return extractURN(urn)
+            .flatMap(resourceName -> convertRequest(urn, resourceName))
+            .onFailure(t -> LOGGER.error(t.getMessage(), t));
+    }
 
+    private Try<UniformResourceName> extractURN(String urnStr) {
+        return Try.of(() -> UniformResourceName.fromString(urnStr))
+                .flatMap(urn -> {
+                    if (urn.getEntityType().equals(EntityType.DATASET) ||
+                            urn.getEntityType().equals(EntityType.COLLECTION)) {
+                        return Try.success(urn);
+                    } else {
+                        return Try.failure(new RuntimeException("The entity is neither a DATASET nor a COLLECTION"));
+                    }
+                });
+    }
+
+    private Try<Collection> convertRequest(String urn, UniformResourceName resourceName) {
         return Try.of(() -> {
-            UniformResourceName resourceName = UniformResourceName.fromString(urn);
-
             ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
             List<Provider> providers = config.getProviders(urn)
                     .map(x -> new Provider(x.getName(), x.getDescription(), x.getUrl(), x.getRoles()));
 
-            if (resourceName.getEntityType().equals(EntityType.DATASET) ||
-                resourceName.getEntityType().equals(EntityType.COLLECTION)
-            ) {
+            StacProperty datetimeStacProp = config.getDatetimeStacProperty();
+            List<StacProperty> stacProps = config.getStacProperties();
+            List<StacProperty> nonDatetimeStacProps = stacProps.remove(datetimeStacProp);
 
-                List<QueryableAttribute> creationDate =
-                        extentSummaryQueryableAttributes(config.getStacProperties());
+            List<QueryableAttribute> creationDate =
+                    extentSummaryService.extentSummaryQueryableAttributes(datetimeStacProp, nonDatetimeStacProps);
 
-                CollectionWithStats collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
+            CollectionWithStats collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
 
-                ParsedStats parsedDateRange = (ParsedStats) collectionWithStats.getAggregationList().get(0);
-                ParsedGeoBounds parsedNWBound = (ParsedGeoBounds) collectionWithStats.getAggregationList().get(1);
-                ParsedGeoBounds parsedSEBound = (ParsedGeoBounds) collectionWithStats.getAggregationList().get(2);
-                Long dateTimeFrom = ((Double)parsedDateRange.getMin()).longValue();
-                Option<OffsetDateTime> from = Option.of(OffsetDateTime.ofInstant(java.time.Instant
-                        .ofEpochMilli(dateTimeFrom), ZoneId.systemDefault()));
-                Long dateTimeTo = ((Double) parsedDateRange.getMax()).longValue();
-                Option<OffsetDateTime> to = Option.of(OffsetDateTime.ofInstant(java.time.Instant
-                        .ofEpochMilli(dateTimeTo), ZoneId.systemDefault()));
-                Extent extent = new Extent(new Extent.Spatial(List.of(new BBox(parsedNWBound.topLeft().getLon(),
-                        parsedSEBound.bottomRight().getLat(),
-                        parsedSEBound.bottomRight().getLon(),
-                        parsedNWBound.topLeft().getLat()))),
-                        new Extent.Temporal(List.of(new Tuple2<>(from, to))));
+            Map<StacProperty, Aggregation> aggregationMap = extentSummaryService.toAggregationMap(stacProps, collectionWithStats);
 
-                Collection collection = new Collection(
-                        StacSpecConstants.Version.STAC_SPEC_VERSION,
-                        List.empty(),
-                        collectionWithStats.getCollection().getLabel(),
-                        collectionWithStats.getCollection().getId().toString(),
-                        collectionWithStats.getCollection().getModel().getDescription(),
-                        List.empty(),
-                        config.getKeywords(urn),
-                        config.getLicense(urn),
-                        providers, extent,
-                        HashMap.of(Map.entry("", new Object()))
-                );
+            Extent extent = extentSummaryService.extractExtent(aggregationMap);
 
-                return collection;
+            Map<String, Object> summary = extentSummaryService.extractSummary(aggregationMap);
 
-            } else {
-                throw new RuntimeException("The entity is neither a DATASET nor a COLLECTION");
-            }
+            Collection collection = new Collection(
+                    StacSpecConstants.Version.STAC_SPEC_VERSION,
+                    List.empty(),
+                    collectionWithStats.getCollection().getLabel(),
+                    collectionWithStats.getCollection().getId().toString(),
+                    collectionWithStats.getCollection().getModel().getDescription(),
+                    List.empty(),
+                    config.getKeywords(urn),
+                    config.getLicense(urn),
+                    providers, extent,
+                    summary
+            );
 
+            return collection;
         });
-
-    }
-
-    public List<QueryableAttribute> extentSummaryQueryableAttributes(List<StacProperty> stacProperties) {
-
-        return List.of(new QueryableAttribute("creationDate", null, false, 500, false),
-                new QueryableAttribute("nwPoint", null, false, 0, false, true),
-                new QueryableAttribute("sePoint", null, false, 0, false, true));
     }
 
 }
