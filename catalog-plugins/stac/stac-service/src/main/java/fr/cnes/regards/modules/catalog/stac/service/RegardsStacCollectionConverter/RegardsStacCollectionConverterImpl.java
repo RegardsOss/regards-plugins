@@ -73,12 +73,19 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
             List<StacProperty> stacProps = config.getStacProperties();
             List<StacProperty> nonDatetimeStacProps = stacProps.remove(datetimeStacProp);
 
-            List<QueryableAttribute> creationDate =
-                    extentSummaryService.extentSummaryQueryableAttributes(datetimeStacProp, nonDatetimeStacProps);
+            List<QueryableAttribute> creationDate = extentSummaryService.extentSummaryQueryableAttributes(
+                    datetimeStacProp,
+                    nonDatetimeStacProps
+            );
 
-            CollectionWithStats collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(resourceName, SearchType.DATAOBJECTS, creationDate.toJavaList());
+            CollectionWithStats collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(
+                    resourceName,
+                    SearchType.DATAOBJECTS,
+                    creationDate.toJavaList()
+            );
 
-            Map<StacProperty, Aggregation> aggregationMap = extentSummaryService.toAggregationMap(stacProps, collectionWithStats);
+            List<Aggregation> aggs = List.ofAll(collectionWithStats.getAggregationList());
+            Map<StacProperty, Aggregation> aggregationMap = extentSummaryService.toAggregationMap(stacProps, aggs);
 
             Extent extent = extentSummaryService.extractExtent(aggregationMap);
 
