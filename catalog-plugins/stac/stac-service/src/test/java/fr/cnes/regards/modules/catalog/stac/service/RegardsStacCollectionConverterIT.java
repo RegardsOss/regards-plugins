@@ -9,7 +9,7 @@ import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter.IRegardsStacCollectionConverter;
+import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.CollectionFeature;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
@@ -51,7 +51,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     OffsetDateTime offsetDateTimeTo = OffsetDateTime.now();
 
     @Autowired
-    IRegardsStacCollectionConverter converter;
+    IStaticCollectionService converter;
 
     @Autowired
     EsRepository repository;

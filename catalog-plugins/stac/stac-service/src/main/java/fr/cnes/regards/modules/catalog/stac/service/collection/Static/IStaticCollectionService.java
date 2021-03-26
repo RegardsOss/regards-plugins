@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter;
+package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
 
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import io.vavr.control.Try;
@@ -25,7 +25,7 @@ import io.vavr.control.Try;
 /**
  * Translate regards collection to stac standard
  */
-public interface IRegardsStacCollectionConverter {
+public interface IStaticCollectionService {
 
     /**
      * Get stac collection from elsatic

@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter;
+package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
 
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
@@ -24,9 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectionConverter {
+public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticCollectionServiceImpl.class);
 
 
     private final CatalogSearchService catalogSearchService;
@@ -34,7 +34,7 @@ public class RegardsStacCollectionConverterImpl implements IRegardsStacCollectio
     private final ExtentSummaryService extentSummaryService;
 
     @Autowired
-    public RegardsStacCollectionConverterImpl(
+    public StaticCollectionServiceImpl(
             CatalogSearchService catalogSearchService,
             ConfigurationAccessorFactory configurationAccessorFactory,
             ExtentSummaryService extentSummaryService
