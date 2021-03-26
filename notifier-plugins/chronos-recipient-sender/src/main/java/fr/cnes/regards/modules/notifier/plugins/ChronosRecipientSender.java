@@ -136,7 +136,7 @@ public class ChronosRecipientSender implements IRecipientNotifier {
                 String action = metadata.getAsJsonObject().get(ACTION_KEY).getAsString();
                 headers.put(OWNER_KEY, actionOwner);
                 headers.put(ACTION_KEY, action);
-                toSend.put(headers, ChronosNotificationEvent.build(action, actionOwner, uri));
+                toSend.put(headers, ChronosNotificationEvent.build(action, actionOwner, uri.replaceAll("//", "/")));
             }
         }
         for (Map<String, Object> headers : toSend.keySet()) {
