@@ -19,6 +19,8 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
 
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.vavr.control.Try;
 
 
@@ -30,7 +32,9 @@ public interface IStaticCollectionService {
     /**
      * Get stac collection from elsatic
      * @param urn uniform resource number of the collection
+     * @param linkCreator
+     * @param config
      * @return the stac collection
      */
-    Try<Collection> convertRequest(String urn);
+    Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 }

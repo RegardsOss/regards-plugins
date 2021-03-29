@@ -10,6 +10,9 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
@@ -56,6 +59,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     IStaticCollectionService converter;
     @Autowired
     EsRepository repository;
+    @Autowired
+    ConfigurationAccessorFactory configurationAccessorFactory;
+
+    @Autowired
+    ConfigurationAccessor configurationAccessor;
 
     @MockBean
     ProjectGeoSettings projectGeoSettings;
@@ -147,7 +155,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     public void testConvertCollection() {
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
         Try<Collection> result = converter
-                .convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1")
+                .convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1",
+                        configurationAccessorFactory.makeConfigurationAccessor(),
+                        configurationAccessor)
                 .onFailure(t -> {
                     LOGGER.error("Fail to get Collection and stats");
                     Assert.fail();

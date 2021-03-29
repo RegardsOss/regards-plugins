@@ -124,7 +124,9 @@ public class RegardsStacCollectionConverterTest{
         when(value.getStacProperties()).thenReturn(List.of(stacProperty));
         when(configurationAccessorFactory.makeConfigurationAccessor()).thenReturn(value);
 
-        Try<Collection> collections = converter.convertRequest("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-34eb0a15a4e2:V1");
+        Try<Collection> collections = converter.convertRequest("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-34eb0a15a4e2:V1",
+                null,
+                null);
         assertThat(collections.isSuccess(), is(true));
 
         assertThat(collections.get().getTitle(), is(collection.getLabel()));
