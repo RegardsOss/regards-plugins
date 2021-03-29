@@ -35,7 +35,7 @@ import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
+import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 
 import java.time.OffsetDateTime;
 
@@ -76,11 +76,11 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
             return esRepository.getAggregationsFor(searchKey(), criterion, javaList(aggBuilders));
         })
         .map(aggs -> {
-            Option<ParsedStats> parsedStats = Try.of(() -> aggs.get(regardsAttributePath))
-                    .map(ParsedStats.class::cast)
+            Option<Stats> parsedStats = Try.of(() -> aggs.get(regardsAttributePath))
+                    .map(Stats.class::cast)
                     .toOption();
-            Option<OffsetDateTime> dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin));
-            Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax));
+            Option<OffsetDateTime> dateTimeFrom = extractTemporalBound(parsedStats.map(Stats::getMin));
+            Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(Stats::getMax));
             return Tuple.of(
                 dateTimeFrom.getOrElse(() -> lowestBound()),
                 dateTimeTo.getOrElse(() -> uppestBound())

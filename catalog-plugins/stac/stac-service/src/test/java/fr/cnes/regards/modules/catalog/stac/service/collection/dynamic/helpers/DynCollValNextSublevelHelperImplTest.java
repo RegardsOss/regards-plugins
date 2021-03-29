@@ -19,21 +19,29 @@ import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
 import io.vavr.collection.List;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.util.Collection;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.*;
 import static java.time.OffsetDateTime.now;
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAccessorAwareTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynCollValNextSublevelHelperImplTest.class);
 
     // GIVEN
 
@@ -100,8 +108,8 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void init() {
         when(tenantResolver.getTenant()).thenReturn("theTenant");
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
-        when(esRepository.minDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC));
-        when(esRepository.maxDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2021, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC));
+        when(esRepository.minDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, UTC));
+        when(esRepository.maxDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2021, 1, 1, 0, 0, 0, 0, UTC));
     }
 
     @Test
@@ -118,11 +126,32 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     @Test
     public void nextSublevels_hasNum() {
+        // GIVEN
+        class MyDateStats extends ParsedStats {
+            public MyDateStats(final String name, final double min, final double max) {
+                setName(name);
+                this.min = min;
+                this.max = max;
+            }
+        }
+
+        when(esRepository.getAggregationsFor(any(), any(), any())).thenAnswer(i -> {
+            Collection<AggregationBuilder> aggBuilders = i.getArgument(2);
+            String path = List.ofAll(aggBuilders).head().getName();
+            ParsedStats result = new MyDateStats(path,
+                    OffsetDateTime.of(2020,1,2,0,0,0,0,UTC).toEpochSecond() * 1000,
+                    OffsetDateTime.of(2021,12,31,0,0,0,0,UTC).toEpochSecond() * 1000);
+            return new Aggregations(List.of(
+                    result
+            ).toJavaList());
+        });
+
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,List.of(
                 numberRangeLevelDef.parseValues("20;30")
         )));
         // THEN
+        actual.map(v -> v.toLabel()).forEach(LOGGER::info);
         assertThat(actual).hasSize(2);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(0).getSublevelValue()).isEqualTo("2020");
         assertThat(actual.get(1).getLevels().get(1).getSublevels().get(0).getSublevelValue()).isEqualTo("2021");
