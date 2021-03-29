@@ -2,8 +2,8 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +33,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
     // @formatter:off
 
     Gson gson = gson();
-    OffsetDateTime now = OffsetDateTime.now(ZoneId.of("UTC"));
+    OffsetDateTime now = OffsetDateTime.now(UTC);
     DataObject dataObject;
     IAttributeFinder finder = Mockito.mock(IAttributeFinder.class);
     RegardsPropertyAccessorFactory factory = new RegardsPropertyAccessorFactory(finder, gson);

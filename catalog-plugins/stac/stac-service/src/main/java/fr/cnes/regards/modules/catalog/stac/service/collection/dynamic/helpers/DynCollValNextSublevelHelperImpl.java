@@ -19,8 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
@@ -28,12 +26,8 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased;
 import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
-import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
-import fr.cnes.regards.modules.indexer.dao.IEsRepository;
-import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
-import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -50,10 +44,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MONTH;
 
@@ -64,27 +56,20 @@ import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sub
 public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollValNextSublevelHelperImpl.class);
-    private static final int TERMS_AGGREGATION_MAX_SIZE = 500;
 
-    private final IEsRepository esRepository;
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
     private final StacSearchCriterionBuilder criterionBuilder;
-    private final IRuntimeTenantResolver tenantResolver;
-    private final ProjectGeoSettings projectGeoSettings;
+    private final EsAggregagtionHelper aggregagtionHelper;
 
     @Autowired
     public DynCollValNextSublevelHelperImpl(
-            IEsRepository esRepository,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             StacSearchCriterionBuilder criterionBuilder,
-            IRuntimeTenantResolver tenantResolver,
-            ProjectGeoSettings projectGeoSettings
+            EsAggregagtionHelper aggregagtionHelper
     ) {
-        this.esRepository = esRepository;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.criterionBuilder = criterionBuilder;
-        this.tenantResolver = tenantResolver;
-        this.projectGeoSettings = projectGeoSettings;
+        this.aggregagtionHelper = aggregagtionHelper;
     }
 
     @Override
@@ -130,10 +115,9 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         String termsAggName = "terms";
         AggregationBuilder termsAggBuilder = AggregationBuilders
                 .terms(termsAggName)
-                .field(regardsAttributePath)
-                .size(TERMS_AGGREGATION_MAX_SIZE);
+                .field(regardsAttributePath);
 
-        Aggregations aggs = esRepository.getAggregations(searchKey(), criterion, termsAggBuilder);
+        Aggregations aggs = aggregagtionHelper.getAggregationsFor(criterion, List.of(termsAggBuilder));
         Terms termsAgg = aggs.get(termsAggName);
         return List.ofAll(termsAgg.getBuckets())
             .sortBy(MultiBucketsAggregation.Bucket::getKeyAsString)
@@ -184,19 +168,12 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ICriterion criterion = computeCriterion(val, prop);
         String regardsAttributePath = getFullJsonPath(prop);
 
-        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
-        OffsetDateTime minDate = Try.of(() -> esRepository.minDate(searchKey, criterion, regardsAttributePath))
-                .onFailure(t -> LOGGER.warn("Could not find lowest date for {}, using 1970", regardsAttributePath, t))
-                .getOrElse(() -> OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC")));
+        Tuple2<OffsetDateTime, OffsetDateTime> dateRange = aggregagtionHelper.dateRange(criterion, regardsAttributePath);
 
-        OffsetDateTime maxDate = Try.of(() -> esRepository.maxDate(searchKey, criterion, regardsAttributePath))
-                .onFailure(t -> LOGGER.warn("Could not find highest date for {}, using now", regardsAttributePath, t))
-                .getOrElse(() -> OffsetDateTime.now(ZoneId.of("UTC")));
+        int minYear = dateRange._1.getYear();
+        int maxYear = dateRange._2.getYear();
 
-        int minYear = minDate.getYear();
-        int maxYear = maxDate.getYear();
-
-        return List.range(minYear, maxYear+1)
+        return List.range(minYear, maxYear + 1)
             .map(y -> new DynCollSublevelVal(
                     definition.getSublevels().head(),
                     "" + y,
@@ -293,13 +270,6 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             suffix = ".keyword";
         }
         return prop.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath() + suffix;
-    }
-
-    private SimpleSearchKey<AbstractEntity<?>> searchKey() {
-        SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATA);
-        result.setSearchIndex(tenantResolver.getTenant());
-        result.setCrs(projectGeoSettings.getCrs());
-        return result;
     }
 
 }

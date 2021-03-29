@@ -31,6 +31,8 @@ import io.vavr.collection.Map;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.metrics.geobounds.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
 import org.slf4j.Logger;
@@ -38,12 +40,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
-import static java.time.Instant.ofEpochMilli;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.extractTemporalBound;
 
 /**
  * Base implementation for {@link ExtentSummaryService}.
@@ -52,7 +53,6 @@ import static java.time.Instant.ofEpochMilli;
 public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtentSummaryServiceImpl.class);
-    private static final ZoneId UTC = ZoneId.of("UTC");
 
     public static final String NWPOINT_AGGNAME = "nwPoint";
     private static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""), NWPOINT_AGGNAME, "", false, -1, "", STRING, null);
@@ -79,6 +79,22 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
         );
 
         return extentQueryableAttributes.appendAll(summaryQueryableAttributes);
+    }
+
+    @Override
+    public List<AggregationBuilder> extentSummaryAggregationBuilders(
+            StacProperty datetimeProp,
+            List<StacProperty> otherProps
+    ) {
+        String datetimePath = toAggregationName(datetimeProp);
+        return List.<AggregationBuilder>of(
+            AggregationBuilders.dateRange(datetimePath).field(datetimePath),
+            AggregationBuilders.geoBounds(NWPOINT_AGGNAME).field(NWPOINT_AGGNAME),
+            AggregationBuilders.geoBounds(SEPOINT_AGGNAME).field(SEPOINT_AGGNAME)
+        ).appendAll(summaryStacProps(otherProps).map(prop -> {
+            String name = toAggregationName(prop);
+            return AggregationBuilders.range(name).field(name);
+        }));
     }
 
     @Override
@@ -118,16 +134,6 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
         Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax));
 
         return new Extent.Temporal(List.of(new Tuple2<>(dateTimeFrom, dateTimeTo)));
-    }
-
-    private Option<OffsetDateTime> extractTemporalBound(Option<Double> timestamp) {
-        return timestamp.map(Double::longValue).flatMap(this::parseDatetime);
-    }
-
-    private Option<OffsetDateTime> parseDatetime(Long ts) {
-        return Try.of(() -> OffsetDateTime.ofInstant(ofEpochMilli(ts), UTC))
-            .onFailure(t -> LOGGER.warn("Could not parse instant from timestamp {}", ts, t))
-            .toOption();
     }
 
     private Option<ParsedGeoBounds> extractBound(Option<Aggregation> optAgg) {

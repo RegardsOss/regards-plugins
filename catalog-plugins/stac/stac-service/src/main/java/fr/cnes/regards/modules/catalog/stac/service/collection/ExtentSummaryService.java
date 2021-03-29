@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 
 /**
  * TODO: ExtentSummaryService description
@@ -41,6 +42,11 @@ public interface ExtentSummaryService {
      * @return the list of {@link QueryableAttribute} to use for ES aggregations
      */
     List<QueryableAttribute> extentSummaryQueryableAttributes(
+            StacProperty datetimeProp,
+            List<StacProperty> otherProps
+    );
+
+    List<AggregationBuilder> extentSummaryAggregationBuilders(
             StacProperty datetimeProp,
             List<StacProperty> otherProps
     );

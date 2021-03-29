@@ -12,6 +12,8 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelperImpl;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
@@ -35,18 +37,19 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     // GIVEN
 
-    IEsRepository esRepository = Mockito.mock(IEsRepository.class);
     DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter = new DynCollLevelValToQueryObjectConverterImpl();
+
     StacSearchCriterionBuilder criterionBuilder = Mockito.mock(StacSearchCriterionBuilder.class);
+
+    IEsRepository esRepository = Mockito.mock(IEsRepository.class);
     IRuntimeTenantResolver tenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
     ProjectGeoSettings projectGeoSettings = Mockito.mock(ProjectGeoSettings.class);
+    EsAggregagtionHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
 
     DynCollValNextSublevelHelperImpl helper = new DynCollValNextSublevelHelperImpl(
-            esRepository,
             levelValToQueryObjectConverter,
             criterionBuilder,
-            tenantResolver,
-            projectGeoSettings
+            aggregagtionHelper
     );
 
     StacProperty prop1 = new StacProperty(

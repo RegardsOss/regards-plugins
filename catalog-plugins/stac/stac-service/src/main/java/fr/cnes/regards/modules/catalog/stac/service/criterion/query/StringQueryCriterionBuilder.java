@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 
 import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
@@ -43,12 +44,28 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
         return andAllPresent(
                 Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
                 Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
-                Option.of(queryObject.getStartsWith()).map(st -> startsWith(attr, st)),
-                Option.of(queryObject.getEndsWith()).map(en -> endsWith(attr, en)),
+                Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st))),
+                Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en))),
                 Option.of(queryObject.getContains()).map(en -> contains(attr, en)),
                 Option.of(queryObject.getIn()).flatMap(in ->
                         in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or))
         );
+    }
+
+    private String toEndRegexp(String en) {
+        return ".*" + toCaseInsensitiveRegexp(en);
+    }
+
+    private String toStartRegexp(String st) {
+        return toCaseInsensitiveRegexp(st) + ".*";
+    }
+
+    private String toCaseInsensitiveRegexp(String pattern) {
+        return Stream.ofAll(pattern.toCharArray())
+                .map(chr -> Character.isDigit(chr)
+                        ? Character.toString(chr)
+                        : String.format("[%s%s]", Character.toLowerCase(chr), Character.toUpperCase(chr)))
+                .foldLeft("", String::concat);
     }
 
 }

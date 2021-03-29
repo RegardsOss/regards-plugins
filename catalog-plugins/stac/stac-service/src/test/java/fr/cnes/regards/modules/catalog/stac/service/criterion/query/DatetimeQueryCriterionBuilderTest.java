@@ -1,8 +1,8 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.DatetimeQueryObject;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.indexer.domain.criterion.*;
@@ -11,10 +11,10 @@ import io.vavr.control.Option;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
 import static fr.cnes.regards.modules.indexer.domain.criterion.ComparisonOperator.*;
 import static java.time.OffsetDateTime.now;
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
@@ -23,7 +23,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
     public void testBuildCriterionEmpty() {
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
-                accessor("regardsProp", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
+                accessor("regardsProp", StacPropertyType.DATETIME, now(UTC)),
                 "stacProp",
                 "", false, 0, null,
                 StacPropertyType.DATETIME,
@@ -40,7 +40,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
     public void testBuildCriterionEq() {
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
-                accessor("regardsAttr", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
+                accessor("regardsAttr", StacPropertyType.DATETIME, now(UTC)),
                 "stacProp",
                 "", false, 0, null,
                 StacPropertyType.STRING,
@@ -65,7 +65,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
     public void testBuildCriterionAll() {
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
-                accessor("regardsAttr", StacPropertyType.DATETIME, now(ZoneId.of("UTC"))),
+                accessor("regardsAttr", StacPropertyType.DATETIME, now(UTC)),
                 "stacProp",
                 "", false, 0, null,
                 StacPropertyType.DATETIME,
