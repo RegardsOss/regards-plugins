@@ -36,6 +36,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.metrics.stats.Stats;
+import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 
@@ -46,6 +47,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
  *
  * @author gandrieu
  */
+@Component
 public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
 
 
