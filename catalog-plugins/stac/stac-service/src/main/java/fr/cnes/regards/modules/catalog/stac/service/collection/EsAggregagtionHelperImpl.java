@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
@@ -65,27 +64,6 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
         this.esRepository = esRepository;
         this.tenantResolver = tenantResolver;
         this.projectGeoSettings = projectGeoSettings;
-    }
-
-
-    /**
-     * Add document type (Elasticsearch prior to version 6 type) into criterion
-     */
-    private static ICriterion addTypes(ICriterion criterion, String... types) {
-        // Beware if crit is null
-        criterion = criterion == null ? ICriterion.all() : criterion;
-        // Then add type
-        switch (types.length) {
-            case 0:
-                return criterion;
-            case 1:
-                return ICriterion.and(ICriterion.eq("type", types[0]), criterion);
-            default:
-                ICriterion orCrit = ICriterion
-                        .or(Arrays.stream(types).map(type -> ICriterion.eq("type", type)).toArray(ICriterion[]::new));
-                return ICriterion.and(orCrit, criterion);
-        }
-
     }
 
     @Override
