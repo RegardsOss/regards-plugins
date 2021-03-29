@@ -27,9 +27,10 @@ import io.vavr.control.Option;
 import lombok.Value;
 import lombok.With;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
 
 /**
  * The object describes the spatio-temporal extents of the Collection.
@@ -56,7 +57,7 @@ public class Extent {
     public static Extent maximalExtent() {
         return new Extent(
                 new Spatial(List.of(new BBox(-180, -90, 180, 90))),
-                new Temporal(List.of(Tuple.of(Option.of(OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"))), null)))
+                new Temporal(List.of(Tuple.of(Option.of(lowestBound()), Option.of(uppestBound()))))
         );
     }
 }

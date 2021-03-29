@@ -1,10 +1,10 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
 import fr.cnes.regards.modules.indexer.domain.criterion.DateMatchCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.DateRangeCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -13,8 +13,8 @@ import io.vavr.control.Option;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
@@ -32,7 +32,7 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
     @Test
     public void testBuildCriterionSame() {
         // GIVEN
-        RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(ZoneId.of("UTC")));
+        RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor,
                  "datetime",
@@ -54,7 +54,7 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
     @Test
     public void testBuildCriterionDiff() {
         // GIVEN
-        RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(ZoneId.of("UTC")));
+        RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor,
                  "datetime",

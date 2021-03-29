@@ -27,11 +27,10 @@ import lombok.Value;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.parseStacDatetime;
-
+import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.split;
 
 /**
@@ -40,7 +39,6 @@ import static org.apache.commons.lang3.StringUtils.split;
 @Value
 public class DateInterval {
 
-    public static final ZoneId UTC = ZoneId.of("UTC");
     private static final OffsetDateTime MAX = OffsetDateTime.now(UTC).plusYears(100L);
     private static final OffsetDateTime MIN = OffsetDateTime.ofInstant(Instant.EPOCH, UTC).minusYears(100);
 
