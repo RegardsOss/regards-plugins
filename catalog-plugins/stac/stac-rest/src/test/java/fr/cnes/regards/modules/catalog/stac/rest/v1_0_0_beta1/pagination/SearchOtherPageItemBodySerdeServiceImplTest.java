@@ -11,7 +11,6 @@ import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
 import fr.cnes.regards.modules.catalog.stac.testutils.random.RandomAwareTest;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -44,8 +43,8 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
             .randomize(Extent.Temporal.class, () ->
                 new Extent.Temporal(List.range(0, generator.nextInt(10))
                     .map(i -> Tuple.of(
-                            generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class)),
-                            generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class))
+                            generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class),
+                            generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class)
                     ))
                 )
             )

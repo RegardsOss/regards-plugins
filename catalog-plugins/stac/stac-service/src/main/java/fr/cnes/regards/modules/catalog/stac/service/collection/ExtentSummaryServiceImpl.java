@@ -73,7 +73,7 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                 );
 
         List<QueryableAttribute> extentQueryableAttributes = List.of(
-                new QueryableAttribute(datetimePropFullJsonPath, null, false, 500, false),
+                new QueryableAttribute(datetimePropFullJsonPath, null, false, 0, false),
                 new QueryableAttribute(NWPOINT_AGGNAME, null, false, 0, false, true),
                 new QueryableAttribute(SEPOINT_AGGNAME, null, false, 0, false, true)
         );
@@ -88,12 +88,12 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     ) {
         String datetimePath = toAggregationName(datetimeProp);
         return List.<AggregationBuilder>of(
-            AggregationBuilders.dateRange(datetimePath).field(datetimePath),
+            AggregationBuilders.stats(datetimePath).field(datetimePath),
             AggregationBuilders.geoBounds(NWPOINT_AGGNAME).field(NWPOINT_AGGNAME),
             AggregationBuilders.geoBounds(SEPOINT_AGGNAME).field(SEPOINT_AGGNAME)
         ).appendAll(summaryStacProps(otherProps).map(prop -> {
             String name = toAggregationName(prop);
-            return AggregationBuilders.range(name).field(name);
+            return AggregationBuilders.stats(name).field(name);
         }));
     }
 
@@ -130,8 +130,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                         .onFailure(t -> LOGGER.error(t.getMessage(), t))
                         .toOption());
 
-        Option<OffsetDateTime> dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin));
-        Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax));
+        OffsetDateTime dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin)).getOrNull();
+        OffsetDateTime dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax)).getOrNull();
 
         return new Extent.Temporal(List.of(new Tuple2<>(dateTimeFrom, dateTimeTo)));
     }
