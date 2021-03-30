@@ -23,7 +23,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import lombok.Value;
 import lombok.With;
 
@@ -51,13 +50,13 @@ public class Extent {
     }
     @Value @With
     public static class Temporal {
-        List<Tuple2<Option<OffsetDateTime>, Option<OffsetDateTime>>> interval;
+        List<Tuple2<OffsetDateTime, OffsetDateTime>> interval;
     }
 
     public static Extent maximalExtent() {
         return new Extent(
                 new Spatial(List.of(new BBox(-180, -90, 180, 90))),
-                new Temporal(List.of(Tuple.of(Option.of(lowestBound()), Option.of(uppestBound()))))
+                new Temporal(List.of(Tuple.of(lowestBound(), uppestBound())))
         );
     }
 }

@@ -30,17 +30,17 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.metrics.stats.Stats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
 
 /**
  * TODO: EsAggregagtionHelperImpl description
@@ -50,6 +50,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
 @Component
 public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EsAggregagtionHelperImpl.class);
 
     private final IEsRepository esRepository;
     private final IRuntimeTenantResolver tenantResolver;
@@ -67,34 +68,21 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
 
     @Override
     public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs) {
-        return esRepository.getAggregationsFor(searchKey(), criterion, aggDefs.toJavaList());
+        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+        return esRepository.getAggregationsFor(searchKey, criterion, aggDefs.toJavaList());
     }
 
     @Override
-    public Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath) {
-
+    public Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String attrPath) {
         return Try.of(() -> {
-            List<AggregationBuilder> aggBuilders = List.of(AggregationBuilders.dateRange(regardsAttributePath).field(regardsAttributePath));
-            return esRepository.getAggregationsFor(searchKey(), criterion, javaList(aggBuilders));
+            SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+            OffsetDateTime dateTimeFrom = esRepository.minDate(searchKey, criterion, attrPath);
+            OffsetDateTime dateTimeTo = esRepository.maxDate(searchKey, criterion, attrPath);
+            return Tuple.of(dateTimeFrom, dateTimeTo);
         })
-        .map(aggs -> {
-            Option<Stats> parsedStats = Try.of(() -> aggs.get(regardsAttributePath))
-                    .map(Stats.class::cast)
-                    .toOption();
-            Option<OffsetDateTime> dateTimeFrom = extractTemporalBound(parsedStats.map(Stats::getMin));
-            Option<OffsetDateTime> dateTimeTo = extractTemporalBound(parsedStats.map(Stats::getMax));
-            return Tuple.of(
-                dateTimeFrom.getOrElse(() -> lowestBound()),
-                dateTimeTo.getOrElse(() -> uppestBound())
-            );
-        })
+        .onFailure(t -> LOGGER.info("Failed to load min/max date for {}", attrPath, t))
         .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
     }
-
-    public java.util.List<AggregationBuilder> javaList(List<AggregationBuilder> aggs) {
-        return aggs.toJavaList();
-    }
-
 
     private SimpleSearchKey<AbstractEntity<?>> searchKey() {
         SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATA);

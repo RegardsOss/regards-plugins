@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DatePartSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -68,7 +69,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
 
     }
 
-    private ItemSearchBody.QueryObject stringPrefixQueryObject(
+    protected ItemSearchBody.QueryObject stringPrefixQueryObject(
             DynCollLevelVal levelVal,
             StringPrefixLevelDef definition
     ) {
@@ -76,11 +77,11 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         return ItemSearchBody.StringQueryObject.builder().startsWith(startsWith).build();
     }
 
-    private ItemSearchBody.QueryObject datePartsQueryObject(
+    protected ItemSearchBody.QueryObject datePartsQueryObject(
             DynCollLevelVal levelVal,
             DatePartsLevelDef definition
     ) {
-        DynCollSublevelType.DatetimeBased lastLevel = definition.getSublevels().last().getType();
+        DynCollSublevelType.DatetimeBased lastLevel = ((DatePartSublevelDef)levelVal.getSublevels().last().getSublevelDefinition()).getType();
         String rendered = levelVal.renderValue();
 
         OffsetDateTime gte = getDateLowerBound(lastLevel, rendered);
@@ -124,7 +125,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         }
     }
 
-    private ItemSearchBody.QueryObject numberRangeQueryObject(
+    protected ItemSearchBody.QueryObject numberRangeQueryObject(
             DynCollLevelVal levelVal,
             NumberRangeLevelDef definition
     ) {
@@ -147,7 +148,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         }
     }
 
-    private ItemSearchBody.QueryObject exactQueryObject(DynCollLevelVal levelVal) {
+    protected ItemSearchBody.QueryObject exactQueryObject(DynCollLevelVal levelVal) {
         StacPropertyType stacType = levelVal.getDefinition().getStacProperty().getStacType();
         switch (stacType) {
             case STRING:

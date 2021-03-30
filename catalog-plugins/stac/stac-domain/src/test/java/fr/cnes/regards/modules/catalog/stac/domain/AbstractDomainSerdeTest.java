@@ -29,7 +29,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.testutils.serde.AbstractGsonSerdeTest;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
-import io.vavr.control.Option;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 
@@ -42,8 +41,8 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
         params.randomize(Extent.Temporal.class, () ->
             new Extent.Temporal(List.range(0, generator.nextInt(10))
                 .map(i -> Tuple.of(
-                    generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class)),
-                    generator.nextBoolean() ? Option.none() : Option.of(generator.nextObject(OffsetDateTime.class))
+                    generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class),
+                    generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class)
                 ))
             )
         )
