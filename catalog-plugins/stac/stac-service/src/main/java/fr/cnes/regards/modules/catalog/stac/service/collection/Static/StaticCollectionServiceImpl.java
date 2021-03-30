@@ -48,7 +48,6 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
 
     private final CatalogSearchService catalogSearchService;
-    private final ConfigurationAccessorFactory configurationAccessorFactory;
     private final ExtentSummaryService extentSummaryService;
 
     @Autowired
@@ -58,7 +57,6 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
             ExtentSummaryService extentSummaryService
     ) {
         this.catalogSearchService = catalogSearchService;
-        this.configurationAccessorFactory = configurationAccessorFactory;
         this.extentSummaryService = extentSummaryService;
     }
 
@@ -88,29 +86,36 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
             String urn = resourceName.toString();
 
-            List<Link> baseLinks = List.of(
-                    linkCreator.createRootLink(),
-                    linkCreator.createCollectionLinkWithRel(DEFAULT_STATIC_ID, config.getRootStaticCollectionName(), ANCESTOR)
-            )
-                    .flatMap(t -> t);
+            List<Link> baseLinks = List.empty();
 
             if (resourceName.getEntityType().equals(EntityType.COLLECTION)) {
                 List<java.util.List<AbstractEntity>> listOfEntities = getEntitiesList(urn);
-                List<AbstractEntity> filterItem = getItemsLinks(resourceName, linkCreator, baseLinks, listOfEntities);
+                List<AbstractEntity> filterItem = getAbstractEntitiesItems(listOfEntities);
+                List<Link> itemsLinks = getItemsLinks(filterItem, resourceName, linkCreator);
+
+
                 List<AbstractEntity> filterChild = listOfEntities
                         .flatMap(x -> x)
                         .removeAll(filterItem);
 
-                for (AbstractEntity abstractEntity : filterChild) {
-                    baseLinks.append(linkCreator.createCollectionLinkWithRel(
-                            abstractEntity.getIpId().toString(),
-                            "collection",
-                            "child").get());
-                }
+                baseLinks = List.of(
+                        linkCreator.createRootLink(),
+                        itemsLinks,
+                        filterChild.map(child -> linkCreator.createCollectionLinkWithRel(
+                                child.getIpId().toString(),
+                                "collection",
+                                "child").get())
+                        ).flatMap(t -> t);
 
             } else if (!resourceName.getEntityType().equals(EntityType.DATASET)) {
                 List<java.util.List<AbstractEntity>> listOfEntities = getEntitiesList(urn);
-                getItemsLinks(resourceName, linkCreator, baseLinks, listOfEntities);
+                List<AbstractEntity> filterItem = getAbstractEntitiesItems(listOfEntities);
+                List<Link> itemsLinks = getItemsLinks(filterItem, resourceName, linkCreator);
+                baseLinks = List.of(
+                        linkCreator.createRootLink(),
+                        itemsLinks)
+                .flatMap(t -> t);
+
             }
 
             List<Provider> providers = config.getProviders(urn)
@@ -147,7 +152,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     regardsCollection.getId().toString(),
 //                    regardsCollection.getModel().getDescription(),
                     "",
-                    List.empty(),
+                    baseLinks,
                     config.getKeywords(urn),
                     config.getLicense(urn),
                     providers, extent,
@@ -159,13 +164,11 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     }
 
     @NotNull
-    private List<AbstractEntity> getItemsLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator, List<Link> baseLinks, List<java.util.List<AbstractEntity>> listOfEntities) {
-        List<AbstractEntity> filterItem = getAbstractEntitiesItems(listOfEntities);
+    private List<Link> getItemsLinks(List<AbstractEntity> filterItem, UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
 
-        for (AbstractEntity abstractEntity : filterItem) {
-            baseLinks.append(linkCreator.createItemLink(resourceName.toString(), abstractEntity.getIpId().toString()).get());
-        }
-        return filterItem;
+        return filterItem
+                .map(entity -> linkCreator.createItemLink(resourceName.toString(), entity.getIpId().toString()).get())
+                .map(x -> x.withRel("item"));
     }
 
     @NotNull

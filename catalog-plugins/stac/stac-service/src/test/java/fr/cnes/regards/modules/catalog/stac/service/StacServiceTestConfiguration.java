@@ -58,6 +58,7 @@ public class StacServiceTestConfiguration {
                 "propName","ext",false,0, "format",
                 NUMBER, idConverter(NUMBER))
         ));
+        when(mockConfigurationAccessor.getRootStaticCollectionName()).thenReturn("staticCollectionRoot");
 
         when(mockConfigurationAccessor.getGeoJSONReader()).thenReturn(mock(GeoJSONReader.class));
 

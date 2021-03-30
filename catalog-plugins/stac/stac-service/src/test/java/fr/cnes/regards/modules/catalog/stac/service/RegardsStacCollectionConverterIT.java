@@ -9,6 +9,7 @@ import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -32,11 +33,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles({"test", "feign"})
@@ -62,8 +68,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     @Autowired
     ConfigurationAccessorFactory configurationAccessorFactory;
 
-    @Autowired
-    ConfigurationAccessor configurationAccessor;
+    OGCFeatLinkCreator linkCreator = mock(OGCFeatLinkCreator.class);
 
     @MockBean
     ProjectGeoSettings projectGeoSettings;
@@ -138,12 +143,56 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject2.getFeature().setGeometry(GeoHelper.normalize(point2));
         dataObject2.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
+        DataObject dataObject3 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+
+        GeoPoint do3SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
+        GeoPoint do3NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
+        dataObject3.setId(2L);
+        dataObject3.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.COLLECTION, ITEMSTENANT,
+                UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5679"), 1, null,
+                null));
+        dataObject3.setCreationDate(offsetDateTimeTo);
+        dataObject3.setSePoint(do3SePoint);
+        dataObject3.setNwPoint(do3NwPoint);
+        dataObject3.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
+        dataObject3.setLabel("korcula");
+        Point point3 = IGeometry.point(17.138151798412633, 42.95009340967441);
+        dataObject3.setWgs84(GeoHelper.normalize(point3));
+        dataObject3.setNormalizedGeometry(GeoHelper.normalize(point3));
+        dataObject3.getFeature().setGeometry(GeoHelper.normalize(point3));
+        dataObject3.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
+
+
+        when(linkCreator.createRootLink())
+                .thenAnswer(i -> Try.success(uri("/root"))
+                        .map(uri -> new Link(uri, ROOT, "", "")));
+        when(linkCreator.createCollectionLink(anyString(), anyString()))
+                .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
+                        .map(uri -> new Link(uri, COLLECTION, "", "")));
+        when(linkCreator.createItemLink(anyString(), anyString()))
+                .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                        .map(uri -> new Link(uri, SELF, "", "")));
+
+        when(linkCreator.createCollectionLinkWithRel(anyString(), anyString(), anyString()))
+                .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
+                        .map(uri -> new Link(uri, COLLECTION, "", "")).map(l -> l.withRel("child")));
+
 
         repository.save(ITEMSTENANT, collection);
         repository.save(ITEMSTENANT, dataObject1);
         repository.save(ITEMSTENANT, dataObject2);
+        repository.save(ITEMSTENANT, dataObject3);
         repository.refresh(ITEMSTENANT);
 
+    }
+
+
+    public URI uri(String s) {
+        try {
+            return new URI(s);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @After
@@ -156,8 +205,8 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
         Try<Collection> result = converter
                 .convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1",
-                        configurationAccessorFactory.makeConfigurationAccessor(),
-                        configurationAccessor)
+                        linkCreator,
+                        configurationAccessorFactory.makeConfigurationAccessor())
                 .onFailure(t -> {
                     LOGGER.error("Fail to get Collection and stats");
                     Assert.fail();
@@ -174,6 +223,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
         Assert.assertEquals("toto", result.get().getTitle());
         Assert.assertEquals("1", result.get().getId());
+
+        Assert.assertEquals(4, result.get().getLinks().length());
+        Assert.assertTrue(result.get().getLinks().filter(x -> "child".equals(x.getRel())).length() == 1);
+        Assert.assertTrue(result.get().getLinks().filter(x -> "item".equals(x.getRel())).length() == 2);
+        Assert.assertTrue(result.get().getLinks().filter(x -> "root".equals(x.getRel())).length() == 1);
 
     }
 
