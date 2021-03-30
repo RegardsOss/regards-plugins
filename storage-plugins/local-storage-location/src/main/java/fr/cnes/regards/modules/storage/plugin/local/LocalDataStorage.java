@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
@@ -111,6 +112,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     private static final String CREATE_ENV_FS = "create";
 
     private static final String ZIP_PROTOCOL = "jar:file:";
+
+    private static final Long ZIP_ACQUIRE_TIMEOUT = 600L;
 
     /**
      * Base storage location url
@@ -443,27 +446,31 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
                 try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                     ZIP_ACCESS_SEMAPHORE.acquire();
-                    FileLock zipLock = zipFC.lock();
                     try {
-                        try (FileSystem zipFs = FileSystems
-                                .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
-                            Path pathInZip = zipFs.getPath(checksum);
-                            Files.deleteIfExists(pathInZip);
-                            progressManager.deletionSucceed(request);
-                        }
-                        try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-                            if (!zipFile.entries().hasMoreElements()) {
-                                Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
-                                // Check if it is the current zip file. If it is, delete the symlink
-                                if (Files.isSymbolicLink(linkPath)
-                                        && zipPath.equals(Files.readSymbolicLink(linkPath))) {
-                                    Files.delete(linkPath);
-                                }
-                                Files.deleteIfExists(zipPath);
+                        FileLock zipLock = zipFC.lock();
+                        try {
+                            try (FileSystem zipFs = FileSystems
+                                    .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()),
+                                                   env)) {
+                                Path pathInZip = zipFs.getPath(checksum);
+                                Files.deleteIfExists(pathInZip);
+                                progressManager.deletionSucceed(request);
                             }
+                            try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                                if (!zipFile.entries().hasMoreElements()) {
+                                    Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
+                                    // Check if it is the current zip file. If it is, delete the symlink
+                                    if (Files.isSymbolicLink(linkPath)
+                                            && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                        Files.delete(linkPath);
+                                    }
+                                    Files.deleteIfExists(zipPath);
+                                }
+                            }
+                        } finally {
+                            zipLock.release();
                         }
                     } finally {
-                        zipLock.release();
                         ZIP_ACCESS_SEMAPHORE.release();
                     }
 
@@ -522,17 +529,25 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         // If no error occurs the semaphore will be released when the returned RegardsIS is closed.
         boolean releaseSemaphore = false;
         try {
-            ZIP_ACCESS_SEMAPHORE.acquire();
-            Path zipPath = Paths.get(new URL(fileRef.getLocation().getUrl()).getPath());
-            // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
-            // Instead, they are closed thanks to RegardsIS
-            // Moreover semaphore and lock are released by RegardsIS too
-            FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
-            FileLock zipLock = zipFC.lock();
-            FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
-                                                         env); // NOSONAR
-            Path pathInZip = zipFs.getPath(checksum);
-            return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
+            if (ZIP_ACCESS_SEMAPHORE.tryAcquire(ZIP_ACQUIRE_TIMEOUT, TimeUnit.SECONDS)) {
+                Path zipPath = Paths.get(new URL(fileRef.getLocation().getUrl()).getPath());
+                // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
+                // Instead, they are closed thanks to RegardsIS
+                // Moreover semaphore and lock are released by RegardsIS too
+                FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
+                FileLock zipLock = zipFC.lock();
+                FileSystem zipFs = FileSystems
+                        .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
+                                       env); // NOSONAR
+                Path pathInZip = zipFs.getPath(checksum);
+                return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
+            } else {
+                String errorMessage = String
+                        .format("[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : timeout accessing zip file. Zip file is already locked.",
+                                checksum, fileRef.getMetaInfo().getFileName(), fileRef.getLocation().getUrl());
+                LOGGER.error(errorMessage);
+                throw new ModuleException(errorMessage);
+            }
         } catch (InterruptedException e) {
             releaseSemaphore = true;
             Thread.currentThread().interrupt();
