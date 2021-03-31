@@ -16,8 +16,8 @@ XDF_DYN_LR_ICE_MAP:
     - StartDateTime
     - EndDateTime
     FileIdentifier:
-    - N
-    - S
+    - "N"
+    - "S"
     simu_method:
         name: period
         file_size: 1024ko

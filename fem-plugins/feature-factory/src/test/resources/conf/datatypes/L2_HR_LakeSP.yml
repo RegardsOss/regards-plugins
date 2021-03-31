@@ -1,51 +1,50 @@
-L2_LR_SSH:
-    name: SWOT_L2_LR_SSH_{{ FileIdentifier }}_{{ CycleID }}_{{ PassID }}_{{ RangeBeginningDateTime
-        }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+L2_HR_LakeSP:
+    name: SWOT_L2_HR_LakeSP_{{ FileIdentifier }}_{{ CycleID }}_{{ PassID }}_{{ ContinentID
+        }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter
+        }}.tar
     Description: ''
     document: D-56531_SWOT_Product_File_Naming_Convention
     example:
-    - SWOT_L2_LR_SSH_Basic_003_069_20200203T003320_20200203T012450_VI0059_01.tar
-    - SWOT_L2_LR_SSH_WindWave_003_069_20200203T003320_20200203T012450_VI0059_01.tar
-    - SWOT_L2_LR_SSH_Expert_003_069_20200203T003320_20200203T012450_VI0059_01.tar
-    - SWOT_L2_LR_SSH_Unsmoothed_003_069_20200203T003320_20200203T012450_VI0059_01.tar
-    granule_type: Pass
+    - SWOT_L2_HR_LakeSP_ObsLake_003_068_AF_20200202T234200_20200203T003320_VI0059_01.tar
+    - SWOT_L2_HR_LakeSP_PLDLake_003_068_EU_20200202T234200_20200203T003320_VI0059_01.tar
+    - SWOT_L2_HR_LakeSP_Unident_003_068_SI_20200202T234200_20200203T003320_VI0059_01.tar
+    granule_type: Continent-Pass
     tar_content:
-    - nc
-    - iso.xml
+    - zip
     - met.json
     - rc.xml
+    - iso.xml
     - md5
     mission: SWOT
     Nature: Product
     metadata:
-    - FileIdentifier
     - CycleID
     - PassID
+    - ContinentID
     - RangeBeginningDateTime
     - RangeEndingDateTime
     - CRID
     - ProductCounter
     FileIdentifier:
-    - "Basic"
-    - "WindWave"
-    - "Expert"
-    - "Unsmoothed"
+    - "ObsLake"
+    - "PLDLake"
+    - "Unident"
     simu_method:
+        directory: swot/l2_hr_lakesp
+        file_size: 52.3go
+        has_path_by_date: false
         name: product
-        file_size: 1.8go
-        directory: swot/l2_lr_ssh
-        has_path_by_date: false
     CHRONOS:
-        storage_server: GEODE
-        source: Production
-        has_path_by_date: false
         geode_sync_duration: 6m
+        has_path_by_date: false
         lifetime_duration: ''
         pcm_metadata:
         - RangeBeginningTAI
         - RangeEndingTAI
         - RangeBeginningDateTime
         - RangeEndingDateTime
+        source: Production
+        storage_server: GEODE
     GEODE:
         CHRONOS_notified: 'False'
         CHRONOS_queue: ''
@@ -59,5 +58,5 @@ L2_LR_SSH:
         is_datalake: 'True'
         is_archived: 'True'
         is_distributed: 'True'
-    real_path: traitement/swot/l2_lr_ssh
+    real_path: traitement/swot/l2_hr_lakesp
     NASorGPFS: GPFS

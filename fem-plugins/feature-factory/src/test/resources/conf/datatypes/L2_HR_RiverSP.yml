@@ -26,8 +26,8 @@ L2_HR_RiverSP:
     - CRID
     - ProductCounter
     FileIdentifier:
-    - Node
-    - Reach
+    - "Node"
+    - "Reach"
     simu_method:
         directory: swot/l2_hr_riversp
         file_size: 52.3go

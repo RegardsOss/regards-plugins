@@ -1,28 +1,29 @@
-SWOT_USO:
-    name: SWOT_OS1_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
-        }}
+PARAM_L2_HR_PIXC:
+    name: SWOT_Param_L2_HR_PIXC_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}_v{{ Version3 }}.cfg
     Description: ''
     example:
-    - SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355
-    document: SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD
+    - SWOT_Param_L2_HR_PIXC_20000101T000000_20991231T235959_20200630T000000_v000.cfg
+
+    document: PGE-PCM ICS for L1B_LR_INTF 06-10-2020
     granule_type: Segment
     tar_content: []
     mission: SWOT
-    Nature: DAD
+    Nature: SAD
     metadata:
-    - CreationDateTime
-    - StartDateTime
-    - EndDateTime
+    - ProductionDateTime
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - Version3
     simu_method:
         name: period
-        file_size: 10mo
-        directory: swot/fous/
+        file_size: 100ko
+        directory: swot/expert_karin/
         has_path_by_date: false
         creation:
-        -   period: 1
+        -   period: 0
             time: 082800
             offset_begin: -300d
-            offset_end: -5h
+            offset_end: 100d
     CHRONOS:
         storage_server: GEODE
         source: Notification
@@ -42,6 +43,6 @@ SWOT_USO:
         REGARDS_filter: All
         is_datalake: 'True'
         is_archived: 'True'
-        is_distributed: 'True'
-    real_path: traitement/swot/fous
+        is_distributed: 'False'
+    real_path: traitement/swot/expert_karin
     NASorGPFS: GPFS

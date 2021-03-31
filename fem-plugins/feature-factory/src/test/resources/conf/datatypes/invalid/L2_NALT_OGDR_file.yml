@@ -1,9 +1,10 @@
-L2_NALT_OGDR:
-    name: SWOT_OGDR_CNES_2P{{ ProductVersion }}S{{ CycleID }}_{{ PassID }}_{{ StartDateTime }}_{{ EndDateTime }}.zip
+L2_NALT_OGDR_file:
+    name: SWOT_OP{{ FileIdentifier }}_2P{{ ProductVersion }}S{{ CycleID }}_{{ PassID }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
     Description: ''
     document: D-56531_SWOT_Product_File_Naming_Convention
     example:
-    - SWOT_OGDR_CNES_2PfS003_068_20200203_000000_20200203_010404.zip
+    - SWOT_OPN_2PfS003_068_20200203_000000_20200203_010404.nc
+    - SWOT_OPS_2PfS003_068_20200203_000000_20200203_010404.nc
     granule_type: Segment
     tar_content: []
     mission: SWOT
@@ -14,6 +15,9 @@ L2_NALT_OGDR:
     - PassID
     - StartDateTime
     - EndDateTime
+    FileIdentifier:
+    - "N"
+    - "R"
     simu_method:
         directory: swot/l2_nalt_ogdr
         file_size:

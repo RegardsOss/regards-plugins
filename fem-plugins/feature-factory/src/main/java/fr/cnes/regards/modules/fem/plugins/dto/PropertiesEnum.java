@@ -107,7 +107,12 @@ public enum PropertiesEnum {
 
     BASIN_ID("BassinID", "swot.bassin_id", "[0-9]{3}", PropertyType.STRING),
 
-    VERSION_3("Version3", "swot.product_version", "[0-9]{3}", PropertyType.STRING);
+    VERSION_1("Version1", "swot.product_version", "[0-9]{1}", PropertyType.STRING),
+
+    VERSION_2("Version2", "swot.product_version", "[0-9]{2}", PropertyType.STRING),
+
+    VERSION_3("Version3", "swot.product_version", "[0-9]{3}", PropertyType.STRING),
+    ORBIT("Orbit", "swot.Orbit", ".*", PropertyType.STRING);
 
     private String name;
 

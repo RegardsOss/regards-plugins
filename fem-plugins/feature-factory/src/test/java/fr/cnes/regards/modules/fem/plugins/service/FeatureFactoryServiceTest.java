@@ -179,10 +179,10 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                     LOGGER.debug(feature.getProperties().toString());
                     Errors errors = validationService.validate(feature, ValidationMode.CREATION);
                     if (errors.hasErrors()) {
-                        errors.getAllErrors().forEach(e -> LOGGER.error(" ----> {}", e.getDefaultMessage().toString()));
                         String message = String.format("[%s] %s validation errors", d.getType(),
                                                        errors.getErrorCount());
                         LOGGER.error("-------------> {} - {}", d.getType(), message);
+                        errors.getAllErrors().forEach(e -> LOGGER.error(" ----> {}", e.getDefaultMessage().toString()));
                         Assert.fail(message);
                     }
                     // Fix id for test comparison
@@ -203,7 +203,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
             }
         }
         Assert.assertEquals(0, nbError);
-        Assert.assertEquals(108, featureFactory.getDescriptors().size());
+        Assert.assertEquals("There should be 139 data types for SWOT in GEODE", 139, featureFactory.getDescriptors().size());
 
         // Test error cases
         Optional<DataTypeDescriptor> debugDTD = featureFactory.getDescriptors().stream()

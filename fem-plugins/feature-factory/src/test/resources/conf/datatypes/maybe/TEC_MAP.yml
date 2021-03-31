@@ -1,27 +1,26 @@
-XDF_MP2_MWD_WAM:
-    name: SMM_WMA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.grb
+TEC_MAP:
+    name: JPLQ{{ DayDigit }}0.{{ YearDigit }}I
     Description: ''
     document: SWOT-ICD-SYS-0421-CNES
     example:
-    - SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000.grb
-    granule_type: Segment
+    - JPLQ150.16I
+    granule_type: Day
     tar_content: []
     mission: MM
-    Nature: Product
+    Nature: DAD
     metadata:
-    - CreationDateTime
-    - StartDateTime
-    - EndDateTime
+    - DayDigit
+    - YearDigit
     simu_method:
         name: period
-        file_size: 31000ko
-        directory: commun/meteo/mfwam
+        file_size: 1ko
+        directory: swot/tec_map
         has_path_by_date: false
         creation:
         -   period: 1
-            time: '100000'
-            offset_begin: -111600
-            offset_end: -36000
+            time: '120000'
+            offset_begin: -12h
+            offset_end: 12h
     CHRONOS:
         storage_server: GEODE
         source: Notification
@@ -36,11 +35,11 @@ XDF_MP2_MWD_WAM:
         SDS_notified: 'False'
         SDS_queue: ''
         SDS_filter: ''
-        REGARDS_notified: 'False'
-        REGARDS_queue: ''
-        REGARDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
         is_datalake: 'True'
-        is_archived: 'False'
-        is_distributed: 'False'
-    real_path: traitement/commun/meteo/mfwam
+        is_archived: 'True'
+        is_distributed: 'True'
+    real_path: traitement/swot/tec_map
     NASorGPFS: NAS

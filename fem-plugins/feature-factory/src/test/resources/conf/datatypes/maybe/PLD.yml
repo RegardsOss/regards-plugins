@@ -1,28 +1,23 @@
-SWOT_USO:
-    name: SWOT_OS1_AXXCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
-        }}
+PLD:
+    name: PLD_{{ ContinentID }}_V{{ Version1 }}_0_{{ ProductionDateTime }}.sqlite
     Description: ''
     example:
-    - SWOT_OS1_AXXCNE20191120_082800_20160119_113455_20191120_055355
-    document: SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD
-    granule_type: Segment
+    - PLD_EU_V1_0_20200608T120000.sqlite
+    document: PGE-PCM ICS for L1B_LR_INTF 06-10-2020
+    granule_type: Continent
     tar_content: []
     mission: SWOT
-    Nature: DAD
+    Nature: SAD
     metadata:
-    - CreationDateTime
-    - StartDateTime
-    - EndDateTime
+    - ContinentID
+    - ProductionDateTime
+    - Version1
     simu_method:
-        name: period
-        file_size: 10mo
-        directory: swot/fous/
+        name: product
+        file_size: 100ko
+        directory: swot/pld/
         has_path_by_date: false
-        creation:
-        -   period: 1
-            time: 082800
-            offset_begin: -300d
-            offset_end: -5h
+
     CHRONOS:
         storage_server: GEODE
         source: Notification
@@ -42,6 +37,6 @@ SWOT_USO:
         REGARDS_filter: All
         is_datalake: 'True'
         is_archived: 'True'
-        is_distributed: 'True'
-    real_path: traitement/swot/fous
+        is_distributed: 'False'
+    real_path: traitement/swot/pld
     NASorGPFS: GPFS

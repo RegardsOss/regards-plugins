@@ -16,8 +16,8 @@ XDF_AMR_STAT_COEFF:
     - RangeBeginningDateTime
     - RangeEndingDateTime
     FileIdentifier:
-    - CHD__AX
-    - MAP__AX
+    - "CHD__AX"
+    - "MAP__AX"
     simu_method:
         name: period
         file_size: 1ko

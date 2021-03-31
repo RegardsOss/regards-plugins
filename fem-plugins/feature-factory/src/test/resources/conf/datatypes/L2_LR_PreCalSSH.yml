@@ -25,10 +25,10 @@ L2_LR_PreCalSSH:
     - CRID
     - ProductCounter
     FileIdentifier:
-    - Basic
-    - WindWave
-    - Expert
-    - Unsmoothed
+    - "Basic"
+    - "WindWave"
+    - "Expert"
+    - "Unsmoothed"
     simu_method:
         name: product
         file_size: 1.8go

@@ -1,9 +1,9 @@
-XDF_MP2_MWD_WAM:
-    name: SMM_WMA_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.grb
+XDF_SST_REYNOLDS_NOAA_ANA:
+    name: SMM_SST_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
     Description: ''
     document: SWOT-ICD-SYS-0421-CNES
     example:
-    - SMM_WMA_AXVCNE20200303_100000_20200302_030000_20200303_000000.grb
+    - SMM_SST_AXVCNE20200303_180000_20200305_120000_20200305_120000.nc
     granule_type: Segment
     tar_content: []
     mission: MM
@@ -14,14 +14,14 @@ XDF_MP2_MWD_WAM:
     - EndDateTime
     simu_method:
         name: period
-        file_size: 31000ko
-        directory: commun/meteo/mfwam
+        file_size: 1700ko
+        directory: commun/sst_reynolds
         has_path_by_date: false
         creation:
         -   period: 1
-            time: '100000'
-            offset_begin: -111600
-            offset_end: -36000
+            time: '000000'
+            offset_begin: -1468800
+            offset_end: -1382401
     CHRONOS:
         storage_server: GEODE
         source: Notification
@@ -42,5 +42,5 @@ XDF_MP2_MWD_WAM:
         is_datalake: 'True'
         is_archived: 'False'
         is_distributed: 'False'
-    real_path: traitement/commun/meteo/mfwam
+    real_path: traitement/commun/sst_reynolds
     NASorGPFS: NAS

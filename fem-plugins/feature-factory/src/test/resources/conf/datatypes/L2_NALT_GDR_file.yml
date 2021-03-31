@@ -1,13 +1,19 @@
-L2_NALT_OGDR:
-    name: SWOT_OGDR_CNES_2P{{ ProductVersion }}S{{ CycleID }}_{{ PassID }}_{{ StartDateTime }}_{{ EndDateTime }}.zip
+L2_NALT_GDR_file:
+    name: SWOT_GP{{ FileIdentifier }}_2P{{ ProductVersion }}P{{ CycleID }}_{{ PassID }}_{{ StartDateTime }}_{{ EndDateTime }}.nc
     Description: ''
-    document: D-56531_SWOT_Product_File_Naming_Convention
+    document: SWOT-IS-CDM-1241-CNES
     example:
-    - SWOT_OGDR_CNES_2PfS003_068_20200203_000000_20200203_010404.zip
-    granule_type: Segment
+    - SWOT_GPR_2PdP510_018_20220704_070707_20220704_081707.nc
+    - SWOT_GPN_2PdP510_018_20220704_070707_20220704_081707.nc
+    - SWOT_GPS_2PdP510_018_20220704_070707_20220704_081707.nc
+    granule_type: Pass
     tar_content: []
     mission: SWOT
     Nature: Product
+    FileIdentifier:
+    - N
+    - R
+    - S
     metadata:
     - ProductVersion
     - CycleID
@@ -15,12 +21,10 @@ L2_NALT_OGDR:
     - StartDateTime
     - EndDateTime
     simu_method:
-        directory: swot/l2_nalt_ogdr
-        file_size:
-            N: 13mo
-            R: 800ko
+        directory: swot/l2_nalt_gdr
+        file_size: 60mo
         has_path_by_date: false
-        name: from_tm
+        name: product
     CHRONOS:
         geode_sync_duration: 6m
         has_path_by_date: false
@@ -37,9 +41,9 @@ L2_NALT_OGDR:
         SDS_filter: All
         REGARDS_notified: 'True'
         REGARDS_queue: geode.regards.notification
-        REGARDS_filter: isSentToJPL
+        REGARDS_filter: isValid / isSentToJPL
         is_datalake: 'True'
         is_archived: 'True'
         is_distributed: 'True'
-    real_path: traitement/swot/l2_nalt_ogdr
+    real_path: traitement/swot/l2_nalt_gdr
     NASorGPFS: GPFS
