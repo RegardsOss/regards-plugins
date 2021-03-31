@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
+import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
@@ -96,6 +97,14 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
         return Try.of(() -> catalogSearchService.<DataObject>search(crit, SearchType.DATAOBJECTS, null, pageable))
             .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));
+    }
+
+    @Override
+    public Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator) {
+        List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
+        return Try.of(() -> UniformResourceName.fromString(itemId))
+            .mapTry(urn -> (DataObject)catalogSearchService.get(urn))
+            .flatMap(dataobject -> itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, dataobject));
     }
 
     private Try<ItemCollectionResponse> extractItemCollection(

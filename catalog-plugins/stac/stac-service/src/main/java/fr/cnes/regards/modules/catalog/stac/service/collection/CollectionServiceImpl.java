@@ -32,7 +32,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.RestDynCollValSerdeService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -67,7 +66,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     private final ConfigurationAccessorFactory configurationAccessorFactory;
     private final DynamicCollectionService dynCollService;
     private final DynCollValNextSublevelHelper sublevelHelper;
-    private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final ItemSearchBodyFactory itemSearchBodyFactory;
     private final ItemSearchService itemSearchService;
 
@@ -76,14 +74,12 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             ConfigurationAccessorFactory configurationAccessorFactory,
             DynamicCollectionService dynCollService,
             DynCollValNextSublevelHelper sublevelHelper,
-            RestDynCollValSerdeService restDynCollValSerdeService,
             ItemSearchBodyFactory itemSearchBodyFactory,
             ItemSearchService itemSearchService
     ) {
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
         this.sublevelHelper = sublevelHelper;
-        this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
     }

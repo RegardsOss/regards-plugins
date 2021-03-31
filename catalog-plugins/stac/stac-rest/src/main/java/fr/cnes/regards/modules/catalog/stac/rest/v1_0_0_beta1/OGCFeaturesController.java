@@ -37,11 +37,9 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationA
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,8 +57,7 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 @RestController
 @RequestMapping(
         path = STAC_COLLECTIONS_PATH,
-        produces = APPLICATION_JSON,
-        consumes = APPLICATION_JSON
+        produces = APPLICATION_JSON
 )
 public class OGCFeaturesController implements TryToResponseEntity {
 
@@ -176,14 +173,7 @@ public class OGCFeaturesController implements TryToResponseEntity {
     ) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
-
-        Try<Item> result = itemSearchBodyFactory.parseItemSearch(
-                1, null, null,
-                List.of(collectionId), List.of(featureId),
-                null, null, null
-            )
-            .flatMap(isb -> itemSearchService.search(isb, 0, linkCreator, SearchPageLinkCreator.USELESS))
-            .flatMap(isr -> isr.getFeatures().headOption().toTry());
+        Try<Item> result = itemSearchService.searchById(featureId, linkCreator);
         return toResponseEntity(result);
     }
 }

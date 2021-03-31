@@ -63,7 +63,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicCollectionServiceImpl.class);
 
     public static final String DEFAULT_DYNAMIC_ID = "dynamic";
-    public static final int MAX_ITEMS_IN_DYNAMIC_COLLECTION = 10_000;
+    public static final int MAX_ITEMS_IN_DYNAMIC_COLLECTION = 100;
 
     private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final DynCollLevelDefParser dynCollLevelDefParser;
@@ -185,7 +185,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             return new Collection(
                 StacSpecConstants.Version.STAC_SPEC_VERSION,
                 extensions,
-                val.toLabel(),
+                val.getLowestLevelLabel(),
                 representDynamicCollectionsValueAsURN(val),
                 val.toLabel(),
                 baseLinks.appendAll(childLinks),

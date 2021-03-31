@@ -20,7 +20,6 @@
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
@@ -62,18 +61,15 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     
     private final StacGeoHelper geoHelper;
     private final ConfigurationAccessorFactory configurationAccessorFactory;
-    private final IRuntimeTenantResolver runtimeTenantResolver;
     private final UriParamAdder uriParamAdder;
 
     public RegardsFeatureToStacItemConverterImpl(
             StacGeoHelper geoHelper,
             ConfigurationAccessorFactory configurationAccessorFactory,
-            IRuntimeTenantResolver runtimeTenantResolver,
             UriParamAdder uriParamAdder
     ) {
         this.geoHelper = geoHelper;
         this.configurationAccessorFactory = configurationAccessorFactory;
-        this.runtimeTenantResolver = runtimeTenantResolver;
         this.uriParamAdder = uriParamAdder;
     }
 
@@ -158,7 +154,6 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     }
 
     private List<Link> extractLinks(String itemId, String collection, OGCFeatLinkCreator linkCreator) {
-        String tenant = runtimeTenantResolver.getTenant();
         return List.of(
             linkCreator.createRootLink(),
             linkCreator.createCollectionLink(collection, "Item collection"),

@@ -54,8 +54,7 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 @RestController
 @RequestMapping(
         path = STAC_SEARCH_PATH,
-        produces = APPLICATION_JSON,
-        consumes = APPLICATION_JSON
+        produces = APPLICATION_JSON
 )
 public class ItemSearchController implements TryToResponseEntity {
 

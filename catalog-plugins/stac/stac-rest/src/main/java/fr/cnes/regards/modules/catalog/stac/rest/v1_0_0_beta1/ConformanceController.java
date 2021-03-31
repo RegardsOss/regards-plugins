@@ -45,8 +45,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
 @RestController
 @RequestMapping(
         path = StacApiConstants.STAC_CONFORMANCE_PATH,
-        produces = APPLICATION_JSON,
-        consumes = APPLICATION_JSON
+        produces = APPLICATION_JSON
 )
 public class ConformanceController implements TryToResponseEntity {
 
