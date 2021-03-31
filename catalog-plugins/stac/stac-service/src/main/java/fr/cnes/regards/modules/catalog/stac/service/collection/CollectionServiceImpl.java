@@ -31,6 +31,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
@@ -68,6 +69,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     private final DynCollValNextSublevelHelper sublevelHelper;
     private final ItemSearchBodyFactory itemSearchBodyFactory;
     private final ItemSearchService itemSearchService;
+    private final IStaticCollectionService staticCollectionService;
 
     @Autowired
     public CollectionServiceImpl(
@@ -75,13 +77,15 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             DynamicCollectionService dynCollService,
             DynCollValNextSublevelHelper sublevelHelper,
             ItemSearchBodyFactory itemSearchBodyFactory,
-            ItemSearchService itemSearchService
+            ItemSearchService itemSearchService,
+            IStaticCollectionService staticCollectionService
     ) {
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
         this.sublevelHelper = sublevelHelper;
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
+        this.staticCollectionService = staticCollectionService;
     }
 
     @Override
@@ -147,6 +151,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     }
 
     private List<Collection> staticCollections(OGCFeatLinkCreator linkCreator) {
+
         return List.empty(); // TODO
     }
 
@@ -197,8 +202,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                     .flatMap(dcv -> dynCollService.buildCollection(dcv, linkCreator, config));
         }
         else {
-            // TODO: fetch static collection
-            return null;
+            return staticCollectionService.convertRequest(collectionId, linkCreator, config);
         }
     }
 

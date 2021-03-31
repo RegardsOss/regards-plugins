@@ -11,7 +11,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.service.RegardsStacCollectionConverter.IRegardsStacCollectionConverter;
+import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -59,13 +59,13 @@ import static org.mockito.Mockito.when;
 public class RegardsStacCollectionConverterTest{
 
     @Configuration
-    @ComponentScan(basePackageClasses = {IRegardsStacCollectionConverter.class})
+    @ComponentScan(basePackageClasses = {IStaticCollectionService.class})
     public static class ScanningConfiguration {
 
     }
 
     @Autowired
-    IRegardsStacCollectionConverter converter;
+    IStaticCollectionService converter;
 
     @MockBean
     private CatalogSearchService catalogSearchService;
@@ -124,7 +124,9 @@ public class RegardsStacCollectionConverterTest{
         when(value.getStacProperties()).thenReturn(List.of(stacProperty));
         when(configurationAccessorFactory.makeConfigurationAccessor()).thenReturn(value);
 
-        Try<Collection> collections = converter.convertRequest("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-34eb0a15a4e2:V1");
+        Try<Collection> collections = converter.convertRequest("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-34eb0a15a4e2:V1",
+                null,
+                null);
         assertThat(collections.isSuccess(), is(true));
 
         assertThat(collections.get().getTitle(), is(collection.getLabel()));
