@@ -10,11 +10,17 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.indexer.dao.FacetPage;
+import fr.cnes.regards.modules.indexer.domain.SearchKey;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
@@ -26,6 +32,7 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.range.ParsedDateRange;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.jeasy.random.EasyRandom;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.locationtech.spatial4j.context.SpatialContext;
@@ -33,10 +40,12 @@ import org.locationtech.spatial4j.context.SpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,8 +64,8 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles({"test"})
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ContextConfiguration(classes = { RegardsStacCollectionConverterTest.ScanningConfiguration.class })
-public class RegardsStacCollectionConverterTest{
+@ContextConfiguration(classes = {RegardsStacCollectionConverterTest.ScanningConfiguration.class})
+public class RegardsStacCollectionConverterTest {
 
     @Configuration
     @ComponentScan(basePackageClasses = {IStaticCollectionService.class})
@@ -74,7 +83,7 @@ public class RegardsStacCollectionConverterTest{
     private ConfigurationAccessorFactory configurationAccessorFactory;
 
 
-    private fr.cnes.regards.modules.dam.domain.entities.Collection generateRandomDamCollection(){
+    private fr.cnes.regards.modules.dam.domain.entities.Collection generateRandomDamCollection() {
         EasyRandom easyRandom = new EasyRandom();
         String label = easyRandom.nextObject(String.class);
         String perf = easyRandom.nextObject(String.class);
@@ -109,7 +118,7 @@ public class RegardsStacCollectionConverterTest{
         ConfigurationAccessor value = Mockito.mock(ConfigurationAccessor.class);
         when(value.getGeoJSONReader()).thenReturn(new GeoJSONReader(SpatialContext.GEO, Mockito.mock(SpatialContextFactory.class)));
         when(value.getKeywords(anyString())).thenReturn(List.of("keywords"));
-        when(value.getProviders(anyString())).thenReturn(List.of(new Provider("prov", "desc", new URL("http","localhost",1234,"file"), List.of(Provider.ProviderRole.HOST))));
+        when(value.getProviders(anyString())).thenReturn(List.of(new Provider("prov", "desc", new URL("http", "localhost", 1234, "file"), List.of(Provider.ProviderRole.HOST))));
         when(value.getLicense(anyString())).thenReturn("licence");
         StacProperty stacProperty = new StacProperty(
                 Mockito.mock(RegardsPropertyAccessor.class),
@@ -134,6 +143,21 @@ public class RegardsStacCollectionConverterTest{
         assertThat(collections.get().getDescription(), is(collection.getModel().getDescription()));
     }
 
+    @Test
+    public void testGetParentCollectionIds() throws SearchException, OpenSearchUnknownParameter {
+        fr.cnes.regards.modules.dam.domain.entities.Collection collectResult = generateRandomDamCollection();
+
+        when(catalogSearchService.search(any(ICriterion.class),
+                any(SearchKey.class),
+                (java.util.List<String>) any(List.class),
+                any(Pageable.class)))
+                .thenReturn(new FacetPage(List.of(collectResult).asJava(), null, null, 1L));
+        Try<List<UniformResourceName>> parentCollectionsId =
+                converter.getParentCollectionsId("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-34eb0a15a4e2:V1");
+
+        Assert.assertTrue(parentCollectionsId.isSuccess());
+        Assert.assertEquals(collectResult.getIpId(), parentCollectionsId.get().get(0));
+    }
 
 
 }

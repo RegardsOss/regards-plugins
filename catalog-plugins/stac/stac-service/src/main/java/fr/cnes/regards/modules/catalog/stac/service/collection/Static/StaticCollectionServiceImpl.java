@@ -163,6 +163,12 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         });
     }
 
+    @Override
+    public Try<List<UniformResourceName>> getParentCollectionsId(String urn) {
+
+        return null;
+    }
+
     @NotNull
     private List<Link> getItemsLinks(List<AbstractEntity> filterItem, UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
 

@@ -18,9 +18,11 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
 
+import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import io.vavr.collection.List;
 import io.vavr.control.Try;
 
 
@@ -37,4 +39,11 @@ public interface IStaticCollectionService {
      * @return the stac collection
      */
     Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
+
+    /**
+     * Get parents collections ids
+     * @param urn Current collection id
+     * @return List of parents collections ids
+     */
+    Try<List<UniformResourceName>> getParentCollectionsId(String urn);
 }
