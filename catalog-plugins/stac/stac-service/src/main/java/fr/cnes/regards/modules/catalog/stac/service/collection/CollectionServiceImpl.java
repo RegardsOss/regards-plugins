@@ -138,15 +138,15 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     public Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator,ConfigurationAccessor config) {
         String name = config.getRootStaticCollectionName();
         return new Collection(
-                StacSpecConstants.Version.STAC_SPEC_VERSION,
-                List.empty(),
-                name, DEFAULT_STATIC_ID, "Static collections",
-                staticCollectionLinks(linkCreator),
-                List.empty(),
-                "",
-                List.empty(),
-                Extent.maximalExtent(), // no extent at this level
-                HashMap.empty() // no summaries at this level
+            StacSpecConstants.Version.STAC_SPEC_VERSION,
+            List.empty(),
+            name, DEFAULT_STATIC_ID, "Static collections",
+            staticCollectionLinks(linkCreator),
+            List.empty(),
+            "",
+            List.empty(),
+            Extent.maximalExtent(), // no extent at this level
+            HashMap.empty() // no summaries at this level
         );
     }
 
@@ -218,24 +218,34 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     ) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
-        // TODO: items for static collections
+        final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId)
+            ? getDynCollItemSearchBody(collectionId, limit, bbox, datetime, config)
+            : getCollectionItemSearchBody(limit, bbox, datetime, List.of(collectionId));
 
+        return tryIsb
+            .flatMap(isb -> itemSearchService.search(isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)));
+    }
 
+    public Try<ItemSearchBody> getDynCollItemSearchBody(
+            String collectionId,
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            ConfigurationAccessor config
+    ) {
         return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
-            .flatMap(val -> itemSearchBodyFactory
-                .parseItemSearch(
-                    limit, bbox, datetime, null,
-                    null, null, null, null
-                )
-                .map(isb ->
-                    isb.withQuery(dynCollService.toItemSearchBody(val).getQuery())
-                )
-            )
-            .flatMap(isb ->
-                itemSearchService.search(
-                    isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
-                )
-            );
+                .flatMap(val -> getCollectionItemSearchBody(limit, bbox, datetime, null)
+                        .map(isb -> isb.withQuery(dynCollService.toItemSearchBody(val).getQuery()))
+                );
+    }
+
+    public Try<ItemSearchBody> getCollectionItemSearchBody(
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            List<String> collections
+    ) {
+        return itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, null, null, null, null);
     }
 
 
