@@ -26,20 +26,17 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelDefParser;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelValToQueryObjectConverter;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
-import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -69,7 +66,6 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
     private final DynCollLevelDefParser dynCollLevelDefParser;
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
     private final DynCollValNextSublevelHelper nextSublevelHelper;
-    private final ItemSearchService itemSearchService;
     private final StacSearchCriterionBuilder criterionBuilder;
     private final ExtentSummaryService extentSummaryService;
     private final EsAggregagtionHelper aggregagtionHelper;
@@ -80,7 +76,6 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             DynCollLevelDefParser dynCollLevelDefParser,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             DynCollValNextSublevelHelper nextSublevelHelper,
-            ItemSearchService itemSearchService,
             StacSearchCriterionBuilder criterionBuilder,
             ExtentSummaryService extentSummaryService,
             EsAggregagtionHelper aggregagtionHelper
@@ -89,7 +84,6 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
         this.dynCollLevelDefParser = dynCollLevelDefParser;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.nextSublevelHelper = nextSublevelHelper;
-        this.itemSearchService = itemSearchService;
         this.criterionBuilder = criterionBuilder;
         this.extentSummaryService = extentSummaryService;
         this.aggregagtionHelper = aggregagtionHelper;
@@ -157,8 +151,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             Map<String, Object> summary = extentSummaryService.extractSummary(aggsMap);
 
             if (val.isFullyValued()) {
-                return itemSearchService.search(itemSearchBody, 0, linkCreator, SearchPageLinkCreator.USELESS)
-                    .flatMap(icr -> createCollectionFrom(val, extent, summary, baseLinks, createItemLinks(icr.getFeatures(), selfUrn, linkCreator)));
+                return createCollectionFrom(val, extent, summary, baseLinks, createItemsLink(selfUrn, linkCreator));
             }
             else {
                 List<DynCollVal> nextVals = nextSublevelHelper.nextSublevels(val);
@@ -203,9 +196,9 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             .flatMap(val -> linkCreator.createCollectionLinkWithRel(representDynamicCollectionsValueAsURN(val), val.toLabel(), CHILD));
     }
 
-    private List<Link> createItemLinks(List<Item> features, String selfUrn, OGCFeatLinkCreator linkCreator) {
-        return features
-            .flatMap(item -> linkCreator.createItemLinkWithRel(selfUrn, item.getId(), ITEM).onFailure(t -> LOGGER.error(t.getMessage(), t)));
+    private List<Link> createItemsLink(String selfUrn, OGCFeatLinkCreator linkCreator) {
+        return List.of(linkCreator.createCollectionItemsLinkWithRel(selfUrn, ITEMS))
+            .flatMap(t -> t);
     }
 
     private Option<Link> getParentLink(DynCollVal val, OGCFeatLinkCreator linkCreator) {

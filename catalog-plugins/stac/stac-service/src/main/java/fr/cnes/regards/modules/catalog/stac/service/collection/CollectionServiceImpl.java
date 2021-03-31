@@ -206,6 +206,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     public Try<ItemCollectionResponse> getItemsForCollection(
             String collectionId,
             Integer limit,
+            Integer page,
             BBox bbox,
             String datetime,
             OGCFeatLinkCreator ogcFeatLinkCreator,
@@ -213,10 +214,13 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     ) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
+        // TODO: items for static collections
+
+
         return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
             .flatMap(val -> itemSearchBodyFactory
                 .parseItemSearch(
-                    limit, bbox, datetime, List.of(collectionId),
+                    limit, bbox, datetime, null,
                     null, null, null, null
                 )
                 .map(isb ->
@@ -225,7 +229,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             )
             .flatMap(isb ->
                 itemSearchService.search(
-                    isb, 0, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
+                    isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
                 )
             );
     }

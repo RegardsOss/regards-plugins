@@ -143,16 +143,18 @@ public class OGCFeaturesController implements TryToResponseEntity {
             @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
-            @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime
+            @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
     ) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         return toResponseEntity(collectionService.getItemsForCollection(
                 collectionId,
                 limit,
+                page,
                 bbox,
                 datetime,
                 linker.makeOGCFeatLinkCreator(auth),
-                isb -> linker.makeSearchPageLinkCreator(auth, 0, isb)
+                isb -> linker.makeSearchPageLinkCreator(auth, page, isb)
         ));
     }
 

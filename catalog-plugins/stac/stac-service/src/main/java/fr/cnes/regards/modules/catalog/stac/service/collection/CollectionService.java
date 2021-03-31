@@ -59,6 +59,7 @@ public interface CollectionService {
     Try<ItemCollectionResponse> getItemsForCollection(
         String collectionId,
         Integer limit,
+        Integer page,
         BBox bbox,
         String datetime,
         OGCFeatLinkCreator ogcFeatLinkCreator,

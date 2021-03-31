@@ -11,7 +11,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.Stri
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
-import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelperImpl;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
