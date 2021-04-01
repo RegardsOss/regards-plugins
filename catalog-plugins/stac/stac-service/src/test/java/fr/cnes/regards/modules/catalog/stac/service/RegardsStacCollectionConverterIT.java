@@ -19,6 +19,7 @@ import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
 import fr.cnes.regards.modules.model.domain.Model;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.junit.After;
@@ -83,6 +84,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         }
         Assert.assertTrue( repository.createIndex(ITEMSTENANT));
 
+        UniformResourceName urnParentCollection = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.COLLECTION, ITEMSTENANT,
+                UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5680"), 1, null,
+                null);
         // Creations for first two
         Model model1 = new Model();
         Model collectionModel = new Model();
@@ -96,7 +100,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
 
         collection.setId(1L);
-        collection.setTags(Sets.newHashSet("TEST collection"));
+        collection.setTags(Sets.newHashSet("TEST collection", urnParentCollection.toString()));
         collection.setLabel("toto");
         UniformResourceName collectionUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.COLLECTION, ITEMSTENANT,
                 UUID.fromString("80282ac5-1b01-4e9d-a356-123456789012"), 1, null,
@@ -161,27 +165,55 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject3.setNormalizedGeometry(GeoHelper.normalize(point3));
         dataObject3.getFeature().setGeometry(GeoHelper.normalize(point3));
         dataObject3.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
+        DataObject dataObject4 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+
+        GeoPoint do4SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
+        GeoPoint do4NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
+        dataObject4.setId(2L);
+
+        dataObject4.setIpId(urnParentCollection);
+        dataObject4.setCreationDate(offsetDateTimeTo);
+        dataObject4.setSePoint(do4SePoint);
+        dataObject4.setNwPoint(do4NwPoint);
+        dataObject4.setTags(Sets.newHashSet(collectionUniformResourceName.toString()));
+        dataObject4.setLabel("korcula");
+        Point point4 = IGeometry.point(17.138151798412633, 42.95009340967441);
+        dataObject4.setWgs84(GeoHelper.normalize(point4));
+        dataObject4.setNormalizedGeometry(GeoHelper.normalize(point4));
+        dataObject4.getFeature().setGeometry(GeoHelper.normalize(point4));
+        dataObject4.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
 
         when(linkCreator.createRootLink())
-                .thenAnswer(i -> Try.success(uri("/root"))
+                .thenAnswer(i -> Option.of(uri("/root"))
                         .map(uri -> new Link(uri, ROOT, "", "")));
         when(linkCreator.createCollectionLink(anyString(), anyString()))
-                .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
+                .thenAnswer(i -> Option.of(uri("/collection/" + i.getArgument(0)))
                         .map(uri -> new Link(uri, COLLECTION, "", "")));
         when(linkCreator.createItemLink(anyString(), anyString()))
-                .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                         .map(uri -> new Link(uri, SELF, "", "")));
+        when(linkCreator.createCollectionItemsLinkWithRel(anyString(), anyString()))
+                .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                        .map(uri -> new Link(uri, SELF, "", "")).map(x -> x.withRel("item")));
 
         when(linkCreator.createCollectionLinkWithRel(anyString(), anyString(), anyString()))
-                .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
-                        .map(uri -> new Link(uri, COLLECTION, "", "")).map(l -> l.withRel("child")));
+                .thenAnswer(i -> {
+                    if (i.getArgument(2).equals("child")) {
+                        return Option.of(uri("/collection/" + i.getArgument(0)))
+                                .map(uri -> new Link(uri, COLLECTION, "", "")).map(l -> l.withRel("child"));
+                    }
 
+                    return Option.of(uri("/collection/" + i.getArgument(0)))
+                            .map(uri -> new Link(uri, COLLECTION, "", "")).map(l -> l.withRel("parent"));
+
+                });
 
         repository.save(ITEMSTENANT, collection);
         repository.save(ITEMSTENANT, dataObject1);
         repository.save(ITEMSTENANT, dataObject2);
         repository.save(ITEMSTENANT, dataObject3);
+        repository.save(ITEMSTENANT, dataObject4);
         repository.refresh(ITEMSTENANT);
 
     }
@@ -224,10 +256,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals("toto", result.get().getTitle());
         Assert.assertEquals("1", result.get().getId());
 
-        Assert.assertEquals(4, result.get().getLinks().length());
-        Assert.assertTrue(result.get().getLinks().filter(x -> "child".equals(x.getRel())).length() == 1);
-        Assert.assertTrue(result.get().getLinks().filter(x -> "item".equals(x.getRel())).length() == 2);
-        Assert.assertTrue(result.get().getLinks().filter(x -> "root".equals(x.getRel())).length() == 1);
+        Assert.assertEquals(3, result.get().getLinks().length());
+//        Assert.assertEquals(1, result.get().getLinks().count(x -> "child".equals(x.getRel())));
+        Assert.assertEquals(1, result.get().getLinks().count(x -> "item".equals(x.getRel())));
+        Assert.assertEquals(1,result.get().getLinks().count(x -> "root".equals(x.getRel())));
+        Assert.assertEquals(1, result.get().getLinks().count(x -> "parent".equals(x.getRel())));
 
     }
 

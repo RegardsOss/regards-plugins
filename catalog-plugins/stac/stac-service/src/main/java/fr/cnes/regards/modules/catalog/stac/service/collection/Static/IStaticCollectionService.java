@@ -39,11 +39,4 @@ public interface IStaticCollectionService {
      * @return the stac collection
      */
     Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
-
-    /**
-     * Get parents collections ids
-     * @param urn Current collection id
-     * @return List of parents collections ids
-     */
-    Try<List<UniformResourceName>> getParentCollectionsId(String urn);
 }

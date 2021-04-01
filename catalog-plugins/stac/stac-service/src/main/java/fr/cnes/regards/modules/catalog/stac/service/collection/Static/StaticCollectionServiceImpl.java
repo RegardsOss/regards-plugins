@@ -17,9 +17,11 @@ import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.Searches;
+import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
+import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
@@ -144,8 +146,11 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
             List<AbstractEntity> children = getSubCollectionsOrDatasets(urn, EntityType.COLLECTION)
                     .appendAll(getSubCollectionsOrDatasets(urn, EntityType.DATASET));
 
+            List<Link> parentCollectionId = getParentCollectionId(urn, linkCreator);
+
             links = List.of(
                 linkCreator.createRootLink(),
+                parentCollectionId,
                 getItemsLinks(resourceName, linkCreator),
                 children.flatMap(child ->
                     linkCreator.createCollectionLinkWithRel(
@@ -181,4 +186,26 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return List.ofAll(subCollections.getContent());
     }
 
+    private List<Link> getParentCollectionId(String urn, OGCFeatLinkCreator linkCreator) throws SearchException, OpenSearchUnknownParameter {
+        List<UniformResourceName> parentCollectionsId = getParentCollectionsId(urn);
+
+        return parentCollectionsId.map(x ->
+                linkCreator.createCollectionLinkWithRel(x.toString(), "", "parent"))
+                .flatMap(t -> t);
+    }
+
+    private List<UniformResourceName> getParentCollectionsId(String urn) throws SearchException, OpenSearchUnknownParameter {
+
+            ICriterion tags = ICriterion.contains("ipId", urn);
+            List<UniformResourceName> uniformResourceNames = List.of(catalogSearchService.search(tags,
+                    Searches.onSingleEntity(EntityType.COLLECTION),
+                    null,
+                    PageRequest.of(0, 100)))
+                    .map(x -> x.getContent())
+                    .flatMap(x -> x)
+                    .map(AbstractEntity::getIpId);
+
+            return List.ofAll(uniformResourceNames.asJava());
+
+    }
 }
