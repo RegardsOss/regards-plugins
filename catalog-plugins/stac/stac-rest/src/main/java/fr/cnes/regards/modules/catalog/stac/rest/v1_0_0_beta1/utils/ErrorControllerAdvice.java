@@ -25,6 +25,8 @@ import fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationI
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -63,13 +65,20 @@ public class ErrorControllerAdvice {
                     e.getMessage(),
                     OffsetDateTime.now()
                 ),
+                headers(),
                 e.getType().getStatus()
         );
     }
 
-    @ExceptionHandler(Exception.class)
+    public HttpHeaders headers() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
+    @ExceptionHandler(Throwable.class)
     @ResponseBody
-    public ResponseEntity<ErrorStructure> formatError(Exception e) {
+    public ResponseEntity<ErrorStructure> formatError(Throwable e) {
         UUID cid = StacRequestCorrelationId.currentCId();
         error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
         return new ResponseEntity<>(
@@ -79,6 +88,7 @@ public class ErrorControllerAdvice {
                 e.getMessage(),
                 OffsetDateTime.now()
             ),
+            headers(),
             StacFailureType.UNKNOWN.getStatus()
         );
     }
