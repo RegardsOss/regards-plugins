@@ -46,6 +46,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
         ;
 
         public static PercentageBase parsePercentageBase(String format) {
+            if (format == null) { return HUNDRED; }
             return trying(() -> PercentageBase.valueOf(format.trim()))
                 .onFailure(t -> warn(LOGGER, "Failed to parse percentage base: {}", format))
                 .getOrElse(PercentageBase.HUNDRED);
