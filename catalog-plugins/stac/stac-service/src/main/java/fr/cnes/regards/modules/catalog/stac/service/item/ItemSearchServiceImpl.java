@@ -50,6 +50,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.ASC;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 import static org.springframework.data.domain.Sort.Order.asc;
 import static org.springframework.data.domain.Sort.Order.desc;
 
@@ -91,19 +95,21 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     ) {
         List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
         ICriterion crit = critBuilder.buildCriterion(stacProperties, itemSearchBody).getOrElse(ICriterion.all());
-        LOGGER.debug("Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
+        debug(LOGGER, "Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
 
         Pageable pageable = pageable(itemSearchBody, page, stacProperties);
 
-        return Try.of(() -> catalogSearchService.<DataObject>search(crit, SearchType.DATAOBJECTS, null, pageable))
+        return trying(() -> catalogSearchService.<DataObject>search(crit, SearchType.DATAOBJECTS, null, pageable))
+            .mapFailure(SEARCH, () -> format("Search failure for page %d of %s", page, itemSearchBody))
             .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));
     }
 
     @Override
     public Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator) {
         List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
-        return Try.of(() -> UniformResourceName.fromString(itemId))
-            .mapTry(urn -> (DataObject)catalogSearchService.get(urn))
+        return trying(() -> UniformResourceName.fromString(itemId))
+            .map(urn -> (DataObject)catalogSearchService.get(urn))
+            .mapFailure(SEARCH_ITEM, () -> format("Search failure on item id %s", itemId))
             .flatMap(dataobject -> itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, dataobject));
     }
 
@@ -113,11 +119,11 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             OGCFeatLinkCreator featLinkCreator,
             SearchPageLinkCreator searchPageLinkCreator
     ) {
-        return Try.of(() -> {
+        return trying(() -> {
             ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(
-                    facetPage.getNumberOfElements(),
-                    facetPage.getPageable().getPageSize(),
-                    facetPage.getTotalElements()
+                facetPage.getNumberOfElements(),
+                facetPage.getPageable().getPageSize(),
+                facetPage.getTotalElements()
             );
             ItemCollectionResponse response = new ItemCollectionResponse(
                 SEARCH_EXTENSIONS,
@@ -126,7 +132,11 @@ public class ItemSearchServiceImpl implements ItemSearchService {
                 context
             );
             return response.withLinks(extractLinks(searchPageLinkCreator, response));
-        });
+        })
+        .mapFailure(
+            ITEMCOLLECTIONRESPONSE_CONSTRUCTION,
+            () -> "Failed to create ItemCollectionResponse"
+        );
     }
 
     private List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, ItemCollectionResponse response) {

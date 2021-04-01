@@ -27,13 +27,15 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Base implementation for {@link DynCollLevelValToQueryObjectConverter}.
@@ -45,7 +47,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
 
     @Override
     public Option<Tuple2<String, ItemSearchBody.QueryObject>> toQueryObject(DynCollLevelVal levelVal) {
-        return Try.of(() -> {
+        return trying(() -> {
             DynCollLevelDef<?> definition = levelVal.getDefinition();
             String stacPropertyName = definition.getStacProperty().getStacPropertyName();
             if (definition instanceof ExactValueLevelDef) {
@@ -64,7 +66,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
                 throw new NotImplementedException("Unknown level def type: " + definition.getClass().getName());
             }
         })
-        .onFailure(t -> LOGGER.warn("Failed to create query object from levelVal: {}", levelVal, t))
+        .onFailure(t -> warn(LOGGER, "Failed to create query object from levelVal: {}", levelVal, t))
         .toOption();
 
     }

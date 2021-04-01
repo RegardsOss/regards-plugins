@@ -34,7 +34,7 @@ import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.domain.plugin.*;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -163,7 +163,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
 
         OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(auth);
         SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(auth, 0, ItemSearchBody.builder().limit(100).build());
-        Try<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
+        Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
         return io.vavr.collection.List.of(
                 collectionsLink.map(href -> new Link(href, "search-collections")),
                 collectionsLink.map(href -> new Link(href, "search-datasets")),

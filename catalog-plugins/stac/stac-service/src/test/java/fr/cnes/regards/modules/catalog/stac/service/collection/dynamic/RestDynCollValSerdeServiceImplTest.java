@@ -28,9 +28,9 @@ public class RestDynCollValSerdeServiceImplTest implements GsonAwareTest, Random
             .forEach(i -> {
                 RestDynCollVal value = randomInstance(RestDynCollVal.class);
                 String json = gson.toJson(value);
-                //LOGGER.info("value={}", json);
+                //info(LOGGER, "value={}", json);
                 String urn = service.toUrn(value);
-                //LOGGER.info("\n\tvalues={}\n\turn={}", value, urn);
+                //info(LOGGER, "\n\tvalues={}\n\turn={}", value, urn);
                 System.out.println(urn);
                 assertThat(urn).startsWith(URN_PREFIX);
                 assertThat(service.isListOfDynCollLevelValues(urn)).isTrue();

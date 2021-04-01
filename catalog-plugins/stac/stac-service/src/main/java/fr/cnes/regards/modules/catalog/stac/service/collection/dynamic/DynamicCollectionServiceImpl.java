@@ -49,7 +49,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static java.lang.String.format;
 
 /**
  * Base implementation for {@link DynamicCollectionService}.
@@ -132,7 +135,7 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
             OGCFeatLinkCreator linkCreator,
             ConfigurationAccessor config
     ) {
-        return Try.of(() -> {
+        return trying(() -> {
             String selfUrn = representDynamicCollectionsValueAsURN(val);
             List<Link> baseLinks = List.of(
                 linkCreator.createRootLink(),
@@ -158,37 +161,37 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
                 return createCollectionFrom(val, extent, summary, baseLinks, createChildLinks(nextVals, linkCreator));
             }
         })
-        .flatMap(t -> t)
-        .onFailure(t -> LOGGER.error("Failed to generate collection for {}", val, t));
+        .mapFailure(
+            COLLECTION_CONSTRUCTION,
+            () -> format("Failed to build dynamic collection for %s", val)
+        );
     }
 
-    private Try<Collection> createCollectionFrom(
+    private Collection createCollectionFrom(
             DynCollVal val,
             Extent extent,
             Map<String, Object> summary,
             List<Link> baseLinks,
             List<Link> childLinks
     ) {
-        return Try.of(() -> {
-            List<String> extensions = List.empty();
-            List<String> keywords = List.empty();
-            String license = "";
-            List<Provider> providers = List.empty();
+        List<String> extensions = List.empty();
+        List<String> keywords = List.empty();
+        String license = "";
+        List<Provider> providers = List.empty();
 
-            return new Collection(
-                StacSpecConstants.Version.STAC_SPEC_VERSION,
-                extensions,
-                val.getLowestLevelLabel(),
-                representDynamicCollectionsValueAsURN(val),
-                val.toLabel(),
-                baseLinks.appendAll(childLinks),
-                keywords,
-                license,
-                providers,
-                extent,
-                summary
-            );
-        });
+        return new Collection(
+            StacSpecConstants.Version.STAC_SPEC_VERSION,
+            extensions,
+            val.getLowestLevelLabel(),
+            representDynamicCollectionsValueAsURN(val),
+            val.toLabel(),
+            baseLinks.appendAll(childLinks),
+            keywords,
+            license,
+            providers,
+            extent,
+            summary
+        );
     }
 
     private List<Link> createChildLinks(List<DynCollVal> nextVals, OGCFeatLinkCreator linkCreator) {

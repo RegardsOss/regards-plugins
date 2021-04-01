@@ -26,7 +26,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroi
 import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
@@ -40,6 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Provides utilities to compute geometry-related values.
@@ -70,9 +73,9 @@ public class StacGeoHelper {
     }
 
     public Option<Tuple3<IGeometry, BBox, Centroid>> computeBBoxCentroid(IGeometry geometry, GeoJSONReader reader) {
-        return Try.of(() -> {
+        return trying(() -> {
             String json = putTypeInFirstPosition(gson.toJson(geometry));
-            LOGGER.debug("\n\tGeometry: {}\n\tJSON: {}", geometry, json);
+            debug(LOGGER, "\n\tGeometry: {}\n\tJSON: {}", geometry, json);
 
             Shape shape = reader.read(json);
 
@@ -89,7 +92,7 @@ public class StacGeoHelper {
 
             return Tuple.of(geometry, bbox, centroid);
         })
-        .onFailure(t -> LOGGER.warn("Could not create BBox for geometry {}", geometry, t))
+        .onFailure(t -> warn(LOGGER, "Could not create BBox for geometry {}", geometry, t))
         .toOption();
     }
 

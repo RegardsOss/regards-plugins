@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+
 /**
  * Build criteria from query objects.
  */
@@ -71,7 +73,7 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
                 .buildCriterion(properties, (StringQueryObject)queryObject);
         }
         else {
-            LOGGER.warn("Unknown type for QueryObject: {}, ignoring query field {}",
+            warn(LOGGER, "Unknown type for QueryObject: {}, ignoring query field {}",
                 queryObject.getClass(),
                 stacPropName
             );

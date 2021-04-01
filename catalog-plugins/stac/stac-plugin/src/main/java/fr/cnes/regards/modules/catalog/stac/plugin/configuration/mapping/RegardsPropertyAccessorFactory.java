@@ -49,6 +49,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.function.Function;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATAOBJECT_JSON_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
 /**
  * Allows to create {@link RegardsPropertyAccessor} instances from configured String representations of fields.
  */
@@ -86,7 +92,7 @@ public class RegardsPropertyAccessorFactory {
                 classFunctionTuple2._1
         );
 
-        LOGGER.debug("Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
+        debug(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
 
         return result;
     }
@@ -117,8 +123,8 @@ public class RegardsPropertyAccessorFactory {
         Class<?> valueType = sPropType.getValueType();
 
         Function<DataObject, Try<?>> extractFn = jsonPath
-                .map(jp -> makeJsonExtractFn(sPropType, attrName, jp))
-                .getOrElse(() -> makeExtractFn(sPropType, attrName));
+            .map(jp -> makeJsonExtractFn(sPropType, attrName, jp))
+            .getOrElse(() -> makeExtractFn(sPropType, attrName));
 
         return Tuple.of(valueType, extractFn);
     }
@@ -128,10 +134,14 @@ public class RegardsPropertyAccessorFactory {
             String attrName
     ) {
         return dataObject ->
-            Try.of(() ->
-                extractValue(sPropType.getValueType(), sPropType, dataObject.getFeature().getProperty(attrName).getValue())
+            trying(() -> extractValue(
+                sPropType.getValueType(),
+                sPropType,
+                dataObject.getFeature().getProperty(attrName).getValue())
             )
-            .onFailure(t -> LOGGER.error(t.getMessage(), t));
+            .mapFailure(
+                DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
+                () -> format("Failed to extract value for %s in data object %s", attrName, dataObject.getIpId()));
     }
 
     private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, Object value) {
@@ -145,10 +155,12 @@ public class RegardsPropertyAccessorFactory {
             StacPropertyType sPropType, String attrName,
             String jsonPath
     ) {
-        return dataObject -> Try.of(() -> JsonObject.class.cast(dataObject.getFeature().getProperty(attrName).getValue()))
-                .mapTry(jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
-                .mapTry(value -> extractJsonValue(sPropType, (JsonPrimitive)value))
-                .onFailure(t -> LOGGER.error(t.getMessage(), t));
+        return dataObject -> trying(() -> JsonObject.class.cast(dataObject.getFeature().getProperty(attrName).getValue()))
+                .map(jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
+                .map(value -> extractJsonValue(sPropType, (JsonPrimitive)value))
+                .mapFailure(
+                    DATAOBJECT_JSON_EXTRACTION,
+                    () -> format("Failed to extract JSON value at %s in data object %s", jsonPath, dataObject.getIpId()));
     }
 
     @SuppressWarnings("unchecked")

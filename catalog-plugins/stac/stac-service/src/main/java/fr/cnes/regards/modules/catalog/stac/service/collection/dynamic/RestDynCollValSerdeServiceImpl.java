@@ -31,6 +31,10 @@ import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.RESTDYNCOLLVAL_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
 /**
  * Base implementation for {@link RestDynCollValSerdeService}.
  */
@@ -53,11 +57,15 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
 
     @Override
     public Try<RestDynCollVal> fromUrn(String urn) {
-        return Try.of(() -> {
+        return trying(() -> {
             String b64 = urn.replaceFirst(URN_PREFIX, "");
             String json = fromBase64(b64);
             return gson.fromJson(json, RestDynCollVal.class);
-        });
+        })
+        .mapFailure(
+            RESTDYNCOLLVAL_PARSING,
+            () -> format("Failed to parse REST dynamic collection value from %s", urn)
+        );
     }
 
     @Override

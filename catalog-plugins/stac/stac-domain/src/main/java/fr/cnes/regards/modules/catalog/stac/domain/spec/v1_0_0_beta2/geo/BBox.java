@@ -28,6 +28,8 @@ import lombok.With;
 
 import java.io.IOException;
 
+import static com.google.gson.stream.JsonToken.NULL;
+
 /**
  * Bounding box of a geometry
  */
@@ -47,6 +49,7 @@ public class BBox {
     public static class BBoxTypeAdapter extends TypeAdapter<BBox> {
         @Override
         public void write(JsonWriter out, BBox value) throws IOException {
+            if (value == null) { out.nullValue(); return; }
             out.beginArray();
             out.value(value.minX);
             out.value(value.minY);
@@ -57,6 +60,7 @@ public class BBox {
 
         @Override
         public BBox read(JsonReader in) throws IOException {
+            if (in.peek() == NULL) { in.nextNull(); return null; }
             in.beginArray();
             double minX = in.nextDouble();
             double minY = in.nextDouble();

@@ -31,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+
 /**
  * Allows to build criteria for geometries.
  *
@@ -56,7 +58,7 @@ public class GeometryCriterionBuilder implements CriterionBuilder<IGeometry> {
                     case MULTIPOLYGON:
                         return Option.of(ICriterion.or(Stream.of(((MultiPolygon)geometry).toArray()).map(ICriterion::intersectsPolygon)));
                     default:
-                        LOGGER.warn("Unsupported geometry type for STAC search criterion: {}", geometry.getType());
+                        warn(LOGGER, "Unsupported geometry type for STAC search criterion: {}", geometry.getType());
                         return Option.none();
                 }
             });

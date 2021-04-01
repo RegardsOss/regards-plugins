@@ -26,6 +26,10 @@ import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ITEMSEARCHBODY_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
 /**
  * Default impl for {@link SearchOtherPageItemBodySerdeService}.
  */
@@ -46,6 +50,10 @@ public class SearchOtherPageItemBodySerdeServiceImpl implements SearchOtherPageI
 
     @Override
     public Try<ItemSearchBody> deserialize(String repr) {
-        return Try.of(() -> gson.fromJson(fromBase64(repr), ItemSearchBody.class));
+        return trying(() -> gson.fromJson(fromBase64(repr), ItemSearchBody.class))
+            .mapFailure(
+                    ITEMSEARCHBODY_PARSING,
+                () -> format("Failed to deserialize item search body representation: %s", repr)
+            );
     }
 }

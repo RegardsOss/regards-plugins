@@ -11,6 +11,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -72,6 +73,9 @@ public class RegardsStacCollectionConverterTest{
 
     @MockBean
     private ConfigurationAccessorFactory configurationAccessorFactory;
+
+    @MockBean
+    private ExtentSummaryService extentSummaryService;
 
 
     private fr.cnes.regards.modules.dam.domain.entities.Collection generateRandomDamCollection(){

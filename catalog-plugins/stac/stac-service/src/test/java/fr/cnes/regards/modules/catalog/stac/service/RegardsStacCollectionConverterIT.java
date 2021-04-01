@@ -11,7 +11,6 @@ import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -40,6 +39,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -208,7 +208,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                         linkCreator,
                         configurationAccessorFactory.makeConfigurationAccessor())
                 .onFailure(t -> {
-                    LOGGER.error("Fail to get Collection and stats");
+                    error(LOGGER, "Fail to get Collection and stats");
                     Assert.fail();
                 });
 
@@ -218,8 +218,8 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals(17.1381517,result.get().getExtent().getSpatial().getBbox().get(0).getMaxX(), 0.0000001);
         Assert.assertEquals(42.9500934,result.get().getExtent().getSpatial().getBbox().get(0).getMinY(), 0.0000001);
 
-        Assert.assertEquals(offsetDateTimeFrom.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.get().toInstant());
-        Assert.assertEquals(offsetDateTimeTo.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._2.get().toInstant());
+        Assert.assertEquals(offsetDateTimeFrom.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.toInstant());
+        Assert.assertEquals(offsetDateTimeTo.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._2.toInstant());
 
         Assert.assertEquals("toto", result.get().getTitle());
         Assert.assertEquals("1", result.get().getId());

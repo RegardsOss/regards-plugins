@@ -25,13 +25,15 @@ import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.service.accessright.AccessRightFilter;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Base implementation for {@link StacSearchCriterionBuilder}.
@@ -87,8 +89,8 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
 
     public Function<ICriterion, Option<? extends ICriterion>> addAccessCriteria() {
         return c ->
-            Try.of(() -> accessRightFilter.addAccessRights(c))
-                .onFailure(t -> LOGGER.error("Failed to add access rights to search: {}", t.getMessage(), t))
+            trying(() -> accessRightFilter.addAccessRights(c))
+                .onFailure(t -> error(LOGGER, "Failed to add access rights to search: {}", t.getMessage(), t))
                 .toOption();
     }
 

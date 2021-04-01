@@ -50,9 +50,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTIONSRESPONSE_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
 import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
+import static java.lang.String.format;
 
 /**
  * Base implementation for {@link CollectionService}.
@@ -166,9 +170,13 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         OGCFeatLinkCreator linkCreator,
         ConfigurationAccessor config
     ) {
-        return Try.of(() -> new CollectionsResponse(
+        return trying(() -> new CollectionsResponse(
                     buildCollectionsLinks(linkCreator),
-                    buildRootCollections(linkCreator, config)));
+                    buildRootCollections(linkCreator, config)))
+            .mapFailure(
+                COLLECTIONSRESPONSE_CONSTRUCTION,
+                () -> "Failed to build collections response"
+            );
     }
 
     private List<Collection> buildRootCollections(
@@ -192,10 +200,18 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     @Override
     public Try<Collection> buildCollection(String collectionId, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         if (DEFAULT_STATIC_ID.equals(collectionId)) {
-            return Try.of(() -> buildRootStaticCollection(linkCreator, config));
+            return trying(() -> buildRootStaticCollection(linkCreator, config))
+                .mapFailure(
+                    COLLECTION_CONSTRUCTION,
+                    () -> format("Failed to build collection %s", collectionId)
+                );
         }
         else if (DEFAULT_DYNAMIC_ID.equals(collectionId)) {
-            return Try.of(() -> buildRootDynamicCollection(linkCreator, config));
+            return trying(() -> buildRootDynamicCollection(linkCreator, config))
+                .mapFailure(
+                    COLLECTION_CONSTRUCTION,
+                    () -> format("Failed to build collection %s", collectionId)
+                );
         }
         else if (dynCollService.isDynamicCollectionValueURN(collectionId)){
             return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)

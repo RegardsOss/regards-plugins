@@ -29,7 +29,11 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.parseStacDatetime;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATEINTERVAL_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.stacFailure;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryingManaged;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.parseStacDatetime;
+import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.split;
 
@@ -83,16 +87,20 @@ public class DateInterval {
 
     public static Try<DateInterval> parseDateInterval(String repr) {
         if (StringUtils.isBlank(repr)) {
-            return Try.of(DateInterval::largest);
+            return Try.success(largest());
         }
         else if (repr.contains(SEPARATOR)) {
-            return Try.of(() -> List.of(split(repr, SEPARATOR)))
+            return tryingManaged(() -> List.of(split(repr, SEPARATOR)))
                 .map(parts -> Tuple.of(parts.get(0), parts.get(1)))
                 .flatMap(parts -> parseDateOrDefault(parts._1(), MIN)
                     .flatMap(from -> parseDateOrDefault(parts._2(), MAX)
                         .map(to -> DateInterval.of(from, to))
                     )
-                );
+                )
+                .recoverWith(stacFailure(
+                    DATEINTERVAL_PARSING,
+                    () -> format("Failed to parse date interval from %s", repr)
+                ));
         }
         else {
             return parseStacDatetime(repr).map(DateInterval::single);
