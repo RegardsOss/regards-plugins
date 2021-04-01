@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
@@ -36,5 +37,7 @@ public interface ItemSearchService {
             OGCFeatLinkCreator featLinkCreator,
             SearchPageLinkCreator searchPageLinkCreator
     );
+
+    Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator);
 
 }

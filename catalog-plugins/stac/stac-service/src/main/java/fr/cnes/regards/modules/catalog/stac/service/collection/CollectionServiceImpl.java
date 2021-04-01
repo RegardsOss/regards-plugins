@@ -33,7 +33,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.RestDynCollValSerdeService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -68,7 +67,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     private final ConfigurationAccessorFactory configurationAccessorFactory;
     private final DynamicCollectionService dynCollService;
     private final DynCollValNextSublevelHelper sublevelHelper;
-    private final RestDynCollValSerdeService restDynCollValSerdeService;
     private final ItemSearchBodyFactory itemSearchBodyFactory;
     private final ItemSearchService itemSearchService;
     private final IStaticCollectionService staticCollectionService;
@@ -78,7 +76,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             ConfigurationAccessorFactory configurationAccessorFactory,
             DynamicCollectionService dynCollService,
             DynCollValNextSublevelHelper sublevelHelper,
-            RestDynCollValSerdeService restDynCollValSerdeService,
             ItemSearchBodyFactory itemSearchBodyFactory,
             ItemSearchService itemSearchService,
             IStaticCollectionService staticCollectionService
@@ -86,7 +83,6 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
         this.sublevelHelper = sublevelHelper;
-        this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
         this.staticCollectionService = staticCollectionService;
@@ -142,15 +138,15 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     public Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator,ConfigurationAccessor config) {
         String name = config.getRootStaticCollectionName();
         return new Collection(
-                StacSpecConstants.Version.STAC_SPEC_VERSION,
-                List.empty(),
-                name, DEFAULT_STATIC_ID, "Static collections",
-                staticCollectionLinks(linkCreator),
-                List.empty(),
-                "",
-                List.empty(),
-                Extent.maximalExtent(), // no extent at this level
-                HashMap.empty() // no summaries at this level
+            StacSpecConstants.Version.STAC_SPEC_VERSION,
+            List.empty(),
+            name, DEFAULT_STATIC_ID, "Static collections",
+            staticCollectionLinks(linkCreator),
+            List.empty(),
+            "",
+            List.empty(),
+            Extent.maximalExtent(), // no extent at this level
+            HashMap.empty() // no summaries at this level
         );
     }
 
@@ -214,6 +210,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     public Try<ItemCollectionResponse> getItemsForCollection(
             String collectionId,
             Integer limit,
+            Integer page,
             BBox bbox,
             String datetime,
             OGCFeatLinkCreator ogcFeatLinkCreator,
@@ -221,21 +218,34 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     ) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
+        final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId)
+            ? getDynCollItemSearchBody(collectionId, limit, bbox, datetime, config)
+            : getCollectionItemSearchBody(limit, bbox, datetime, List.of(collectionId));
+
+        return tryIsb
+            .flatMap(isb -> itemSearchService.search(isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)));
+    }
+
+    public Try<ItemSearchBody> getDynCollItemSearchBody(
+            String collectionId,
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            ConfigurationAccessor config
+    ) {
         return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
-            .flatMap(val -> itemSearchBodyFactory
-                .parseItemSearch(
-                    limit, bbox, datetime, List.of(collectionId),
-                    null, null, null, null
-                )
-                .map(isb ->
-                    isb.withQuery(dynCollService.toItemSearchBody(val).getQuery())
-                )
-            )
-            .flatMap(isb ->
-                itemSearchService.search(
-                    isb, 0, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)
-                )
-            );
+                .flatMap(val -> getCollectionItemSearchBody(limit, bbox, datetime, null)
+                        .map(isb -> isb.withQuery(dynCollService.toItemSearchBody(val).getQuery()))
+                );
+    }
+
+    public Try<ItemSearchBody> getCollectionItemSearchBody(
+            Integer limit,
+            BBox bbox,
+            String datetime,
+            List<String> collections
+    ) {
+        return itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, null, null, null, null);
     }
 
 

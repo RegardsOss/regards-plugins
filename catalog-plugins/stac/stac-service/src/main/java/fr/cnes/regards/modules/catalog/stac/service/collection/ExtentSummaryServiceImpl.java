@@ -30,6 +30,7 @@ import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -145,11 +146,15 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     public Extent.Spatial getSpatial(Option<ParsedGeoBounds> parsedNWBound, Option<ParsedGeoBounds> parsedSEBound) {
         return parsedNWBound.flatMap(nw ->
             parsedSEBound.map(se ->
-                new Extent.Spatial(List.of(new BBox(
-                    nw.topLeft().getLon(),
-                    se.bottomRight().getLat(),
-                    se.bottomRight().getLon(),
-                    nw.topLeft().getLat()))))
+            {
+                Option<GeoPoint> nwTopLeft = Option.of(nw.topLeft());
+                Option<GeoPoint> seBottomRight = Option.of(se.bottomRight());
+                return new Extent.Spatial(List.of(new BBox(
+                    nwTopLeft.map(GeoPoint::getLon).getOrElse(-180d),
+                    seBottomRight.map(GeoPoint::getLat).getOrElse(-90d),
+                    seBottomRight.map(GeoPoint::getLon).getOrElse(180d),
+                    nwTopLeft.map(GeoPoint::getLat).getOrElse(90d))));
+            })
         )
         .getOrElse(() -> Extent.maximalExtent().getSpatial());
     }
@@ -167,9 +172,13 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     public Object toMinMaxObject(ParsedStats parsedDateRange) {
+        Double min = parsedDateRange.getMin();
+        min = Double.isInfinite(min) || Double.isNaN(min) ? null : min;
+        Double max = parsedDateRange.getMax();
+        max = Double.isInfinite(max) || Double.isNaN(max) ? null : max;
         return HashMap.of(
-                "min", parsedDateRange.getMin(),
-                "max", parsedDateRange.getMax()
+            "min", min,
+            "max", max
         );
     }
 

@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -67,13 +66,11 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
     ConfigurationAccessor configurationAccessor = mock(ConfigurationAccessor.class);
     ConfigurationAccessorFactory configurationAccessorFactory = mock(ConfigurationAccessorFactory.class);
 
-    IRuntimeTenantResolver runtimeTenantResolver = mock(IRuntimeTenantResolver.class);
     UriParamAdder uriParamAdder = mock(UriParamAdderImpl.class);
 
     RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(
             new StacGeoHelper(gson),
             configurationAccessorFactory,
-            runtimeTenantResolver,
             uriParamAdder);
 
     @Test
@@ -85,8 +82,6 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                 .thenReturn(configurationAccessor);
         when(configurationAccessor.getGeoJSONReader())
                 .thenAnswer(i -> stacGeoHelper.makeGeoJSONReader(stacGeoHelper.updateFactory(true)));
-        when(runtimeTenantResolver.getTenant())
-                .thenReturn(tenant);
 
         when(linkCreator.createRootLink())
             .thenAnswer(i -> Try.success(uri("/root"))

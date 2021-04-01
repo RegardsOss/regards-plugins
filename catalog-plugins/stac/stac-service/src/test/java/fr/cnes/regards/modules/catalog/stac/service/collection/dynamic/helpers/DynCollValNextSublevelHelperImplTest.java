@@ -11,9 +11,11 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.Stri
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
-import fr.cnes.regards.modules.catalog.stac.service.StacSearchCriterionBuilder;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelperImpl;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
@@ -24,7 +26,6 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAccessorAwareTest {
@@ -47,18 +49,21 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter = new DynCollLevelValToQueryObjectConverterImpl();
 
-    StacSearchCriterionBuilder criterionBuilder = Mockito.mock(StacSearchCriterionBuilder.class);
+    StacSearchCriterionBuilder criterionBuilder = mock(StacSearchCriterionBuilder.class);
 
-    IEsRepository esRepository = Mockito.mock(IEsRepository.class);
-    IRuntimeTenantResolver tenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
-    ProjectGeoSettings projectGeoSettings = Mockito.mock(ProjectGeoSettings.class);
+    IEsRepository esRepository = mock(IEsRepository.class);
+    IRuntimeTenantResolver tenantResolver = mock(IRuntimeTenantResolver.class);
+    ProjectGeoSettings projectGeoSettings = mock(ProjectGeoSettings.class);
     EsAggregagtionHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
+
+    ConfigurationAccessor config = mock(ConfigurationAccessor.class);
+    ConfigurationAccessorFactory configFactory = () -> config;
 
     DynCollValNextSublevelHelperImpl helper = new DynCollValNextSublevelHelperImpl(
             levelValToQueryObjectConverter,
             criterionBuilder,
-            aggregagtionHelper
-    );
+            aggregagtionHelper,
+            configFactory);
 
     StacProperty prop1 = new StacProperty(
             accessor("prop1", NUMBER, 12d),
@@ -106,6 +111,7 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     @Before
     public void init() {
+        when(config.getStacProperties()).thenReturn(List.of(prop1, prop2, prop3));
         when(tenantResolver.getTenant()).thenReturn("theTenant");
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
         when(esRepository.minDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, UTC));

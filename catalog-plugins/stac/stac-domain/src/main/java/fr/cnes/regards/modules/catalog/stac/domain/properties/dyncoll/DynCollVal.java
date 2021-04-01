@@ -55,7 +55,7 @@ public class DynCollVal {
                 : withLevels(getLevels().dropRight(1).append(pv.withSublevels(pv.getSublevels().dropRight(1))))
             )
             .orElse(() ->
-                getLevels().isEmpty()
+                getLevels().length() <= 1
                 ? Option.none()
                 : Option.of(withLevels(getLevels().dropRight(1)))
             );
@@ -70,13 +70,14 @@ public class DynCollVal {
             .lastOption()
             .flatMap(lval -> lval.getSublevels().lastOption())
             .map(DynCollSublevelVal::getSublevelLabel)
-            .getOrElse(definition.toString());
+            .getOrElse("?");
     }
 
     public String toLabel() {
         return getLevels()
             .flatMap(l -> l.getSublevels().lastOption())
-            .map(s -> s.getSublevelLabel())
-            .foldLeft("", (a,b) -> a + " -> " + b);
+            .map(DynCollSublevelVal::getSublevelLabel)
+            .reduceLeftOption((a,b) -> a + " & " + b)
+            .getOrElse("?");
     }
 }

@@ -144,5 +144,43 @@ public class DynCollValTest {
 
     @Test
     public void getLowestLevelLabel() {
+
+        assertThat(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999-10")
+        )).getLowestLevelLabel()).isEqualTo("prop2=1999-10");
+
+    }
+
+    @Test
+    public void parentValue() {
+        assertThat(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30")
+        )).parentValue()).isEmpty();
+
+        assertThat(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999")
+        )).parentValue()).contains(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30")
+        )));
+
+        assertThat(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999-10")
+        )).parentValue()).contains(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999")
+        )));
+
+        assertThat(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999-01-01"),
+                stringPrefixLevelDef.parseValues("0")
+        )).parentValue()).contains(new DynCollVal(def,List.of(
+                numberRangeLevelDef.parseValues("20;30"),
+                datePartsLevelDef.parseValues("1999-01-01")
+        )));
+
     }
 }

@@ -4,7 +4,6 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
@@ -14,9 +13,7 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationA
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
-import fr.cnes.regards.modules.indexer.domain.SearchKey;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.service.Searches;
@@ -25,20 +22,16 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.Aggregation;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
 
 @Component
 public class StaticCollectionServiceImpl implements IStaticCollectionService {
@@ -86,41 +79,6 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
             String urn = resourceName.toString();
 
-            List<Link> baseLinks = List.empty();
-
-            if (resourceName.getEntityType().equals(EntityType.COLLECTION)) {
-                List<java.util.List<AbstractEntity>> listOfEntities = getEntitiesList(urn);
-                List<AbstractEntity> filterItem = getAbstractEntitiesItems(listOfEntities);
-                List<Link> itemsLinks = getItemsLinks(filterItem, resourceName, linkCreator);
-
-
-                List<AbstractEntity> filterChild = listOfEntities
-                        .flatMap(x -> x)
-                        .removeAll(filterItem);
-
-                baseLinks = List.of(
-                        linkCreator.createRootLink(),
-                        itemsLinks,
-                        filterChild.map(child -> linkCreator.createCollectionLinkWithRel(
-                                child.getIpId().toString(),
-                                "collection",
-                                "child").get())
-                        ).flatMap(t -> t);
-
-            } else if (!resourceName.getEntityType().equals(EntityType.DATASET)) {
-                List<java.util.List<AbstractEntity>> listOfEntities = getEntitiesList(urn);
-                List<AbstractEntity> filterItem = getAbstractEntitiesItems(listOfEntities);
-                List<Link> itemsLinks = getItemsLinks(filterItem, resourceName, linkCreator);
-                baseLinks = List.of(
-                        linkCreator.createRootLink(),
-                        itemsLinks)
-                .flatMap(t -> t);
-
-            }
-
-            List<Provider> providers = config.getProviders(urn)
-                    .map(x -> new Provider(x.getName(), x.getDescription(), x.getUrl(), x.getRoles()));
-
             StacProperty datetimeStacProp = config.getDatetimeStacProperty();
             List<StacProperty> stacProps = config.getStacProperties();
             List<StacProperty> nonDatetimeStacProps = stacProps.remove(datetimeStacProp);
@@ -136,11 +94,15 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     creationDate.toJavaList()
             );
 
+
+            List<Link> links = getLinks(resourceName, linkCreator, urn);
+
+            List<Provider> providers = config.getProviders(urn)
+                    .map(x -> new Provider(x.getName(), x.getDescription(), x.getUrl(), x.getRoles()));
+
             List<Aggregation> aggs = List.ofAll(collectionWithStats.getAggregationList());
             Map<StacProperty, Aggregation> aggregationMap = extentSummaryService.toAggregationMap(stacProps, aggs);
-
             Extent extent = extentSummaryService.extractExtent(aggregationMap);
-
             Map<String, Object> summary = extentSummaryService.extractSummary(aggregationMap);
 
             AbstractEntity regardsCollection = collectionWithStats.getCollection();
@@ -152,10 +114,11 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     regardsCollection.getId().toString(),
 //                    regardsCollection.getModel().getDescription(),
                     "",
-                    baseLinks,
+                    links,
                     config.getKeywords(urn),
                     config.getLicense(urn),
-                    providers, extent,
+                    providers,
+                    extent,
                     summary
             );
 
@@ -163,36 +126,48 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         });
     }
 
-    @Override
-    public Try<List<UniformResourceName>> getParentCollectionsId(String urn) {
+    private List<Link> getLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator, String urn) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
+        final List<Link> links;
 
-        return null;
+        if (resourceName.getEntityType().equals(EntityType.COLLECTION)) {
+            List<AbstractEntity> children = getSubCollectionsOrDatasets(urn, EntityType.COLLECTION)
+                    .appendAll(getSubCollectionsOrDatasets(urn, EntityType.DATASET));
+
+            links = List.of(
+                linkCreator.createRootLink(),
+                getItemsLinks(resourceName, linkCreator),
+                children.flatMap(child ->
+                    linkCreator.createCollectionLinkWithRel(
+                        child.getIpId().toString(),
+                        child.getLabel(),
+                        CHILD
+                    )
+                )
+            ).flatMap(t -> t);
+
+        } else if (resourceName.getEntityType().equals(EntityType.DATASET)) {
+            links = List.of(
+                linkCreator.createRootLink(),
+                getItemsLinks(resourceName, linkCreator)
+            ).flatMap(t -> t);
+        }
+        else {
+            links = List.empty();
+        }
+        return links;
     }
 
-    @NotNull
-    private List<Link> getItemsLinks(List<AbstractEntity> filterItem, UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
-
-        return filterItem
-                .map(entity -> linkCreator.createItemLink(resourceName.toString(), entity.getIpId().toString()).get())
-                .map(x -> x.withRel("item"));
+    private Try<Link> getItemsLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
+        return linkCreator.createCollectionItemsLinkWithRel(resourceName.toString(), ITEMS);
     }
 
-    @NotNull
-    private List<java.util.List<AbstractEntity>> getEntitiesList(String urn) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
+    private List<AbstractEntity> getSubCollectionsOrDatasets(String urn, EntityType entityType) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
         ICriterion tags = ICriterion.contains("tags", urn);
-
-        FacetPage<AbstractEntity> page = catalogSearchService.search(tags,
-                Searches.onAllEntities(),
+        FacetPage<AbstractEntity> subCollections = catalogSearchService.search(tags,
+                Searches.onSingleEntity(entityType),
                 null,
                 PageRequest.of(0, 10000));
-
-        return List.of(page.getContent());
-    }
-
-    private List<AbstractEntity> getAbstractEntitiesItems(List<java.util.List<AbstractEntity>> listOfEntities) {
-        return listOfEntities
-                .flatMap(x -> x)
-                .filter(x -> x.getIpId().getEntityType().equals(EntityType.DATA));
+        return List.ofAll(subCollections.getContent());
     }
 
 }
