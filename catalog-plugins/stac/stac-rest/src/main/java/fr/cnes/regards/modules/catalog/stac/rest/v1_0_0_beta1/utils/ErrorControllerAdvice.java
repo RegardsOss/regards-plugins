@@ -19,6 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
 
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId;
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +29,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
 
 /**
  * Formatting errors for the REST client.
@@ -43,24 +45,41 @@ public class ErrorControllerAdvice {
 
     @Value
     static class ErrorStructure {
-        UUID errorId;
+        UUID correlationId;
+        String type;
         String message;
         OffsetDateTime time;
     }
 
+    @ExceptionHandler(StacException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorStructure> formatStacError(StacException e) {
+        UUID cid = StacRequestCorrelationId.currentCId();
+        error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
+        return new ResponseEntity<>(
+                new ErrorStructure(
+                    cid,
+                    e.getType().name(),
+                    e.getMessage(),
+                    OffsetDateTime.now()
+                ),
+                e.getType().getStatus()
+        );
+    }
+
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ResponseBody
     public ResponseEntity<ErrorStructure> formatError(Exception e) {
-        UUID errorId = UUID.randomUUID();
-        LOGGER.error("Error ID {}: {}", errorId, e.getMessage(), e);
+        UUID cid = StacRequestCorrelationId.currentCId();
+        error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
         return new ResponseEntity<>(
             new ErrorStructure(
-                errorId,
+                cid,
+                StacFailureType.UNKNOWN.name(),
                 e.getMessage(),
                 OffsetDateTime.now()
             ),
-            INTERNAL_SERVER_ERROR
+            StacFailureType.UNKNOWN.getStatus()
         );
     }
 

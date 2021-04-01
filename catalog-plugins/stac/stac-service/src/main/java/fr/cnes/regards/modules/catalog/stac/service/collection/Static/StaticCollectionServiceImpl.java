@@ -22,6 +22,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.slf4j.Logger;
@@ -30,8 +31,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URN_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
+import static java.lang.String.format;
 
 @Component
 public class StaticCollectionServiceImpl implements IStaticCollectionService {
@@ -57,25 +63,26 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     public Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         return extractURN(urn)
                 .flatMap(resourceName -> convertRequest(resourceName, linkCreator, config))
-                .onFailure(t -> LOGGER.error(t.getMessage(), t));
+                .onFailure(t -> error(LOGGER, t.getMessage(), t));
     }
 
     private Try<UniformResourceName> extractURN(String urnStr) {
-        return Try.of(() -> UniformResourceName.fromString(urnStr))
-                .flatMap(urn -> {
-                    if (urn.getEntityType().equals(EntityType.DATASET) ||
-                            urn.getEntityType().equals(EntityType.COLLECTION)) {
-                        return Try.success(urn);
-                    } else {
-                        return Try.failure(new RuntimeException("The entity is neither a DATASET nor a COLLECTION"));
-                    }
-                });
+        return trying(() -> UniformResourceName.fromString(urnStr))
+            .mapFailure(URN_PARSING, () -> format("Failed to parse URN from %s", urnStr))
+            .flatMap(urn -> {
+                if (urn.getEntityType().equals(EntityType.DATASET) ||
+                        urn.getEntityType().equals(EntityType.COLLECTION)) {
+                    return Try.success(urn);
+                } else {
+                    return Try.failure(new RuntimeException("The entity is neither a DATASET nor a COLLECTION"));
+                }
+            });
     }
 
     private Try<Collection> convertRequest(UniformResourceName resourceName,
                                            OGCFeatLinkCreator linkCreator,
                                            ConfigurationAccessor config) {
-        return Try.of(() -> {
+        return trying(() -> {
 
             String urn = resourceName.toString();
 
@@ -123,7 +130,11 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
             );
 
             return collection;
-        });
+        })
+        .mapFailure(
+            COLLECTION_CONSTRUCTION,
+            () -> format("Failed to build collection for URN %s", resourceName)
+        );
     }
 
     private List<Link> getLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator, String urn) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
@@ -157,7 +168,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return links;
     }
 
-    private Try<Link> getItemsLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
+    private Option<Link> getItemsLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
         return linkCreator.createCollectionItemsLinkWithRel(resourceName.toString(), ITEMS);
     }
 

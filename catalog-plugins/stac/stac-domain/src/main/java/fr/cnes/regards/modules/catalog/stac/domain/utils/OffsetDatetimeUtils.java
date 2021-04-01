@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -27,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.OFFSETDATETIME_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 import static java.time.Instant.ofEpochMilli;
 import static java.time.ZoneOffset.UTC;
 
@@ -53,8 +57,15 @@ public class OffsetDatetimeUtils {
     }
 
     public static final Try<OffsetDateTime> parseDatetime(Long ts) {
-        return Try.of(() -> OffsetDateTime.ofInstant(ofEpochMilli(ts), UTC))
-            .onFailure(t -> LOGGER.warn("Could not parse instant from timestamp {}", ts, t));
+        return trying(() -> OffsetDateTime.ofInstant(ofEpochMilli(ts), UTC))
+            .mapFailure(
+                OFFSETDATETIME_PARSING,
+                () -> format("Could not parse instant from timestamp %s", ts)
+            );
+    }
+    public static  Try<OffsetDateTime> parseStacDatetime(String repr) {
+        return trying(() -> OffsetDateTime.from(StacSpecConstants.STAC_DATETIME_FORMATTER.parse(repr)))
+                .mapFailure(OFFSETDATETIME_PARSING, () -> format("Failed to parse datetime from %s", repr));
     }
 
 }

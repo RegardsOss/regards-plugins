@@ -22,12 +22,21 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.PERCENTAGE_CONVERSION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 
 /**
  * REGARDS/STAC percentage converter, allowing to convert from ratio representation
  * (float value between 0 and 1) to percentage point representation (value from 0 to 100).
  */
 public class PercentagePropertyConverter extends AbstractPropertyConverter<Double, Double> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PercentagePropertyConverter.class);
 
     public enum PercentageBase {
         /** Means that the percentage is expressed as a ratio: a number between 0 and 1 */
@@ -37,7 +46,9 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
         ;
 
         public static PercentageBase parsePercentageBase(String format) {
-            return Try.of(() -> PercentageBase.valueOf(format.trim())).getOrElse(PercentageBase.HUNDRED);
+            return trying(() -> PercentageBase.valueOf(format.trim()))
+                .onFailure(t -> warn(LOGGER, "Failed to parse percentage base: {}", format))
+                .getOrElse(PercentageBase.HUNDRED);
         }
     }
 
@@ -61,7 +72,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
     }
 
     private Try<Double> convert(Double fromValue, PercentageBase fromBase, PercentageBase toBase) {
-        return Try.of(() -> {
+        return trying(() -> {
             switch (fromBase) {
                 case ONE:
                     switch (toBase) {
@@ -84,7 +95,11 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
                 default:
                     throw new NotImplementedException("Missing case for PercentageBase value: " + toBase);
             }
-        });
+        })
+        .mapFailure(
+            PERCENTAGE_CONVERSION,
+            () -> format("Failed to convert %d from %s to %s", fromValue, fromBase, toBase)
+        );
     }
 
 }

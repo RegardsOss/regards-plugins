@@ -37,6 +37,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_AUTH_PARAM_ADDING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_PARAM_ADDING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
+
 /**
  * Base implementation for {@link UriParamAdder}.
  */
@@ -57,26 +63,28 @@ public class UriParamAdderImpl implements UriParamAdder {
         if (auth == null) { return Try::success; }
         return uri -> {
             Tuple2<String, String> authParam = makeAuthParam(auth);
-            LOGGER.debug("URI before adding token: {}", uri);
-            return Try.of(() ->
-                    UriComponentsBuilder.fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()
-            )
-            .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u));
+            return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri())
+                .mapFailure(
+                    URI_AUTH_PARAM_ADDING,
+                    () -> format("Failed to add auth params to URI %s", uri)
+                );
         };
     }
 
     @Override
     public CheckedFunction1<URI, Try<URI>> appendParams (Map<String, String> params) {
-        return uri -> {
-            LOGGER.debug("URI before adding token: {}", uri);
-            return Try.of(() -> {
-                UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(uri);
+        return uri ->
+            trying(() -> {
+                UriComponentsBuilder uriBuilder = fromUri(uri);
                 return params.foldLeft(
-                        uriBuilder,
-                        (ub, kv) -> ub.queryParam(kv._1, kv._2)
+                    uriBuilder,
+                    (ub, kv) -> ub.queryParam(kv._1, kv._2)
                 ).build().toUri();
-            });
-        };
+            })
+            .mapFailure(
+                URI_PARAM_ADDING,
+                () -> format("Failed to add params %s to URI %s", params, uri)
+            );
     }
 
     @Override

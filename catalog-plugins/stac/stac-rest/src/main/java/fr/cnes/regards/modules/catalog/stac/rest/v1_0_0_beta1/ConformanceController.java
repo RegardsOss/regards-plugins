@@ -29,12 +29,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.CONFORMANCERESPONSE_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 
 /**
@@ -67,7 +68,11 @@ public class ConformanceController implements TryToResponseEntity {
     )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ConformanceResponse> conformance() throws ModuleException {
-        return toResponseEntity(Try.of(() -> new ConformanceResponse(CONFORMANCES)));
+        return toResponseEntity(trying(() -> new ConformanceResponse(CONFORMANCES))
+            .mapFailure(
+                CONFORMANCERESPONSE_CONSTRUCTION,
+                () -> "Failed to build conformance response"
+            ));
     }
 
 }

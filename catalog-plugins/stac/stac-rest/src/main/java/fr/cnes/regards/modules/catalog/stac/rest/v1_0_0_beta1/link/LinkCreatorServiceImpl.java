@@ -30,14 +30,13 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
-import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
+import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,8 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryingManaged;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
@@ -84,32 +85,36 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         return new OGCFeatLinkCreator() {
 
             @Override
-            public Try<Link> createRootLink() {
-                return Try.of(() ->
+            public Option<Link> createRootLink() {
+                return tryingManaged(() ->
                     WebMvcLinkBuilder.linkTo(
                         CoreController.class,
                         getMethodNamedInClass(CoreController.class, "root")
                     ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create root link", t))
+                .toOption()
                 .map(createLink(ROOT, String.format("STAC %s root", tenant)));
             }
 
             @Override
-            public Try<Link> createCollectionsLink() {
-                return Try.of(() ->
+            public Option<Link> createCollectionsLink() {
+                return tryingManaged(() ->
                         WebMvcLinkBuilder.linkTo(
                                 OGCFeaturesController.class,
                                 getMethodNamedInClass(OGCFeaturesController.class, "collections")
                         ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create collections link", t))
+                .toOption()
                 .map(createLink(COLLECTION, String.format("STAC %s collections", tenant)));
             }
 
             @Override
-            public Try<Link> createCollectionLink(String collectionId, String collectionTitle) {
-                return Try.of(() ->
+            public Option<Link> createCollectionLink(String collectionId, String collectionTitle) {
+                return tryingManaged(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "collection"),
@@ -117,12 +122,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                     ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create collection link: {}", collectionId, t))
+                .toOption()
                 .map(createLink(COLLECTION, collectionTitle));
             }
 
             @Override
-            public Try<Link> createCollectionItemsLink(String collectionId) {
-                return Try.of(() ->
+            public Option<Link> createCollectionItemsLink(String collectionId) {
+                return tryingManaged(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "features"),
@@ -130,17 +137,19 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                     ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create collection items link: {}", collectionId, t))
+                .toOption()
                 .map(createLink(ITEMS, "Collections items"));
             }
 
             @Override
-            public Try<Link> createCollectionLink(Collection collection) {
+            public Option<Link> createCollectionLink(Collection collection) {
                 return createCollectionLink(collection.getId(), collection.getTitle());
             }
 
             @Override
-            public Try<Link> createItemLink(String collectionId, String itemId) {
-                return Try.of(() ->
+            public Option<Link> createItemLink(String collectionId, String itemId) {
+                return tryingManaged(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "feature"),
@@ -149,11 +158,13 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                     ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create item link: {}", itemId, t))
+                .toOption()
                 .map(createLink(SELF, itemId));
             }
 
             @Override
-            public Try<Link> createItemLink(Item item) {
+            public Option<Link> createItemLink(Item item) {
                 return createItemLink(item.getCollection(), item.getId());
             }
         };
@@ -165,19 +176,20 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<URI> searchAll() {
-                return Try.of(() ->
+                return tryingManaged(() ->
                         WebMvcLinkBuilder.linkTo(
                                 ItemSearchController.class,
                                 getMethodNamedInClass(ItemSearchController.class, "simple")
                         ).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .onFailure(t -> warn(LOGGER, "Failed to create search all", t))
                 .toOption();
             }
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
-                return Try.of(() ->
+                return tryingManaged(() ->
                     WebMvcLinkBuilder.linkTo(
                         ItemSearchController.class,
                         getMethodNamedInClass(ItemSearchController.class, "otherPage"),
@@ -190,8 +202,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                     SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64,
                     PAGE_QUERY_PARAM, "" + i
                 )))
-                .onSuccess(u -> LOGGER.debug("URI after  adding token: {}", u))
-                .onFailure(t -> LOGGER.error("Failure creating page link: {}", t.getMessage(), t))
+                .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
+                .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t))
                 .toOption();
             }
 

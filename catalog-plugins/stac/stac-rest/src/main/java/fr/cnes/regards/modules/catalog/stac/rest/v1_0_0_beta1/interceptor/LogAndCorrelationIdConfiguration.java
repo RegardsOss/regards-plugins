@@ -17,26 +17,23 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.interceptor;
 
-import java.time.format.DateTimeFormatter;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_PATH;
 
 /**
- * Lists a bunch of constant values defined by the STAC specification.
+ * Configures the {@link LogAndCorrelationIdInterceptor}.
  */
-public class StacSpecConstants {
+@Configuration
+public class LogAndCorrelationIdConfiguration implements WebMvcConfigurer {
 
-    public interface Version {
-        String STAC_SPEC_VERSION = "1.0.0-beta.2";
-        String STAC_API_VERSION = "1.0.0-beta.1";
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LogAndCorrelationIdInterceptor())
+            .addPathPatterns(STAC_PATH + "/**");
     }
-
-    public interface PropertyName {
-        String DATETIME_PROPERTY_NAME = "datetime";
-        String TAGS_PROPERTY_NAME = "tags";
-        String ID_PROPERTY_NAME = "ipId";
-    }
-
-    public static DateTimeFormatter STAC_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
 }

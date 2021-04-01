@@ -30,7 +30,6 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.slf4j.Logger;
@@ -39,6 +38,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
 
@@ -74,13 +75,13 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
 
     @Override
     public Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String attrPath) {
-        return Try.of(() -> {
+        return trying(() -> {
             SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
             OffsetDateTime dateTimeFrom = esRepository.minDate(searchKey, criterion, attrPath);
             OffsetDateTime dateTimeTo = esRepository.maxDate(searchKey, criterion, attrPath);
             return Tuple.of(dateTimeFrom, dateTimeTo);
         })
-        .onFailure(t -> LOGGER.info("Failed to load min/max date for {}", attrPath, t))
+        .onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
         .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
     }
 

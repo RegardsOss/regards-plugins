@@ -49,6 +49,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MONTH;
 
 /**
@@ -80,7 +82,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     public List<DynCollVal> nextSublevels(DynCollVal val) {
 
         if (val.isFullyValued()) {
-            LOGGER.debug("Val is fully valued");
+            debug(LOGGER, "Val is fully valued");
             return List.empty();
         }
 
@@ -107,7 +109,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             return extractDatePartsFirstSublevel(val, (DatePartsLevelDef)definition, config);
         }
         else {
-            LOGGER.error("Missing case for a dynamic collection level next levels extraction: {}", val);
+            error(LOGGER, "Missing case for a dynamic collection level next levels extraction: {}", val);
             return List.empty();
         }
     }
@@ -209,7 +211,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             return extractDatePartsNextSublevels(val, lval, (DatePartsLevelDef)definition);
         }
         else {
-            LOGGER.error("Missing case for a dynamic collection level next levels extraction: {}", lval);
+            error(LOGGER, "Missing case for a dynamic collection level next levels extraction: {}", lval);
             return List.empty();
         }
     }

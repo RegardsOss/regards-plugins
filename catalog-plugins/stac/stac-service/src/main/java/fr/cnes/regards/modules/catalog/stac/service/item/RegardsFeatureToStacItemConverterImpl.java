@@ -49,7 +49,12 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATAOBJECT_TO_ITEM_CONVERSION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static io.vavr.Predicates.isNotNull;
+import static java.lang.String.format;
 
 /**
  * Default implementation for {@link RegardsFeatureToStacItemConverter} interface.
@@ -75,8 +80,8 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     @Override
     public Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature) {
-        LOGGER.debug("Converting to item: Feature={}\n\twith Properties={}", feature, properties);
-        return Try.of(() -> {
+        debug(LOGGER, "Converting to item: Feature={}\n\twith Properties={}", feature, properties);
+        return trying(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String,Object> featureStacProperties = extractStacPropertyKeyValues(feature, properties);
             Set<String> extensions = extractExtensions(featureStacProperties);
@@ -96,10 +101,13 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                     extractLinks(itemId, collection, linkCreator),
                     extractAssets(feature, authParam)
             );
-            LOGGER.debug("Result Item={}", result);
+            debug(LOGGER, "Result Item={}", result);
             return result;
         })
-        .onFailure(t -> LOGGER.error(t.getMessage(), t));
+        .mapFailure(
+                DATAOBJECT_TO_ITEM_CONVERSION,
+            () -> format("Failed to convert data object %s to item", feature.getIpId())
+        );
     }
 
     private Map<String, Asset> extractAssets(DataObject feature, Tuple2<String, String> authParam) {
@@ -115,7 +123,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             new Asset(
                 authdUri(value.asUri(), authParam),
                 value.getFilename(),
-                String.format("File size: %d bytes" +
+                format("File size: %d bytes" +
                     "\n\nIs reference: %b" +
                     "\n\nIs online: %b" +
                     "\n\nDatatype: %s" +
@@ -130,7 +138,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 HashSet.of(assetTypeFromDatatype(value.getDataType()))
             )
         );
-        LOGGER.debug("Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
+        debug(LOGGER, "Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
         return result;
     }
 
@@ -219,7 +227,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     private Object convertRegardsToStacValue(IProperty<?> regardsProp, StacProperty sp) {
         return sp.getConverter()
             .convertRegardsToStac(extractValue(regardsProp))
-            .onFailure(t -> LOGGER.warn("Could not convert regards property {}={} to stac property {}",
+            .onFailure(t -> warn(LOGGER, "Could not convert regards property {}={} to stac property {}",
                     regardsProp.getName(),
                     regardsProp.getValue(),
                     sp.getStacPropertyName())

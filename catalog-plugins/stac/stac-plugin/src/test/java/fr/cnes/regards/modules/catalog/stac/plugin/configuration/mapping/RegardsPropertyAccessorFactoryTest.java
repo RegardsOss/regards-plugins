@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 " \"someDate\": " + gson.toJson(now) + " " +
                 " } } }";
 
-        LOGGER.info("JSON is: {}", jsonObjectStr);
+        info(LOGGER, "JSON is: {}", jsonObjectStr);
 
         JsonObject jsonObject = gson.fromJson(jsonObjectStr, JsonObject.class);
 

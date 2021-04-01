@@ -50,7 +50,12 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Optional;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.PLUGIN_CONFIGURATION_ACCESS;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 
 /**
  * Allows to transform property configuration to domain properties, and access
@@ -87,7 +92,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
     @Override
     public ConfigurationAccessor makeConfigurationAccessor() {
-        final Option<StacSearchEngine> plugin = getPlugin();
+        final Try<StacSearchEngine> plugin = getPlugin();
         return new ConfigurationAccessor() {
             @Override
             public String getTitle() {
@@ -107,7 +112,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public boolean hasStacConfiguration() {
-                return plugin.isDefined();
+                return plugin.isSuccess();
             }
 
             @Override
@@ -174,15 +179,18 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
     private Provider getProvider(ProviderConfiguration pc) {
         List<ProviderRole> roles = List.ofAll(pc.getProviderRoles())
-                .flatMap(role -> Try.of(() -> ProviderRole.valueOf(role)));
-        URL providerUrl = Try.of(() -> new URL(pc.getProviderUrl())).getOrNull();
+            .flatMap(role -> trying(() -> ProviderRole.valueOf(role))
+                .onFailure(t -> warn(LOGGER, "Failed to parse provider role {}", role)));
+        URL providerUrl = trying(() -> new URL(pc.getProviderUrl()))
+            .onFailure(t -> warn(LOGGER, "Failed to parse provider URL in {}", pc))
+            .getOrNull();
         return new Provider(pc.getProviderName(), pc.getProviderDescription(), providerUrl, roles);
     }
 
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations
                 .map(s -> {
-                    LOGGER.debug("Convertng stac prop config: {}", s);
+                    debug(LOGGER, "Convertng stac prop config: {}", s);
                     StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
                     AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
                         stacType,
@@ -214,22 +222,25 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
         return type.canBeSummarized();
     }
 
-    private Option<StacSearchEngine> getPlugin() {
+    private Try<StacSearchEngine> getPlugin() {
         return List.ofAll(pluginService.getActivePluginConfigurations(StacSearchEngine.PLUGIN_ID))
             .headOption()
-            .flatMap(pc -> loadPluginFromConfiguration(pc));
+            .toTry()
+            .flatMap(this::loadPluginFromConfiguration);
 
     }
 
-    private Option<StacSearchEngine> loadPluginFromConfiguration(PluginConfiguration pc) {
-        return Try.of(() -> getOptionalPlugin(pc))
-            .toOption()
-            .flatMap(Option::ofOptional);
+    private Try<StacSearchEngine> loadPluginFromConfiguration(PluginConfiguration pc) {
+        return trying(() -> getOptionalPlugin(pc).get())
+            .mapFailure(
+                PLUGIN_CONFIGURATION_ACCESS,
+                () -> format("Failed to load plugin configuration in %s", pc)
+            );
     }
 
-    private Optional<StacSearchEngine> getOptionalPlugin(PluginConfiguration pc)
+    private Option<StacSearchEngine> getOptionalPlugin(PluginConfiguration pc)
             throws NotAvailablePluginConfigurationException {
-        return pluginService.getOptionalPlugin(pc.getBusinessId());
+        return  Option.ofOptional(pluginService.getOptionalPlugin(pc.getBusinessId()));
     }
 
     private List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {

@@ -22,9 +22,13 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.OffsetDateTime;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * This enumeration lists all the supported STAC property types.
@@ -62,6 +66,8 @@ public enum StacPropertyType {
     JSON_OBJECT(PropertyType.JSON, JsonObject.class),
     ;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(StacPropertyType.class);
+
     private final boolean canBeSummarized;
     private final PropertyType propertyType;
     private final Class<?> valueType;
@@ -90,7 +96,9 @@ public enum StacPropertyType {
 
     public static StacPropertyType parse(String stacType) {
         return Option.of(stacType)
-            .map(s -> Try.of(() -> StacPropertyType.valueOf(s.trim().toUpperCase())).getOrElse(STRING))
+            .map(s -> trying(() -> StacPropertyType.valueOf(s.trim().toUpperCase()))
+                .onFailure(t -> warn(LOGGER, "Failed to parse STAC property type: {}, using STRING instead", stacType))
+                .getOrElse(STRING))
             .getOrElse(STRING);
     }
 

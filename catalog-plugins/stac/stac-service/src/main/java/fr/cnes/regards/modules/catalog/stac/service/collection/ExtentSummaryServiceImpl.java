@@ -29,7 +29,6 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -43,6 +42,9 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.extractTemporalBound;
@@ -127,8 +129,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                 .headOption();
 
         Option<ParsedStats> parsedStats = datetimeProp.flatMap(aggregationMap::get)
-                .flatMap(agg -> Try.of(() -> (ParsedStats) agg)
-                        .onFailure(t -> LOGGER.error(t.getMessage(), t))
+                .flatMap(agg -> trying(() -> (ParsedStats) agg)
+                        .onFailure(t -> error(LOGGER, t.getMessage(), t))
                         .toOption());
 
         OffsetDateTime dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin)).getOrNull();
@@ -138,8 +140,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private Option<ParsedGeoBounds> extractBound(Option<Aggregation> optAgg) {
-        return optAgg.flatMap(agg -> Try.of(() -> (ParsedGeoBounds) agg)
-                .onFailure(t -> LOGGER.warn(t.getMessage(), t))
+        return optAgg.flatMap(agg -> trying(() -> (ParsedGeoBounds) agg)
+                .onFailure(t -> warn(LOGGER, t.getMessage(), t))
                 .toOption());
     }
 
@@ -165,10 +167,10 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
         return aggregationMap
             .filterKeys(this::isNotExtentAggregation)
             .flatMap((prop, agg) ->
-                Try.of(() ->
+                trying(() ->
                     Tuple.of(prop.getStacPropertyName(), toMinMaxObject((ParsedStats) agg))
                 )
-                .onFailure(t -> LOGGER.error(t.getMessage(), t)));
+                .onFailure(t -> error(LOGGER, t.getMessage(), t)));
     }
 
     public Object toMinMaxObject(ParsedStats parsedDateRange) {
@@ -202,8 +204,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private String toAggregationName(StacProperty sp) {
-        return Try.of(() -> sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath())
-            .onFailure(t -> LOGGER.error("Failed to get aggregation name for {}", sp, t))
+        return trying(() -> sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath())
+            .onFailure(t -> error(LOGGER, "Failed to get aggregation name for {}", sp, t))
             .getOrElse(sp.getStacPropertyName());
     }
 }

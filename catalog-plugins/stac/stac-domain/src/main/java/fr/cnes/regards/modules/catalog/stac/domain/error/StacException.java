@@ -17,26 +17,21 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain;
-
-import java.time.format.DateTimeFormatter;
+package fr.cnes.regards.modules.catalog.stac.domain.error;
 
 /**
- * Lists a bunch of constant values defined by the STAC specification.
+ * Stac exception with its type.
  */
-public class StacSpecConstants {
+public class StacException extends Exception {
 
-    public interface Version {
-        String STAC_SPEC_VERSION = "1.0.0-beta.2";
-        String STAC_API_VERSION = "1.0.0-beta.1";
+    private final StacFailureType type;
+
+    public StacException(String message, Throwable cause, StacFailureType type) {
+        super(message, cause);
+        this.type = type;
     }
 
-    public interface PropertyName {
-        String DATETIME_PROPERTY_NAME = "datetime";
-        String TAGS_PROPERTY_NAME = "tags";
-        String ID_PROPERTY_NAME = "ipId";
+    public StacFailureType getType() {
+        return type;
     }
-
-    public static DateTimeFormatter STAC_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
 }

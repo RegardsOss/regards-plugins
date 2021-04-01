@@ -37,7 +37,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.CORERESPONSE_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
 
 /**
@@ -92,15 +93,18 @@ public class CoreController implements TryToResponseEntity {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         String title = config.getTitle();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
-        return toResponseEntity(Try.of(() -> new CoreResponse(
-                StacSpecConstants.Version.STAC_API_VERSION,
-                List.empty(),
-                title,
-                runtimeTenantResolver.getTenant(),
-                config.getDescription(),
-                collectionService.buildRootLinks(config, linkCreator),
-                ConformanceController.CONFORMANCES
-        )));
+        return toResponseEntity(trying(() -> new CoreResponse(
+            StacSpecConstants.Version.STAC_API_VERSION,
+            List.empty(),
+            title,
+            runtimeTenantResolver.getTenant(),
+            config.getDescription(),
+            collectionService.buildRootLinks(config, linkCreator),
+            ConformanceController.CONFORMANCES
+        )).mapFailure(
+            CORERESPONSE_CONSTRUCTION,
+            () -> "Failed to build core response"
+        ));
     }
 
 }

@@ -32,6 +32,7 @@ import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -43,6 +44,8 @@ import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,13 +87,13 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                 .thenAnswer(i -> stacGeoHelper.makeGeoJSONReader(stacGeoHelper.updateFactory(true)));
 
         when(linkCreator.createRootLink())
-            .thenAnswer(i -> Try.success(uri("/root"))
+            .thenAnswer(i -> Option.of(uri("/root"))
                 .map(uri -> new Link(uri, ROOT, "", "")));
         when(linkCreator.createCollectionLink(anyString(), anyString()))
-            .thenAnswer(i -> Try.success(uri("/collection/" + i.getArgument(0)))
+            .thenAnswer(i -> Option.of(uri("/collection/" + i.getArgument(0)))
                 .map(uri -> new Link(uri, COLLECTION, "", "")));
         when(linkCreator.createItemLink(anyString(), anyString()))
-            .thenAnswer(i -> Try.success(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+            .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                 .map(uri -> new Link(uri, SELF, "", "")));
 
         List<StacProperty> stacProperties = List.of(
@@ -120,8 +123,8 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         feature.getFeature().setFiles(createDataFiles());
 
         Try<Item> result = service.convertFeatureToItem(stacProperties, linkCreator, feature)
-                .onFailure(t -> LOGGER.error(t.getMessage(), t));
-        LOGGER.info("result: {}", result);
+                .onFailure(t -> error(LOGGER, t.getMessage(), t));
+        info(LOGGER, "result: {}", result);
         assertThat(result).isNotEmpty();
 
         Item item = result.get();

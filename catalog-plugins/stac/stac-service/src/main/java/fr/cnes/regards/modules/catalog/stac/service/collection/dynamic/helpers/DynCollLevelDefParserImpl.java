@@ -26,7 +26,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.N
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -34,6 +33,9 @@ import org.springframework.stereotype.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryingManaged;
 import static io.micrometer.core.instrument.util.StringUtils.isBlank;
 
 /**
@@ -60,11 +62,11 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
 
     private DynCollLevelDef<?> parseDateTimeLevelDef(StacProperty prop) {
         String format = prop.getDynamicCollectionFormat();
-        DynCollSublevelType.DatetimeBased sublevelDeepestType = Try
-            .of(() -> DynCollSublevelType.DatetimeBased.valueOf(format))
-            .onFailure(t -> LOGGER.warn("Unparsable date sublevel definition: {}, using 'DAY' instead", format, t))
-            // DAY by default if not specified or unparsable
-            .getOrElse(DynCollSublevelType.DatetimeBased.DAY);
+        DynCollSublevelType.DatetimeBased sublevelDeepestType =
+            trying(() -> DynCollSublevelType.DatetimeBased.valueOf(format))
+                .onFailure(t -> warn(LOGGER, "Unparsable date sublevel definition: {}, using 'DAY' instead", format, t))
+                // DAY by default if not specified or unparsable
+                .getOrElse(DynCollSublevelType.DatetimeBased.DAY);
 
         return new DatePartsLevelDef(prop, sublevelDeepestType);
     }
@@ -77,7 +79,7 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 .map(String::trim)
                 .getOrElse("");
 
-        return Try.of(() -> {
+        return trying(() -> {
             Matcher matcher;
             if (isBlank(format)) {
                 return parseExactLevelDef(prop);
@@ -95,7 +97,7 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 return parseExactLevelDef(prop);
             }
         })
-        .onFailure(t -> LOGGER.warn("Unparsable number level format: {}, using 'EXACT' instead", format, t))
+        .onFailure(t -> warn(LOGGER, "Unparsable number level format: {}, using 'EXACT' instead", format, t))
         .getOrElse(() -> parseExactLevelDef(prop));
 
     }
@@ -108,13 +110,13 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 .map(String::trim)
                 .getOrElse("");
 
-        return Try.of(() -> {
+        return trying(() -> {
             Matcher matcher;
             if (isBlank(format)) {
                 return parseExactLevelDef(prop);
             }
             else if ((matcher = STRING_FORMAT_PATTERN.matcher(format)).matches()) {
-                Integer length = Try.of(() -> Integer.parseInt(matcher.group("num"))).getOrElse(1);
+                Integer length = tryingManaged(() -> Integer.parseInt(matcher.group("num"))).getOrElse(1);
                 String alphaNum = matcher.group("alphanum");
                 boolean alpha = alphaNum.contains("A");
                 boolean num = alphaNum.contains("9");
@@ -128,7 +130,7 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 return parseExactLevelDef(prop);
             }
         })
-        .onFailure(t -> LOGGER.warn("Unparsable string level format: {}, using 'EXACT' instead", format, t))
+        .onFailure(t -> warn(LOGGER, "Unparsable string level format: {}, using 'EXACT' instead", format, t))
         .getOrElse(() -> parseExactLevelDef(prop));
     }
 

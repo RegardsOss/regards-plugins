@@ -21,6 +21,8 @@ package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.Fields;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -33,6 +35,10 @@ import org.springframework.stereotype.Component;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.ASC;
 import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.DESC;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.FIELDS_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.SORTBY_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 
 /**
  * Implementation for the ItemSearchBodyFactory interface.
@@ -76,22 +82,24 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
         return DateInterval.parseDateInterval(repr);
     }
 
-    public Try<List<ItemSearchBody.SortBy>> parseSortBy(String repr) {
-        return Try.of(() ->
-            Stream.of(Option.of(repr).getOrElse("").split(","))
+    public Try<List<SortBy>> parseSortBy(String repr) {
+        return trying(() -> {
+            List<SortBy> objects = Stream.of(Option.of(repr).getOrElse("").split(","))
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)
                 .foldLeft(
                     List.empty(),
                     (acc, str) -> {
                         if (str.startsWith("-")) {
-                            return acc.append(new ItemSearchBody.SortBy(str.substring(1), DESC));
+                            return acc.append(new SortBy(str.substring(1), DESC));
                         } else {
-                            return acc.append(new ItemSearchBody.SortBy(str.replaceFirst("^\\+", ""), ASC));
+                            return acc.append(new SortBy(str.replaceFirst("^\\+", ""), ASC));
                         }
                     }
-                )
-        );
+                );
+            return objects;
+        })
+        .mapFailure(SORTBY_PARSING, () -> format("Failed to parse sort by: '%s'", repr));
     }
 
     public Try<Map<String, ItemSearchBody.QueryObject>> parseQuery(String query) {
@@ -99,13 +107,13 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
         }.getType()));
     }
 
-    public Try<ItemSearchBody.Fields> parseFields(String repr) {
-        return Try.of(() ->
+    public Try<Fields> parseFields(String repr) {
+        return trying(() ->
             Stream.of(Option.of(repr).getOrElse("").split(","))
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)
                 .foldLeft(
-                    new ItemSearchBody.Fields(List.empty(), List.empty()),
+                    new Fields(List.empty(), List.empty()),
                     (acc, str) -> {
                         if (str.startsWith("-")) {
                             return acc.withExcludes(acc.getExcludes().append(str.substring(1)));
@@ -114,7 +122,8 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
                         }
                     }
                 )
-        );
+        )
+        .mapFailure(FIELDS_PARSING, () -> format("Failed to parse fields: '%s'", repr));
     }
 
     // @formatter:on
