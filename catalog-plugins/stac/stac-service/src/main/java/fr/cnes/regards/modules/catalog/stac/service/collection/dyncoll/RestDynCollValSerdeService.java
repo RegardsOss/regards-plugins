@@ -17,17 +17,24 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
-import io.vavr.collection.List;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollVal;
+import io.vavr.control.Try;
 
 /**
- * Provides the mechanics to generate the next layer of sublevels given
- * a position in the tree.
+ * Interface allowing to serialize/deserialize URNs corresponding to
+ * list of dyn collection level values.
  */
-public interface DynCollValNextSublevelHelper {
+public interface RestDynCollValSerdeService {
 
-    List<DynCollVal> nextSublevels(DynCollVal val);
+    RestDynCollVal fromDomain(DynCollVal domain);
+    Try<DynCollVal> toDomain(DynCollDef def, RestDynCollVal rest);
+
+    String toUrn(RestDynCollVal values);
+    Try<RestDynCollVal> fromUrn(String repr);
+    boolean isListOfDynCollLevelValues(String urn);
 
 }

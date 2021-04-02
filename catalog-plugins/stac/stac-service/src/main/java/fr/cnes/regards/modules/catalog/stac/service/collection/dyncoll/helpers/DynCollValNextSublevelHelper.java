@@ -17,20 +17,17 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
+import io.vavr.collection.List;
 
 /**
- * Defines methods to parse dynamic collection level definitions.
+ * Provides the mechanics to generate the next layer of sublevels given
+ * a position in the tree.
  */
-public interface DynCollLevelDefParser {
+public interface DynCollValNextSublevelHelper {
 
-    /**
-     * Try to parse the dynamic collection level format,
-     * using EXACT or DAY as sublevels by default or on failure.
-     */
-    DynCollLevelDef<?> parse(StacProperty prop);
+    List<DynCollVal> nextSublevels(DynCollVal val);
 
 }

@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
+package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
@@ -10,7 +10,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
-import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
@@ -22,6 +21,8 @@ import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
@@ -36,17 +37,15 @@ import org.springframework.stereotype.Component;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URN_PARSING;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
 @Component
 public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticCollectionServiceImpl.class);
-    private static final String DEFAULT_STATIC_ID = "static";
-
 
     private final CatalogSearchService catalogSearchService;
     private final ExtentSummaryService extentSummaryService;
@@ -54,7 +53,6 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     @Autowired
     public StaticCollectionServiceImpl(
             CatalogSearchService catalogSearchService,
-            ConfigurationAccessorFactory configurationAccessorFactory,
             ExtentSummaryService extentSummaryService
     ) {
         this.catalogSearchService = catalogSearchService;
@@ -66,6 +64,31 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return extractURN(urn)
                 .flatMap(resourceName -> convertRequest(resourceName, linkCreator, config))
                 .onFailure(t -> error(LOGGER, t.getMessage(), t));
+    }
+
+    @Override
+    public List<Tuple2<String, String>> staticRootCollectionsIdsAndLabels() {
+        return trying(() -> getRootCollectionsDatasets()
+            .map(e -> Tuple.of(e.getIpId().toString(), e.getLabel()))
+        )
+        .onFailure(t -> LOGGER.warn("Failed to load the root static collections", t))
+        .getOrElse(List::empty);
+    }
+
+    @Override
+    public List<Collection> staticRootCollections(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
+        return trying(() -> getRootCollectionsDatasets()
+            .flatMap(entity -> convertRequest(entity.getIpId(), linkCreator, config))
+        )
+        .onFailure(t -> LOGGER.warn("Failed to load the root static collections", t))
+        .getOrElse(List::empty);
+    }
+
+    public List<AbstractEntity<?>> getRootCollectionsDatasets() throws SearchException, OpenSearchUnknownParameter {
+        ICriterion crit = ICriterion.not(ICriterion.startsWith("tags", "URN"));
+        List<AbstractEntity<?>> collections = searchCriterion(crit, EntityType.COLLECTION);
+        List<AbstractEntity<?>> datasets = searchCriterion(crit, EntityType.DATASET);
+        return collections.appendAll(datasets);
     }
 
     private Try<UniformResourceName> extractURN(String urnStr) {
@@ -114,7 +137,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
             Extent extent = extentSummaryService.extractExtent(aggregationMap);
             Map<String, Object> summary = extentSummaryService.extractSummary(aggregationMap);
 
-            AbstractEntity regardsCollection = collectionWithStats.getCollection();
+            AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
             Collection collection = new Collection(
                     StacSpecConstants.Version.STAC_SPEC_VERSION,
@@ -143,7 +166,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         final List<Link> links;
 
         if (resourceName.getEntityType().equals(EntityType.COLLECTION)) {
-            List<AbstractEntity> children = getSubCollectionsOrDatasets(urn, EntityType.COLLECTION)
+            List<AbstractEntity<?>> children = getSubCollectionsOrDatasets(urn, EntityType.COLLECTION)
                     .appendAll(getSubCollectionsOrDatasets(urn, EntityType.DATASET));
 
             List<Link> parentCollectionId = getParentCollectionId(urn, linkCreator);
@@ -177,9 +200,9 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return linkCreator.createCollectionItemsLinkWithRel(resourceName.toString(), ITEMS);
     }
 
-    private List<AbstractEntity> getSubCollectionsOrDatasets(String urn, EntityType entityType) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
+    private List<AbstractEntity<?>> getSubCollectionsOrDatasets(String urn, EntityType entityType) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
         ICriterion tags = ICriterion.contains("tags", urn);
-        FacetPage<AbstractEntity> subCollections = catalogSearchService.search(tags,
+        FacetPage<AbstractEntity<?>> subCollections = catalogSearchService.search(tags,
                 Searches.onSingleEntity(entityType),
                 null,
                 PageRequest.of(0, 10000));
@@ -187,25 +210,29 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     }
 
     private List<Link> getParentCollectionId(String urn, OGCFeatLinkCreator linkCreator) throws SearchException, OpenSearchUnknownParameter {
-        List<UniformResourceName> parentCollectionsId = getParentCollectionsId(urn);
+        List<String> parentCollectionsId = getParentCollectionsId(urn);
 
         return parentCollectionsId.map(x ->
-                linkCreator.createCollectionLinkWithRel(x.toString(), "", "parent"))
+                linkCreator.createCollectionLinkWithRel(x, "", "parent"))
                 .flatMap(t -> t);
     }
 
-    private List<UniformResourceName> getParentCollectionsId(String urn) throws SearchException, OpenSearchUnknownParameter {
-
+    private List<String> getParentCollectionsId(String urn) throws SearchException, OpenSearchUnknownParameter {
             ICriterion tags = ICriterion.contains("ipId", urn);
-            List<UniformResourceName> uniformResourceNames = List.of(catalogSearchService.search(tags,
-                    Searches.onSingleEntity(EntityType.COLLECTION),
-                    null,
-                    PageRequest.of(0, 100)))
-                    .map(x -> x.getContent())
-                    .flatMap(x -> x)
-                    .map(AbstractEntity::getIpId);
-
-            return List.ofAll(uniformResourceNames.asJava());
-
+            return searchCriterion(tags, EntityType.COLLECTION)
+                .map(AbstractEntity::getIpId)
+                .map(Object::toString);
     }
+
+    private List<AbstractEntity<?>> searchCriterion(ICriterion criterion, EntityType type) throws SearchException, OpenSearchUnknownParameter {
+        FacetPage<AbstractEntity<?>> page = catalogSearchService.search(
+            criterion,
+            Searches.onSingleEntity(type),
+            null,
+            PageRequest.of(0, 100)
+        );
+        return List.of(page).map(x -> x.getContent()).flatMap(x -> x);
+    }
+
+
 }

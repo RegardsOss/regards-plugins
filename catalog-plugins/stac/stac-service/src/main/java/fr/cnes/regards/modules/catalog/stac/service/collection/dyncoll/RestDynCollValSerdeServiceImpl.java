@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;

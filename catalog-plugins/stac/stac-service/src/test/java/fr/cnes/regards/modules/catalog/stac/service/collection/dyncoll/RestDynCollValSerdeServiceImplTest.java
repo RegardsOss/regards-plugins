@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollVal;
@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.RestDynCollValSerdeServiceImpl.URN_PREFIX;
+import static fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.RestDynCollValSerdeServiceImpl.URN_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RestDynCollValSerdeServiceImplTest implements GsonAwareTest, RandomAwareTest {

@@ -31,9 +31,9 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.statcoll.IStaticCollectionService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.DynamicCollectionService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
@@ -43,8 +43,6 @@ import fr.cnes.regards.modules.catalog.stac.service.link.StacLinkCreator;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,10 +50,10 @@ import java.util.function.Function;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTIONSRESPONSE_CONSTRUCTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
-import static fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.DynamicCollectionServiceImpl.DEFAULT_DYNAMIC_ID;
 import static java.lang.String.format;
 
 /**
@@ -63,8 +61,6 @@ import static java.lang.String.format;
  */
 @Service
 public class CollectionServiceImpl implements CollectionService, StacLinkCreator {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CollectionServiceImpl.class);
 
     public static final String DEFAULT_STATIC_ID = "static";
 
@@ -154,14 +150,9 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         );
     }
 
-    private List<Collection> staticCollections(OGCFeatLinkCreator linkCreator) {
-
-        return List.empty(); // TODO
-    }
-
     private List<Link> staticCollectionLinks(OGCFeatLinkCreator linkCreator) {
-        return staticCollections(linkCreator)
-            .map(linkCreator::createCollectionLink)
+        return staticCollectionService.staticRootCollectionsIdsAndLabels()
+            .map(idLabel -> linkCreator.createCollectionLink(idLabel._1, idLabel._2))
             .flatMap(l -> l);
     }
 
@@ -187,10 +178,10 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             ? List.of(
                 buildRootDynamicCollection(linkCreator, config),
                 buildRootStaticCollection(linkCreator, config))
-            : staticCollections(linkCreator);
+            : staticCollectionService.staticRootCollections(linkCreator, config);
     }
 
-    public List<Link> buildCollectionsLinks(OGCFeatLinkCreator linkCreator) {
+    private List<Link> buildCollectionsLinks(OGCFeatLinkCreator linkCreator) {
         return List.of(
             linkCreator.createRootLink(),
             linkCreator.createCollectionsLink()
@@ -242,7 +233,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             .flatMap(isb -> itemSearchService.search(isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)));
     }
 
-    public Try<ItemSearchBody> getDynCollItemSearchBody(
+    private Try<ItemSearchBody> getDynCollItemSearchBody(
             String collectionId,
             Integer limit,
             BBox bbox,
@@ -255,7 +246,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                 );
     }
 
-    public Try<ItemSearchBody> getCollectionItemSearchBody(
+    private Try<ItemSearchBody> getCollectionItemSearchBody(
             Integer limit,
             BBox bbox,
             String datetime,

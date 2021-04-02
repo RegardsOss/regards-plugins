@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -31,9 +31,9 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelDefParser;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollLevelValToQueryObjectConverter;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers.DynCollValNextSublevelHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelDefParser;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelValToQueryObjectConverter;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollValNextSublevelHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;

@@ -31,49 +31,54 @@ import java.util.function.Supplier;
 
 /**
  * Provides a small DSL to build {@link Try} instances, forcing the user to
- * declare a "onFailure".
+ * declare an "onFailure".
  */
-public final class TryDSL {
+public interface TryDSL<R> {
 
-    public interface TryFailureBuilder<R> {
-        CheckedFunction0<R> trying();
+    Try<R> trying();
 
-        default <T> TryFailureBuilder<T> map(CheckedFunction1<R, T> mapFn) {
-            return () -> trying().andThen(mapFn);
-        }
-
-        default Try<R> onFailure(CheckedConsumer<Throwable> recover) {
-            return Try.of(trying())
-                .onFailure(t -> Try.run(() -> recover.accept(t)));
-        }
-
-        default Try<R> mapFailure(Function<Throwable, StacException> cb) {
-            return Try.of(trying())
-                .recoverWith(t -> Try.failure(cb.apply(t)));
-        }
-
-        default Try<R> mapFailure(StacFailureType type, Supplier<String> message) {
-            return mapFailure(t -> new StacException(message.get(), t, type));
-        }
-
+    default <T> TryDSL<T> map(CheckedFunction1<R, T> mapFn) {
+        return () -> trying().mapTry(mapFn);
     }
 
-    public static <R> TryFailureBuilder<R> trying(CheckedFunction0<R> fn) {
-        return () -> fn;
+    default <T> TryDSL<T> flatMap(CheckedFunction1<R, Try<T>> fmapFn) {
+        return () -> trying().flatMapTry(fmapFn);
     }
 
-    public static <R> Try<R> tryingManaged(CheckedFunction0<R> fn) {
+    default Try<R> onFailure(CheckedConsumer<Throwable> recover) {
+        return trying()
+            .onFailure(t -> Try.run(() -> recover.accept(t)));
+    }
+
+    default Try<R> mapFailure(Function<Throwable, StacException> cb) {
+        return trying()
+            .recoverWith(t -> Try.failure(cb.apply(t)));
+    }
+
+    default Try<R> mapFailure(StacFailureType type, Supplier<String> message) {
+        return mapFailure(t -> new StacException(message.get(), t, type));
+    }
+
+    static <R> TryDSL<R> trying(CheckedFunction0<R> fn) {
+        return () -> Try.of(fn);
+    }
+
+    /**
+     * When you really need to use Try.of, use this method instead. This allows to track usage of
+     * Try.of elsewhere in the code.
+     *
+     * This method should be used sparingly, only for very special cases when the
+     * expected exceptions are of very little importance or when the Try can be
+     * safely discarded into an Option.
+     */
+    static <R> Try<R> tryOf(CheckedFunction0<R> fn) {
         return Try.of(fn);
     }
 
     /**
      * To be used in recoverWith.
-     * @param type
-     * @param message
-     * @param <R>
-     * @return
      */
-    public static <R> Function<? super Throwable, ? extends Try<? extends R>> stacFailure(
+    static <R> Function<? super Throwable, ? extends Try<? extends R>> stacFailure(
             StacFailureType type,
             Supplier<String> message
     ){

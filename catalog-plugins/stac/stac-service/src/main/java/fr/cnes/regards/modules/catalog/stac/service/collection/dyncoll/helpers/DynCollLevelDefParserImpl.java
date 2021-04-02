@@ -17,7 +17,7 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryingManaged;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryOf;
 import static io.micrometer.core.instrument.util.StringUtils.isBlank;
 
 /**
@@ -116,7 +116,7 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 return parseExactLevelDef(prop);
             }
             else if ((matcher = STRING_FORMAT_PATTERN.matcher(format)).matches()) {
-                Integer length = tryingManaged(() -> Integer.parseInt(matcher.group("num"))).getOrElse(1);
+                Integer length = tryOf(() -> Integer.parseInt(matcher.group("num"))).getOrElse(1);
                 String alphaNum = matcher.group("alphanum");
                 boolean alpha = alphaNum.contains("A");
                 boolean num = alphaNum.contains("9");

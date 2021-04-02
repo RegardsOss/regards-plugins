@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.helpers;
+package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;

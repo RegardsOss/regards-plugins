@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.catalog.stac.service.collection.Static;
+package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
-import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 
@@ -39,4 +39,12 @@ public interface IStaticCollectionService {
      * @return the stac collection
      */
     Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
+
+    /**
+     * Identify the collections/datasets with no parent.
+     * @return the ids and labels of the collections/datasets which have no parent collection
+     */
+    List<Tuple2<String, String>> staticRootCollectionsIdsAndLabels();
+
+    List<Collection> staticRootCollections(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 }

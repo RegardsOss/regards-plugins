@@ -53,6 +53,8 @@ public enum StacFailureType {
     DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
     DATAOBJECT_TO_ITEM_CONVERSION,
 
+    ROOT_STATIC_COLLECTIONS_QUERY,
+
     UNKNOWN;
 
     private final HttpStatus status;

@@ -1,4 +1,4 @@
-package fr.cnes.regards.modules.catalog.stac.service;
+package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
 
 import com.google.common.collect.Sets;
@@ -10,7 +10,6 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.collection.Static.IStaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;

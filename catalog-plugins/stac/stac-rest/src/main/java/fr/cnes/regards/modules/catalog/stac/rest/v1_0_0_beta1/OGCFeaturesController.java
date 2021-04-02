@@ -32,7 +32,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.CollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dynamic.RestDynCollValSerdeService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.RestDynCollValSerdeService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;

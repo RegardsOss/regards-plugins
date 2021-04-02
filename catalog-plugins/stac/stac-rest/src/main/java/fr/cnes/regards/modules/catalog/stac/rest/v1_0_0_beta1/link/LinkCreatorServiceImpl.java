@@ -47,7 +47,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryingManaged;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryOf;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
@@ -86,7 +86,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<Link> createRootLink() {
-                return tryingManaged(() ->
+                return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(
                         CoreController.class,
                         getMethodNamedInClass(CoreController.class, "root")
@@ -100,7 +100,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<Link> createCollectionsLink() {
-                return tryingManaged(() ->
+                return tryOf(() ->
                         WebMvcLinkBuilder.linkTo(
                                 OGCFeaturesController.class,
                                 getMethodNamedInClass(OGCFeaturesController.class, "collections")
@@ -114,7 +114,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<Link> createCollectionLink(String collectionId, String collectionTitle) {
-                return tryingManaged(() ->
+                return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "collection"),
@@ -129,7 +129,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<Link> createCollectionItemsLink(String collectionId) {
-                return tryingManaged(() ->
+                return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "features"),
@@ -149,7 +149,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<Link> createItemLink(String collectionId, String itemId) {
-                return tryingManaged(() ->
+                return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(
                         OGCFeaturesController.class,
                         getMethodNamedInClass(OGCFeaturesController.class, "feature"),
@@ -176,7 +176,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<URI> searchAll() {
-                return tryingManaged(() ->
+                return tryOf(() ->
                         WebMvcLinkBuilder.linkTo(
                                 ItemSearchController.class,
                                 getMethodNamedInClass(ItemSearchController.class, "simple")
@@ -189,7 +189,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
-                return tryingManaged(() ->
+                return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(
                         ItemSearchController.class,
                         getMethodNamedInClass(ItemSearchController.class, "otherPage"),
