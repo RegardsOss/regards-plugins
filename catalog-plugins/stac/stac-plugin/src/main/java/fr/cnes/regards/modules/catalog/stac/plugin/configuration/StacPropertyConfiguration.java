@@ -71,7 +71,7 @@ public class StacPropertyConfiguration {
             name = "stacComputeSummary",
             label = "compute summary",
             description = "Whether a summary should be computed for this property in the collections." +
-                    " Only applicable for stacType value among 'DATETIME', 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
+                    " Only applicable for stacType value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
     private Boolean stacComputeSummary;
 
@@ -89,7 +89,7 @@ public class StacPropertyConfiguration {
     @PluginParameter(
             name = "stacDynamicCollectionFormat",
             label = "STAC dynamic collection format",
-            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            description = "stacDynamicCollectionFormat.md",
             optional = true
     )
     private String stacDynamicCollectionFormat;
@@ -105,10 +105,8 @@ public class StacPropertyConfiguration {
                     "'LENGTH', " +
                     "'PERCENTAGE', " +
                     "'NUMBER', " +
-                    "'GEOMETRY', " +
-                    "'BBOX', " +
                     "'BOOLEAN', " +
-                    "'OBJECT'. Default is 'STRING', unless for the mandatory datetime property in which case it is 'DATETIME'.",
+                    "'JSON_OBJECT'. Default is 'STRING', unless for the mandatory datetime property in which case it is 'DATETIME'.",
             optional = true
     )
     private String stacType;
@@ -116,8 +114,7 @@ public class StacPropertyConfiguration {
     @PluginParameter(
             name = "stacFormat",
             label = "Format for the STAC value",
-            description = "This parameter describes the format for values in STAC." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            description = "stacFormat.md",
             optional = true
     )
     private String stacFormat;
@@ -125,8 +122,7 @@ public class StacPropertyConfiguration {
     @PluginParameter(
             name = "regardsFormat",
             label = "Format for the REGARDS value",
-            description = "This parameter describes the format for values in REGARDS." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            description = "regardsFormat.md",
             optional = true
     )
     private String regardsFormat;

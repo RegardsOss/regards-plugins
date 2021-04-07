@@ -54,7 +54,7 @@ import java.util.List;
         license = "GPLv3",
         owner = "CSSI",
         url = "https://github.com/RegardsOss",
-        markdown = "StacEnginePlugin.md"
+        markdown = "StacSearchEngine.md"
 )
 @Data @AllArgsConstructor @NoArgsConstructor
 public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, Object, List<String>> {

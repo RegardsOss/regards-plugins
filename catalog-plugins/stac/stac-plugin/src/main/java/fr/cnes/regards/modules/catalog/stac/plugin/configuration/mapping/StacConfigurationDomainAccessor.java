@@ -124,7 +124,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public StacProperty getDatetimeStacProperty() {
-                return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyCOnfiguration())
+                return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyConfiguration())
                     .map(spc -> getConfiguredProperties(List.of(spc)).head())
                     .getOrNull();
             }
@@ -247,7 +247,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
         java.util.List<StacPropertyConfiguration> propConfigs = Option
             .of(plugin.getStacExtraProperties())
             .getOrElse(new ArrayList<>());
-        StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyCOnfiguration();
+        StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyConfiguration();
         return getConfiguredProperties(List.ofAll(propConfigs)
             .prepend(datetimeProp));
     }

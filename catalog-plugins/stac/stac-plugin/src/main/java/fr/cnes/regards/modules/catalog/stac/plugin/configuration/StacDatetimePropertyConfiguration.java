@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,9 +54,7 @@ public class StacDatetimePropertyConfiguration {
     @PluginParameter(
             name = "stacDynamicCollectionLevel",
             label = "STAC dynamic collection level",
-            description = "For dynamic collections, use this parameter as the given level." +
-                    " Levels start at 1, and there must be only one STAC property defined for each level." +
-                    " Negative values are ignored.",
+            description = "stacDynamicCollectionLevel.md",
             defaultValue = "-1",
             optional = true
     )
@@ -64,16 +63,16 @@ public class StacDatetimePropertyConfiguration {
     @PluginParameter(
             name = "stacDynamicCollectionFormat",
             label = "STAC dynamic collection format",
-            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            description = "stacDynamicCollectionFormat.md",
             optional = true
     )
     private String stacDynamicCollectionFormat;
 
-    public StacPropertyConfiguration toStacPropertyCOnfiguration() {
+    public StacPropertyConfiguration toStacPropertyConfiguration() {
         return new StacPropertyConfiguration(
                 modelPropertyName,
                 modelPropertyJSONPath,
-                "datetime",
+                StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
                 "",
                 false,
                 stacDynamicCollectionLevel,

@@ -209,7 +209,7 @@ public class RegardsStacCollectionConverterTest {
         assertThat(collections.isSuccess(), is(true));
 
         assertThat(collections.get().getTitle(), is(collection.getLabel()));
-        assertThat(collections.get().getId(), is(collection.getId().toString()));
+        assertThat(collections.get().getId(), is(collection.getIpId().toString()));
 
         Assert.assertFalse(collections.get().getLinks().isEmpty());
         Assert.assertEquals(1, collections.get().getLinks().map(Link::getRel).count(x -> x.equals("parent")));

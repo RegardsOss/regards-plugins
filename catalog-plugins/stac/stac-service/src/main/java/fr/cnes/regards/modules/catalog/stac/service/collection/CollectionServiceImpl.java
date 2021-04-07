@@ -152,7 +152,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private List<Link> staticCollectionLinks(OGCFeatLinkCreator linkCreator) {
         return staticCollectionService.staticRootCollectionsIdsAndLabels()
-            .map(idLabel -> linkCreator.createCollectionLink(idLabel._1, idLabel._2))
+            .map(idLabel -> linkCreator.createCollectionLinkWithRel(idLabel._1, idLabel._2, CHILD))
             .flatMap(l -> l);
     }
 
