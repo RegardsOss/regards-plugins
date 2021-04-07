@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
+import static fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration.*;
+
 /**
  * Definition of the configuration for a STAC property, defining which model attribute
  * it corresponds to and how to convert from the one to the other.
@@ -52,18 +54,18 @@ public class StacDatetimePropertyConfiguration {
     private String modelPropertyJSONPath;
 
     @PluginParameter(
-            name = "stacDynamicCollectionLevel",
+            name = STAC_DYNAMIC_COLLECTION_LEVEL,
             label = "STAC dynamic collection level",
-            description = "stacDynamicCollectionLevel.md",
+            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
             defaultValue = "-1",
             optional = true
     )
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
-            name = "stacDynamicCollectionFormat",
+            name = STAC_DYNAMIC_COLLECTION_FORMAT,
             label = "STAC dynamic collection format",
-            description = "stacDynamicCollectionFormat.md",
+            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
             optional = true
     )
     private String stacDynamicCollectionFormat;
