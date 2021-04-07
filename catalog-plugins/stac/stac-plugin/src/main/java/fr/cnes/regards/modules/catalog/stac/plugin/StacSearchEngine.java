@@ -112,7 +112,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
 
     @PluginParameter(
             name = "stacCollectionDatasetProperties",
-            label = "Dataset properties",
+            label = "STAC dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
