@@ -32,6 +32,18 @@ import lombok.With;
 @Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacPropertyConfiguration {
 
+    public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stacDynamicCollectionLevel";
+    public static final String STAC_DYNAMIC_COLLECTION_LEVEL_MD = STAC_DYNAMIC_COLLECTION_LEVEL + ".md";
+
+    public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stacDynamicCollectionFormat";
+    public static final String STAC_DYNAMIC_COLLECTION_FORMAT_MD = STAC_DYNAMIC_COLLECTION_FORMAT + ".md";
+
+    public static final String STAC_FORMAT = "stacFormat";
+    public static final String STAC_FORMAT_MD = STAC_FORMAT + ".md";
+
+    public static final String REGARDS_FORMAT = "regardsFormat";
+    public static final String REGARDS_FORMAT_MD = REGARDS_FORMAT + ".md";
+
     @PluginParameter(
             name = "modelPropertyName",
             label = "Regards property name",
@@ -71,25 +83,23 @@ public class StacPropertyConfiguration {
             name = "stacComputeSummary",
             label = "compute summary",
             description = "Whether a summary should be computed for this property in the collections." +
-                    " Only applicable for stacType value among 'DATETIME', 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
+                    " Only applicable for stacType value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
     private Boolean stacComputeSummary;
 
     @PluginParameter(
-            name = "stacDynamicCollectionLevel",
+            name = STAC_DYNAMIC_COLLECTION_LEVEL,
             label = "STAC dynamic collection level",
-            description = "For dynamic collections, use this parameter as the given level." +
-                    " Levels start at 1, and there must be only one STAC property defined for each level." +
-                    " Negative values are ignored.",
+            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
             defaultValue = "-1",
             optional = true
     )
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
-            name = "stacDynamicCollectionFormat",
+            name = STAC_DYNAMIC_COLLECTION_FORMAT,
             label = "STAC dynamic collection format",
-            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
             optional = true
     )
     private String stacDynamicCollectionFormat;
@@ -105,28 +115,25 @@ public class StacPropertyConfiguration {
                     "'LENGTH', " +
                     "'PERCENTAGE', " +
                     "'NUMBER', " +
-                    "'GEOMETRY', " +
-                    "'BBOX', " +
                     "'BOOLEAN', " +
-                    "'OBJECT'. Default is 'STRING', unless for the mandatory datetime property in which case it is 'DATETIME'.",
+                    "'JSON_OBJECT'.",
+            defaultValue = "STRING",
             optional = true
     )
     private String stacType;
 
     @PluginParameter(
-            name = "stacFormat",
+            name = STAC_FORMAT,
             label = "Format for the STAC value",
-            description = "This parameter describes the format for values in STAC." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            markdown = STAC_FORMAT_MD,
             optional = true
     )
     private String stacFormat;
 
     @PluginParameter(
-            name = "regardsFormat",
+            name = REGARDS_FORMAT,
             label = "Format for the REGARDS value",
-            description = "This parameter describes the format for values in REGARDS." +
-                    " Currently only used when type is 'DATETIME' or 'PERCENTAGE'. ",
+            markdown = REGARDS_FORMAT_MD,
             optional = true
     )
     private String regardsFormat;

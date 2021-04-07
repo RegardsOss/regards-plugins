@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URN_PARSING;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
@@ -71,7 +72,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return trying(() -> getRootCollectionsDatasets()
             .map(e -> Tuple.of(e.getIpId().toString(), e.getLabel()))
         )
-        .onFailure(t -> LOGGER.warn("Failed to load the root static collections", t))
+        .onFailure(t -> warn(LOGGER, "Failed to load the root static collections", t))
         .getOrElse(List::empty);
     }
 
@@ -80,7 +81,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return trying(() -> getRootCollectionsDatasets()
             .flatMap(entity -> convertRequest(entity.getIpId(), linkCreator, config))
         )
-        .onFailure(t -> LOGGER.warn("Failed to load the root static collections", t))
+        .onFailure(t -> warn(LOGGER, "Failed to load the root static collections", t))
         .getOrElse(List::empty);
     }
 
@@ -143,7 +144,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     StacSpecConstants.Version.STAC_SPEC_VERSION,
                     List.empty(),
                     regardsCollection.getLabel(),
-                    regardsCollection.getId().toString(),
+                    regardsCollection.getIpId().toString(),
 //                    regardsCollection.getModel().getDescription(),
                     "",
                     links,
@@ -162,7 +163,11 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         );
     }
 
-    private List<Link> getLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator, String urn) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
+    private List<Link> getLinks(
+            UniformResourceName resourceName,
+            OGCFeatLinkCreator linkCreator,
+            String urn
+    ) throws SearchException, OpenSearchUnknownParameter {
         final List<Link> links;
 
         if (resourceName.getEntityType().equals(EntityType.COLLECTION)) {
@@ -200,7 +205,8 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return linkCreator.createCollectionItemsLinkWithRel(resourceName.toString(), ITEMS);
     }
 
-    private List<AbstractEntity<?>> getSubCollectionsOrDatasets(String urn, EntityType entityType) throws fr.cnes.regards.modules.search.service.SearchException, fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter {
+    private List<AbstractEntity<?>> getSubCollectionsOrDatasets(String urn, EntityType entityType)
+            throws SearchException, OpenSearchUnknownParameter {
         ICriterion tags = ICriterion.contains("tags", urn);
         FacetPage<AbstractEntity<?>> subCollections = catalogSearchService.search(tags,
                 Searches.onSingleEntity(entityType),
@@ -209,7 +215,8 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
         return List.ofAll(subCollections.getContent());
     }
 
-    private List<Link> getParentCollectionId(String urn, OGCFeatLinkCreator linkCreator) throws SearchException, OpenSearchUnknownParameter {
+    private List<Link> getParentCollectionId(String urn, OGCFeatLinkCreator linkCreator)
+            throws SearchException, OpenSearchUnknownParameter {
         List<String> parentCollectionsId = getParentCollectionsId(urn);
 
         return parentCollectionsId.map(x ->
@@ -217,14 +224,16 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                 .flatMap(t -> t);
     }
 
-    private List<String> getParentCollectionsId(String urn) throws SearchException, OpenSearchUnknownParameter {
+    private List<String> getParentCollectionsId(String urn)
+            throws SearchException, OpenSearchUnknownParameter {
             ICriterion tags = ICriterion.contains("ipId", urn);
             return searchCriterion(tags, EntityType.COLLECTION)
                 .map(AbstractEntity::getIpId)
                 .map(Object::toString);
     }
 
-    private List<AbstractEntity<?>> searchCriterion(ICriterion criterion, EntityType type) throws SearchException, OpenSearchUnknownParameter {
+    private List<AbstractEntity<?>> searchCriterion(ICriterion criterion, EntityType type)
+            throws SearchException, OpenSearchUnknownParameter {
         FacetPage<AbstractEntity<?>> page = catalogSearchService.search(
             criterion,
             Searches.onSingleEntity(type),

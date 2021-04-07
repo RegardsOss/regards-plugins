@@ -234,8 +234,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     @Test
     public void testConvertCollection() {
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
+        String urn = "URN:AIP:COLLECTION:" + ITEMSTENANT + ":80282ac5-1b01-4e9d-a356-123456789012:V1";
         Try<Collection> result = converter
-                .convertRequest("URN:AIP:COLLECTION:"+ITEMSTENANT+":80282ac5-1b01-4e9d-a356-123456789012:V1",
+                .convertRequest(urn,
                         linkCreator,
                         configurationAccessorFactory.makeConfigurationAccessor())
                 .onFailure(t -> {
@@ -253,7 +254,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals(offsetDateTimeTo.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._2.toInstant());
 
         Assert.assertEquals("toto", result.get().getTitle());
-        Assert.assertEquals("1", result.get().getId());
+        Assert.assertEquals(urn, result.get().getId());
 
         Assert.assertEquals(3, result.get().getLinks().length());
 //        Assert.assertEquals(1, result.get().getLinks().count(x -> "child".equals(x.getRel())));

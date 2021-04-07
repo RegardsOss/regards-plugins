@@ -20,11 +20,14 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
+
+import static fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration.*;
 
 /**
  * Definition of the configuration for a STAC property, defining which model attribute
@@ -51,29 +54,27 @@ public class StacDatetimePropertyConfiguration {
     private String modelPropertyJSONPath;
 
     @PluginParameter(
-            name = "stacDynamicCollectionLevel",
+            name = STAC_DYNAMIC_COLLECTION_LEVEL,
             label = "STAC dynamic collection level",
-            description = "For dynamic collections, use this parameter as the given level." +
-                    " Levels start at 1, and there must be only one STAC property defined for each level." +
-                    " Negative values are ignored.",
+            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
             defaultValue = "-1",
             optional = true
     )
     private Integer stacDynamicCollectionLevel;
 
     @PluginParameter(
-            name = "stacDynamicCollectionFormat",
+            name = STAC_DYNAMIC_COLLECTION_FORMAT,
             label = "STAC dynamic collection format",
-            description = "For dynamic collections, use this parameter to define the format of the dynamic collection.",
+            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
             optional = true
     )
     private String stacDynamicCollectionFormat;
 
-    public StacPropertyConfiguration toStacPropertyCOnfiguration() {
+    public StacPropertyConfiguration toStacPropertyConfiguration() {
         return new StacPropertyConfiguration(
                 modelPropertyName,
                 modelPropertyJSONPath,
-                "datetime",
+                StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
                 "",
                 false,
                 stacDynamicCollectionLevel,
