@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import io.vavr.control.Option;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,7 +41,9 @@ public class StacDatetimePropertyConfiguration {
             name = "modelPropertyName",
             label = "Regards property name",
             description = "This parameter determines which attribute model parameter" +
-                    " to map to a STAC property."
+                    " to map to a STAC property.",
+            optional = true,
+            defaultValue = "creationDate"
     )
     private String modelPropertyName;
 
@@ -72,7 +75,7 @@ public class StacDatetimePropertyConfiguration {
 
     public StacPropertyConfiguration toStacPropertyConfiguration() {
         return new StacPropertyConfiguration(
-                modelPropertyName,
+                Option.of(modelPropertyName).getOrElse("creationDate"),
                 modelPropertyJSONPath,
                 StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
                 "",

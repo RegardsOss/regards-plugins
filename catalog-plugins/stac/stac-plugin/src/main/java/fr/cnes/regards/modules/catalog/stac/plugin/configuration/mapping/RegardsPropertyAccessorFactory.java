@@ -28,6 +28,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ParseContext;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.RegardsConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
@@ -104,6 +105,7 @@ public class RegardsPropertyAccessorFactory {
                 AttributeModel result = new AttributeModel();
                 result.setType(sPropType.getPropertyType());
                 result.setAlterable(false);
+                result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
                 return result;
             });
         String realAttrName = Option.of(sPropConfig.getModelPropertyJSONPath())

@@ -190,7 +190,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations
                 .map(s -> {
-                    debug(LOGGER, "Convertng stac prop config: {}", s);
+                    debug(LOGGER, "Converting stac prop config: {}", s);
                     StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
                     AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
                         stacType,
@@ -215,7 +215,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
             StacPropertyConfiguration sPropConfig,
             StacPropertyType stacType
     ) {
-        return this.regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
+        return regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
     }
 
     private boolean canComputeSummary(StacPropertyType type) {
