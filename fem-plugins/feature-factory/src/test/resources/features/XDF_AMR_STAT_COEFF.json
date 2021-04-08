@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "XDF_AMR_STAT_COEFF:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc",
+      "filename": "SWOT_RAD_CHD__AX_20200303T120000_20200303T120000_20200303T120000JPL.nc",
       "extension": "nc",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_RAD_CHD_AX_20200303T120000_20200303T120000_20200303T120000.nc",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_RAD_CHD__AX_20200303T120000_20200303T120000_20200303T120000JPL.nc",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
@@ -26,7 +27,7 @@
       "type": "XDF_AMR_STAT_COEFF"
     },
     "swot": {
-      "file_identifier": "CHD_AX",
+      "file_identifier": "CHD__AX",
       "granule_type": "Segment"
     }
   },

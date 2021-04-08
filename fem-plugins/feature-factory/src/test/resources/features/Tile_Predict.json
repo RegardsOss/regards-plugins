@@ -1,0 +1,35 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "last": false,
+  "id": "Tile_Predict:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_Tile_Predict_20210612T000000_20210612T235959_VI0059_03.tar",
+      "extension": "tar",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_Tile_Predict_20210612T000000_20210612T235959_VI0059_03.tar",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2021-06-12T00:00:00Z",
+      "end_date": "2021-06-12T23:59:59Z",
+      "type": "Tile_Predict"
+    },
+    "swot": {
+      "crid": "VI0059",
+      "product_counter": 3,
+      "granule_type": "Pass"
+    }
+  },
+  "type": "Feature"
+}

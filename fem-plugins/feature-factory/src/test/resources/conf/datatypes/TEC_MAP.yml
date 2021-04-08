@@ -3,7 +3,7 @@ TEC_MAP:
     Description: ''
     document: SWOT-ICD-SYS-0421-CNES
     example:
-    - JPLQ150.16I
+    - JPLQ1500.16I
     granule_type: Day
     tar_content: []
     mission: MM

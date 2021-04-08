@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -79,6 +78,19 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFactoryServiceTest.class);
 
+    private final static String RESOURCE_PATH = "src/test/resources/conf/models";
+
+    private static final String tenant = "DEFAULT";
+
+    @Autowired
+    protected MultitenantFlattenedAttributeAdapterFactory factory;
+
+    @Autowired
+    protected IModelClient modelClientMock;
+
+    @Autowired
+    protected IModelAttrAssocClient modelAttrAssocClientMock;
+
     @Autowired
     Gson gson;
 
@@ -89,20 +101,7 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
     IRuntimeTenantResolver resovlver;
 
     @Autowired
-    protected MultitenantFlattenedAttributeAdapterFactory factory;
-
-    @Autowired
     private FeatureValidationService validationService;
-
-    @Autowired
-    protected IModelClient modelClientMock;
-
-    @Autowired
-    protected IModelAttrAssocClient modelAttrAssocClientMock;
-
-    private final static String RESOURCE_PATH = "src/test/resources/conf/models";
-
-    private static final String tenant = "DEFAULT";
 
     @Before
     public void init() {
@@ -162,10 +161,10 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
         resovlver.forceTenant(tenant);
         GpfsProtocolHandler.initializeProtocol();
         String modelName = this.importModel("model_geode.xml");
-        featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes/invalid"));
+        featureFactory.readConfs(Paths.get("src/test/resources/conf/datatypes"));
         OffsetDateTime creationDate = OffsetDateTime.of(2020, 4, 10, 12, 0, 0, 0, ZoneOffset.UTC);
         String urlPrefix = "/directory/sub/";
-        int nbError=0;
+        int nbError = 0;
         for (DataTypeDescriptor d : featureFactory.getDescriptors()) {
             if ((d.getExample() != null) && !d.getExample().isEmpty()) {
                 try {
@@ -179,8 +178,8 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                     LOGGER.debug(feature.getProperties().toString());
                     Errors errors = validationService.validate(feature, ValidationMode.CREATION);
                     if (errors.hasErrors()) {
-                        String message = String.format("[%s] %s validation errors", d.getType(),
-                                                       errors.getErrorCount());
+                        String message = String
+                                .format("[%s] %s validation errors", d.getType(), errors.getErrorCount());
                         LOGGER.error("-------------> {} - {}", d.getType(), message);
                         errors.getAllErrors().forEach(e -> LOGGER.error(" ----> {}", e.getDefaultMessage().toString()));
                         Assert.fail(message);
@@ -188,11 +187,12 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
                     // Fix id for test comparison
                     String uniqId = String.format("%s:test", d.getType());
                     feature.setId(uniqId);
-                    writeToFile(feature, d.getType());
-                    //                    Assert.assertTrue(String.format("Expected generated feature for product %s does not match",
-                    //                                                    d.getType()),
-                    //                                      com.google.common.io.Files.equal(result, Paths
-                    //                                              .get("src/test/resources/features", d.getType() + ".json").toFile()));
+                    File result = writeToFile(feature, d.getType());
+                    Assert.assertTrue(String.format("Expected generated feature for product %s does not match",
+                                                    d.getType()),
+                                      com.google.common.io.Files.equal(result,
+                                                                       Paths.get("src/test/resources/features",
+                                                                                 d.getType() + ".json").toFile()));
                 } catch (ModuleException e) {
                     LOGGER.error("--------> [{}] Invalid data descriptor cause :", d.getType(), e);
                     nbError++;
@@ -203,7 +203,9 @@ public class FeatureFactoryServiceTest extends AbstractMultitenantServiceTest {
             }
         }
         Assert.assertEquals(0, nbError);
-        Assert.assertEquals("There should be 139 data types for SWOT in GEODE", 139, featureFactory.getDescriptors().size());
+        Assert.assertEquals("There should be 139 data types for SWOT in GEODE",
+                            139,
+                            featureFactory.getDescriptors().size());
 
         // Test error cases
         Optional<DataTypeDescriptor> debugDTD = featureFactory.getDescriptors().stream()

@@ -7,7 +7,7 @@
 <model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="model_V1.0.xsd">
     <name>GEODE001</name>
     <description>Data model for SWOT data lifecycle</description>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <type>DATA</type>
     <!-- System infos -->
     <fragment>
@@ -110,7 +110,6 @@
                     <value>L0A_GYRO_TECH</value>
                     <value>L0A_HR_Packet</value>
                     <value>L0A_KCAL_Packet</value>
-                    <value>L0A_KCAL_Prime</value>
                     <value>L0A_LR_Packet</value>
                     <value>L0A_NALT_CAL1</value>
                     <value>L0A_NALT_CAL2</value>

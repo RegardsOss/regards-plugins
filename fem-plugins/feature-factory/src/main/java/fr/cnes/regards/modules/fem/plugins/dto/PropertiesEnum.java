@@ -56,6 +56,9 @@ public enum PropertiesEnum {
     CREATION_DATE_TIME("CreationDateTime", Constants.DATA_PRODUCTION_DATE, Constants.PATTERN_8___6, PropertyType.DATE_TIME,
         Constants.FORMAT_8___6),
 
+    CREATION_DATE_TIME_SCC("CreationDateTimeSCC", Constants.DATA_PRODUCTION_DATE, Constants.PATTERN_Y_M_D_T_H_M_S_MS, PropertyType.DATE_TIME,
+                       Constants.FORMAT_Y_M_D_T_H_M_S_MS),
+
     START_DATE_TIME("StartDateTime", Constants.DATA_START_DATE, Constants.PATTERN_8___6, PropertyType.DATE_TIME,
         Constants.FORMAT_8___6),
 
@@ -112,7 +115,12 @@ public enum PropertiesEnum {
     VERSION_2("Version2", "swot.product_version", "[0-9]{2}", PropertyType.STRING),
 
     VERSION_3("Version3", "swot.product_version", "[0-9]{3}", PropertyType.STRING),
-    ORBIT("Orbit", "swot.Orbit", ".*", PropertyType.STRING);
+
+    ORBIT("Orbit", "swot.Orbit", ".*", PropertyType.STRING),
+
+    // These two properties are not mapped into GEODE model and removed once used to create data.start_date and data.end_date
+    DAY_DIGIT("DayDigit", "DayDigit", "[0-9]{3}", PropertyType.INTEGER),
+    YEAR_DIGIT("YearDigit", "YearDigit", "[0-9]{2}", PropertyType.INTEGER);
 
     private String name;
 
@@ -126,27 +134,27 @@ public enum PropertiesEnum {
 
     private ITransformer transformer;
 
-    PropertiesEnum(String name, String featureName, String pattern, PropertyType type) {
+    PropertiesEnum(String name, String propertyPath, String pattern, PropertyType type) {
         this.name = name;
-        this.propertyPath = featureName;
+        this.propertyPath = propertyPath;
         this.pattern = pattern;
         this.type = type;
         this.format = null;
         this.transformer = null;
     }
 
-    PropertiesEnum(String name, String featureName, String pattern, PropertyType type, ITransformer transformer) {
+    PropertiesEnum(String name, String propertyPath, String pattern, PropertyType type, ITransformer transformer) {
         this.name = name;
-        this.propertyPath = featureName;
+        this.propertyPath = propertyPath;
         this.pattern = pattern;
         this.type = type;
         this.format = null;
         this.transformer = transformer;
     }
 
-    PropertiesEnum(String name, String featureName, String pattern, PropertyType type, String format) {
+    PropertiesEnum(String name, String propertyPath, String pattern, PropertyType type, String format) {
         this.name = name;
-        this.propertyPath = featureName;
+        this.propertyPath = propertyPath;
         this.pattern = pattern;
         this.type = type;
         this.format = format;
@@ -233,9 +241,11 @@ public enum PropertiesEnum {
 
     public static class Constants {
         public static final String PATTERN_8_T_6 = "[0-9]{8}T[0-9]{6}";
-        public static final String PATTERN_8___6 = "[0-9]{8}_[0-9]{6}";
         public static final String FORMAT_8_T_6 = "yyyyMMdd'T'HHmmss";
+        public static final String PATTERN_8___6 = "[0-9]{8}_[0-9]{6}";
         public static final String FORMAT_8___6 = "yyyyMMdd'_'HHmmss";
+        public static final String PATTERN_Y_M_D_T_H_M_S_MS = "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}";
+        public static final String FORMAT_Y_M_D_T_H_M_S_MS = "yyyy'-'MM'-'dd'T'HH'-'mm'-'ss'-'SSS";
         public static final String START_DATE = "start_date";
         public static final String DATA_START_DATE = "data." + START_DATE;
         public static final String END_DATE = "end_date";

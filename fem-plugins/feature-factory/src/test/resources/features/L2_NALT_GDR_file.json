@@ -1,0 +1,36 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "last": false,
+  "id": "L2_NALT_GDR_file:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "SWOT_GPR_2PdP510_018_20220704_070707_20220704_081707.nc",
+      "extension": "nc",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_GPR_2PdP510_018_20220704_070707_20220704_081707.nc",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2022-07-04T07:07:07Z",
+      "end_date": "2022-07-04T08:17:07Z",
+      "type": "L2_NALT_GDR_file"
+    },
+    "swot": {
+      "cycle_number": 510,
+      "pass_number": 18,
+      "granule_type": "Pass",
+      "product_version": "d"
+    }
+  },
+  "type": "Feature"
+}

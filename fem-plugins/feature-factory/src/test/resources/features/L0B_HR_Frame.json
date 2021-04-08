@@ -8,6 +8,7 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "L0B_HR_Frame:test",
   "geometry": null,
   "normalizedGeometry": null,
@@ -26,11 +27,12 @@
     },
     "swot": {
       "cycle_number": 3,
-      "pass_number": 69,
       "granule_type": "TileF",
       "tile_number": 161,
       "crid": "VI0059",
-      "product_counter": 1
+      "product_counter": 1,
+      "pass_number": 69,
+      "tile_side": "Full"
     }
   },
   "type": "Feature"

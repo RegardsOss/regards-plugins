@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "REPORT_TMX_GAPS:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
+      "filename": "SWOT_REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
       "extension": "xml",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_REPORT_TMX_GAPS_20200213T120000_20200212T000000_20200213T000000.xml",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

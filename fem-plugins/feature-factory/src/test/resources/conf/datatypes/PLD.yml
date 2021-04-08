@@ -1,3 +1,4 @@
+# TODO: set data.start_date to 2010-01-01T00:00:00.000Z and data.end_date to 2050-01-01T00:00:00.000Z
 PLD:
     name: PLD_{{ ContinentID }}_V{{ Version1 }}_0_{{ ProductionDateTime }}.sqlite
     Description: ''

@@ -1,25 +1,28 @@
-SWOT_ALT_CHAR:
-    name: PSWO_CH{{ FileIdentifier }}_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime}}
+REF_ORBIT_TRACK_125:
+    name: SWOT_RefOrbitTrack{{ FileIdentifier }}_{{ Orbit }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}_v{{ Version3 }}.txt
     Description: ''
     example:
-    - PSWO_CH1_AXVCNE20200121_000000_20190101_000000_20301231_235959
-    document: SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD
-    granule_type: Downlink
+    - SWOT_RefOrbitTrack125mPass1_Nom_20000101T000000_20991231T235959_20200630T000000_v101.txt
+    - SWOT_RefOrbitTrack125mPass2_Nom_20000101T000000_20991231T235959_20200630T000000_v101.txt
+    document: PGE-PCM ICS for L2 HR RASTER 20201014
+    granule_type: Segment
     tar_content: []
     mission: SWOT
-    Nature: TM
-    FileIdentifier:
-    - 1
-    - 2
+    Nature: SAD
     metadata:
     - FileIdentifier
-    - CreationDateTime
-    - StartDateTime
-    - EndDateTime
+    - Orbit
+    - ProductionDateTime
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - Version3
+    FileIdentifier:
+    - "125mPass1"
+    - "125mPass2"
     simu_method:
         name: period
-        file_size: 10mo
-        directory: swot/expert_pos3/
+        file_size: 100ko
+        directory: swot/expert_karin/
         has_path_by_date: false
         creation:
         -   period: 0
@@ -45,6 +48,6 @@ SWOT_ALT_CHAR:
         REGARDS_filter: All
         is_datalake: 'True'
         is_archived: 'True'
-        is_distributed: 'True'
-    real_path: traitement/swot/expert_pos3
+        is_distributed: 'False'
+    real_path: traitement/swot/expert_karin
     NASorGPFS: GPFS

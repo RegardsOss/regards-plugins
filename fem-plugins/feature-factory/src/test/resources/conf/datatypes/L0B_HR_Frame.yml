@@ -1,5 +1,5 @@
 L0B_HR_Frame:
-    name: SWOT_L0B_HR_Frame_{{ CycleID }}_{{ PassID }}_{{ TileID }}F_{{ RangeBeginningDateTime
+    name: SWOT_L0B_HR_Frame_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{ RangeBeginningDateTime
         }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
     document: D-56531_SWOT_Product_File_Naming_Convention
@@ -17,6 +17,7 @@ L0B_HR_Frame:
     - CycleID
     - PassID
     - TileID
+    - TileSide
     - RangeBeginningDateTime
     - RangeEndingDateTime
     - CRID
