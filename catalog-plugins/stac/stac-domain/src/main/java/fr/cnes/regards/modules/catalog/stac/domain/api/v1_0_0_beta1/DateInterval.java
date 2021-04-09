@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 import io.micrometer.core.instrument.util.StringUtils;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.Value;
 
@@ -84,9 +85,9 @@ public class DateInterval {
         return repr;
     }
 
-    public static Try<DateInterval> parseDateInterval(String repr) {
+    public static Try<Option<DateInterval>> parseDateInterval(String repr) {
         if (StringUtils.isBlank(repr)) {
-            return Try.success(largest());
+            return Try.success(Option.none());
         }
         else if (repr.contains(SEPARATOR)) {
             return trying(() -> List.of(split(repr, SEPARATOR)))
@@ -94,6 +95,7 @@ public class DateInterval {
                 .flatMap(parts -> parseDateOrDefault(parts._1(), MIN)
                     .flatMap(from -> parseDateOrDefault(parts._2(), MAX)
                         .map(to -> DateInterval.of(from, to))
+                        .map(Option::of)
                     )
                 )
                 .mapFailure(
@@ -102,7 +104,7 @@ public class DateInterval {
                 );
         }
         else {
-            return parseStacDatetime(repr).map(DateInterval::single);
+            return parseStacDatetime(repr).map(DateInterval::single).map(Option::of);
         }
     }
 

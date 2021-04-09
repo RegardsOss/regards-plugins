@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
@@ -38,13 +39,21 @@ public class DateIntervalTypeAdapter extends TypeAdapter<DateInterval> {
 
     @Override
     public void write(JsonWriter out, DateInterval value) throws IOException {
-        out.value(value.repr());
+        if (value == null) { out.nullValue(); }
+        else { out.value(value.repr()); }
     }
 
     @Override
     public DateInterval read(JsonReader in) throws IOException {
-        return DateInterval.parseDateInterval(in.nextString())
-            .getOrElseThrow((Function<Throwable, IOException>) IOException::new);
+        if (in.peek() == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        }
+        else {
+            return DateInterval.parseDateInterval(in.nextString())
+                .getOrElseThrow((Function<Throwable, IOException>) IOException::new)
+                .getOrNull();
+        }
     }
 
 }

@@ -70,7 +70,7 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
                 parseQuery(query).flatMap(q ->
                     parseSortBy(sortBy).map(s ->
                         new ItemSearchBody(
-                            bbox, dt, null, collections, ids, limit, f, q, s
+                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s
                         )
                     )
                 )
@@ -78,7 +78,7 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
         );
     }
 
-    private Try<DateInterval> parseDateInterval(String repr) {
+    private Try<Option<DateInterval>> parseDateInterval(String repr) {
         return DateInterval.parseDateInterval(repr);
     }
 

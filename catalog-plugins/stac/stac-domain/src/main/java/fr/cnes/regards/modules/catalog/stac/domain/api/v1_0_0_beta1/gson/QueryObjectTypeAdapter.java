@@ -47,7 +47,10 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
 
     @Override
     public void write(JsonWriter out, ItemSearchBody.QueryObject value) throws IOException {
-        if (value instanceof ItemSearchBody.BooleanQueryObject) {
+        if (value == null) {
+            out.nullValue();
+        }
+        else if (value instanceof ItemSearchBody.BooleanQueryObject) {
             ItemSearchBody.BooleanQueryObject bqo = (ItemSearchBody.BooleanQueryObject) value;
             out.beginObject();
             if (bqo.getEq() != null) {
@@ -151,6 +154,11 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
 
     @Override
     public ItemSearchBody.QueryObject read(JsonReader in) throws IOException {
+        if (in.peek() == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        }
+
         in.beginObject();
         Map<String, Object> inProps = readProps(in);
         in.endObject();
