@@ -38,7 +38,6 @@ import org.springframework.http.MediaType;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import fr.cnes.regards.framework.modules.locks.service.ILockService;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -78,9 +77,6 @@ public class LocalDataStorageTest {
         plugin = PluginUtils.getPlugin(PluginConfiguration.build(LocalDataStorage.class, null, params),
                                        Maps.newHashMap());
 
-        ILockService mockLockService = Mockito.mock(ILockService.class);
-        Mockito.when(mockLockService.waitForlock(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyLong()))
-                .thenReturn(true);
         Mockito.reset(storageProgress);
 
         if (Files.exists(Paths.get("target/local-storage"))) {
