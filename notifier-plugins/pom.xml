@@ -55,5 +55,6 @@
 	</parent>
 	<modules>
 		<module>chronos-recipient-sender</module>
+		<module>sds-recipient-sender</module>
    	</modules>
 </project>

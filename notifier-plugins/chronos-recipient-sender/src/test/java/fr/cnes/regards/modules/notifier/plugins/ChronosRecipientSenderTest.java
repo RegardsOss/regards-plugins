@@ -116,7 +116,7 @@ public class ChronosRecipientSenderTest {
         Assert.assertTrue("Message send as notification to chronos is not valid",
                           listCaptor.getValue().contains(ChronosNotificationEvent.build(action,
                                                                                         actionOwner,
-                                                                                        "file://home/geode/test.tar")));
+                                                                                        "file:/home/geode/test.tar")));
         Assert.assertEquals("Message send as notification to chronos is not valid", 1, listCaptor.getValue().size());
 
     }
