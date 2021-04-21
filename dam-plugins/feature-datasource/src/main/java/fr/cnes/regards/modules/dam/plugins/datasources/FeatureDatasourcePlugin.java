@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,7 +77,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
 
     private static final String URN_PLACEHOLDER = "{urn}";
 
-    private static final String CHECKSUM_PLACEHOLDER = "{urn}";
+    private static final String CHECKSUM_PLACEHOLDER = "{checksum}";
 
     private static final String CATALOG_DOWNLOAD_PATH = "/downloads/" + URN_PLACEHOLDER + "/files/"
             + CHECKSUM_PLACEHOLDER;
