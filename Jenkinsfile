@@ -30,5 +30,5 @@
  */
 @Library('regards/standardPipeline') _
 standardPipeline {
-	upstreamProjects = 'rs-dam-multi-branch'
+	upstreamProjects = 'regards-oss-backend'
 }
