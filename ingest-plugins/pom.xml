@@ -22,7 +22,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>fr.cnes.regards</groupId>
-        <artifactId>regards-parent</artifactId>
+        <artifactId>regards-oss-backend</artifactId>
         <version>1.5.0</version>
         <relativePath />
     </parent>

@@ -50,7 +50,7 @@
 
 	<parent>
 		<groupId>fr.cnes.regards</groupId>
-		<artifactId>regards-parent</artifactId>
+		<artifactId>regards-oss-backend</artifactId>
 		<version>1.5.0</version>
 		<relativePath />
 	</parent>
