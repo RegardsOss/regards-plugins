@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.dataprovider.plugins.validation;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +56,9 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     private String initCommand;
 
     @PluginParameter(label = "File validation command",
-            description = "Custom command to execute to valid each file. Use token ${file} in your command to add the absolute file path to validate.",
+            description = "Custom command to execute to valid each file. "
+                    + "Use token ${file} in your command to add the absolute file path to validate. "
+                    + "Due to implementation limitation, it is highly recommended to use custom made scripts once you need more than one command result.",
             name = "customCommand", optional = false)
     private String customCommand;
 
@@ -103,7 +106,14 @@ public class CustomCommandFileValidation implements IValidationPlugin {
             if (expectedCommandResults.contains(p.exitValue())) {
                 return true;
             } else {
-                LOGGER.warn("File '{}' is not valid.", filePath.toString());
+                //Lets get stderr and exit code
+                BufferedReader stdErrReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                StringBuilder stdErrContent = new StringBuilder(String.format("exitCode: %s. ", p.exitValue()));
+                String line;
+                while ((line = stdErrReader.readLine()) != null) {
+                    stdErrContent.append(line);
+                }
+                LOGGER.warn("File '{}' is not valid. Cause: {}", filePath.toString(), stdErrContent.toString());
                 return false;
             }
         } catch (IOException | InterruptedException e) {
