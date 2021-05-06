@@ -126,8 +126,8 @@ public class AipDataSourcePluginTestConfiguration {
         IStorageRestClient mock = Mockito.mock(IStorageRestClient.class);
         StorageLocationConfiguration storageLocationConfiguration = new StorageLocationConfiguration("AWS", null, 1L);
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
-        StorageLocationDTO dto = StorageLocationDTO.build("AWS", 1L, 1L, 1L, 1L, false, false, false,
-                                                          storageLocationConfiguration);
+        StorageLocationDTO dto = new StorageLocationDTO("AWS", 1L, 1L, 1L, 1L, false, false, false,
+                                                          storageLocationConfiguration, false);
         List<EntityModel<StorageLocationDTO>> list = new LinkedList<>();
         list.add(new EntityModel<>(dto));
         ResponseEntity<List<EntityModel<StorageLocationDTO>>> result = ResponseEntity.ok(list);
