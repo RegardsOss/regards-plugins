@@ -88,6 +88,8 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
         LOG.info("Init method call : {}, connection = {}, table name = {}, model = {}, mapping = {}",
                  this.getClass().getName(), dbConnection.toString(), tableName, modelName, attributesMapping);
         init(modelName, attributesMapping, commonTags);
+        // to handle issues with uppercase lets wrap tablename into "
+        tableName = "\""+tableName+"\"";
         initializePluginMapping(tableName);
         initDataSourceColumns(getDBConnection());
     }
