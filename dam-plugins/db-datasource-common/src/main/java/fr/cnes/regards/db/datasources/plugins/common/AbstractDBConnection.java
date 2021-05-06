@@ -234,7 +234,7 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
      */
     @Override
     public Map<String, Column> getColumns(String tableNameWithSchema) {
-        String tableName = tableNameWithSchema.substring(tableNameWithSchema.indexOf('.') + 1);
+        String tableName = tableNameWithSchema.replaceAll("\"(.+)\"", "$1").substring(tableNameWithSchema.indexOf('.') + 1);
         Map<String, Column> cols = new HashMap<>();
 
         // Get a connection
