@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.HikariPool;
+
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -179,21 +180,16 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
         try (Connection conn = getDBConnectionPlugin().getConnection()) {
             DatabaseMetaData metaData = conn.getMetaData();
 
-            rs = metaData.getTables(conn.getCatalog(),
-                                    schemaPattern,
-                                    tableNamePattern,
+            rs = metaData.getTables(conn.getCatalog(), schemaPattern, tableNamePattern,
                                     new String[] { METADATA_TABLE, METADATA_VIEW });
 
             while (rs.next()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("[TABLE] --> " + logString(rs, TABLE_NAME) + "] " + logString(rs, TABLE_CAT) + logString(
-                            rs,
-                            TABLE_SCHEM) + logString(rs, TABLE_TYPE) + logString(rs, REMARKS));
+                    LOG.debug("[TABLE] --> " + logString(rs, TABLE_NAME) + "] " + logString(rs, TABLE_CAT)
+                            + logString(rs, TABLE_SCHEM) + logString(rs, TABLE_TYPE) + logString(rs, REMARKS));
                 }
                 Table table = new Table(rs.getString(TABLE_NAME), rs.getString(TABLE_CAT), rs.getString(TABLE_SCHEM));
-                table.setPKey(getPrimaryKey(metaData,
-                                            rs.getString(TABLE_CAT),
-                                            rs.getString(TABLE_SCHEM),
+                table.setPKey(getPrimaryKey(metaData, rs.getString(TABLE_CAT), rs.getString(TABLE_SCHEM),
                                             rs.getString(TABLE_NAME)));
                 tables.put(table.getName(), table);
             }
@@ -234,7 +230,8 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
      */
     @Override
     public Map<String, Column> getColumns(String tableNameWithSchema) {
-        String tableName = tableNameWithSchema.replaceAll("\"(.+)\"", "$1").substring(tableNameWithSchema.indexOf('.') + 1);
+        String tableName = tableNameWithSchema.replaceAll("\"(.+)\"", "$1");
+        tableName = tableName.substring(tableName.indexOf('.') + 1);
         Map<String, Column> cols = new HashMap<>();
 
         // Get a connection
@@ -246,13 +243,12 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
 
                 while (rs.next()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("[COLUMN] --> " + logString(rs, COLUMN_NAME) + logString(rs, TYPE_NAME) + logInt(rs,
-                                                                                                                   DATA_TYPE));
+                        LOG.debug("[COLUMN] --> " + logString(rs, COLUMN_NAME) + logString(rs, TYPE_NAME)
+                                + logInt(rs, DATA_TYPE));
                     }
 
-                    Column column = new Column(rs.getString(COLUMN_NAME),
-                                               rs.getString(TYPE_NAME),
-                                               rs.getInt(DATA_TYPE));
+                    Column column = new Column(rs.getString(COLUMN_NAME), rs.getString(TYPE_NAME),
+                            rs.getInt(DATA_TYPE));
                     cols.put(column.getName(), column);
                 }
             }
