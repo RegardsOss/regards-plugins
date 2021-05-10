@@ -89,7 +89,7 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
                  this.getClass().getName(), dbConnection.toString(), tableName, modelName, attributesMapping);
         init(modelName, attributesMapping, commonTags);
         // to handle issues with uppercase lets wrap tablename into "
-        tableName = "\""+tableName+"\"";
+        tableName = tableName.replaceAll("(.*)\\.(.*)", "$1.\"$2\"");
         initializePluginMapping(tableName);
         initDataSourceColumns(getDBConnection());
     }
