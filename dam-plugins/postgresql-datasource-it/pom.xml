@@ -24,7 +24,7 @@
 	<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 	<artifactId>postgresql-datasource-it</artifactId>
 	<description>PostgreSQL datasource integration tests</description>
-	<version>1.6.0-SNAPSHOT</version>
+	<version>fast-release-V1.6.0-beta.1</version>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -50,7 +50,7 @@
 	<parent>
 		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
 		<artifactId>dam-plugins</artifactId>
-		<version>1.6.0-SNAPSHOT</version>
+		<version>fast-release-V1.6.0-beta.1</version>
 	</parent>
 
 	<dependencies>

@@ -29,7 +29,7 @@
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-oss-backend</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>fast-release-V1.6.0-beta.1</version>
         <relativePath/>
     </parent>
 
@@ -76,13 +76,13 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
             <artifactId>webservice-datasource</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.storage.plugin</groupId>
             <artifactId>local-storage-location</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
@@ -93,43 +93,43 @@
         <dependency>
             <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
             <artifactId>custom-command-file-validation</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
             <artifactId>ingest-test-plugins</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>download-metalink-plugin</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>download-plugin</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.fem.plugins</groupId>
             <artifactId>feature-factory-plugin</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>fem-driver-plugin</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
             <artifactId>chronos-recipient-sender</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>fast-release-V1.6.0-beta.1</version>
             <classifier>shaded</classifier>
         </dependency>
     </dependencies>
