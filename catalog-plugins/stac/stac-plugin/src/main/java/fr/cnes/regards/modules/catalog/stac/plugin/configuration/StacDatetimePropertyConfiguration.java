@@ -37,24 +37,17 @@ import static fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacProp
 @Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacDatetimePropertyConfiguration {
 
-    @PluginParameter(
-            name = "modelPropertyName",
-            label = "Regards property name",
-            description = "This parameter determines which attribute model parameter" +
-                    " to map to a STAC property.",
-            optional = true,
-            defaultValue = "creationDate"
-    )
-    private String modelPropertyName;
+    @PluginParameter(name = "source.property.path", label = "Source model property path",
+            description = "This parameter defines the path to the model attribute and its corresponding "
+                    + "source property in a product (default value is mapped to an internal property)",
+            optional = true, defaultValue = "creationDate")
+    private String sourcePropertyPath;
 
-    @PluginParameter(
-            name = "modelPropertyJSONPath",
-            label = "Model property JSON path",
-            description = "If the target REGARDS property is of type JSON, " +
-                    " this parameter determines the path in the JSON structure where to read the value.",
-            optional = true
-    )
-    private String modelPropertyJSONPath;
+    @PluginParameter(name = "source.json.property.path", label = "JSON property path (for a JSON type attribute only)",
+            description = "If the source model attribute is of type JSON, "
+                    + " this parameter defines the path in the JSON structure where to read the value.",
+            optional = true)
+    private String sourceJsonPropertyPath;
 
     @PluginParameter(
             name = STAC_DYNAMIC_COLLECTION_LEVEL,
@@ -75,16 +68,16 @@ public class StacDatetimePropertyConfiguration {
 
     public StacPropertyConfiguration toStacPropertyConfiguration() {
         return new StacPropertyConfiguration(
-                Option.of(modelPropertyName).getOrElse("creationDate"),
-                modelPropertyJSONPath,
+                Option.of(sourcePropertyPath).getOrElse("creationDate"),
+                sourceJsonPropertyPath,
+                null,
                 StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
                 "",
-                false,
-                stacDynamicCollectionLevel,
-                stacDynamicCollectionFormat,
                 StacPropertyType.DATETIME.name(),
                 null,
-                null
+                false,
+                stacDynamicCollectionLevel,
+                stacDynamicCollectionFormat
         );
     }
 

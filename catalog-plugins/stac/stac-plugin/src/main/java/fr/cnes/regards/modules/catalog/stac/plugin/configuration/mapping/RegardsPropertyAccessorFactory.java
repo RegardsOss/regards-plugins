@@ -78,15 +78,15 @@ public class RegardsPropertyAccessorFactory {
 
     public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacPropertyConfiguration sPropConfig,
             StacPropertyType sPropType) {
-        String attrName = sPropConfig.getModelPropertyName();
+        String attrName = sPropConfig.getSourcePropertyPath();
         AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
-        Option<String> jsonPath = Option.of(sPropConfig.getModelPropertyJSONPath()).filter(StringUtils::isNotBlank);
+        Option<String> jsonPath = Option.of(sPropConfig.getSourceJsonPropertyPath()).filter(StringUtils::isNotBlank);
 
         Tuple2<Class<?>, Function<DataObject, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(sPropType,
                                                                                                           attrName,
                                                                                                           jsonPath);
 
-        RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getModelPropertyName(), attr,
+        RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(), attr,
                 classFunctionTuple2._2, classFunctionTuple2._1);
 
         debug(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);

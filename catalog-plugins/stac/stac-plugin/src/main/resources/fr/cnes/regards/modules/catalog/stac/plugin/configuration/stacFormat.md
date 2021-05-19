@@ -18,7 +18,7 @@ For now, only the STAC properties of type `PERCENTAGE` support formatting conver
 
 ### `PERCENTAGE` STAC format
 
-The stacFormat property must be:
+The STAC format property must be:
 - `HUNDRED`: for percentages represented as numbers between 0 and 100
 - `ONE`: for percentages represented as floating point numbers between 0 and 1
 

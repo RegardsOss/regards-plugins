@@ -89,15 +89,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.URL;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someJsonObjectProp",
-                "base.sub.someURL",
-                "regards:someJsonURLProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                      "someJsonObjectProp",
+                                      "base.sub.someURL",
+                                      null,
+                                      "regards:someJsonURLProp",
+                                      "regards",
+                                      sPropType.name(),
+                                      null,
+                                      false,
+                                      null,
+                                      null
+                              );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -105,7 +107,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(URL.class);
-        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp.base.sub.someURL");
+        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
         assertThat(accessor.<URL>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(new URL("http://xkcd.com/1"));
     }
 
@@ -115,15 +117,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.BOOLEAN;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someJsonObjectProp",
-                "base.sub.someBoolean",
-                "regards:someJsonBooleanProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someJsonObjectProp",
+                                                                              "base.sub.someBoolean",
+                                                                              null,
+                                                                              "regards:someJsonBooleanProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -131,7 +135,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(Boolean.class);
-        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp.base.sub.someBoolean");
+        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
         assertThat(accessor.<Boolean>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(false);
     }
 
@@ -141,15 +145,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.LENGTH;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someJsonObjectProp",
-                "base.sub.someDouble",
-                "regards:someJsonDoubleProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someJsonObjectProp",
+                                                                              "base.sub.someDouble",
+                                                                              null,
+                                                                              "regards:someJsonDoubleProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -157,7 +163,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(Double.class);
-        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp.base.sub.someDouble");
+        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
         assertThat(accessor.<Double>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(15d);
     }
 
@@ -165,16 +171,19 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
     public void test_makeJsonDatePropAccessor() throws MalformedURLException {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.DATETIME;
+
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someJsonObjectProp",
-                "base.sub.someDate",
-                "regards:someJsonDateProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someJsonObjectProp",
+                                                                              "base.sub.someDate",
+                                                                              null,
+                                                                              "regards:someJsonDateProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -182,7 +191,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(OffsetDateTime.class);
-        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp.base.sub.someDate");
+        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
         assertThat(accessor.<OffsetDateTime>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(now);
     }
 
@@ -191,15 +200,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.STRING;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someJsonObjectProp",
-                "base.sub.someString",
-                "regards:someJsonStringProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someJsonObjectProp",
+                                                                              "base.sub.someString",
+                                                                              null,
+                                                                              "regards:someJsonStringProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -207,7 +218,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(String.class);
-        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp.base.sub.someString");
+        assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
         assertThat(accessor.<String>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo("someStringValue");
     }
 
@@ -216,15 +227,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.DATETIME;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someDateProp",
-                null,
-                "regards:someDateProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someDateProp",
+                                                                              null,
+                                                                              null,
+                                                                              "regards:someDateProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -240,15 +253,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.URL;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someURLProp",
-                null,
-                "regards:someURLProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someURLProp",
+                                                                              null,
+                                                                              null,
+                                                                              "regards:someURLProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -264,15 +279,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.STRING;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someStringProp",
-                null,
-                "regards:someStringProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someStringProp",
+                                                                              null,
+                                                                              null,
+                                                                              "regards:someStringProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -286,21 +303,20 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
     @Test
     public void test_makeString2PropAccessor() {
 
-//      dataObject.addProperty(IProperty.buildObject("anObject", IProperty.buildString("anObjectStringProp", "anObjectStringPropValue"),
-//      IProperty.buildString("anotherObjectStringProp", "anotherObjectStringPropValue")));
-
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.STRING;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "anObject.anObjectStringProp",
-                null,
-                "anObject:anObjectStringProp",
-                "anObject",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "anObject.anObjectStringProp",
+                                                                              null,
+                                                                              null,
+                                                                              "anObject:anObjectStringProp",
+                                                                              "anObject",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -316,15 +332,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.BOOLEAN;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someBooleanProp",
-                null,
-                "regards:someBooleanProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someBooleanProp",
+                                                                              null,
+                                                                              null,
+                                                                              "regards:someBooleanProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
@@ -340,15 +358,17 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.PERCENTAGE;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "someDoubleProp",
-                null,
-                "regards:someDoubleProp",
-                "regards",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "someDoubleProp",
+                                                                              null,
+                                                                              null,
+                                                                              "regards:someDoubleProp",
+                                                                              "regards",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);

@@ -67,21 +67,21 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private LinkCreatorService linkCreator;
 
     @PluginParameter(
-            name = "stacTitle",
+            name = "stac.api.title",
             label = "STAC title",
             description = "Title for the root STAC catalog.",
             optional = true)
     private String stacTitle;
 
     @PluginParameter(
-            name = "stacDescription",
+            name = "stac.api.description",
             label = "STAC description",
             description = "Description for the root STAC catalog.",
             optional = true)
     private String stacDescription;
 
     @PluginParameter(
-            name = "rootStaticCollectionTitle",
+            name = "stac.api.root.static.collection.title",
             label = "STAC root static collection title",
             description = "Displayed label for the static collections root.",
             defaultValue = "static",
@@ -89,7 +89,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private String rootStaticCollectionTitle;
 
     @PluginParameter(
-            name = "rootDynamicCollectionTitle",
+            name = "stac.api.root.dynamic.collection.title",
             label = "STAC root dynamic collection title",
             description = "Displayed label for the dynamic collections root.",
             defaultValue = "dynamic",
@@ -97,21 +97,21 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private String rootDynamicCollectionTitle;
 
     @PluginParameter(
-            name = "stacDatetimeProperty",
+            name = "stac.api.datetime.property",
             label = "STAC datetime property",
             description = "Mandatory configuration for the datetime property, corresponding to the" +
                     " 'temporal' aspect of the STAC spec.")
     private StacDatetimePropertyConfiguration stacDatetimeProperty;
 
     @PluginParameter(
-            name = "stacExtraProperties",
-            label = "STAC extra properties",
-            description = "List of other STAC properties to be mapped to model attributes.",
+            name = "stac.properties",
+            label = "STAC properties",
+            description = "List of STAC properties to be mapped to product properties.",
             optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
     @PluginParameter(
-            name = "stacCollectionDatasetProperties",
+            name = "stac.collection.dataset.properties",
             label = "STAC dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;

@@ -31,59 +31,60 @@ import lombok.With;
  */
 @Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacPropertyConfiguration {
+    
+    public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stac.dynamic.collection.level";
+    public static final String STAC_DYNAMIC_COLLECTION_LEVEL_MD = "stacDynamicCollectionLevel.md";
 
-    public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stacDynamicCollectionLevel";
-    public static final String STAC_DYNAMIC_COLLECTION_LEVEL_MD = STAC_DYNAMIC_COLLECTION_LEVEL + ".md";
+    public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stac.dynamic.collection.format";
+    public static final String STAC_DYNAMIC_COLLECTION_FORMAT_MD = "stacDynamicCollectionFormat.md";
 
-    public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stacDynamicCollectionFormat";
-    public static final String STAC_DYNAMIC_COLLECTION_FORMAT_MD = STAC_DYNAMIC_COLLECTION_FORMAT + ".md";
+    public static final String STAC_FORMAT = "target.stac.property.format";
+    public static final String STAC_FORMAT_MD = "stacFormat.md";
 
-    public static final String STAC_FORMAT = "stacFormat";
-    public static final String STAC_FORMAT_MD = STAC_FORMAT + ".md";
+    public static final String REGARDS_FORMAT = "source.property.format";
+    public static final String REGARDS_FORMAT_MD = "regardsFormat.md";
 
-    public static final String REGARDS_FORMAT = "regardsFormat";
-    public static final String REGARDS_FORMAT_MD = REGARDS_FORMAT + ".md";
+    @PluginParameter(name = "source.property.path", label = "Source model property path",
+            description = "This parameter defines the path to the model attribute and its corresponding "
+                    + "source property in a product")
+    private String sourcePropertyPath;
 
-    @PluginParameter(
-            name = "modelPropertyName",
-            label = "Regards property name",
-            description = "This parameter determines which attribute model parameter" +
-                    " to map to a STAC property."
-    )
-    private String modelPropertyName;
-
-    @PluginParameter(
-            name = "modelPropertyJSONPath",
-            label = "Model property JSON path",
-            description = "If the target REGARDS property is of type JSON, " +
-                    " this parameter determines the path in the JSON structure where to read the value.",
-            optional = true
-    )
-    private String modelPropertyJSONPath;
+    @PluginParameter(name = "source.json.property.path", label = "JSON property path (for a JSON type attribute only)",
+            description = "If the source model attribute is of type JSON, "
+                    + " this parameter defines the path in the JSON structure where to read the value.",
+            optional = true)
+    private String sourceJsonPropertyPath;
+    
+    @PluginParameter(name = REGARDS_FORMAT, label = "Format for the source property value", markdown = REGARDS_FORMAT_MD,
+            optional = true)
+    private String  sourcePropertyFormat;
 
     @PluginParameter(
-            name = "stacPropertyName",
-            label = "STAC property name",
-            description = "This parameter determines the name of" +
-                    " the STAC property corresponding to the model attribute name.",
-            optional = true
-    )
+            name = "stac.property.name", label = "STAC property name (Expected format : {extension:}name)",
+            description = "This parameter determines the name of"
+                    + " the STAC property corresponding to the model attribute name.",
+            optional = true)
     private String stacPropertyName;
 
-    @PluginParameter(
-            name = "stacExtension",
-            label = "Name or URL of the STAC extension",
-            description = "If this STAC property is not native, give the name of its extension," +
-                    " or its URL if the extension is not part defined in the standard.",
-            optional = true
-    )
-    private String stacExtension;
+    @PluginParameter(name = "stac.property.extension", label = "Name or URL of the STAC extension",
+            description = "If this STAC property is not defined in the standard, give the name or URL of its extension.",
+            optional = true)
+    private String stacPropertyExtension;
+
+    @PluginParameter(name = "stac.property.type", label = "STAC property type",
+            description = "Should take a value among: " + "'DATETIME', " + "'URL', " + "'STRING', " + "'ANGLE', "
+                    + "'LENGTH', " + "'PERCENTAGE', " + "'NUMBER', " + "'BOOLEAN', " + "'JSON_OBJECT'.",
+            defaultValue = "STRING", optional = true)
+    private String stacPropertyType;
+
+    @PluginParameter(name = STAC_FORMAT, label = "Format for the STAC value", markdown = STAC_FORMAT_MD, optional = true)
+    private String stacPropertyFormat;
 
     @PluginParameter(
-            name = "stacComputeSummary",
-            label = "compute summary",
+            name = "stac.property.compute.summary",
+            label = "Compute summary",
             description = "Whether a summary should be computed for this property in the collections." +
-                    " Only applicable for stacType value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
+                    " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
     )
     private Boolean stacComputeSummary;
 
@@ -103,39 +104,4 @@ public class StacPropertyConfiguration {
             optional = true
     )
     private String stacDynamicCollectionFormat;
-
-    @PluginParameter(
-            name = "stacType",
-            label = "Property type",
-            description = "Should take a value among: " +
-                    "'DATETIME', " +
-                    "'URL', " +
-                    "'STRING', " +
-                    "'ANGLE', " +
-                    "'LENGTH', " +
-                    "'PERCENTAGE', " +
-                    "'NUMBER', " +
-                    "'BOOLEAN', " +
-                    "'JSON_OBJECT'.",
-            defaultValue = "STRING",
-            optional = true
-    )
-    private String stacType;
-
-    @PluginParameter(
-            name = STAC_FORMAT,
-            label = "Format for the STAC value",
-            markdown = STAC_FORMAT_MD,
-            optional = true
-    )
-    private String stacFormat;
-
-    @PluginParameter(
-            name = REGARDS_FORMAT,
-            label = "Format for the REGARDS value",
-            markdown = REGARDS_FORMAT_MD,
-            optional = true
-    )
-    private String regardsFormat;
-
 }

@@ -176,13 +176,13 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations.map(s -> {
             debug(LOGGER, "Converting stac prop config: {}", s);
-            StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
+            StacPropertyType stacType = StacPropertyType.parse(s.getStacPropertyType());
             @SuppressWarnings("rawtypes")
-            AbstractPropertyConverter converter = propertyConverterFactory.getConverter(stacType, s.getStacFormat(),
-                                                                                        s.getRegardsFormat());
-            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyName(), s.getStacExtension(),
-                    s.getStacComputeSummary() && canComputeSummary(stacType), s.getStacDynamicCollectionLevel(),
-                    s.getStacDynamicCollectionFormat(), stacType, converter);
+            AbstractPropertyConverter converter = propertyConverterFactory.getConverter(stacType, s.getStacPropertyFormat(),
+                                                                                        s.getSourcePropertyFormat());
+            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyName(),
+                    s.getStacPropertyExtension(), s.getStacComputeSummary() && canComputeSummary(stacType),
+                    s.getStacDynamicCollectionLevel(), s.getStacDynamicCollectionFormat(), stacType, converter);
         }).toList();
     }
 
