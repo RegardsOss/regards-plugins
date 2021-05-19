@@ -152,6 +152,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ItemSearchBody.QueryObject read(JsonReader in) throws IOException {
         if (in.peek() == JsonToken.NULL) {

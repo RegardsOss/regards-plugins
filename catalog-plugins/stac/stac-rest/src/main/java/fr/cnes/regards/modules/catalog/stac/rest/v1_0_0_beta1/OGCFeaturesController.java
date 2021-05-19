@@ -19,6 +19,27 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.BBOX_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.COLLECTION_ID_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.DATETIME_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.ITEM_ID_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.LIMIT_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_COLLECTIONS_PATH;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_COLLECTION_PATH_SUFFIX;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_ITEMS_PATH_SUFFIX;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_ITEM_PATH_SUFFIX;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
@@ -41,13 +62,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.control.Try;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
  * OGC Feature API
@@ -55,28 +69,27 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features"></a>
  */
 @RestController
-@RequestMapping(
-        path = STAC_COLLECTIONS_PATH,
-        produces = APPLICATION_JSON
-)
+@RequestMapping(path = STAC_COLLECTIONS_PATH, produces = APPLICATION_JSON)
 public class OGCFeaturesController implements TryToResponseEntity {
 
+    @SuppressWarnings("unused")
     private final RestDynCollValSerdeService restDynCollValSerdeService;
+
     private final CollectionService collectionService;
+
     private final ConfigurationAccessorFactory configFactory;
+
     private final LinkCreatorService linker;
 
+    @SuppressWarnings("unused")
     private final ItemSearchBodyFactory itemSearchBodyFactory;
+
     private final ItemSearchService itemSearchService;
 
     @Autowired
-    public OGCFeaturesController(
-            RestDynCollValSerdeService restDynCollValSerdeService,
-            CollectionService collectionService,
-            ConfigurationAccessorFactory configFactory,
-            LinkCreatorService linker,
-            ItemSearchBodyFactory itemSearchBodyFactory,
-            ItemSearchService itemSearchService) {
+    public OGCFeaturesController(RestDynCollValSerdeService restDynCollValSerdeService, CollectionService collectionService,
+            ConfigurationAccessorFactory configFactory, LinkCreatorService linker,
+            ItemSearchBodyFactory itemSearchBodyFactory, ItemSearchService itemSearchService) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.collectionService = collectionService;
         this.configFactory = configFactory;
@@ -86,13 +99,11 @@ public class OGCFeaturesController implements TryToResponseEntity {
     }
 
     @Operation(summary = "the feature collections in the dataset",
-            description = "A body of Feature Collections that belong or are used together with additional links. " +
-                    "Request may not return the full set of metadata per Feature Collection.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The feature collections shared by this API.") })
-    @ResourceAccess(
-            description = "the feature collections in the dataset",
-            role = DefaultRole.PUBLIC
-    )
+            description = "A body of Feature Collections that belong or are used together with additional links. "
+                    + "Request may not return the full set of metadata per Feature Collection.")
+    @ApiResponses(
+            value = { @ApiResponse(responseCode = "200", description = "The feature collections shared by this API.") })
+    @ResourceAccess(description = "the feature collections in the dataset", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CollectionsResponse> collections() throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
@@ -108,71 +119,49 @@ public class OGCFeaturesController implements TryToResponseEntity {
      * @throws ModuleException
      */
     @Operation(summary = "describe the feature collection with id `collectionId`",
-            description = "A single Feature Collection for the given if collectionId. " +
-                    "Request this endpoint to get a full list of metadata for the Feature Collection.")
+            description = "A single Feature Collection for the given if collectionId. "
+                    + "Request this endpoint to get a full list of metadata for the Feature Collection.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Information about the feature collection with id collectionId."),
-            @ApiResponse(responseCode = "404", description = "Collection not found.")
-    })
-    @ResourceAccess(
-            description = "describe the feature collection with id `collectionId`",
-            role = DefaultRole.PUBLIC
-    )
+            @ApiResponse(responseCode = "200",
+                    description = "Information about the feature collection with id collectionId."),
+            @ApiResponse(responseCode = "404", description = "Collection not found.") })
+    @ResourceAccess(description = "describe the feature collection with id `collectionId`", role = DefaultRole.PUBLIC)
     @RequestMapping(path = STAC_COLLECTION_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<Collection> collection(
-            @PathVariable(COLLECTION_ID_PARAM) String collectionId
-    ) throws ModuleException {
+    public ResponseEntity<Collection> collection(@PathVariable(COLLECTION_ID_PARAM) String collectionId)
+            throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config));
     }
 
-    @Operation(summary = "fetch features",
-            description = "Fetch features of the feature collection with id collectionId.")
+    @Operation(summary = "fetch features", description = "Fetch features of the feature collection with id collectionId.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The response is a document consisting of features in the collection."),
-            @ApiResponse(responseCode = "404", description = "Collection not found.")
-    })
-    @ResourceAccess(
-            description = "fetch features",
-            role = DefaultRole.PUBLIC
-    )
+            @ApiResponse(responseCode = "200",
+                    description = "The response is a document consisting of features in the collection."),
+            @ApiResponse(responseCode = "404", description = "Collection not found.") })
+    @ResourceAccess(description = "fetch features", role = DefaultRole.PUBLIC)
     @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<ItemCollectionResponse> features(
-            @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
+    public ResponseEntity<ItemCollectionResponse> features(@PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page
-    ) throws ModuleException {
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
+            throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return toResponseEntity(collectionService.getItemsForCollection(
-                collectionId,
-                limit,
-                page,
-                bbox,
-                datetime,
-                linker.makeOGCFeatLinkCreator(auth),
-                isb -> linker.makeSearchPageLinkCreator(auth, page, isb)
-        ));
+        return toResponseEntity(collectionService
+                .getItemsForCollection(collectionId, limit, page, bbox, datetime, linker.makeOGCFeatLinkCreator(auth),
+                                       isb -> linker.makeSearchPageLinkCreator(auth, page, isb)));
     }
 
     @Operation(summary = "fetch a single feature",
             description = "Fetch the feature with id featureId in the feature collection with id collectionId.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The feature content."),
-            @ApiResponse(responseCode = "404", description = "Feature not found.")
-    })
-    @ResourceAccess(
-            description = "fetch a single feature",
-            role = DefaultRole.PUBLIC
-    )
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The feature content."),
+            @ApiResponse(responseCode = "404", description = "Feature not found.") })
+    @ResourceAccess(description = "fetch a single feature", role = DefaultRole.PUBLIC)
     @RequestMapping(path = STAC_ITEM_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<Item> feature(
-            @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
-            @PathVariable(name = ITEM_ID_PARAM) String featureId
-    ) throws ModuleException {
+    public ResponseEntity<Item> feature(@PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
+            @PathVariable(name = ITEM_ID_PARAM) String featureId) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
         Try<Item> result = itemSearchService.searchById(featureId, linkCreator);

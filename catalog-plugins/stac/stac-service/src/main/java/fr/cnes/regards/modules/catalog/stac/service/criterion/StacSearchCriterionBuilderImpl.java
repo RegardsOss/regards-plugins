@@ -19,21 +19,22 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+
+import java.util.function.Function;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.service.accessright.AccessRightFilter;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.function.Function;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Base implementation for {@link StacSearchCriterionBuilder}.
@@ -46,24 +47,25 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     private final AccessRightFilter accessRightFilter;
 
     private final GeometryCriterionBuilder geometryCriterionBuilder;
+
     private final IdentitiesCriterionBuilder identitiesCriterionBuilder;
+
     private final FieldsCriterionBuilder fieldsCriterionBuilder;
+
     private final DateIntervalCriterionBuilder dateIntervalCriterionBuilder;
+
     private final CollectionsCriterionBuilder collectionsCriterionBuilder;
+
     private final BBoxCriterionBuilder bBoxCriterionBuilder;
+
     private final QueryObjectCriterionBuilder queryObjectCriterionBuilder;
 
     @Autowired
-    public StacSearchCriterionBuilderImpl(
-            AccessRightFilter accessRightFilter,
-            GeometryCriterionBuilder geometryCriterionBuilder,
-            IdentitiesCriterionBuilder identitiesCriterionBuilder,
-            FieldsCriterionBuilder fieldsCriterionBuilder,
-            DateIntervalCriterionBuilder dateIntervalCriterionBuilder,
-            CollectionsCriterionBuilder collectionsCriterionBuilder,
-            BBoxCriterionBuilder bBoxCriterionBuilder,
-            QueryObjectCriterionBuilder queryObjectCriterionBuilder
-    ) {
+    public StacSearchCriterionBuilderImpl(AccessRightFilter accessRightFilter,
+            GeometryCriterionBuilder geometryCriterionBuilder, IdentitiesCriterionBuilder identitiesCriterionBuilder,
+            FieldsCriterionBuilder fieldsCriterionBuilder, DateIntervalCriterionBuilder dateIntervalCriterionBuilder,
+            CollectionsCriterionBuilder collectionsCriterionBuilder, BBoxCriterionBuilder bBoxCriterionBuilder,
+            QueryObjectCriterionBuilder queryObjectCriterionBuilder) {
         this.accessRightFilter = accessRightFilter;
         this.geometryCriterionBuilder = geometryCriterionBuilder;
         this.identitiesCriterionBuilder = identitiesCriterionBuilder;
@@ -74,24 +76,22 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
         this.queryObjectCriterionBuilder = queryObjectCriterionBuilder;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
-        return andAllPresent(
-            bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
-            collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
-            dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
-            fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
-            identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
-            geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
-            queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery())
-        ).flatMap(addAccessCriteria());
+        return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
+                             collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
+                             dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
+                             fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
+                             identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
+                             geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
+                             queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery()))
+                                     .flatMap(addAccessCriteria());
     }
 
     public Function<ICriterion, Option<? extends ICriterion>> addAccessCriteria() {
-        return c ->
-            trying(() -> accessRightFilter.addAccessRights(c))
-                .onFailure(t -> error(LOGGER, "Failed to add access rights to search: {}", t.getMessage(), t))
-                .toOption();
+        return c -> trying(() -> accessRightFilter.addAccessRights(c))
+                .onFailure(t -> error(LOGGER, "Failed to add access rights to search: {}", t.getMessage(), t)).toOption();
     }
 
 }

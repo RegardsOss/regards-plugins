@@ -1,25 +1,27 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MINUTE;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import io.vavr.collection.List;
-import org.junit.Test;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MINUTE;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatePartsLevelDefTest {
 
     // GIVEN
     StacProperty prop = new StacProperty(null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null);
+
     DatePartsLevelDef ldef = new DatePartsLevelDef(prop, MINUTE);
 
     @Test
     public void testLabels() {
         // GIVEN
         DynCollLevelVal lval = ldef.parseValues("2020-12-31T23:59");
-        List<DynCollSublevelVal> sublevelVals = lval.getSublevels();
+        //        List<DynCollSublevelVal> sublevelVals = lval.getSublevels();
         // WHEN/THEN
         assertThat(lval.getSublevels().get(0).getSublevelLabel()).isEqualTo("prop=2020");
         assertThat(lval.getSublevels().get(1).getSublevelLabel()).isEqualTo("prop=2020-12");

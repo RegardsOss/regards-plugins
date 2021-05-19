@@ -43,6 +43,7 @@ public class StacProperty {
 
     StacPropertyType stacType;
 
+    @SuppressWarnings("rawtypes")
     AbstractPropertyConverter converter;
 
     public boolean isDynamicCollectionLevel() {

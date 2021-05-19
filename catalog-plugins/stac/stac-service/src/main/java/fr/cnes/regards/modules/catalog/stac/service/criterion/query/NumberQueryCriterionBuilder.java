@@ -19,6 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.NumberQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -29,9 +31,6 @@ import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
-
 
 /**
  * Criterion builder for a {@link NumberQueryObject}
@@ -44,27 +43,23 @@ public class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
         super(stacPropName);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, NumberQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
+            NumberQueryObject queryObject) {
         AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName)
-                .map(StacProperty::getConverter)
-                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+                .map(StacProperty::getConverter).getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
 
-        return andAllPresent(
-            combineIntervals(attr, List.of(
-                extractConvertedValue(converter, queryObject.getEq()).map(DoubleInterval::eq),
-                extractConvertedValue(converter, queryObject.getLt()).map(DoubleInterval::lt),
-                extractConvertedValue(converter, queryObject.getLte()).map(DoubleInterval::lte),
-                extractConvertedValue(converter, queryObject.getGt()).map(DoubleInterval::gt),
-                extractConvertedValue(converter, queryObject.getGte()).map(DoubleInterval::gte)
-            )),
-            combineIntervals(attr, List.of(
-                Option.of(queryObject.getNeq()).map(DoubleInterval::eq)
-            )).map(ICriterion::not),
-            Option.of(queryObject.getIn()).flatMap(in ->
-                in.map(d -> eq(attr, d, DOUBLE_COMPARISON_PRECISION))
-                    .reduceLeftOption(ICriterion::or))
-        );
+        return andAllPresent(combineIntervals(attr, List
+                .of(extractConvertedValue(converter, queryObject.getEq()).map(DoubleInterval::eq),
+                    extractConvertedValue(converter, queryObject.getLt()).map(DoubleInterval::lt),
+                    extractConvertedValue(converter, queryObject.getLte()).map(DoubleInterval::lte),
+                    extractConvertedValue(converter, queryObject.getGt()).map(DoubleInterval::gt),
+                    extractConvertedValue(converter, queryObject.getGte()).map(DoubleInterval::gte))),
+                             combineIntervals(attr, List.of(Option.of(queryObject.getNeq()).map(DoubleInterval::eq)))
+                                     .map(ICriterion::not),
+                             Option.of(queryObject.getIn()).flatMap(in -> in
+                                     .map(d -> eq(attr, d, DOUBLE_COMPARISON_PRECISION)).reduceLeftOption(ICriterion::or)));
     }
 
     public Option<Double> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, Double lt) {
@@ -72,8 +67,7 @@ public class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     }
 
     private Option<ICriterion> combineIntervals(AttributeModel attr, List<Option<DoubleInterval>> intervals) {
-        return intervals.flatMap(opt -> opt)
-            .reduceLeftOption(DoubleInterval::combine)
-            .map(i -> i.toCriterion(attr.getFullJsonPath()));
+        return intervals.flatMap(opt -> opt).reduceLeftOption(DoubleInterval::combine)
+                .map(i -> i.toCriterion(attr.getFullJsonPath()));
     }
 }

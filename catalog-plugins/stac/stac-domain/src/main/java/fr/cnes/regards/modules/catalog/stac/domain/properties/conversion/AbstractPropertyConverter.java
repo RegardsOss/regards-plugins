@@ -31,17 +31,18 @@ import io.vavr.control.Try;
  */
 public abstract class AbstractPropertyConverter<ST, RT> {
 
+    @SuppressWarnings("unused")
     private final StacPropertyType type;
 
     public AbstractPropertyConverter(StacPropertyType type) {
-      this.type = type;
-   }
+        this.type = type;
+    }
 
     public abstract Try<ST> convertRegardsToStac(RT value);
 
     public abstract Try<RT> convertStacToRegards(ST value);
 
-    public static AbstractPropertyConverter<?,?> idConverter(StacPropertyType type) {
+    public static AbstractPropertyConverter<?, ?> idConverter(StacPropertyType type) {
         return new IdentityPropertyConverter<>(type);
     }
 

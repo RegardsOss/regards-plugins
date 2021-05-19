@@ -130,6 +130,7 @@ public class RegardsPropertyAccessorFactory {
                                                  dataObject.getIpId()));
     }
 
+    @SuppressWarnings("unchecked")
     private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, Object value) {
         switch (sPropType) {
             case URL:

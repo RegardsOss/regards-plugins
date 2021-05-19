@@ -19,6 +19,23 @@
 
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.PLUGIN_CONFIGURATION_ACCESS;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
+import java.net.URL;
+import java.util.ArrayList;
+
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.io.GeoJSONReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -40,22 +57,6 @@ import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
-import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
-import org.locationtech.spatial4j.io.GeoJSONReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.net.URL;
-import java.util.ArrayList;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.PLUGIN_CONFIGURATION_ACCESS;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
 
 /**
  * Allows to transform property configuration to domain properties, and access
@@ -77,11 +78,8 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     private final ProjectGeoSettings geoSettings;
 
     @Autowired
-    public StacConfigurationDomainAccessor(
-            PropertyConverterFactory propertyConverterFactory,
-            IPluginService pluginService,
-            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
-            IRuntimeTenantResolver runtimeTenantResolver,
+    public StacConfigurationDomainAccessor(PropertyConverterFactory propertyConverterFactory, IPluginService pluginService,
+            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory, IRuntimeTenantResolver runtimeTenantResolver,
             ProjectGeoSettings geoSettings) {
         this.propertyConverterFactory = propertyConverterFactory;
         this.pluginService = pluginService;
@@ -94,9 +92,10 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     public ConfigurationAccessor makeConfigurationAccessor() {
         final Try<StacSearchEngine> plugin = getPlugin();
         return new ConfigurationAccessor() {
+
             @Override
             public String getTitle() {
-                return plugin.map(StacSearchEngine::getStacTitle).getOrElse(() ->{
+                return plugin.map(StacSearchEngine::getStacTitle).getOrElse(() -> {
                     String tenant = runtimeTenantResolver.getTenant();
                     return "STAC Catalog " + tenant;
                 });
@@ -104,7 +103,7 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public String getDescription() {
-                return plugin.map(StacSearchEngine::getStacDescription).getOrElse(() ->{
+                return plugin.map(StacSearchEngine::getStacDescription).getOrElse(() -> {
                     String tenant = runtimeTenantResolver.getTenant();
                     return "STAC Catalog " + tenant;
                 });
@@ -117,45 +116,34 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public List<StacProperty> getStacProperties() {
-                return plugin
-                        .map(StacConfigurationDomainAccessor.this::getConfiguredProperties)
-                        .getOrElse(List.empty());
+                return plugin.map(StacConfigurationDomainAccessor.this::getConfiguredProperties).getOrElse(List.empty());
             }
 
             @Override
             public StacProperty getDatetimeStacProperty() {
                 return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyConfiguration())
-                    .map(spc -> getConfiguredProperties(List.of(spc)).head())
-                    .getOrNull();
+                        .map(spc -> getConfiguredProperties(List.of(spc)).head()).getOrNull();
             }
 
             @Override
             public List<Provider> getProviders(String datasetUrn) {
-                return getCollectionConfigs(datasetUrn)
-                        .flatMap(CollectionConfiguration::getProviders)
+                return getCollectionConfigs(datasetUrn).flatMap(CollectionConfiguration::getProviders)
                         .map(pc -> getProvider(pc));
             }
 
             @Override
             public List<String> getKeywords(String datasetUrn) {
-                return getCollectionConfigs(datasetUrn)
-                    .flatMap(cc -> List.ofAll(cc.getKeywords()));
+                return getCollectionConfigs(datasetUrn).flatMap(cc -> List.ofAll(cc.getKeywords()));
             }
 
             @Override
             public String getLicense(String datasetUrn) {
-                return getCollectionConfigs(datasetUrn)
-                    .headOption()
-                    .map(CollectionConfiguration::getLicense)
-                    .getOrNull();
+                return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense).getOrNull();
             }
 
             private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
-                return plugin
-                    .map(StacSearchEngine::getStacCollectionDatasetProperties)
-                    .map(List::ofAll)
-                    .getOrElse(List.empty())
-                    .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+                return plugin.map(StacSearchEngine::getStacCollectionDatasetProperties).map(List::ofAll)
+                        .getOrElse(List.empty()).filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
             }
 
             @Override
@@ -178,43 +166,28 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     }
 
     private Provider getProvider(ProviderConfiguration pc) {
-        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles())
-            .flatMap(role -> trying(() -> ProviderRole.valueOf(role))
+        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles()).flatMap(role -> trying(() -> ProviderRole.valueOf(role))
                 .onFailure(t -> warn(LOGGER, "Failed to parse provider role {}", role)));
         URL providerUrl = trying(() -> new URL(pc.getProviderUrl()))
-            .onFailure(t -> warn(LOGGER, "Failed to parse provider URL in {}", pc))
-            .getOrNull();
+                .onFailure(t -> warn(LOGGER, "Failed to parse provider URL in {}", pc)).getOrNull();
         return new Provider(pc.getProviderName(), pc.getProviderDescription(), providerUrl, roles);
     }
 
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
-        return paramConfigurations
-                .map(s -> {
-                    debug(LOGGER, "Converting stac prop config: {}", s);
-                    StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
-                    AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
-                        stacType,
-                        s.getStacFormat(),
-                        s.getRegardsFormat()
-                    );
-                    return new StacProperty(
-                        extractPropertyAccessor(s, stacType),
-                        s.getStacPropertyName(),
-                        s.getStacExtension(),
-                        s.getStacComputeSummary() && canComputeSummary(stacType),
-                        s.getStacDynamicCollectionLevel(),
-                        s.getStacDynamicCollectionFormat(),
-                        stacType,
-                        converter
-                    );
-                })
-                .toList();
+        return paramConfigurations.map(s -> {
+            debug(LOGGER, "Converting stac prop config: {}", s);
+            StacPropertyType stacType = StacPropertyType.parse(s.getStacType());
+            @SuppressWarnings("rawtypes")
+            AbstractPropertyConverter converter = propertyConverterFactory.getConverter(stacType, s.getStacFormat(),
+                                                                                        s.getRegardsFormat());
+            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyName(), s.getStacExtension(),
+                    s.getStacComputeSummary() && canComputeSummary(stacType), s.getStacDynamicCollectionLevel(),
+                    s.getStacDynamicCollectionFormat(), stacType, converter);
+        }).toList();
     }
 
-    private RegardsPropertyAccessor extractPropertyAccessor(
-            StacPropertyConfiguration sPropConfig,
-            StacPropertyType stacType
-    ) {
+    private RegardsPropertyAccessor extractPropertyAccessor(StacPropertyConfiguration sPropConfig,
+            StacPropertyType stacType) {
         return regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
     }
 
@@ -223,33 +196,26 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     }
 
     private Try<StacSearchEngine> getPlugin() {
-        return List.ofAll(pluginService.getActivePluginConfigurations(StacSearchEngine.PLUGIN_ID))
-            .headOption()
-            .toTry()
-            .flatMap(this::loadPluginFromConfiguration);
+        return List.ofAll(pluginService.getActivePluginConfigurations(StacSearchEngine.PLUGIN_ID)).headOption().toTry()
+                .flatMap(this::loadPluginFromConfiguration);
 
     }
 
     private Try<StacSearchEngine> loadPluginFromConfiguration(PluginConfiguration pc) {
         return trying(() -> getOptionalPlugin(pc).get())
-            .mapFailure(
-                PLUGIN_CONFIGURATION_ACCESS,
-                () -> format("Failed to load plugin configuration in %s", pc)
-            );
+                .mapFailure(PLUGIN_CONFIGURATION_ACCESS, () -> format("Failed to load plugin configuration in %s", pc));
     }
 
     private Option<StacSearchEngine> getOptionalPlugin(PluginConfiguration pc)
             throws NotAvailablePluginConfigurationException {
-        return  Option.ofOptional(pluginService.getOptionalPlugin(pc.getBusinessId()));
+        return Option.ofOptional(pluginService.getOptionalPlugin(pc.getBusinessId()));
     }
 
     private List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {
-        java.util.List<StacPropertyConfiguration> propConfigs = Option
-            .of(plugin.getStacExtraProperties())
-            .getOrElse(new ArrayList<>());
+        java.util.List<StacPropertyConfiguration> propConfigs = Option.of(plugin.getStacExtraProperties())
+                .getOrElse(new ArrayList<>());
         StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyConfiguration();
-        return getConfiguredProperties(List.ofAll(propConfigs)
-            .prepend(datetimeProp));
+        return getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp));
     }
 
 }

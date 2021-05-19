@@ -19,14 +19,14 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.BooleanQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
 
 /**
  * Criterion builder for a {@link BooleanQueryObject}
@@ -37,12 +37,11 @@ public class BooleanQueryCriterionBuilder extends AbstractQueryObjectCriterionBu
         super(stacPropName);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, BooleanQueryObject value) {
-        return andAllPresent(
-                Option.of(value.getEq()).map(eq -> eq(attr, eq)),
-                Option.of(value.getNeq()).map(neq -> eq(attr, !neq))
-        );
+        return andAllPresent(Option.of(value.getEq()).map(eq -> eq(attr, eq)),
+                             Option.of(value.getNeq()).map(neq -> eq(attr, !neq)));
     }
 
 }
