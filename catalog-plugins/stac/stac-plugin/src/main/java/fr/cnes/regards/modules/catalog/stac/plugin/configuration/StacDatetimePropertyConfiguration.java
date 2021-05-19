@@ -37,13 +37,13 @@ import static fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacProp
 @Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacDatetimePropertyConfiguration {
 
-    @PluginParameter(name = "source.property.path", label = "Source model property path",
+    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path",
             description = "This parameter defines the path to the model attribute and its corresponding "
                     + "source property in a product (default value is mapped to an internal property)",
             optional = true, defaultValue = "creationDate")
     private String sourcePropertyPath;
 
-    @PluginParameter(name = "source.json.property.path", label = "JSON property path (for a JSON type attribute only)",
+    @PluginParameter(name = "sourceJsonPropertyPath", label = "JSON property path (for a JSON type attribute only)",
             description = "If the source model attribute is of type JSON, "
                     + " this parameter defines the path in the JSON structure where to read the value.",
             optional = true)

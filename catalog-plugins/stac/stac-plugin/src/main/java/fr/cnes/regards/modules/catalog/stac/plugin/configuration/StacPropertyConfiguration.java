@@ -32,24 +32,24 @@ import lombok.With;
 @Data @With @AllArgsConstructor @NoArgsConstructor
 public class StacPropertyConfiguration {
     
-    public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stac.dynamic.collection.level";
+    public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stacDynamicCollectionLevel";
     public static final String STAC_DYNAMIC_COLLECTION_LEVEL_MD = "stacDynamicCollectionLevel.md";
 
-    public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stac.dynamic.collection.format";
+    public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stacDynamicCollectionFormat";
     public static final String STAC_DYNAMIC_COLLECTION_FORMAT_MD = "stacDynamicCollectionFormat.md";
 
-    public static final String STAC_FORMAT = "target.stac.property.format";
+    public static final String STAC_FORMAT = "stacPropertyFormat";
     public static final String STAC_FORMAT_MD = "stacFormat.md";
 
-    public static final String REGARDS_FORMAT = "source.property.format";
+    public static final String REGARDS_FORMAT = "sourcePropertyFormat";
     public static final String REGARDS_FORMAT_MD = "regardsFormat.md";
 
-    @PluginParameter(name = "source.property.path", label = "Source model property path",
+    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path",
             description = "This parameter defines the path to the model attribute and its corresponding "
                     + "source property in a product")
     private String sourcePropertyPath;
 
-    @PluginParameter(name = "source.json.property.path", label = "JSON property path (for a JSON type attribute only)",
+    @PluginParameter(name = "sourceJsonPropertyPath", label = "JSON property path (for a JSON type attribute only)",
             description = "If the source model attribute is of type JSON, "
                     + " this parameter defines the path in the JSON structure where to read the value.",
             optional = true)
@@ -60,18 +60,18 @@ public class StacPropertyConfiguration {
     private String  sourcePropertyFormat;
 
     @PluginParameter(
-            name = "stac.property.name", label = "STAC property name (Expected format : {extension:}name)",
+            name = "stacPropertyName", label = "STAC property name (Expected format : {extension:}name)",
             description = "This parameter determines the name of"
                     + " the STAC property corresponding to the model attribute name.",
             optional = true)
     private String stacPropertyName;
 
-    @PluginParameter(name = "stac.property.extension", label = "Name or URL of the STAC extension",
+    @PluginParameter(name = "stacPropertyExtension", label = "Name or URL of the STAC extension",
             description = "If this STAC property is not defined in the standard, give the name or URL of its extension.",
             optional = true)
     private String stacPropertyExtension;
 
-    @PluginParameter(name = "stac.property.type", label = "STAC property type",
+    @PluginParameter(name = "stacPropertyType", label = "STAC property type",
             description = "Should take a value among: " + "'DATETIME', " + "'URL', " + "'STRING', " + "'ANGLE', "
                     + "'LENGTH', " + "'PERCENTAGE', " + "'NUMBER', " + "'BOOLEAN', " + "'JSON_OBJECT'.",
             defaultValue = "STRING", optional = true)
@@ -81,7 +81,7 @@ public class StacPropertyConfiguration {
     private String stacPropertyFormat;
 
     @PluginParameter(
-            name = "stac.property.compute.summary",
+            name = "stacComputeSummary",
             label = "Compute summary",
             description = "Whether a summary should be computed for this property in the collections." +
                     " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
