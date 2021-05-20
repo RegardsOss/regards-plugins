@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -40,9 +41,11 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 
 /**
- * @author marc
+ * Test loading plugin configuration
  *
+ * @author marc
  */
+@Ignore
 public class PluginLoadingTest {
 
     private PluginConfiguration loadPluginConfiguration() throws IOException {

@@ -1,0 +1,158 @@
+{
+    "microservice": "rs-catalog",
+    "modules": [{
+        "module": {
+            "id": "search",
+            "name": "Search Module",
+            "description": "Module handling anything to do with searching entities and rights",
+            "version": "1.4.0",
+            "author": "REGARDS",
+            "legalOwner": "CNES",
+            "documentation": "https://github.com/RegardsOss"
+        },
+        "resetBeforeImport": true,
+        "configuration": [{
+                "key": "fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration",
+                "value": {
+                    "label": "REGARDS search protocol",
+                    "configuration": {
+                        "pluginId": "legacy",
+                        "label": "search-engine-legacy",
+                        "businessId": "search-engine-legacy",
+                        "version": "1.0.0",
+                        "priorityOrder": 0,
+                        "active": true,
+                        "parameters": []
+                    }
+                }
+            },
+            {
+                "key": "fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration",
+                "value": {
+                    "label": "STAC",
+                    "configuration": {
+                        "pluginId": "stac",
+                        "label": "STAC label",
+                        "businessId": "432cd67f-0bb6-41a5-bb3c-5b0915e27834",
+                        "version": "1.0.0",
+                        "priorityOrder": 1,
+                        "active": true,
+                        "parameters": [{
+                                "name": "stac-api-title",
+                                "type": "STRING",
+                                "value": "H2 STAC API",
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-api-description",
+                                "type": "STRING",
+                                "value": "H2 STAC API description",
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-api-root-static-collection-title",
+                                "type": "STRING",
+                                "value": "static",
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-api-root-dynamic-collection-title",
+                                "type": "STRING",
+                                "value": "dynamic",
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-api-datetime-property",
+                                "type": "POJO",
+                                "value": {
+                                    "sourcePropertyPath": "datetime"
+                                },
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-properties",
+                                "type": "COLLECTION",
+                                "value": [{
+                                        "stacPropertyName": "start_datetime",
+                                        "stacPropertyType": "DATETIME",
+                                        "sourcePropertyPath": "start_datetime",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "end_datetime",
+                                        "stacPropertyType": "DATETIME",
+                                        "sourcePropertyPath": "end_datetime",
+                                        "stacComputeSummary": false
+                                    },
+                                    {},
+                                    {
+                                        "stacPropertyName": "hydro:data_type",
+                                        "sourcePropertyPath": "hydro.data_type",
+                                        "stacComputeSummary": false,
+                                        "stacPropertyExtension": "hydro",
+                                        "stacDynamicCollectionLevel": 1
+                                    },
+                                    {
+                                        "stacPropertyName": "platform",
+                                        "sourcePropertyPath": "platform",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "instruments",
+                                        "sourcePropertyPath": "instruments",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "mission",
+                                        "sourcePropertyPath": "mission",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "version",
+                                        "sourcePropertyPath": "version",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "hydro:variables",
+                                        "sourcePropertyPath": "hydro.variables",
+                                        "stacComputeSummary": false,
+                                        "stacPropertyExtension": "hydro"
+                                    },
+                                    {
+                                        "stacPropertyName": "hydro:categories",
+                                        "sourcePropertyPath": "hydro.categories",
+                                        "stacComputeSummary": false,
+                                        "stacPropertyExtension": "hydro"
+                                    },
+                                    {
+                                        "stacPropertyName": "spatial:cycle_id",
+                                        "stacPropertyType": "NUMBER",
+                                        "sourcePropertyPath": "spatial.cycle_id",
+                                        "stacComputeSummary": false
+                                    },
+                                    {
+                                        "stacPropertyName": "spatial:crid",
+                                        "sourcePropertyPath": "spatial.crid",
+                                        "stacComputeSummary": false
+                                    }
+                                ],
+                                "dynamic": false
+                            },
+                            {
+                                "name": "stac-collection-dataset-properties",
+                                "type": "COLLECTION",
+                                "value": [{
+                                    "license": "MyLicense",
+                                    "datasetUrns": [
+                                        "*"
+                                    ]
+                                }],
+                                "dynamic": false
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }]
+}
