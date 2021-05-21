@@ -52,4 +52,19 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         performDefaultGet(StacApiConstants.STAC_CONFORMANCE_PATH, customizer, "Cannot reach STAC conformance page");
     }
+
+    @Test
+    public void getStaticCollections() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
+                          "Cannot reach STAC conformance page", "static");
+    }
+
+    @Test
+    public void getDynamicCollections() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // TODO get JSON result and make assertion on expected collection links
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
+                          "Cannot reach STAC conformance page", "dynamic");
+    }
 }
