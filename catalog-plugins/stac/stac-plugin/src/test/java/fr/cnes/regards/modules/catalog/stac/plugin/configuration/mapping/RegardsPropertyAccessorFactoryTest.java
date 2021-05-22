@@ -303,21 +303,20 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
     @Test
     public void test_makeString2PropAccessor() {
 
-//      dataObject.addProperty(IProperty.buildObject("anObject", IProperty.buildString("anObjectStringProp", "anObjectStringPropValue"),
-//      IProperty.buildString("anotherObjectStringProp", "anotherObjectStringPropValue")));
-
         // GIVEN
         StacPropertyType sPropType = StacPropertyType.STRING;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
-                "anObject.anObjectStringProp",
-                null,
-                "anObject:anObjectStringProp",
-                "anObject",
-                false,
-                null, null,
-                sPropType.name(),
-                null, null
-        );
+                                                                              "anObject.anObjectStringProp",
+                                                                              null,
+                                                                              null,
+                                                                              "anObject:anObjectStringProp",
+                                                                              "anObject",
+                                                                              sPropType.name(),
+                                                                              null,
+                                                                              false,
+                                                                              null,
+                                                                              null
+                                                                      );
 
         // WHEN
         RegardsPropertyAccessor accessor = factory.makeRegardsPropertyAccessor(sPropConfig, sPropType);
