@@ -130,6 +130,7 @@ public class OGCFeaturesController implements TryToResponseEntity {
     public ResponseEntity<Collection> collection(@PathVariable(COLLECTION_ID_PARAM) String collectionId)
             throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
+        // FIXME use IAuthoritiesProvider instead of JWTAuthentication and SecurityContextHolder
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config));

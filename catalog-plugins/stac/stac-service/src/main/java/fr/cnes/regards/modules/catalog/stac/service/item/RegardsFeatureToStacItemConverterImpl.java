@@ -181,7 +181,26 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     }
 
     private Map<String, Object> extractStacProperties(DataObject feature, List<StacProperty> stacProperties) {
-        return stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv);
+        // Group by namespace
+        Map<String, List<StacProperty>> groupedProperties = stacProperties.groupBy(s -> s.getStacPropertyNamespace());
+        // Get base map
+        Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
+                                                                       groupedProperties.get(null).get());
+        // Add namespaced properties
+        return rootMap.merge(groupedProperties.filterKeys(k -> k != null)
+                .map(ppt -> extractStacPropertiesByNamespace(feature, Option.of(ppt._1), ppt._2))
+                .reduce((i, j) -> i == null ? j : i.merge(j)));
+    }
+
+    private Map<String, Object> extractStacPropertiesByNamespace(DataObject feature, Option<String> namespace,
+            List<StacProperty> stacProperties) {
+        Map<String, Object> result;
+        if (namespace.isDefined()) {
+            result = HashMap.of(namespace.get(), stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv));
+        } else {
+            result = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv);
+        }
+        return result;
     }
 
     private Tuple2<String, Object> extractStacProperty(DataObject feature, StacProperty stacProperty) {
@@ -199,42 +218,4 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                                      value, sp.getStacPropertyName()))
                 .getOrElse(value);
     }
-
-    // FIXME remove
-    //    private Map<String, Object> extractStacPropertyKeyValues(DataObject feature, List<StacProperty> properties) {
-    //        return HashSet.ofAll(feature.getFeature().getProperties())
-    //                .map(regardsProp -> findCorrespondingStacProperty(regardsProp, properties)
-    //                        .map(sp -> extractPropertyRegardsKeyValue(regardsProp, sp))
-    //                        .getOrElse(() -> Tuple.of(regardsProp.getName(), regardsProp.getValue())))
-    //                .toMap(kv -> kv).filterKeys(isNotNull());
-    //    }
-
-    //    private Tuple2<String, Object> extractPropertyRegardsKeyValue(IProperty<?> regardsProp, StacProperty sp) {
-    //        return Tuple.of(sp.getStacPropertyName(), convertRegardsToStacValue(regardsProp, sp));
-    //    }
-
-    //    @SuppressWarnings("unchecked")
-    //    private Object convertRegardsToStacValue(IProperty<?> regardsProp, StacProperty sp) {
-    //        return sp.getConverter().convertRegardsToStac(extractValue(regardsProp))
-    //                .onFailure(t -> warn(LOGGER, "Could not convert regards property {}={} to stac property {}",
-    //                                     regardsProp.getName(), regardsProp.getValue(), sp.getStacPropertyName()))
-    //                .getOrElse(regardsProp.getValue());
-    //    }
-
-    //    private Object extractValue(IProperty<?> regardsProp) {
-    //        Object value = regardsProp.getValue();
-    //        if (value instanceof Number) {
-    //            return ((Number) value).doubleValue();
-    //        } else {
-    //            return value;
-    //        }
-    //    }
-    //
-    //    private Option<StacProperty> findCorrespondingStacProperty(IProperty<?> regardsProp, List<StacProperty> properties) {
-    //        return properties.find(sp -> {
-    //            String regardsAttributeName = sp.getRegardsPropertyAccessor().getRegardsAttributeName();
-    //            return regardsProp.getName().equals(regardsAttributeName);
-    //        });
-    //    }
-
 }

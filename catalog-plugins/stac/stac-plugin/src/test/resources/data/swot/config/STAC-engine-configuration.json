@@ -94,12 +94,14 @@
                         "stacPropertyExtension": "hydro"
                     },
                     {
+                        "stacPropertyNamespace": "namespace",
                         "stacPropertyName": "spatial:cycle_id",
                         "stacPropertyType": "NUMBER",
                         "sourcePropertyPath": "spatial.cycle_id",
                         "stacComputeSummary": false
                     },
                     {
+                        "stacPropertyNamespace": "namespace",
                         "stacPropertyName": "spatial:crid",
                         "sourcePropertyPath": "spatial.crid",
                         "stacComputeSummary": false

@@ -13,7 +13,7 @@ import io.vavr.collection.List;
 public class StringPrefixLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, "prop", "", false, 2, "PREFIX(3,9)", StacPropertyType.STRING, null);
+    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "PREFIX(3,9)", StacPropertyType.STRING, null);
 
     StringPrefixLevelDef ldef = new StringPrefixLevelDef(prop,
             List.of(new StringPrefixSublevelDef(0, false, true), new StringPrefixSublevelDef(1, false, true),

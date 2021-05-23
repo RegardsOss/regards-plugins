@@ -180,9 +180,10 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
             @SuppressWarnings("rawtypes")
             AbstractPropertyConverter converter = propertyConverterFactory.getConverter(stacType, s.getStacPropertyFormat(),
                                                                                         s.getSourcePropertyFormat());
-            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyName(),
-                    s.getStacPropertyExtension(), s.getStacComputeSummary() && canComputeSummary(stacType),
-                    s.getStacDynamicCollectionLevel(), s.getStacDynamicCollectionFormat(), stacType, converter);
+            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyNamespace(),
+                    s.getStacPropertyName(), s.getStacPropertyExtension(),
+                    s.getStacComputeSummary() && canComputeSummary(stacType), s.getStacDynamicCollectionLevel(),
+                    s.getStacDynamicCollectionFormat(), stacType, converter);
         }).toList();
     }
 

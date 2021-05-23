@@ -31,6 +31,11 @@ public class StacProperty {
 
     RegardsPropertyAccessor regardsPropertyAccessor;
 
+    /**
+     * Optional object wrapper
+     */
+    String stacPropertyNamespace;
+    
     String stacPropertyName;
 
     String extension;

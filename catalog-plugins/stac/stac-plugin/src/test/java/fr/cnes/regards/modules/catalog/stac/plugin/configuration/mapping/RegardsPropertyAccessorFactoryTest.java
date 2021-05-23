@@ -92,6 +92,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                       "someJsonObjectProp",
                                       "base.sub.someURL",
                                       null,
+                                      null,
                                       "regards:someJsonURLProp",
                                       "regards",
                                       sPropType.name(),
@@ -119,6 +120,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
                                                                               "someJsonObjectProp",
                                                                               "base.sub.someBoolean",
+                                                                              null,
                                                                               null,
                                                                               "regards:someJsonBooleanProp",
                                                                               "regards",
@@ -148,6 +150,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "someJsonObjectProp",
                                                                               "base.sub.someDouble",
                                                                               null,
+                                                                              null,
                                                                               "regards:someJsonDoubleProp",
                                                                               "regards",
                                                                               sPropType.name(),
@@ -176,6 +179,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "someJsonObjectProp",
                                                                               "base.sub.someDate",
                                                                               null,
+                                                                              null,
                                                                               "regards:someJsonDateProp",
                                                                               "regards",
                                                                               sPropType.name(),
@@ -202,6 +206,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
                                                                               "someJsonObjectProp",
                                                                               "base.sub.someString",
+                                                                              null,
                                                                               null,
                                                                               "regards:someJsonStringProp",
                                                                               "regards",
@@ -230,6 +235,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "someDateProp",
                                                                               null,
                                                                               null,
+                                                                              null,
                                                                               "regards:someDateProp",
                                                                               "regards",
                                                                               sPropType.name(),
@@ -256,6 +262,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "someURLProp",
                                                                               null,
                                                                               null,
+                                                                              null,
                                                                               "regards:someURLProp",
                                                                               "regards",
                                                                               sPropType.name(),
@@ -280,6 +287,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         StacPropertyType sPropType = StacPropertyType.STRING;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
                                                                               "someStringProp",
+                                                                              null,
                                                                               null,
                                                                               null,
                                                                               "regards:someStringProp",
@@ -309,6 +317,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "anObject.anObjectStringProp",
                                                                               null,
                                                                               null,
+                                                                              null,
                                                                               "anObject:anObjectStringProp",
                                                                               "anObject",
                                                                               sPropType.name(),
@@ -335,6 +344,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                                                                               "someBooleanProp",
                                                                               null,
                                                                               null,
+                                                                              null,
                                                                               "regards:someBooleanProp",
                                                                               "regards",
                                                                               sPropType.name(),
@@ -359,6 +369,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         StacPropertyType sPropType = StacPropertyType.PERCENTAGE;
         StacPropertyConfiguration sPropConfig = new StacPropertyConfiguration(
                                                                               "someDoubleProp",
+                                                                              null,
                                                                               null,
                                                                               null,
                                                                               "regards:someDoubleProp",

@@ -1,18 +1,19 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.Fields;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.indexer.domain.criterion.FieldExistsCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.NotCriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
 
@@ -21,7 +22,8 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         // GIVEN
         List<StacProperty> properties = List.of();
         // WHEN
-        Option<ICriterion> criterion = new FieldsCriterionBuilder().buildCriterion(properties, new Fields(List.empty(), List.empty()));
+        Option<ICriterion> criterion = new FieldsCriterionBuilder().buildCriterion(properties,
+                                                                                   new Fields(List.empty(), List.empty()));
         // THEN
         assertThat(criterion).isEmpty();
     }
@@ -51,13 +53,10 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
     public void testBuildCriterionIncludeMany() {
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsInc1", StacPropertyType.STRING, "value");
-        List<StacProperty> properties = List.of(new StacProperty(
-                accessor,
-                "inc1",
-                "inc", false, 0, null,
-                StacPropertyType.STRING,
-                new IdentityPropertyConverter<>(StacPropertyType.STRING)
-        ));
+        List<StacProperty> properties = List.of(new StacProperty(accessor,
+
+                null, "inc1", "inc", false, 0, null, StacPropertyType.STRING,
+                new IdentityPropertyConverter<>(StacPropertyType.STRING)));
         Fields fields = new Fields(List.of("inc1", "inc2"), List.empty());
         // WHEN
         Option<ICriterion> criterion = new FieldsCriterionBuilder().buildCriterion(properties, fields);
@@ -85,15 +84,8 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsExc1", StacPropertyType.STRING, "value");
 
-        List<StacProperty> properties = List.of(
-                new StacProperty(
-                        accessor,
-                        "exc1",
-                        "exc", false, 0, null,
-                        StacPropertyType.STRING,
-                        new IdentityPropertyConverter<>(StacPropertyType.STRING)
-                )
-        );
+        List<StacProperty> properties = List.of(new StacProperty(accessor, null, "exc1", "exc", false, 0, null,
+                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
 
         Fields fields = new Fields(List.empty(), List.of("exc1", "exc2"));
         // WHEN
@@ -101,10 +93,10 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(NotCriterion.class);
-        NotCriterion notCrit = (NotCriterion)criterion.get();
-        assertThat(((FieldExistsCriterion)notCrit.getCriterion()).getName()).isEqualTo(accessor.getAttributeModel().getFullJsonPath());
+        NotCriterion notCrit = (NotCriterion) criterion.get();
+        assertThat(((FieldExistsCriterion) notCrit.getCriterion()).getName())
+                .isEqualTo(accessor.getAttributeModel().getFullJsonPath());
 
     }
-
 
 }

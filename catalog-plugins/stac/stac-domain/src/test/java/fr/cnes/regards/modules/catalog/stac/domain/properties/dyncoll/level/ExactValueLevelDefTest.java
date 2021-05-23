@@ -1,15 +1,17 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 
 public class ExactValueLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, "prop", "", false, 2, "", StacPropertyType.STRING, null);
+    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "", StacPropertyType.STRING, null);
+
     ExactValueLevelDef ldef = new ExactValueLevelDef(prop);
 
     @Test

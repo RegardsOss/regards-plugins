@@ -172,10 +172,10 @@ public class RegardsStacCollectionConverterTest {
 
         });
 
-        StacProperty stacProperty = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), "stacProp", "ext", false,
-                1, "dynFormat", StacPropertyType.NUMBER, Mockito.mock(AbstractPropertyConverter.class));
-        StacProperty dateTimeProp = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), "stacProp", "ext", false,
-                1, "dynFormat", StacPropertyType.DATETIME, Mockito.mock(AbstractPropertyConverter.class));
+        StacProperty stacProperty = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp", "ext",
+                false, 1, "dynFormat", StacPropertyType.NUMBER, Mockito.mock(AbstractPropertyConverter.class));
+        StacProperty dateTimeProp = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp", "ext",
+                false, 1, "dynFormat", StacPropertyType.DATETIME, Mockito.mock(AbstractPropertyConverter.class));
         when(configurationAccessor.getDatetimeStacProperty()).thenReturn(dateTimeProp);
         when(configurationAccessor.getStacProperties()).thenReturn(List.of(stacProperty));
         when(configurationAccessorFactory.makeConfigurationAccessor()).thenReturn(configurationAccessor);

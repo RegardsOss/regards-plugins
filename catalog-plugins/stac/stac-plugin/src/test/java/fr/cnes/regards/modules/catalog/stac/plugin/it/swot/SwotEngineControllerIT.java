@@ -21,11 +21,13 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.DynamicCollectionService;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -40,6 +42,9 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotEngineControllerIT.class);
+
+    @Autowired
+    private DynamicCollectionService dynCollService;
 
     @Test
     public void getLandingPage() {
@@ -66,5 +71,14 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         // TODO get JSON result and make assertion on expected collection links
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
                           "Cannot reach STAC conformance page", "dynamic");
+    }
+
+    @Test
+    public void getDynamicCollectionFirstLevelItems() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // L2_HR_RASTER URN
+        String urn = "URN:DYNCOLL:eyJscyI6W3sicCI6Imh5ZHJvOmRhdGFfdHlwZSIsInYiOiJMMl9IUl9SQVNURVIifV19";
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_ITEMS_PATH_SUFFIX, customizer,
+                          "Cannot reach STAC conformance page", urn);
     }
 }

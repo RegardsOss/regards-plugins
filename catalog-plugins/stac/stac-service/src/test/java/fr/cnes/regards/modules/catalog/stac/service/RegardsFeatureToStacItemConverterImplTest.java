@@ -97,8 +97,8 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                         .map(uri -> new Link(uri, SELF, "", "")));
 
         List<StacProperty> stacProperties = List.of(new StacProperty(
-                accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), "stac:prop", "",
-                false, 0, null, StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null, "stac:prop",
+                "", false, 0, null, StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
         FeatureUniformResourceName itemIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,
                                                                                tenant, UUID.randomUUID(), 1);
         DataObjectFeature dof = new DataObjectFeature(itemIpId, "theProvider", "theLabel", "theSessionOwner", "theSession",

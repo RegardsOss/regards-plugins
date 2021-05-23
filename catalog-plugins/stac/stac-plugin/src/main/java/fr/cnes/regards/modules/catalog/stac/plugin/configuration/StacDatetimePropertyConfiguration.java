@@ -71,6 +71,7 @@ public class StacDatetimePropertyConfiguration {
                 Option.of(sourcePropertyPath).getOrElse("creationDate"),
                 sourceJsonPropertyPath,
                 null,
+                null,
                 StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
                 "",
                 StacPropertyType.DATETIME.name(),

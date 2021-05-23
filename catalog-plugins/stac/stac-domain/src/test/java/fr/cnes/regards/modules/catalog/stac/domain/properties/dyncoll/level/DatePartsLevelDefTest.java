@@ -13,7 +13,7 @@ import io.vavr.collection.List;
 public class DatePartsLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null);
+    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null);
 
     DatePartsLevelDef ldef = new DatePartsLevelDef(prop, MINUTE);
 

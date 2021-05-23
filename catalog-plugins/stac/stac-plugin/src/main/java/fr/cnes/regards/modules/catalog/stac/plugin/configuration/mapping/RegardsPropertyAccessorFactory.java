@@ -52,6 +52,7 @@ import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyCon
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.dto.properties.MarkdownURL;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -82,8 +83,7 @@ public class RegardsPropertyAccessorFactory {
         AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
         Option<String> jsonPath = Option.of(sPropConfig.getSourceJsonPropertyPath()).filter(StringUtils::isNotBlank);
 
-        Tuple2<Class<?>, Function<DataObject, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(sPropType,
-                                                                                                          attrName,
+        Tuple2<Class<?>, Function<DataObject, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(sPropType, attr,
                                                                                                           jsonPath);
 
         RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(), attr,
@@ -113,12 +113,16 @@ public class RegardsPropertyAccessorFactory {
     }
 
     private Tuple2<Class<?>, Function<DataObject, Try<?>>> makeValueTypeAndExtractionFn(StacPropertyType sPropType,
-            String attrName, Option<String> jsonPath) {
+            AttributeModel attr, Option<String> jsonPath) {
         Class<?> valueType = sPropType.getValueType();
 
-        Function<DataObject, Try<?>> extractFn = jsonPath.map(jp -> makeJsonExtractFn(sPropType, attrName, jp))
-                .getOrElse(() -> makeExtractFn(sPropType, attrName));
-
+        Function<DataObject, Try<?>> extractFn;
+        if (PropertyType.JSON.equals(attr.getType()) && jsonPath.isDefined()) {
+            extractFn = makeJsonExtractFn(sPropType, attr.getJsonPropertyPath(), jsonPath.get());
+        } else {
+            // Extract from well known property
+            extractFn = makeExtractFn(sPropType, attr.getJsonPropertyPath());
+        }
         return Tuple.of(valueType, extractFn);
     }
 
@@ -135,6 +139,11 @@ public class RegardsPropertyAccessorFactory {
         switch (sPropType) {
             case URL:
                 return (T) ((MarkdownURL) value).getUrl();
+            case ANGLE:
+            case LENGTH:
+            case PERCENTAGE:
+            case NUMBER:
+                return (T) Double.valueOf(value.toString());
             default:
                 return valueType.cast(value);
         }
