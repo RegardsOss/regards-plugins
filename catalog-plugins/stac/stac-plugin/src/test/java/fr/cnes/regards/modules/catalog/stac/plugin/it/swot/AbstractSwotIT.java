@@ -233,15 +233,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     //        }
     //
     //    }
-    //
-    //    private static final Marker DEFAULT_MARKER = new Marker(true, true);
-
-    //    /**
-    //     * Override this method to change preparation behavior
-    //     */
-    //    protected Marker getMarker() {
-    //        return DEFAULT_MARKER;
-    //    }
 
     protected void initIndex(String index) {
         if (esRepository.indexExists(index)) {
@@ -301,14 +292,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     @Before
     public void prepareData() throws ModuleException, InterruptedException {
 
-        // FIXME
-        //        if (!getMarker().isPrepareAll()) {
-        //            return;
-        //        } else {
-        //
-        //            getMarker().setPrepareAll(false);
-        //        }
-
         prepareProject();
 
         // - Import models
@@ -342,13 +325,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
         initPlugins();
 
-        // FIXME
-        //        if (!getMarker().isButIndex()) {
-        //            return;
-        //        }
-        //
-        //        // FIXME
-        //        getMarker().setButIndex(false);
         initIndex(getDefaultTenant());
         // Create SWOT data
         indexerService.saveBulkEntities(getDefaultTenant(), createSWOTData(swotModel));

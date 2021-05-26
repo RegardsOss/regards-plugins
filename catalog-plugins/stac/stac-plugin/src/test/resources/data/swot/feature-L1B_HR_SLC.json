@@ -5,7 +5,7 @@
     "model": "HYGOR001",
     "geometry": null,
     "properties": {
-        "datetime": "2018-04-01T00:00:00.012345Z",
+        "datetime": "2022-04-01T00:00:00.012345Z",
         "start_datetime": "2022-07-22T09:01:07Z",
         "end_datetime": "2022-07-22T09:01:37Z",
         "platform": "SWOT",

@@ -1,11 +1,11 @@
 {
-    "id": "GOLDEN:L2_HR_RASTER",
+    "id": "GOLDEN:L2_HR_RASTER1",
     "type": "Feature",
     "entityType": "DATA",
     "model": "HYGOR001",
     "geometry": null,
     "properties": {
-        "datetime": "2018-04-01T00:00:00.012345Z",
+        "datetime": "2020-04-01T00:00:00.012345Z",
         "start_datetime": "2020-04-02T11:21:39Z",
         "end_datetime": "2022-04-02T11:21:59Z",
         "platform": "SWOT",

@@ -21,13 +21,11 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.DynamicCollectionService;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -42,9 +40,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotEngineControllerIT.class);
-
-    @Autowired
-    private DynamicCollectionService dynCollService;
 
     @Test
     public void getLandingPage() {
@@ -72,6 +67,16 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
                           "Cannot reach STAC conformance page", "dynamic");
     }
+
+    //    @Test
+    //    public void getExtendedDynamicCollections() {
+    //        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+    //        // Filter on datetime
+    //        customizer.addParameter("datetime", "2020-01-01T00:00:00Z/2020-06-01T00:00:00Z");
+    //        // TODO get JSON result and make assertion on expected collection links
+    //        performDefaultGet(StacApiConstants.STAC_EXTENDED_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
+    //                          customizer, "Cannot reach STAC conformance page", "dynamic");
+    //    }
 
     @Test
     public void getDynamicCollectionFirstLevelItems() {
