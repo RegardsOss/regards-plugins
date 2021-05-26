@@ -19,9 +19,22 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.ASC;
+import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.DESC;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.FIELDS_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.SORTBY_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.Fields;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.ReturnedType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
@@ -29,16 +42,6 @@ import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.ASC;
-import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.DESC;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.FIELDS_PARSING;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.SORTBY_PARSING;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
 
 /**
  * Implementation for the ItemSearchBodyFactory interface.
@@ -55,6 +58,7 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
 
     // @formatter:off
 
+    @Override
     public Try<ItemSearchBody> parseItemSearch(
             Integer limit,
             BBox bbox,
@@ -63,14 +67,15 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
             List<String> ids,
             String fields,
             String query,
-            String sortBy
+            String sortBy,
+            ReturnedType returnedType
     ) {
         return parseDateInterval(datetime).flatMap(dt ->
             parseFields(fields).flatMap(f ->
                 parseQuery(query).flatMap(q ->
                     parseSortBy(sortBy).map(s ->
                         new ItemSearchBody(
-                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s
+                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s, returnedType
                         )
                     )
                 )

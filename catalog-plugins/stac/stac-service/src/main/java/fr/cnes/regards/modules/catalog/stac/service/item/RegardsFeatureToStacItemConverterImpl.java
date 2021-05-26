@@ -47,7 +47,8 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationA
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.StacLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -84,7 +85,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     @Override
     public Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator,
-            DataObject feature) {
+            AbstractEntity<? extends EntityFeature> feature) {
         debug(LOGGER, "Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return trying(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
@@ -103,7 +104,8 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                       () -> format("Failed to convert data object %s to item", feature.getIpId()));
     }
 
-    private Map<String, Asset> extractAssets(DataObject feature, Tuple2<String, String> authParam) {
+    private Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature,
+            Tuple2<String, String> authParam) {
 
         Map<String, Asset> nullUnsafe = Stream.ofAll(feature.getFeature().getFiles().entries())
                 .toMap(entry -> extractAsset(entry.getValue(), authParam));
@@ -149,12 +151,13 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 .flatMap(tl -> tl);
     }
 
-    private Option<String> extractCollection(DataObject feature) {
+    private Option<String> extractCollection(AbstractEntity<? extends EntityFeature> feature) {
         return HashSet.ofAll(feature.getTags()).filter(tag -> tag.startsWith("URN:"))
                 .filter(tag -> tag.contains(":DATASET:")).headOption();
     }
 
-    private Tuple3<IGeometry, BBox, Centroid> extractGeo(DataObject feature, GeoJSONReader geoJSONReader) {
+    private Tuple3<IGeometry, BBox, Centroid> extractGeo(AbstractEntity<? extends EntityFeature> feature,
+            GeoJSONReader geoJSONReader) {
         Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry())
                 .orElse(() -> Option.of(feature.getFeature().getNormalizedGeometry()));
         Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
@@ -180,7 +183,8 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         });
     }
 
-    private Map<String, Object> extractStacProperties(DataObject feature, List<StacProperty> stacProperties) {
+    private Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
+            List<StacProperty> stacProperties) {
         // Group by namespace
         Map<String, List<StacProperty>> groupedProperties = stacProperties.groupBy(s -> s.getStacPropertyNamespace());
         // Get base map
@@ -192,18 +196,21 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                 .reduce((i, j) -> i == null ? j : i.merge(j)));
     }
 
-    private Map<String, Object> extractStacPropertiesByNamespace(DataObject feature, Option<String> namespace,
-            List<StacProperty> stacProperties) {
+    private Map<String, Object> extractStacPropertiesByNamespace(AbstractEntity<? extends EntityFeature> feature,
+            Option<String> namespace, List<StacProperty> stacProperties) {
         Map<String, Object> result;
         if (namespace.isDefined()) {
-            result = HashMap.of(namespace.get(), stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv));
+            Map<String, Object> wrapped = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv)
+                    .filterValues(v -> v != null);
+            result = wrapped.isEmpty() ? HashMap.empty() : HashMap.of(namespace.get(), wrapped);
         } else {
             result = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv);
         }
         return result;
     }
 
-    private Tuple2<String, Object> extractStacProperty(DataObject feature, StacProperty stacProperty) {
+    private Tuple2<String, Object> extractStacProperty(AbstractEntity<? extends EntityFeature> feature,
+            StacProperty stacProperty) {
         Tuple2<String, Object> tuple2 = Tuple.of(stacProperty.getStacPropertyName(),
                                                  stacProperty.getRegardsPropertyAccessor().getGenericExtractValueFn()
                                                          .apply(feature).map(val -> convertStacProperty(val, stacProperty))

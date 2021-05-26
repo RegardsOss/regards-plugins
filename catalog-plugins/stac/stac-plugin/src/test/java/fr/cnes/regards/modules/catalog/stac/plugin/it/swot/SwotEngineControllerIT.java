@@ -35,7 +35,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
  * @author Marc SORDI
  *
  */
-@TestPropertySource(locations = { "classpath:test.properties" },
+@TestPropertySource(locations = { "classpath:test-local.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {
@@ -59,7 +59,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     public void getStaticCollections() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC conformance page", "static");
+                          "Cannot reach STAC static collections", "static");
     }
 
     @Test
@@ -67,7 +67,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // TODO get JSON result and make assertion on expected collection links
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC conformance page", "dynamic");
+                          "Cannot reach STAC dynamic collections", "dynamic");
     }
 
     //    @Test
@@ -86,7 +86,13 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         // L2_HR_RASTER URN
         String urn = "URN:DYNCOLL:eyJscyI6W3sicCI6Imh5ZHJvOmRhdGFfdHlwZSIsInYiOiJMMl9IUl9SQVNURVIifV19";
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_ITEMS_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC conformance page", urn);
+                          "Cannot reach STAC collection items", urn);
+    }
+
+    @Test
+    public void searchItems() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
 
     @Test
