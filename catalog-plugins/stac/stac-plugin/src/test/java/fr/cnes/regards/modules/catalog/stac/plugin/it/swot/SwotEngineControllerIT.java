@@ -26,6 +26,8 @@ import org.springframework.test.context.TestPropertySource;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -85,5 +87,41 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         String urn = "URN:DYNCOLL:eyJscyI6W3sicCI6Imh5ZHJvOmRhdGFfdHlwZSIsInYiOiJMMl9IUl9SQVNURVIifV19";
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_ITEMS_PATH_SUFFIX, customizer,
                           "Cannot reach STAC conformance page", urn);
+    }
+
+    @Test
+    public void searchDataobjectsReturningDatasets() {
+
+        // Search dataset
+        String engine_type = "legacy";
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        addSearchTermQuery(customizer, "datetime", "[2020-01-01T00:00:00 TO 2020-06-01T00:00:00]");
+        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATAOBJECTS_DATASETS_MAPPING,
+                          customizer, "Search all error", engine_type);
+
+        //        addCommontMatchers(customizer);
+        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.content.length()", Matchers.equalTo(1)));
+        //        addSearchTermQuery(customizer, STAR_SYSTEM, protect(SOLAR_SYSTEM));
+        //        ResultActions result = performDefaultGet(SearchEngineMappings.TYPE_MAPPING
+        //                + SearchEngineMappings.SEARCH_DATASETS_MAPPING, customizer, "Search all error", ENGINE_TYPE);
+        //
+        //        String datasetUrn = JsonPath.read(payload(result), "$.content[0].content.id");
+        //
+        //        customizer = customizer().expectStatusOk();
+        //        addCommontMatchers(customizer);
+        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.links.length()", Matchers.equalTo(1)));
+        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.content[0].links.length()", Matchers.equalTo(1)));
+        //        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATASET_DATAOBJECTS_MAPPING,
+        //                          customizer, "Search all error", ENGINE_TYPE, datasetUrn);
+    }
+
+    /**
+     * Add query to current request
+     * @param customizer current {@link RequestBuilderCustomizer}
+     * @param relativePropertyName name without properties prefix
+     * @param value the property value
+     */
+    private void addSearchTermQuery(RequestBuilderCustomizer customizer, String relativePropertyName, String value) {
+        customizer.addParameter("q", StaticProperties.FEATURE_PROPERTIES + "." + relativePropertyName + ":" + value);
     }
 }

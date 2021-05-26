@@ -55,6 +55,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>fr.cnes.regards.modules.search</groupId>
+			<artifactId>search-rest</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.modules.model</groupId>
 			<artifactId>model-service</artifactId>
 		</dependency>

@@ -42,6 +42,7 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 /**
@@ -126,6 +127,11 @@ public class StacTestConfiguration {
     @Bean
     public IComputationPluginService computationPluginService() {
         return Mockito.mock(IComputationPluginService.class);
+    }
+
+    @Bean
+    public IStorageRestClient storageRestClient() {
+        return Mockito.mock(IStorageRestClient.class);
     }
 
 }

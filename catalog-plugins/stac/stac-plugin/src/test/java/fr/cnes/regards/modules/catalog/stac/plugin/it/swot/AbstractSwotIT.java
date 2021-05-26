@@ -26,8 +26,11 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -57,6 +60,7 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
@@ -191,49 +195,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     @Autowired
     protected Gson gson;
 
-    // FIXME
-    //    private static class Marker {
-    //
-    //        private boolean prepareAll;
-    //
-    //        // If prepareAll is true, index population can be disabled
-    //        private boolean butIndex;
-    //
-    //        public Marker(boolean prepareAll, boolean butIndex) {
-    //            this.prepareAll = prepareAll;
-    //            this.butIndex = butIndex;
-    //        }
-    //
-    //        /**
-    //         * @return the prepareAll
-    //         */
-    //        public boolean isPrepareAll() {
-    //            return prepareAll;
-    //        }
-    //
-    //        /**
-    //         * @param prepareAll the prepareAll to set
-    //         */
-    //        public void setPrepareAll(boolean prepareAll) {
-    //            this.prepareAll = prepareAll;
-    //        }
-    //
-    //        /**
-    //         * @return the butIndex
-    //         */
-    //        public boolean isButIndex() {
-    //            return butIndex;
-    //        }
-    //
-    //        /**
-    //         * @param butIndex the butIndex to set
-    //         */
-    //        public void setButIndex(boolean butIndex) {
-    //            this.butIndex = butIndex;
-    //        }
-    //
-    //    }
-
     protected void initIndex(String index) {
         if (esRepository.indexExists(index)) {
             esRepository.deleteIndex(index);
@@ -290,13 +251,17 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     }
 
     @Before
-    public void prepareData() throws ModuleException, InterruptedException {
+    public void prepareData() throws ModuleException, InterruptedException, IOException {
 
         prepareProject();
 
         // - Import models
         // DATA : SWOT feature
-        Model swotModel = modelService.importModel(this.getClass().getResourceAsStream("model_hygor_V0.1.0.xml"));
+        Model swotModel = modelService
+                .importModel(Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("data_model_hygor_V0.1.0.xml")));
+        // DATASET
+        Model datasetModel = modelService
+                .importModel(Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("dataset_model_hygor_V0.1.0.xml")));
 
         // - Manage attribute model retrieval
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocsFor(Mockito.any())).thenAnswer(invocation -> {
@@ -326,8 +291,13 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         initPlugins();
 
         initIndex(getDefaultTenant());
+
+        // Create SWOT datasets
+        Map<String, Dataset> swotDatasets = createSwotDataset(datasetModel);
+        indexerService.saveBulkEntities(getDefaultTenant(), swotDatasets.values());
+
         // Create SWOT data
-        indexerService.saveBulkEntities(getDefaultTenant(), createSWOTData(swotModel));
+        indexerService.saveBulkEntities(getDefaultTenant(), createSWOTData(swotModel, swotDatasets));
         // Refresh index to be sure data is available for requesting
         indexerService.refresh(getDefaultTenant());
 
@@ -347,23 +317,34 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         Mockito.when(projectUserClientMock.isAdmin(Mockito.anyString())).thenReturn(ResponseEntity.ok(Boolean.TRUE));
     }
 
-    private List<DataObject> createSWOTData(Model swotModel) {
+    /**
+     * Return map of dataset with key indicating related data folder
+     */
+    private Map<String, Dataset> createSwotDataset(Model datasetModel) {
+        List<Dataset> datasets = new ArrayList<>();
+        datasets.add(createDataset(datasetModel, "L1B_HR_SLC"));
+        datasets.add(createDataset(datasetModel, "L2_HR_RASTER"));
+        // label = data folder here
+        return datasets.stream().collect(Collectors.toMap(d -> d.getLabel(), Function.identity()));
+    }
+
+    private List<DataObject> createSWOTData(Model swotModel, Map<String, Dataset> swotDatasets) {
+        List<DataObject> dataobjects = new ArrayList<>();
         try {
-            return Files.list(DATA_FOLDER_FOR_SWOT).filter(Files::isRegularFile)
-                    .map(p -> createDataObjectFromFeature(swotModel, p)).collect(Collectors.toList());
+            for (Entry<String, Dataset> entry : swotDatasets.entrySet()) {
+                dataobjects.addAll(Files.list(DATA_FOLDER_FOR_SWOT.resolve(entry.getKey())).filter(Files::isRegularFile)
+                        .map(p -> createDataObjectFromFeature(swotModel, p, entry.getValue())).collect(Collectors.toList()));
+            }
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }
-        return null;
+        return dataobjects;
     }
 
     /**
      * Create a data object from source feature
-     * @param swotModel
-     * @param filename
-     * @return {@link DataObject}
      */
-    private DataObject createDataObjectFromFeature(Model swotModel, Path filepath) {
+    private DataObject createDataObjectFromFeature(Model swotModel, Path filepath, Dataset dataset) {
         // Load from file
         Feature feature = loadFromJson(filepath, Feature.class);
         // Create related data object
@@ -373,6 +354,8 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setGeometry(feature.getGeometry());
         data.setProperties(feature.getProperties());
         // TODO : maybe add files!
+        // Link to dataset
+        data.addTags(dataset.getIpId().toString());
         return data;
     }
 
@@ -402,7 +385,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
      * Initialize an entity
      */
     @SuppressWarnings("unchecked")
-    protected <T> T createEntity(Model model, String label) {
+    private <T> T createEntity(Model model, String label) {
         AbstractEntity<?> entity;
         switch (model.getType()) {
             case COLLECTION:
@@ -418,6 +401,14 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
                 throw new UnsupportedOperationException("Unknown entity type " + model.getType());
         }
         return (T) entity;
+    }
+
+    private Dataset createDataset(Model datasetModel, String label) {
+        Dataset dataset = createEntity(datasetModel, label);
+        dataset.addProperty(IProperty.buildString("name", label));
+        dataset.addTags("SWOT");
+        dataset.addTags("CNES");
+        return dataset;
     }
 
     /**
