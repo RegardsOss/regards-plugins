@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import fr.cnes.regards.framework.geojson.GeoJsonType;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -158,14 +159,16 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     private Tuple3<IGeometry, BBox, Centroid> extractGeo(AbstractEntity<? extends EntityFeature> feature,
             GeoJSONReader geoJSONReader) {
-        Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry())
-                .orElse(() -> Option.of(feature.getFeature().getNormalizedGeometry()));
-        Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
-
-        return geometry
-                .flatMap(g -> bbox.map(b -> Tuple.of(g, b, b.centroid()))
-                        .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
-                .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid()))).getOrElse(() -> Tuple.of(null, null, null));
+        Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry());
+        if (geometry.isDefined() && !GeoJsonType.UNLOCATED.equals(geometry.get().getType())) {
+            Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
+            return geometry
+                    .flatMap(g -> bbox.map(b -> Tuple.of(g, b, b.centroid()))
+                            .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
+                    .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid()))).getOrElse(() -> Tuple.of(null, null, null));
+        } else {
+            return new Tuple3<IGeometry, BBox, Centroid>(null, null, null);
+        }
     }
 
     private Option<BBox> extractBBox(Double[] doubles) {
