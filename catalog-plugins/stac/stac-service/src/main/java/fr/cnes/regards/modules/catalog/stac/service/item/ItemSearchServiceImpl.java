@@ -40,7 +40,6 @@ import org.springframework.stereotype.Service;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.ReturnedType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
@@ -107,10 +106,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         debug(LOGGER, "Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
 
         Pageable pageable = pageable(itemSearchBody, page, stacProperties);
-        // Compute returned type
-        SearchType searchType = ReturnedType.ITEMS.equals(itemSearchBody.getReturnedType()) ? SearchType.DATAOBJECTS : SearchType.DATAOBJECTS_RETURN_DATASETS;
-
-        return trying(() -> catalogSearchService.<AbstractEntity<? extends EntityFeature>>search(crit, searchType, null, pageable))
+        return trying(() -> catalogSearchService.<AbstractEntity<? extends EntityFeature>>search(crit, SearchType.DATAOBJECTS, null, pageable))
             .mapFailure(SEARCH, () -> format("Search failure for page %d of %s", page, itemSearchBody))
             .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));
     }

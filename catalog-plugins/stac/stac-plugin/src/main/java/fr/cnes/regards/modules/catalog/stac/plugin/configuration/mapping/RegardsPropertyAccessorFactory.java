@@ -106,7 +106,7 @@ public class RegardsPropertyAccessorFactory {
             result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
             return result;
         });
-        // FIXME Pourquoi cette mutation?
+        // FIXME Pourquoi cette mutation? tester avec des attributs de type JSON en particulier.
         //        String realAttrName = Option.of(sPropConfig.getModelPropertyJSONPath()).filter(StringUtils::isNotBlank)
         //                .map(path -> attrName + "." + path).getOrElse(attrName);
         //        attribute.setName(realAttrName);

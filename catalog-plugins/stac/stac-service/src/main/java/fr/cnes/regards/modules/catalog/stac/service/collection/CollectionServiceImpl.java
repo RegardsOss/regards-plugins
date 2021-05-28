@@ -198,7 +198,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private Try<ItemSearchBody> getCollectionItemSearchBody(Integer limit, BBox bbox, String datetime,
             List<String> collections) {
-        return itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, null, null, null, null, null);
+        return itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, null, null, null, null);
     }
 
     @Override

@@ -70,16 +70,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
                           "Cannot reach STAC dynamic collections", "dynamic");
     }
 
-    //    @Test
-    //    public void getExtendedDynamicCollections() {
-    //        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-    //        // Filter on datetime
-    //        customizer.addParameter("datetime", "2020-01-01T00:00:00Z/2020-06-01T00:00:00Z");
-    //        // TODO get JSON result and make assertion on expected collection links
-    //        performDefaultGet(StacApiConstants.STAC_EXTENDED_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
-    //                          customizer, "Cannot reach STAC conformance page", "dynamic");
-    //    }
-
     @Test
     public void getDynamicCollectionFirstLevelItems() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -92,6 +82,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchItems() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
 

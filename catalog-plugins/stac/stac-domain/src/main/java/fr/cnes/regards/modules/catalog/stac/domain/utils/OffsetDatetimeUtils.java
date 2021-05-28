@@ -65,7 +65,7 @@ public class OffsetDatetimeUtils {
     }
 
     public static Try<OffsetDateTime> parseStacDatetime(String repr) {
-        return trying(() -> OffsetDateTime.from(StacSpecConstants.STAC_DATETIME_FORMATTER.parse(repr)))
+        return trying(() -> OffsetDateTime.from(StacSpecConstants.ISO_DATE_TIME_UTC.parse(repr)))
                 .mapFailure(OFFSETDATETIME_PARSING, () -> format("Failed to parse datetime from %s", repr));
     }
 

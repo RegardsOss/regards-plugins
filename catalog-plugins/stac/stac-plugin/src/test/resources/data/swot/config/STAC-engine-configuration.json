@@ -62,6 +62,31 @@
                         "stacComputeSummary": false
                     },
                     {
+                        "stacPropertyNamespace": "provider",
+                        "stacPropertyName": "name",
+                        "sourcePropertyPath": "provider.name",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyNamespace": "provider",
+                        "stacPropertyName": "description",
+                        "sourcePropertyPath": "provider.description",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyNamespace": "provider",
+                        "stacPropertyName": "roles",
+                        "stacPropertyType": "DATETIME",
+                        "sourcePropertyPath": "provider.roles",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyNamespace": "provider",
+                        "stacPropertyName": "url",
+                        "sourcePropertyPath": "provider.url",
+                        "stacComputeSummary": false
+                    },
+                    {
                         "stacPropertyName": "platform",
                         "sourcePropertyPath": "platform",
                         "stacComputeSummary": false
@@ -94,14 +119,12 @@
                         "stacPropertyExtension": "hydro"
                     },
                     {
-                        "stacPropertyNamespace": "namespace",
                         "stacPropertyName": "spatial:cycle_id",
                         "stacPropertyType": "NUMBER",
                         "sourcePropertyPath": "spatial.cycle_id",
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyNamespace": "namespace",
                         "stacPropertyName": "spatial:crid",
                         "sourcePropertyPath": "spatial.crid",
                         "stacComputeSummary": false
