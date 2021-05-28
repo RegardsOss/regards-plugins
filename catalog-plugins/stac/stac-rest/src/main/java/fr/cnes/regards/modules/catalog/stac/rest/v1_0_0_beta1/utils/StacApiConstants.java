@@ -50,8 +50,6 @@ public interface StacApiConstants {
 
     String SORTBY_QUERY_PARAM = "sortBy";
 
-    String RETURNED_TYPE_QUERY_PARAM = "returnedType";
-
     String STAC_PATH = "/stac";
 
     String STAC_CONFORMANCE_PATH = STAC_PATH + "/conformance";
@@ -65,5 +63,9 @@ public interface StacApiConstants {
     String STAC_ITEM_PATH_SUFFIX = STAC_ITEMS_PATH_SUFFIX + "/{" + ITEM_ID_PARAM + "}";
 
     String STAC_SEARCH_PATH = STAC_PATH + "/search";
+
+    // Extension to get collection from an item search 
+
+    String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
 
 }

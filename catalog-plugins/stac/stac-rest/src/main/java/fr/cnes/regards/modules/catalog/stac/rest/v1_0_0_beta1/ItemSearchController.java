@@ -28,7 +28,6 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.LIMIT_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.QUERY_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.RETURNED_TYPE_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SORTBY_QUERY_PARAM;
 import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_SEARCH_PATH;
@@ -48,7 +47,6 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.ReturnedType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
@@ -104,9 +102,7 @@ public class ItemSearchController implements TryToResponseEntity {
             @RequestParam(name = IDS_QUERY_PARAM, required = false) List<String> ids,
             @RequestParam(name = FIELDS_QUERY_PARAM, required = false) String fields,
             @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
-            @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy,
-            @RequestParam(name = RETURNED_TYPE_QUERY_PARAM, required = false) ReturnedType returnedType)
-            throws ModuleException {
+            @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(itemSearchBodyFactory

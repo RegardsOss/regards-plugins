@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.ReturnedType;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
@@ -39,8 +38,7 @@ public interface ItemSearchBodyFactory {
             List<String> ids,
             String fields,
             String query,
-            String sortBy,
-            ReturnedType returnedType
+            String sortBy
     );
 
     // @formatter:on

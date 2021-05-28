@@ -34,7 +34,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.Fields;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.ReturnedType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
@@ -67,15 +66,14 @@ public class ItemSearchBodyFactoryImpl implements ItemSearchBodyFactory {
             List<String> ids,
             String fields,
             String query,
-            String sortBy,
-            ReturnedType returnedType
+            String sortBy
     ) {
         return parseDateInterval(datetime).flatMap(dt ->
             parseFields(fields).flatMap(f ->
                 parseQuery(query).flatMap(q ->
                     parseSortBy(sortBy).map(s ->
                         new ItemSearchBody(
-                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s, returnedType
+                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s
                         )
                     )
                 )

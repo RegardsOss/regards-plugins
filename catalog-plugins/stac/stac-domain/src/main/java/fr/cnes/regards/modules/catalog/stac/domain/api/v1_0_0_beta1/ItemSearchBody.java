@@ -47,15 +47,7 @@ public class ItemSearchBody {
     Fields fields;
     Map<String, QueryObject> query;
     List<SortBy> sortBy;
-    // Search for items returning collections or items
-    ReturnedType returnedType;
     
-    public enum ReturnedType {
-        COLLECTIONS,
-        ITEMS;
-    }
-    
-
     @Value
     public static class SortBy {
         public enum Direction {
