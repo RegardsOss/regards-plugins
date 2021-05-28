@@ -52,7 +52,7 @@ import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyCon
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
-import fr.cnes.regards.modules.model.dto.properties.MarkdownURL;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import io.vavr.Tuple;
@@ -131,25 +131,26 @@ public class RegardsPropertyAccessorFactory {
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
             String attrName) {
         return entity -> trying(() -> extractValue(sPropType.getValueType(), sPropType, entity.getFeature()
-                .getProperty(attrName).getValue()))
-                        .mapFailure(DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
-                                    () -> format("Failed to extract value for %s in data object %s", attrName,
-                                                 entity.getIpId()));
+                .getProperty(attrName))).mapFailure(DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
+                                                    () -> format("Failed to extract value for %s in data object %s",
+                                                                 attrName, entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, Object value) {
-        switch (sPropType) {
-            case URL:
-                return (T) ((MarkdownURL) value).getUrl();
-            case ANGLE:
-            case LENGTH:
-            case PERCENTAGE:
-            case NUMBER:
-                return (T) Double.valueOf(value.toString());
-            default:
-                return valueType.cast(value);
-        }
+    private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, IProperty<?> property) {
+        // FIXME pourquoi transformer les valeurs?
+        //        switch (sPropType) {
+        //            case URL:
+        //                return (T) ((MarkdownURL) value).getUrl();
+        //            case ANGLE:
+        //            case LENGTH:
+        //            case PERCENTAGE:
+        //            case NUMBER:
+        //                return (T) Double.valueOf(value.toString());
+        //            default:
+        //                return valueType.cast(value);
+        //        }
+        return property == null ? null : (T) property.getValue();
     }
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeJsonExtractFn(StacPropertyType sPropType,

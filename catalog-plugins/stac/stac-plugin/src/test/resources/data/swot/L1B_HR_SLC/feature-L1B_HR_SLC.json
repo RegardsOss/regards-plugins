@@ -15,7 +15,9 @@
         "mission": "SWOT",
         "version": "01",
         "provider": {
-            "name": "CNES"
+            "name": "CNES",
+            "roles": ["licensor", "producer", "processor"],
+            "url": "http://www.cnes.fr"
         },
         "hydro": {
             "data_type": "L1B_HR_SLC",
