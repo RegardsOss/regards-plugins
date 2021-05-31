@@ -18,16 +18,24 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import fr.cnes.regards.modules.search.domain.plugin.SearchType;
+import fr.cnes.regards.modules.search.service.ICatalogSearchService;
+import fr.cnes.regards.modules.search.service.SearchException;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -42,6 +50,9 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotEngineControllerIT.class);
+
+    @Autowired
+    private ICatalogSearchService catalogSearchService;
 
     @Test
     public void getLandingPage() {
@@ -110,6 +121,15 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         //        customizer.expect(MockMvcResultMatchers.jsonPath("$.content[0].links.length()", Matchers.equalTo(1)));
         //        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATASET_DATAOBJECTS_MAPPING,
         //                          customizer, "Search all error", ENGINE_TYPE, datasetUrn);
+    }
+
+    @Test
+    public void searchCollections() throws SearchException, OpenSearchUnknownParameter {
+        String propertyPath = "tags";
+        String partialText = "URN:AIP:DATASET";
+        List<String> matchingDatasets = catalogSearchService
+                .retrieveEnumeratedPropertyValues(ICriterion.all(), SearchType.DATAOBJECTS, propertyPath, 500, partialText);
+        LOGGER.info("List of matching datasets : {}", matchingDatasets);
     }
 
     /**

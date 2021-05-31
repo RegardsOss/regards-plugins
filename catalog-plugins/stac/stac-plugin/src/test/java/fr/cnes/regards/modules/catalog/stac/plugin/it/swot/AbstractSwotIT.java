@@ -355,7 +355,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setProperties(feature.getProperties());
         // TODO : maybe add files!
         // Link to dataset
-        data.addTags(dataset.getIpId().toString());
+        data.addTags("CNES", "SWOT", dataset.getIpId().toString());
         return data;
     }
 
