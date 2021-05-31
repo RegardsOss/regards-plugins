@@ -16,27 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
+package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
-package fr.cnes.regards.modules.catalog.stac.plugin;
-
-import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
-import org.springframework.stereotype.Component;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
+import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
+import fr.cnes.regards.modules.search.service.SearchException;
+import io.vavr.control.Try;
 
 /**
- * TODO: StacEngineAccessor description
  *
- * @author gandrieu
+ * @author Marc SORDI
+ *
  */
-@Component
-public class StacEngineAccessorImpl {
+public interface CollectionSearchService {
 
-    private final IPluginService pluginService;
-
-    public StacEngineAccessorImpl(IPluginService pluginService) {
-        this.pluginService = pluginService;
-    }
-
-
-
-
+    // FIXME remove exception ... use trying
+    Try<CollectionsResponse> search() throws SearchException, OpenSearchUnknownParameter;
 }

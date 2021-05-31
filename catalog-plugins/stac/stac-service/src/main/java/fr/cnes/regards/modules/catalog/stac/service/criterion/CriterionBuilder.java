@@ -19,12 +19,12 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import java.util.function.Function;
+
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-
-import java.util.function.Function;
 
 /**
  * Generic interface for criterion builder.
@@ -35,11 +35,10 @@ public interface CriterionBuilder<T> {
 
     default Option<ICriterion> withAll(List<ICriterion> criteria, Function<Iterable<ICriterion>, ICriterion> combinator) {
         return criteria.isEmpty() ? Option.none()
-                : criteria.size() == 1 ? Option.of(criteria.get(0))
-                : Option.of(combinator.apply(criteria));
+                : criteria.size() == 1 ? Option.of(criteria.get(0)) : Option.of(combinator.apply(criteria));
     }
 
-    default Option<ICriterion> andAllPresent(Option<ICriterion>... criteria) {
+    default Option<ICriterion> andAllPresent(@SuppressWarnings("unchecked") Option<ICriterion>... criteria) {
         return withAll(List.of(criteria).flatMap(opt -> opt), ICriterion::and);
     }
 }

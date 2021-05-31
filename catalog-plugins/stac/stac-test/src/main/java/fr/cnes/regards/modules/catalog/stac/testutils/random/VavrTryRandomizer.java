@@ -17,9 +17,10 @@
 */
 package fr.cnes.regards.modules.catalog.stac.testutils.random;
 
-import io.vavr.control.Try;
 import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.randomizers.AbstractRandomizer;
+
+import io.vavr.control.Try;
 
 /**
  * This class provides random generation for vavr Try.
@@ -32,8 +33,7 @@ public class VavrTryRandomizer<T> extends AbstractRandomizer<Try<T>> {
 
     private Randomizer<? extends T> valueRandomizer;
 
-    public VavrTryRandomizer(Randomizer<Boolean> booleanRandomizer,
-            Randomizer<? extends T> valueRandomizer) {
+    public VavrTryRandomizer(Randomizer<Boolean> booleanRandomizer, Randomizer<? extends T> valueRandomizer) {
         super();
         this.booleanRandomizer = booleanRandomizer;
         this.valueRandomizer = valueRandomizer;
@@ -58,7 +58,8 @@ public class VavrTryRandomizer<T> extends AbstractRandomizer<Try<T>> {
         this.valueRandomizer = valueRandomizer;
     }
 
-    @Override public Try<T> getRandomValue() {
+    @Override
+    public Try<T> getRandomValue() {
         if (booleanRandomizer.getRandomValue()) {
             return Try.success(valueRandomizer.getRandomValue());
         } else {
@@ -66,5 +67,7 @@ public class VavrTryRandomizer<T> extends AbstractRandomizer<Try<T>> {
         }
     }
 
-    public static final class RandomTryCreationException extends Exception {}
+    @SuppressWarnings("serial")
+    public static final class RandomTryCreationException extends Exception {
+    }
 }

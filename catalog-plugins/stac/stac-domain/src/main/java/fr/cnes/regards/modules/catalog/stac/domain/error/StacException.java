@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.error;
 /**
  * Stac exception with its type.
  */
+@SuppressWarnings("serial")
 public class StacException extends RuntimeException {
 
     private final StacFailureType type;

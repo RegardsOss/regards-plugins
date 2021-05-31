@@ -1,27 +1,35 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.*;
-import io.vavr.collection.List;
-import org.assertj.core.data.Offset;
-import org.junit.Test;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.DAY;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.HOUR;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MONTH;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.YEAR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 
+import org.assertj.core.data.Offset;
+import org.junit.Test;
+
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DatePartSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
+import io.vavr.collection.List;
+
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DynCollLevelDefParserImplTest {
 
-
-    private DynCollLevelDefParserImpl parser = new DynCollLevelDefParserImpl();
+    private final DynCollLevelDefParserImpl parser = new DynCollLevelDefParserImpl();
 
     @Test
     public void testStringPrefix_prefix2A9() {
         // GIVEN
         StacProperty prop = makeProperty(1, "PREFIX(2,A9)", StacPropertyType.STRING);
         // WHEN
+
         DynCollLevelDef levelDef = parser.parse(prop);
         // THEN
         assertThat(levelDef.getStacProperty()).isSameAs(prop);
@@ -40,7 +48,6 @@ public class DynCollLevelDefParserImplTest {
         assertThat(sublevel2.isAlpha()).isTrue();
         assertThat(sublevel2.isDigits()).isTrue();
     }
-
 
     @Test
     public void testStringPrefix_prefix39() {
@@ -83,10 +90,8 @@ public class DynCollLevelDefParserImplTest {
         List<DynCollSublevelDef> sublevels = levelDef.getSublevels();
         assertThat(sublevels).hasSize(4);
 
-        assertThat(sublevels.filter(t -> t instanceof DatePartSublevelDef))
-                .isEqualTo(sublevels);
-        assertThat(sublevels.map(DatePartSublevelDef.class::cast).map(s -> s.getType()))
-                .contains(YEAR, MONTH, DAY, HOUR);
+        assertThat(sublevels.filter(t -> t instanceof DatePartSublevelDef)).isEqualTo(sublevels);
+        assertThat(sublevels.map(DatePartSublevelDef.class::cast).map(s -> s.getType())).contains(YEAR, MONTH, DAY, HOUR);
 
     }
 
@@ -129,10 +134,7 @@ public class DynCollLevelDefParserImplTest {
     }
 
     private StacProperty makeProperty(int level, String format, StacPropertyType type) {
-        return new StacProperty(
-                null, "theName", "core", false,
-                level, format, type,
-                null);
+        return new StacProperty(null, null, "theName", "core", false, level, format, type, null);
     }
 
 }

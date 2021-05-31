@@ -18,14 +18,14 @@ using the STAC API standard.
  - **STAC root static collection title** : Displayed label for the static collections root
  - **STAC root dynamic collection title** : Displayed label for the dynamic collections root
  - **STAC datetime property** : Mandatory configuration for the datetime property, corresponding to the 'temporal' aspect of the STAC spec.
- - **STAC extra properties** : List of other STAC properties to be mapped to model attributes
+ - **STAC properties** : List of other STAC properties to be mapped to model attributes
  - **STAC dataset properties** : STAC collection properties for selected datasets, defining for instance license and providers for collections/datasets
 
 ## STAC Collection management
 
 STAC collections are created from two different sources:
-- static collections from REGARDS collections and datasets,
-- dynamic collections from the configured list of STAC properties.
+- Static collections from REGARDS collections and datasets,
+- Dynamic collections from the configured list of STAC properties.
 
 (If no dynamic collections are configured, the user see directly the 
 available static collections. Otherwise, the user is given the choice
@@ -48,11 +48,11 @@ At the root level, static collections display links to the collections or datase
 with no parent collection (referencing no other REGARDS collection).
 
 A user navigating to a STAC collection made from a REGARDS collection will see:
-- if this collection is referenced by other collections/datasets: links to these collections/datasets,
-- if this collection has only items, the link to the list of items.
+- If this collection is referenced by other collections/datasets: links to these collections/datasets,
+- If this collection has only items, the link to the list of items.
 
 A user navigating to a STAC collection made from a REGARDS dataset will see:
-- the link to the list of items in this dataset.
+- The link to the list of items in this dataset.
 
 ### Dynamic collections
 

@@ -47,7 +47,7 @@ public class ItemSearchBody {
     Fields fields;
     Map<String, QueryObject> query;
     List<SortBy> sortBy;
-
+    
     @Value
     public static class SortBy {
         public enum Direction {

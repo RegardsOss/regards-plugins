@@ -19,6 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.contains;
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.regexp;
+import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -26,9 +31,6 @@ import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
-
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
-import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 
 /**
  * Criterion builder for a {@link StringQueryObject}
@@ -39,17 +41,17 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
         super(stacPropName);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, StringQueryObject queryObject) {
-        return andAllPresent(
-                Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
-                Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
-                Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st))),
-                Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en))),
-                Option.of(queryObject.getContains()).map(en -> contains(attr, en)),
-                Option.of(queryObject.getIn()).flatMap(in ->
-                        in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or))
-        );
+    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
+            StringQueryObject queryObject) {
+        return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
+                             Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
+                             Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st))),
+                             Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en))),
+                             Option.of(queryObject.getContains()).map(en -> contains(attr, en)),
+                             Option.of(queryObject.getIn())
+                                     .flatMap(in -> in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or)));
     }
 
     private String toEndRegexp(String en) {
@@ -62,8 +64,7 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
 
     private String toCaseInsensitiveRegexp(String pattern) {
         return Stream.ofAll(pattern.toCharArray())
-                .map(chr -> Character.isDigit(chr)
-                        ? Character.toString(chr)
+                .map(chr -> Character.isDigit(chr) ? Character.toString(chr)
                         : String.format("[%s%s]", Character.toLowerCase(chr), Character.toUpperCase(chr)))
                 .foldLeft("", String::concat);
     }

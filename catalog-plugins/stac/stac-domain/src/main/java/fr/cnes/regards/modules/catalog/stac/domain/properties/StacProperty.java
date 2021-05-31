@@ -31,6 +31,11 @@ public class StacProperty {
 
     RegardsPropertyAccessor regardsPropertyAccessor;
 
+    /**
+     * Optional object wrapper
+     */
+    String stacPropertyNamespace;
+    
     String stacPropertyName;
 
     String extension;
@@ -43,6 +48,7 @@ public class StacProperty {
 
     StacPropertyType stacType;
 
+    @SuppressWarnings("rawtypes")
     AbstractPropertyConverter converter;
 
     public boolean isDynamicCollectionLevel() {

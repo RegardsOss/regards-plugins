@@ -22,15 +22,17 @@ package fr.cnes.regards.modules.catalog.stac.service.item;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 
 /**
- * Interface describing how to convert Regards DataObjects to features.
+ * Interface describing how to convert REGARDS entities to features.
  */
 public interface RegardsFeatureToStacItemConverter {
 
-    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator, DataObject feature);
+    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator,
+            AbstractEntity<? extends EntityFeature> feature);
 
 }

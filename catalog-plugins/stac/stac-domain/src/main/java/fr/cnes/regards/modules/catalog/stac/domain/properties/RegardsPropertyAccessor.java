@@ -19,16 +19,18 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
+import java.util.function.Function;
+
 import com.google.common.annotations.VisibleForTesting;
-import fr.cnes.regards.modules.dam.domain.entities.DataObject;
+
+import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModelBuilder;
 import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
-
-import java.util.function.Function;
 
 /**
  * Represents a path to a value
@@ -42,14 +44,14 @@ public class RegardsPropertyAccessor {
     /** The corresponding attribute model */
     AttributeModel attributeModel;
 
-    /** How to get the Regards property value from a DataObject */
-    Function<DataObject, Try<?>> extractValueFn;
+    /** How to get the Regards property value from an entity */
+    Function<AbstractEntity<? extends EntityFeature> , Try<?>> extractValueFn;
 
     /** Explicity giving the property type */
     Class<?> valueType;
 
     @SuppressWarnings("unchecked")
-    public <T> Function<DataObject, Try<T>> getGenericExtractValueFn() {
+    public <T> Function<AbstractEntity<? extends EntityFeature>, Try<T>> getGenericExtractValueFn() {
         return t -> ((Try<T>)extractValueFn.apply(t));
     }
 
