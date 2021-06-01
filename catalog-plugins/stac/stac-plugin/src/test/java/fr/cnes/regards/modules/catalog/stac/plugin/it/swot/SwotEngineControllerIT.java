@@ -48,7 +48,6 @@ import fr.cnes.regards.modules.search.service.SearchException;
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {
 
-    @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotEngineControllerIT.class);
 
     @Autowired

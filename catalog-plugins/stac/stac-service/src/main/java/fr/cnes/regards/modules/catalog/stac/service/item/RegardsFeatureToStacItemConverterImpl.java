@@ -194,9 +194,9 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
                                                                        groupedProperties.get(null).get());
         // Add namespaced properties
-        return rootMap.merge(groupedProperties.filterKeys(k -> k != null)
+        return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(k -> k != null)
                 .map(ppt -> extractStacPropertiesByNamespace(feature, Option.of(ppt._1), ppt._2))
-                .reduce((i, j) -> i == null ? j : i.merge(j)));
+                .reduce((i, j) -> i == null ? j : i.merge(j)))).getOrElse(rootMap);
     }
 
     private Map<String, Object> extractStacPropertiesByNamespace(AbstractEntity<? extends EntityFeature> feature,
