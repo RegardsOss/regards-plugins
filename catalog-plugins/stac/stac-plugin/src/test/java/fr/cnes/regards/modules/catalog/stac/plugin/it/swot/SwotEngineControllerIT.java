@@ -43,7 +43,7 @@ import fr.cnes.regards.modules.search.service.SearchException;
  * @author Marc SORDI
  *
  */
-@TestPropertySource(locations = { "classpath:test-local.properties" },
+@TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {
@@ -68,16 +68,16 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void getStaticCollections() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC static collections", "static");
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
+                          customizer, "Cannot reach STAC static collections", "static");
     }
 
     @Test
     public void getDynamicCollections() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // TODO get JSON result and make assertion on expected collection links
-        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC dynamic collections", "dynamic");
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
+                          customizer, "Cannot reach STAC dynamic collections", "dynamic");
     }
 
     @Test
@@ -127,7 +127,8 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         String propertyPath = "tags";
         String partialText = "URN:AIP:DATASET";
         List<String> matchingDatasets = catalogSearchService
-                .retrieveEnumeratedPropertyValues(ICriterion.all(), SearchType.DATAOBJECTS, propertyPath, 500, partialText);
+                .retrieveEnumeratedPropertyValues(ICriterion.all(), SearchType.DATAOBJECTS, propertyPath, 500,
+                                                  partialText);
         LOGGER.info("List of matching datasets : {}", matchingDatasets);
     }
 
