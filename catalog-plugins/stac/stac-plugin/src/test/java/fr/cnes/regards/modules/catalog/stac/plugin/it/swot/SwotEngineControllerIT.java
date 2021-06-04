@@ -26,8 +26,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
+import com.google.gson.JsonObject;
+
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -36,6 +41,7 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
+import io.vavr.collection.HashMap;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -94,6 +100,30 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.addParameter("datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchItemsAsPost() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        ItemSearchBody body = ItemSearchBody.builder()
+                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get()).build();
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchItemsAsPostWithUnknownProperty() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        JsonObject body = new JsonObject();
+        body.addProperty("unknown", "L1B_HR_SLC");
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchItemsOfDataType() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        ItemSearchBody body = ItemSearchBody.builder()
+                .query(HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build())).build();
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
     @Test

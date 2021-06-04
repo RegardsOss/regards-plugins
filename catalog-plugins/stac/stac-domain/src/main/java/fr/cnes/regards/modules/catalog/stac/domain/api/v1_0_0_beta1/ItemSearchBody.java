@@ -30,6 +30,9 @@ import lombok.With;
 
 import java.time.OffsetDateTime;
 
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
 /**
  * Describes the body of "POST /search" request.
  *
@@ -99,6 +102,4 @@ public class ItemSearchBody {
         String contains;
         List<String> in;
     }
-
-
 }
