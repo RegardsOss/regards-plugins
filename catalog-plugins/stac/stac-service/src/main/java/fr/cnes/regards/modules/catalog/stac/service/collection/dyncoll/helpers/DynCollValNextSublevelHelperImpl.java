@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
@@ -265,7 +266,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     private ICriterion computeCriterion(DynCollVal val, List<StacProperty> props) {
-        Map<String, ItemSearchBody.QueryObject> queryObjects = val.getLevels()
+        Map<String, SearchBody.QueryObject> queryObjects = val.getLevels()
                 .map(levelValToQueryObjectConverter::toQueryObject)
                 .flatMap(o -> o)
                 .toMap(t -> t);

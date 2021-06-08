@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.NumberQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.NumberQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;

@@ -19,17 +19,19 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.control.Try;
 
 /**
+ * Extension service for searching collection
  *
  * @author Marc SORDI
- *
  */
 public interface CollectionSearchService {
 
     // FIXME remove exception ... use trying
-    Try<CollectionsResponse> search() throws SearchException, OpenSearchUnknownParameter;
+    Try<CollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
+            throws SearchException, OpenSearchUnknownParameter;
 }

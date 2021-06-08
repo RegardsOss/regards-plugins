@@ -18,21 +18,13 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
-import java.util.List;
-
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.JsonObject;
-
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -42,14 +34,20 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.collection.HashMap;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.List;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
  *
  * @author Marc SORDI
- *
  */
-@TestPropertySource(locations = { "classpath:test.properties" },
+@TestPropertySource(locations = { "classpath:test-local.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {
@@ -106,7 +104,8 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     public void searchItemsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         ItemSearchBody body = ItemSearchBody.builder()
-                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get()).build();
+                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                .build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
@@ -124,6 +123,13 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         ItemSearchBody body = ItemSearchBody.builder()
                 .query(HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build())).build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchCollectionsAsPost() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        CollectionSearchBody body =  CollectionSearchBody.builder().build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
     }
 
     @Test
@@ -152,6 +158,8 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         //                          customizer, "Search all error", ENGINE_TYPE, datasetUrn);
     }
 
+
+
     @Test
     public void searchCollections() throws SearchException, OpenSearchUnknownParameter {
         String propertyPath = "tags";
@@ -164,9 +172,10 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     /**
      * Add query to current request
-     * @param customizer current {@link RequestBuilderCustomizer}
+     *
+     * @param customizer           current {@link RequestBuilderCustomizer}
      * @param relativePropertyName name without properties prefix
-     * @param value the property value
+     * @param value                the property value
      */
     private void addSearchTermQuery(RequestBuilderCustomizer customizer, String relativePropertyName, String value) {
         customizer.addParameter("q", StaticProperties.FEATURE_PROPERTIES + "." + relativePropertyName + ":" + value);

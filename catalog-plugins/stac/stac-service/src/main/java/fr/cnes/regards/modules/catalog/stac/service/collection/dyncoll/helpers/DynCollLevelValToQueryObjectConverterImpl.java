@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DatePartSublevelDef;
@@ -46,7 +47,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollLevelValToQueryObjectConverterImpl.class);
 
     @Override
-    public Option<Tuple2<String, ItemSearchBody.QueryObject>> toQueryObject(DynCollLevelVal levelVal) {
+    public Option<Tuple2<String, SearchBody.QueryObject>> toQueryObject(DynCollLevelVal levelVal) {
         return trying(() -> {
             DynCollLevelDef<?> definition = levelVal.getDefinition();
             String stacPropertyName = definition.getStacProperty().getStacPropertyName();
@@ -71,15 +72,15 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
 
     }
 
-    protected ItemSearchBody.QueryObject stringPrefixQueryObject(
+    protected SearchBody.QueryObject stringPrefixQueryObject(
             DynCollLevelVal levelVal,
             StringPrefixLevelDef definition
     ) {
         String startsWith = definition.renderValue(levelVal);
-        return ItemSearchBody.StringQueryObject.builder().startsWith(startsWith).build();
+        return SearchBody.StringQueryObject.builder().startsWith(startsWith).build();
     }
 
-    protected ItemSearchBody.QueryObject datePartsQueryObject(
+    protected SearchBody.QueryObject datePartsQueryObject(
             DynCollLevelVal levelVal,
             DatePartsLevelDef definition
     ) {
@@ -89,7 +90,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         OffsetDateTime gte = getDateLowerBound(lastLevel, rendered);
         OffsetDateTime lt = getDateHigherBound(lastLevel, gte);
 
-        return ItemSearchBody.DatetimeQueryObject.builder()
+        return SearchBody.DatetimeQueryObject.builder()
             .gte(gte)
             .lt(lt)
             .build();
@@ -127,38 +128,38 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         }
     }
 
-    protected ItemSearchBody.QueryObject numberRangeQueryObject(
+    protected SearchBody.QueryObject numberRangeQueryObject(
             DynCollLevelVal levelVal,
             NumberRangeLevelDef definition
     ) {
         String value = levelVal.getSublevels().get(0).getSublevelValue();
         if (value.startsWith("<")) {
             double lt = Double.parseDouble(value.replace("<", ""));
-            return ItemSearchBody.NumberQueryObject.builder().lt(lt).build();
+            return SearchBody.NumberQueryObject.builder().lt(lt).build();
         }
         else if (value.startsWith(">")) {
             double gt = Double.parseDouble(value.replace(">", ""));
-            return ItemSearchBody.NumberQueryObject.builder().gt(gt).build();
+            return SearchBody.NumberQueryObject.builder().gt(gt).build();
         }
         else if (value.contains(";")) {
             Double gte = Double.parseDouble(value.replaceFirst(";.*", ""));
             Double lte = Double.parseDouble(value.replaceFirst(".*;", ""));
-            return ItemSearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
+            return SearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
         }
         else {
             throw new NotImplementedException("Unparsable number range level format");
         }
     }
 
-    protected ItemSearchBody.QueryObject exactQueryObject(DynCollLevelVal levelVal) {
+    protected SearchBody.QueryObject exactQueryObject(DynCollLevelVal levelVal) {
         StacPropertyType stacType = levelVal.getDefinition().getStacProperty().getStacType();
         switch (stacType) {
             case STRING:
-                return ItemSearchBody.StringQueryObject.builder()
+                return SearchBody.StringQueryObject.builder()
                     .eq(levelVal.getSublevels().head().getSublevelValue())
                     .build();
             case NUMBER: case PERCENTAGE: case ANGLE: case LENGTH:
-                return ItemSearchBody.NumberQueryObject.builder()
+                return SearchBody.NumberQueryObject.builder()
                     .eq(Double.parseDouble(levelVal.getSublevels().head().getSublevelValue()))
                     .build();
             default:

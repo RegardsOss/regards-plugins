@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import org.junit.Test;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -27,10 +28,10 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "PREFIX(2,A9)", StacPropertyType.STRING, null));
 
         // WHEN
-        ItemSearchBody.QueryObject q = converter.stringPrefixQueryObject(def.parseValues("AB"), def);
+        SearchBody.QueryObject q = converter.stringPrefixQueryObject(def.parseValues("AB"), def);
 
         // THEN
-        assertThat(q).isEqualTo(ItemSearchBody.StringQueryObject.builder().startsWith("AB").build());
+        assertThat(q).isEqualTo(SearchBody.StringQueryObject.builder().startsWith("AB").build());
     }
 
     @Test
@@ -40,10 +41,10 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "YEAR", StacPropertyType.DATETIME, null));
 
         // WHEN
-        ItemSearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
 
         // THEN
-        assertThat(q).isEqualTo(ItemSearchBody.DatetimeQueryObject.builder()
+        assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
                 .gte(OffsetDateTime.of(2021, 01, 01, 00, 00, 00, 000, ZoneOffset.UTC))
                 .lt(OffsetDateTime.of(2022, 01, 01, 00, 00, 00, 000, ZoneOffset.UTC)).build());
     }
@@ -55,10 +56,10 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null));
 
         // WHEN
-        ItemSearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021-02"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021-02"), def);
 
         // THEN
-        assertThat(q).isEqualTo(ItemSearchBody.DatetimeQueryObject.builder()
+        assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
                 .gte(OffsetDateTime.of(2021, 02, 01, 00, 00, 00, 000, ZoneOffset.UTC))
                 .lt(OffsetDateTime.of(2021, 03, 01, 00, 00, 00, 000, ZoneOffset.UTC)).build());
     }
@@ -70,10 +71,10 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null));
 
         // WHEN
-        ItemSearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
 
         // THEN
-        assertThat(q).isEqualTo(ItemSearchBody.DatetimeQueryObject.builder()
+        assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
                 .gte(OffsetDateTime.of(2021, 01, 01, 00, 00, 00, 000, ZoneOffset.UTC))
                 .lt(OffsetDateTime.of(2022, 01, 01, 00, 00, 00, 000, ZoneOffset.UTC)).build());
     }
@@ -85,10 +86,10 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "5;10;95", StacPropertyType.NUMBER, null));
 
         // WHEN
-        ItemSearchBody.QueryObject q = converter.numberRangeQueryObject(def.parseValues("15;25"), def);
+        SearchBody.QueryObject q = converter.numberRangeQueryObject(def.parseValues("15;25"), def);
 
         // THEN
-        assertThat(q).isEqualTo(ItemSearchBody.NumberQueryObject.builder().gte(15d).lte(25d).build());
+        assertThat(q).isEqualTo(SearchBody.NumberQueryObject.builder().gte(15d).lte(25d).build());
     }
 
 }

@@ -19,40 +19,38 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_DATE_TIME_UTC;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.List;
+import io.vavr.collection.Map;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-import org.apache.commons.lang3.NotImplementedException;
-
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
-
-import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.collection.HashMap;
-import io.vavr.collection.List;
-import io.vavr.collection.Map;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_DATE_TIME_UTC;
 
 /**
  * Gson type adapter for QueryObject and subclasses.
  */
-@GsonTypeAdapter(adapted = ItemSearchBody.QueryObject.class)
-public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObject> {
+@GsonTypeAdapter(adapted = SearchBody.QueryObject.class)
+public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> {
 
     @Override
-    public void write(JsonWriter out, ItemSearchBody.QueryObject value) throws IOException {
+    public void write(JsonWriter out, SearchBody.QueryObject value) throws IOException {
         if (value == null) {
             out.nullValue();
-        } else if (value instanceof ItemSearchBody.BooleanQueryObject) {
-            ItemSearchBody.BooleanQueryObject bqo = (ItemSearchBody.BooleanQueryObject) value;
+        } else if (value instanceof SearchBody.BooleanQueryObject) {
+            SearchBody.BooleanQueryObject bqo = (SearchBody.BooleanQueryObject) value;
             out.beginObject();
             if (bqo.getEq() != null) {
                 out.name("eq").value(bqo.getEq());
@@ -61,8 +59,8 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                 out.name("neq").value(bqo.getNeq());
             }
             out.endObject();
-        } else if (value instanceof ItemSearchBody.NumberQueryObject) {
-            ItemSearchBody.NumberQueryObject nqo = (ItemSearchBody.NumberQueryObject) value;
+        } else if (value instanceof SearchBody.NumberQueryObject) {
+            SearchBody.NumberQueryObject nqo = (SearchBody.NumberQueryObject) value;
             out.beginObject();
             if (nqo.getEq() != null) {
                 out.name("eq").value(nqo.getEq());
@@ -91,8 +89,8 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                 out.endArray();
             }
             out.endObject();
-        } else if (value instanceof ItemSearchBody.DatetimeQueryObject) {
-            ItemSearchBody.DatetimeQueryObject dqo = (ItemSearchBody.DatetimeQueryObject) value;
+        } else if (value instanceof SearchBody.DatetimeQueryObject) {
+            SearchBody.DatetimeQueryObject dqo = (SearchBody.DatetimeQueryObject) value;
             out.beginObject();
             if (dqo.getEq() != null) {
                 out.name("eq").value(ISO_DATE_TIME_UTC.format(dqo.getEq()));
@@ -121,8 +119,8 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                 out.endArray();
             }
             out.endObject();
-        } else if (value instanceof ItemSearchBody.StringQueryObject) {
-            ItemSearchBody.StringQueryObject nqo = (ItemSearchBody.StringQueryObject) value;
+        } else if (value instanceof SearchBody.StringQueryObject) {
+            SearchBody.StringQueryObject nqo = (SearchBody.StringQueryObject) value;
             out.beginObject();
             if (nqo.getEq() != null) {
                 out.name("eq").value((nqo.getEq()));
@@ -155,7 +153,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
 
     @SuppressWarnings("unchecked")
     @Override
-    public ItemSearchBody.QueryObject read(JsonReader in) throws IOException {
+    public SearchBody.QueryObject read(JsonReader in) throws IOException {
         if (in.peek() == JsonToken.NULL) {
             in.nextNull();
             return null;
@@ -165,7 +163,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
         Map<String, Object> inProps = readProps(in);
         in.endObject();
         if (inProps.isEmpty()) {
-            return ItemSearchBody.BooleanQueryObject.builder().build();
+            return SearchBody.BooleanQueryObject.builder().build();
         } else {
             try {
                 Object head = inProps.values().head();
@@ -178,16 +176,16 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                 }
 
                 if (head instanceof Boolean) {
-                    return ItemSearchBody.BooleanQueryObject.builder().eq((Boolean) inProps.get("eq").getOrNull())
+                    return SearchBody.BooleanQueryObject.builder().eq((Boolean) inProps.get("eq").getOrNull())
                             .neq((Boolean) inProps.get("neq").getOrNull()).build();
                 } else if (head instanceof Double) {
-                    return ItemSearchBody.NumberQueryObject.builder().eq((Double) inProps.get("eq").getOrNull())
+                    return SearchBody.NumberQueryObject.builder().eq((Double) inProps.get("eq").getOrNull())
                             .neq((Double) inProps.get("neq").getOrNull()).gt((Double) inProps.get("gt").getOrNull())
                             .lt((Double) inProps.get("lt").getOrNull()).gte((Double) inProps.get("gte").getOrNull())
-                            .lte((Double) inProps.get("lte").getOrNull()).in((List<Double>) inProps.get("in").getOrNull())
-                            .build();
+                            .lte((Double) inProps.get("lte").getOrNull())
+                            .in((List<Double>) inProps.get("in").getOrNull()).build();
                 } else if (head instanceof OffsetDateTime) {
-                    return ItemSearchBody.DatetimeQueryObject.builder().eq((OffsetDateTime) inProps.get("eq").getOrNull())
+                    return SearchBody.DatetimeQueryObject.builder().eq((OffsetDateTime) inProps.get("eq").getOrNull())
                             .neq((OffsetDateTime) inProps.get("neq").getOrNull())
                             .gt((OffsetDateTime) inProps.get("gt").getOrNull())
                             .lt((OffsetDateTime) inProps.get("lt").getOrNull())
@@ -195,7 +193,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                             .lte((OffsetDateTime) inProps.get("lte").getOrNull())
                             .in((List<OffsetDateTime>) inProps.get("in").getOrNull()).build();
                 } else if (head instanceof String) {
-                    return ItemSearchBody.StringQueryObject.builder().eq((String) inProps.get("eq").getOrNull())
+                    return SearchBody.StringQueryObject.builder().eq((String) inProps.get("eq").getOrNull())
                             .neq((String) inProps.get("neq").getOrNull())
                             .startsWith((String) inProps.get("startsWith").getOrNull())
                             .endsWith((String) inProps.get("endsWith").getOrNull())

@@ -24,6 +24,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 import java.util.function.Function;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,31 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                              geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
                              queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery()))
                                      .flatMap(addAccessCriteria());
+    }
+
+    @Override
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody) {
+        return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, collectionSearchBody.getBbox()),
+                             collectionsCriterionBuilder.buildCriterion(properties, collectionSearchBody.getCollections()),
+                             dateIntervalCriterionBuilder.buildCriterion(properties, collectionSearchBody.getDatetime()),
+                             fieldsCriterionBuilder.buildCriterion(properties, collectionSearchBody.getFields()),
+                             identitiesCriterionBuilder.buildCriterion(properties, collectionSearchBody.getIds()),
+                             geometryCriterionBuilder.buildCriterion(properties, collectionSearchBody.getIntersects()),
+                             queryObjectCriterionBuilder.buildCriterion(properties, collectionSearchBody.getQuery()))
+                .flatMap(addAccessCriteria());
+    }
+
+    @Override
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties,
+            CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
+        return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getBbox()),
+                             collectionsCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getCollections()),
+                             dateIntervalCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getDatetime()),
+                             fieldsCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getFields()),
+                             identitiesCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIds()),
+                             geometryCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIntersects()),
+                             queryObjectCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getQuery()))
+                .flatMap(addAccessCriteria());
     }
 
     public Function<ICriterion, Option<? extends ICriterion>> addAccessCriteria() {

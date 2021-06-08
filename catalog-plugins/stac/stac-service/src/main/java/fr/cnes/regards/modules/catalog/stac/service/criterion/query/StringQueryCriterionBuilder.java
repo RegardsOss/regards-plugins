@@ -24,7 +24,7 @@ import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCrit
 import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.regexp;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
