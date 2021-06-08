@@ -27,6 +27,7 @@ import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModelBuilder;
 import fr.cnes.regards.modules.model.domain.attributes.Fragment;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.MarkdownURL;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 
@@ -278,7 +279,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         // THEN
         assertThat(accessor.getValueType()).isEqualTo(URL.class);
         assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someURLProp");
-        assertThat(accessor.<URL>getGenericExtractValueFn().apply(dataObject)).contains(new URL("http://xkcd.com/1"));
+        assertThat(accessor.<MarkdownURL>getGenericExtractValueFn().apply(dataObject)).contains(MarkdownURL.build("http://xkcd.com/1"));
     }
 
     @Test
