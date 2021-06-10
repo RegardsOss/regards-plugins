@@ -18,9 +18,9 @@ For now, only the STAC properties of type `PERCENTAGE` support formatting conver
 
 ### `PERCENTAGE` REGARDS format
 
-The regardsFormat property must be:
+The REGARDS format property must be:
 - `HUNDRED`: for percentages represented as numbers between 0 and 100
 - `ONE`: for percentages represented as floating point numbers between 0 and 1
 
 The default value is `HUNDRED`, meaning that there is no conversion with
-an unconfigured `stacFormat`.
+an unconfigured format.

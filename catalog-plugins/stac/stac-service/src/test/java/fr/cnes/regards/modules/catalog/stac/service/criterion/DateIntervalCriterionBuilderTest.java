@@ -1,5 +1,12 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import static java.time.ZoneOffset.UTC;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.OffsetDateTime;
+
+import org.junit.Test;
+
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -10,12 +17,6 @@ import fr.cnes.regards.modules.indexer.domain.criterion.DateRangeCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import org.junit.Test;
-
-import java.time.OffsetDateTime;
-
-import static java.time.ZoneOffset.UTC;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
 
@@ -33,13 +34,8 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
     public void testBuildCriterionSame() {
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
-        List<StacProperty> properties = List.of(new StacProperty(
-                accessor,
-                 "datetime",
-                "", false, 0, null,
-                StacPropertyType.DATETIME,
-                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
-        ));
+        List<StacProperty> properties = List.of(new StacProperty(accessor, null, "datetime", "", false, 0, null,
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
         OffsetDateTime now = OffsetDateTime.now();
         DateInterval interval = DateInterval.single(now);
         // WHEN
@@ -47,21 +43,17 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(DateMatchCriterion.class);
-        assertThat(((DateMatchCriterion)criterion.get()).getName()).isEqualTo(accessor.getAttributeModel().getFullJsonPath());
-        assertThat(((DateMatchCriterion)criterion.get()).getValue()).isEqualTo(now);
+        assertThat(((DateMatchCriterion) criterion.get()).getName())
+                .isEqualTo(accessor.getAttributeModel().getFullJsonPath());
+        assertThat(((DateMatchCriterion) criterion.get()).getValue()).isEqualTo(now);
     }
 
     @Test
     public void testBuildCriterionDiff() {
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
-        List<StacProperty> properties = List.of(new StacProperty(
-                accessor,
-                 "datetime",
-                "", false, 0, null,
-                StacPropertyType.DATETIME,
-                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
-        ));
+        List<StacProperty> properties = List.of(new StacProperty(accessor, null, "datetime", "", false, 0, null,
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
         OffsetDateTime now = OffsetDateTime.now();
         DateInterval interval = DateInterval.of(now.minusHours(2), now);
         // WHEN
@@ -69,7 +61,8 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(DateRangeCriterion.class);
-        assertThat(((DateRangeCriterion)criterion.get()).getName()).isEqualTo(accessor.getAttributeModel().getFullJsonPath());
+        assertThat(((DateRangeCriterion) criterion.get()).getName())
+                .isEqualTo(accessor.getAttributeModel().getFullJsonPath());
     }
 
 }

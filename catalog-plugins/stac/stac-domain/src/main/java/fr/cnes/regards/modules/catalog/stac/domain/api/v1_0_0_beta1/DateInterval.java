@@ -29,7 +29,7 @@ import lombok.Value;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_DATE_TIME_UTC;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATEINTERVAL_PARSING;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.parseStacDatetime;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.*;
@@ -75,12 +75,12 @@ public class DateInterval {
     public String repr() {
         String repr;
         if (isSingleDate()) {
-            repr = STAC_DATETIME_FORMATTER.format(from);
+            repr = ISO_DATE_TIME_UTC.format(from);
         }
         else {
-            repr = (MIN.equals(from) ? OPEN_END : STAC_DATETIME_FORMATTER.format(from))
+            repr = (MIN.equals(from) ? OPEN_END : ISO_DATE_TIME_UTC.format(from))
                     + SEPARATOR
-                    + (MAX.equals(to) ? OPEN_END : STAC_DATETIME_FORMATTER.format(to));
+                    + (MAX.equals(to) ? OPEN_END : ISO_DATE_TIME_UTC.format(to));
         }
         return repr;
     }

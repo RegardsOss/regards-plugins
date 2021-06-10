@@ -19,10 +19,20 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_DATE_TIME_UTC;
+
+import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+
+import org.apache.commons.lang3.NotImplementedException;
+
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
 import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import io.vavr.Tuple;
@@ -30,14 +40,6 @@ import io.vavr.Tuple2;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import org.apache.commons.lang3.NotImplementedException;
-
-import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.STAC_DATETIME_FORMATTER;
 
 /**
  * Gson type adapter for QueryObject and subclasses.
@@ -49,8 +51,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
     public void write(JsonWriter out, ItemSearchBody.QueryObject value) throws IOException {
         if (value == null) {
             out.nullValue();
-        }
-        else if (value instanceof ItemSearchBody.BooleanQueryObject) {
+        } else if (value instanceof ItemSearchBody.BooleanQueryObject) {
             ItemSearchBody.BooleanQueryObject bqo = (ItemSearchBody.BooleanQueryObject) value;
             out.beginObject();
             if (bqo.getEq() != null) {
@@ -94,28 +95,28 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
             ItemSearchBody.DatetimeQueryObject dqo = (ItemSearchBody.DatetimeQueryObject) value;
             out.beginObject();
             if (dqo.getEq() != null) {
-                out.name("eq").value(STAC_DATETIME_FORMATTER.format(dqo.getEq()));
+                out.name("eq").value(ISO_DATE_TIME_UTC.format(dqo.getEq()));
             }
             if (dqo.getNeq() != null) {
-                out.name("neq").value(STAC_DATETIME_FORMATTER.format(dqo.getNeq()));
+                out.name("neq").value(ISO_DATE_TIME_UTC.format(dqo.getNeq()));
             }
             if (dqo.getGt() != null) {
-                out.name("gt").value(STAC_DATETIME_FORMATTER.format(dqo.getGt()));
+                out.name("gt").value(ISO_DATE_TIME_UTC.format(dqo.getGt()));
             }
             if (dqo.getLt() != null) {
-                out.name("lt").value(STAC_DATETIME_FORMATTER.format(dqo.getLt()));
+                out.name("lt").value(ISO_DATE_TIME_UTC.format(dqo.getLt()));
             }
             if (dqo.getGte() != null) {
-                out.name("gte").value(STAC_DATETIME_FORMATTER.format(dqo.getGte()));
+                out.name("gte").value(ISO_DATE_TIME_UTC.format(dqo.getGte()));
             }
             if (dqo.getLte() != null) {
-                out.name("lte").value(STAC_DATETIME_FORMATTER.format(dqo.getLte()));
+                out.name("lte").value(ISO_DATE_TIME_UTC.format(dqo.getLte()));
             }
             if (dqo.getIn() != null) {
                 out.name("in");
                 out.beginArray();
                 for (OffsetDateTime in : dqo.getIn()) {
-                    out.value(STAC_DATETIME_FORMATTER.format(in));
+                    out.value(ISO_DATE_TIME_UTC.format(in));
                 }
                 out.endArray();
             }
@@ -152,6 +153,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ItemSearchBody.QueryObject read(JsonReader in) throws IOException {
         if (in.peek() == JsonToken.NULL) {
@@ -176,39 +178,29 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
                 }
 
                 if (head instanceof Boolean) {
-                    return ItemSearchBody.BooleanQueryObject.builder()
-                        .eq((Boolean) inProps.get("eq").getOrNull())
-                        .neq((Boolean) inProps.get("neq").getOrNull())
-                        .build();
+                    return ItemSearchBody.BooleanQueryObject.builder().eq((Boolean) inProps.get("eq").getOrNull())
+                            .neq((Boolean) inProps.get("neq").getOrNull()).build();
                 } else if (head instanceof Double) {
-                    return ItemSearchBody.NumberQueryObject.builder()
-                        .eq((Double) inProps.get("eq").getOrNull())
-                        .neq((Double) inProps.get("neq").getOrNull())
-                        .gt((Double) inProps.get("gt").getOrNull())
-                        .lt((Double) inProps.get("lt").getOrNull())
-                        .gte((Double) inProps.get("gte").getOrNull())
-                        .lte((Double) inProps.get("lte").getOrNull())
-                        .in((List<Double>) inProps.get("in").getOrNull())
-                        .build();
+                    return ItemSearchBody.NumberQueryObject.builder().eq((Double) inProps.get("eq").getOrNull())
+                            .neq((Double) inProps.get("neq").getOrNull()).gt((Double) inProps.get("gt").getOrNull())
+                            .lt((Double) inProps.get("lt").getOrNull()).gte((Double) inProps.get("gte").getOrNull())
+                            .lte((Double) inProps.get("lte").getOrNull()).in((List<Double>) inProps.get("in").getOrNull())
+                            .build();
                 } else if (head instanceof OffsetDateTime) {
-                    return ItemSearchBody.DatetimeQueryObject.builder()
-                        .eq((OffsetDateTime) inProps.get("eq").getOrNull())
-                        .neq((OffsetDateTime) inProps.get("neq").getOrNull())
-                        .gt((OffsetDateTime) inProps.get("gt").getOrNull())
-                        .lt((OffsetDateTime) inProps.get("lt").getOrNull())
-                        .gte((OffsetDateTime) inProps.get("gte").getOrNull())
-                        .lte((OffsetDateTime) inProps.get("lte").getOrNull())
-                        .in((List<OffsetDateTime>) inProps.get("in").getOrNull())
-                        .build();
+                    return ItemSearchBody.DatetimeQueryObject.builder().eq((OffsetDateTime) inProps.get("eq").getOrNull())
+                            .neq((OffsetDateTime) inProps.get("neq").getOrNull())
+                            .gt((OffsetDateTime) inProps.get("gt").getOrNull())
+                            .lt((OffsetDateTime) inProps.get("lt").getOrNull())
+                            .gte((OffsetDateTime) inProps.get("gte").getOrNull())
+                            .lte((OffsetDateTime) inProps.get("lte").getOrNull())
+                            .in((List<OffsetDateTime>) inProps.get("in").getOrNull()).build();
                 } else if (head instanceof String) {
-                    return ItemSearchBody.StringQueryObject.builder()
-                        .eq((String) inProps.get("eq").getOrNull())
-                        .neq((String) inProps.get("neq").getOrNull())
-                        .startsWith((String) inProps.get("startsWith").getOrNull())
-                        .endsWith((String) inProps.get("endsWith").getOrNull())
-                        .contains((String) inProps.get("contains").getOrNull())
-                        .in((List<String>) inProps.get("in").getOrNull())
-                        .build();
+                    return ItemSearchBody.StringQueryObject.builder().eq((String) inProps.get("eq").getOrNull())
+                            .neq((String) inProps.get("neq").getOrNull())
+                            .startsWith((String) inProps.get("startsWith").getOrNull())
+                            .endsWith((String) inProps.get("endsWith").getOrNull())
+                            .contains((String) inProps.get("contains").getOrNull())
+                            .in((List<String>) inProps.get("in").getOrNull()).build();
                 } else {
                     throw new IOException("Unparsable QueryObject");
                 }
@@ -253,7 +245,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<ItemSearchBody.QueryObje
         } else if (peek == JsonToken.STRING) {
             String strValue = in.nextString();
             try {
-                return OffsetDateTime.from(STAC_DATETIME_FORMATTER.parse(strValue));
+                return OffsetDateTime.from(ISO_DATE_TIME_UTC.parse(strValue));
             } catch (DateTimeParseException e) {
                 return strValue;
             }

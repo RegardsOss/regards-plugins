@@ -19,6 +19,12 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import io.vavr.CheckedConsumer;
@@ -26,14 +32,13 @@ import io.vavr.CheckedFunction0;
 import io.vavr.CheckedFunction1;
 import io.vavr.control.Try;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 /**
  * Provides a small DSL to build {@link Try} instances, forcing the user to
  * declare an "onFailure".
  */
 public interface TryDSL<R> {
+
+    static final Logger LOGGER = LoggerFactory.getLogger(TryDSL.class);
 
     Try<R> trying();
 
@@ -46,13 +51,14 @@ public interface TryDSL<R> {
     }
 
     default Try<R> onFailure(CheckedConsumer<Throwable> recover) {
-        return trying()
-            .onFailure(t -> Try.run(() -> recover.accept(t)));
+        return trying().onFailure(t -> Try.run(() -> recover.accept(t)));
     }
 
     default Try<R> mapFailure(Function<Throwable, StacException> cb) {
-        return trying()
-            .recoverWith(t -> Try.failure(cb.apply(t)));
+        return trying().recoverWith(t -> {
+            LOGGER.error("Failure", t);
+            return Try.failure(cb.apply(t));
+        });
     }
 
     default Try<R> mapFailure(StacFailureType type, Supplier<String> message) {
@@ -78,10 +84,8 @@ public interface TryDSL<R> {
     /**
      * To be used in recoverWith.
      */
-    static <R> Function<? super Throwable, ? extends Try<? extends R>> stacFailure(
-            StacFailureType type,
-            Supplier<String> message
-    ){
+    static <R> Function<? super Throwable, ? extends Try<? extends R>> stacFailure(StacFailureType type,
+            Supplier<String> message) {
         return t -> Try.failure(new StacException(message.get(), t, type));
     }
 

@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.domain;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 /**
  * Lists a bunch of constant values defined by the STAC specification.
@@ -27,16 +28,21 @@ import java.time.format.DateTimeFormatter;
 public class StacSpecConstants {
 
     public interface Version {
+
         String STAC_SPEC_VERSION = "1.0.0-beta.2";
+
         String STAC_API_VERSION = "1.0.0-beta.1";
     }
 
     public interface PropertyName {
+
         String DATETIME_PROPERTY_NAME = "datetime";
+
         String TAGS_PROPERTY_NAME = "tags";
+
         String ID_PROPERTY_NAME = "ipId";
     }
 
-    public static DateTimeFormatter STAC_DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
+    public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).optionalStart().appendOffset("+HH:MM", "Z").toFormatter();
 }

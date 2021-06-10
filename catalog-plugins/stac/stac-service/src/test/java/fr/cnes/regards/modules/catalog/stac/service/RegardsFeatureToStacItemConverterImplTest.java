@@ -1,8 +1,30 @@
 package fr.cnes.regards.modules.catalog.stac.service;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ROOT;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.urn.DataType;
@@ -34,30 +56,13 @@ import io.vavr.Tuple;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest, RegardsPropertyAccessorAwareTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsFeatureToStacItemConverterImplTest.class);
 
     Gson gson = gson();
+
     StacGeoHelper stacGeoHelper = new StacGeoHelper(gson);
 
     Model model = Model.build("theModelName", "theModelDesc", EntityType.DATA);
@@ -67,59 +72,44 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
     OGCFeatLinkCreator linkCreator = mock(OGCFeatLinkCreator.class);
 
     ConfigurationAccessor configurationAccessor = mock(ConfigurationAccessor.class);
+
     ConfigurationAccessorFactory configurationAccessorFactory = mock(ConfigurationAccessorFactory.class);
 
     UriParamAdder uriParamAdder = mock(UriParamAdderImpl.class);
 
-    RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(
-            new StacGeoHelper(gson),
-            configurationAccessorFactory,
-            uriParamAdder);
+    RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(new StacGeoHelper(gson),
+            configurationAccessorFactory, uriParamAdder);
 
     @Test
     public void convertFeatureToItem() throws Exception {
         when(uriParamAdder.makeAuthParam()).thenAnswer(i -> Tuple.of("token", "theJwtToken"));
         when(uriParamAdder.appendParams(any())).thenCallRealMethod();
 
-        when(configurationAccessorFactory.makeConfigurationAccessor())
-                .thenReturn(configurationAccessor);
+        when(configurationAccessorFactory.makeConfigurationAccessor()).thenReturn(configurationAccessor);
         when(configurationAccessor.getGeoJSONReader())
                 .thenAnswer(i -> stacGeoHelper.makeGeoJSONReader(stacGeoHelper.updateFactory(true)));
 
-        when(linkCreator.createRootLink())
-            .thenAnswer(i -> Option.of(uri("/root"))
-                .map(uri -> new Link(uri, ROOT, "", "")));
-        when(linkCreator.createCollectionLink(anyString(), anyString()))
-            .thenAnswer(i -> Option.of(uri("/collection/" + i.getArgument(0)))
-                .map(uri -> new Link(uri, COLLECTION, "", "")));
+        when(linkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root")).map(uri -> new Link(uri, ROOT, "", "")));
+        when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option
+                .of(uri("/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
         when(linkCreator.createItemLink(anyString(), anyString()))
-            .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
-                .map(uri -> new Link(uri, SELF, "", "")));
+                .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                        .map(uri -> new Link(uri, SELF, "", "")));
 
-        List<StacProperty> stacProperties = List.of(
-            new StacProperty(
-                accessor("reagrdsAttr", StacPropertyType.DATETIME, OffsetDateTime.now()),
-                "stacProp",
-                "", false, 0, null,
-                StacPropertyType.DATETIME,
-                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)
-            )
-        );
+        List<StacProperty> stacProperties = List.of(new StacProperty(
+                accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null, "stac:prop",
+                "", false, 0, null, StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
         FeatureUniformResourceName itemIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,
-                tenant, UUID.randomUUID(), 1);
-        DataObjectFeature dof = new DataObjectFeature(
-                itemIpId,
-            "theProvider", "theLabel",
-            "theSessionOwner", "theSession",
-            "theModelName"
-        );
+                                                                               tenant, UUID.randomUUID(), 1);
+        DataObjectFeature dof = new DataObjectFeature(itemIpId, "theProvider", "theLabel", "theSessionOwner", "theSession",
+                "theModelName");
         DataObject feature = DataObject.wrap(model, dof, true);
-        String parentDatasetIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATASET,
-                tenant, UUID.randomUUID(), 1).toString();
+        String parentDatasetIpId = FeatureUniformResourceName
+                .build(FeatureIdentifier.FEATURE, EntityType.DATASET, tenant, UUID.randomUUID(), 1).toString();
         Polygon polygon = IGeometry.simplePolygon(0d, 0d, 0d, 3d, 3d, 0d);
         feature.setGeometry(polygon);
         feature.addTags(parentDatasetIpId);
-        feature.addProperty(IProperty.buildDate("regardsAttr", OffsetDateTime.now()));
+        feature.addProperty(IProperty.buildDate("regardsAttr", OffsetDateTime.now().minusYears(1L)));
         feature.getFeature().setFiles(createDataFiles());
 
         Try<Item> result = service.convertFeatureToItem(stacProperties, linkCreator, feature)
@@ -129,21 +119,16 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
 
         Item item = result.get();
         assertThat(item.getId()).isEqualTo(itemIpId.toString());
-        assertThat(item.getBbox()).isEqualTo(new BBox(0d,0d,3d,3d));
+        assertThat(item.getBbox()).isEqualTo(new BBox(0d, 0d, 3d, 3d));
         assertThat(item.getGeometry()).isEqualTo(polygon);
         assertThat(item.getCentroid()).isEqualTo(new Centroid(1d, 1d));
         assertThat(item.getCollection()).isEqualTo(parentDatasetIpId);
-        assertThat(item.getLinks())
-            .hasSize(3)
-            .anyMatch(l -> l.getHref().equals(uri("/root"))
-                    && l.getRel().equals(Link.Relations.ROOT)
-            )
-            .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId))
-                    && l.getRel().equals(Link.Relations.COLLECTION)
-            )
-            .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId + "/item/" + itemIpId))
-                    && l.getRel().equals(Link.Relations.SELF)
-            );
+        assertThat(item.getLinks()).hasSize(3)
+                .anyMatch(l -> l.getHref().equals(uri("/root")) && l.getRel().equals(Link.Relations.ROOT))
+                .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId))
+                        && l.getRel().equals(Link.Relations.COLLECTION))
+                .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId + "/item/" + itemIpId))
+                        && l.getRel().equals(Link.Relations.SELF));
         assertThat(item.getAssets()).hasSize(2);
         assertThat(item.getAssets().head()._2.getHref()).matches(uri -> uri.getQuery().contains("token=theJwtToken"));
 

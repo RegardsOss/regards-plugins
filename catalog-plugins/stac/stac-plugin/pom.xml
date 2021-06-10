@@ -25,7 +25,7 @@
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
-            <artifactId>plugins-domain</artifactId>
+            <artifactId>plugins-service</artifactId>
         </dependency>
 
         <!--=== LIBRARIES ===-->
@@ -39,14 +39,30 @@
         </dependency>
 
         <!--=== TEST ===-->
+		<dependency>
+			<groupId>fr.cnes.regards.framework.test</groupId>
+			<artifactId>regards-integration-test</artifactId>
+			<scope>test</scope>
+		</dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>stac-test</artifactId>
+            <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
-            <artifactId>plugins-service</artifactId>
-        </dependency>
+       	<dependency>
+			<groupId>fr.cnes.regards.modules.feature</groupId>
+			<artifactId>feature-dto</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.search</groupId>
+			<artifactId>search-rest</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.model</groupId>
+			<artifactId>model-service</artifactId>
+		</dependency>
     </dependencies>
 
     <build>
@@ -96,6 +112,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<retryPushCount>0</retryPushCount>
+					<skipDockerBuild>false</skipDockerBuild>
+					<forceTags>true</forceTags>
+					<imageName>${docker.registry.host}/rs-stac-plugin</imageName>
+					<serverId>REGARDS-DockerHub</serverId>
+					<registryUrl>${docker.registry.host}</registryUrl>
+					<imageTags>
+						<imageTag>fast-release-V1.6.0-beta.4</imageTag>
+					</imageTags>
+					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
+					<resources>
+						<resource>
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>*-shaded.jar</include>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 
