@@ -30,6 +30,7 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.slf4j.Logger;
@@ -77,8 +78,8 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
     public Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String attrPath) {
         return trying(() -> {
             SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
-            OffsetDateTime dateTimeFrom = esRepository.minDate(searchKey, criterion, attrPath);
-            OffsetDateTime dateTimeTo = esRepository.maxDate(searchKey, criterion, attrPath);
+            OffsetDateTime dateTimeFrom = Option.of(esRepository.minDate(searchKey, criterion, attrPath)).getOrElse(lowestBound());
+            OffsetDateTime dateTimeTo = Option.of(esRepository.maxDate(searchKey, criterion, attrPath)).getOrElse(uppestBound());
             return Tuple.of(dateTimeFrom, dateTimeTo);
         })
         .onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
