@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "ECLIPSE:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz",
-      "extension": "tgz",
+      "filename": "SWOT_SCC_OEF_ECLIPSE_20200302_2020-03-03T07-00-00-000.XML",
+      "extension": "XML",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_SCC_OEF_ECLIPSE_20200302_20200303_070000.tgz",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_SCC_OEF_ECLIPSE_20200302_2020-03-03T07-00-00-000.XML",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

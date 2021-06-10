@@ -1,25 +1,43 @@
 L1_DORIS_RINEX_INVALID_PARTIAL:
-    name: DSWOT_FLA_1P{{ ProductVersionRinex }}S{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    name: DSWOT_FLA_1P{{ ProductVersionRinex }}S{{ CreationDateTime }}_{{ StartDateTime
+        }}_{{ EndDateTime }}
     Description: ''
-    document: "SMM-IF-BN1-EA-22105-CN"
-    example: ['DSWOT_FLA_1PaS20220718_071533_20220717_235951_20220718_061635']
+    document: SMM-IF-BN1-EA-22105-CN
+    example:
+    - DSWOT_FLA_1PaS20220718_071533_20220717_235951_20220718_061635
     granule_type: Segment
     tar_content: []
     mission: SWOT
     Nature: Product
-    metadata: [ProductVersionRinex, CreationDateTime, StartDateTime, EndDateTime]
+    metadata:
+    - ProductVersionRinex
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
     simu_method:
-      directory: swot/publiques_10
-      file_size: 10mo
-      has_path_by_date: false
-      name: product
+        directory: swot/publiques_10
+        file_size: 10mo
+        has_path_by_date: false
+        name: product
     CHRONOS:
-      geode_sync_duration: 6m
-      has_path_by_date: false
-      input_dir: ''
-      lifetime_duration: ''
-      output_dir: swot/publiques_10
-      pcm_metadata: []
-      source: Production
-      storage_server: GEODE
-      
+        geode_sync_duration: 6m
+        has_path_by_date: false
+        lifetime_duration: ''
+        pcm_metadata: []
+        source: Production
+        storage_server: GEODE
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'True'
+        SDS_queue: geode.sds.notification
+        SDS_filter: All
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: 'All'
+        is_datalake: 'False'
+        is_archived: 'True'
+        is_distributed: 'False'
+    NASorGPFS: GPFS
+    real_path: traitement/swot/publiques_10

@@ -1,0 +1,34 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "last": false,
+  "id": "XDF_GO:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "Granule_Overlap_Amount_01.json",
+      "extension": "json",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//Granule_Overlap_Amount_01.json",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2010-01-01T00:00:00Z",
+      "end_date": "2050-01-01T00:00:00Z",
+      "type": "XDF_GO"
+    },
+    "swot": {
+      "product_version": "01",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

@@ -1,0 +1,34 @@
+{
+  "urn": null,
+  "entityType": "DATA",
+  "model": "GEODE001",
+  "history": {
+    "createdBy": "test",
+    "updatedBy": null,
+    "deletedBy": null
+  },
+  "files": [],
+  "last": false,
+  "id": "XDF_CTM:test",
+  "geometry": null,
+  "normalizedGeometry": null,
+  "properties": {
+    "system": {
+      "filename": "Cross_Track_Mapping_01.txt",
+      "extension": "txt",
+      "change_date": "2020-04-10T12:00:00Z",
+      "gpfs_url": "gpfs:///directory/sub//Cross_Track_Mapping_01.txt",
+      "ingestion_date": "2020-04-10T12:00:00Z"
+    },
+    "data": {
+      "start_date": "2010-01-01T00:00:00Z",
+      "end_date": "2050-01-01T00:00:00Z",
+      "type": "XDF_CTM"
+    },
+    "swot": {
+      "product_version": "01",
+      "granule_type": "Segment"
+    }
+  },
+  "type": "Feature"
+}

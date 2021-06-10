@@ -1,27 +1,50 @@
 SWOT_ALT_CHAR:
-    name: PSWOT_CH_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
-    Description: ""
-    example: ['PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959']
+    name: PSWO_CH{{ FileIdentifier }}_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
+    Description: ''
+    example:
+    - PSWO_CH1_AXVCNE20200121_000000_20190101_000000_20301231_235959
     document: "SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD"
     granule_type: Downlink
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [CreationDateTime, StartDateTime, EndDateTime]
-    simu_method: 
+    FileIdentifier:
+    - 1
+    - 2
+    metadata:
+    - FileIdentifier
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
+    simu_method:
         name: period
         file_size: 10mo
-        directory: "swot/export_pos3/"
-        has_path_by_date: False
-        creation: [
-          { period: 0, time: "082800", offset_begin: -300d, offset_end: 100d },
-          ] 
+        directory: swot/expert_pos3/
+        has_path_by_date: false
+        creation:
+        -   period: 0
+            time: 082800
+            offset_begin: -300d
+            offset_end: 100d
     CHRONOS:
-        storage_server : GEODE
-        intput_dir : ""
-        output_dir : ""
+        storage_server: GEODE
         source: Notification
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: 'True'
+        is_distributed: 'True'
+    real_path: traitement/swot/expert_pos3
+    NASorGPFS: GPFS

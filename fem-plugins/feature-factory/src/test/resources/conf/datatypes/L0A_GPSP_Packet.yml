@@ -1,28 +1,49 @@
 L0A_GPSP_Packet:
-    name: SWOT_{{ StationName }}_{{ DateTimeCreationFile }}___{{ SourceType }}_APID{{ APIDnumber }}.PTM_{{ index }}
-    Description: ""
-    example: ['SWOT_HBX_20200203T012912___S_APID1280.PTM_0']
-    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    name: SWOT_{{ StationName }}_{{ DateTimeCreationFile }}_{{ DateTimeBeginTM }}_{{
+        DateTimeEndTM }}_{{ SourceType }}_APID{{ APIDnumber }}.PTM_{{ index }}
+    Description: ''
+    example:
+    - SWOT_IVK_20200629T182730_20400611T035823_20400611T072445_O_APID1280.PTM_0
+    document: D-56531_SWOT_Product_File_Naming_Convention
     granule_type: Downlink
     tar_content: []
     mission: SWOT
     Nature: TM
-    metadata: [StationName, DateTimeCreationFile, SourceType, APIDnumber]
-    APIDnumber : [1280]
-    simu_method: 
+    metadata:
+    - StationName
+    - DateTimeCreationFile
+    - SourceType
+    - APIDnumber
+    APIDnumber:
+    - 1280
+    simu_method:
         name: idefix
-        prime_link : ["L0A_GPSP_Prime", "L1_GPSP_RINEX"]
-        day_file_size: 
-            1280 : 20mo
-        directory: "swot/l0a/{{ APIDnumber }}"
-        has_path_by_date: False
+        prime_link:
+        - L0A_GPSP_Prime
+        - L1_GPSP_RINEX
+        day_file_size:
+            1280: 20mo
+        directory: swot/l0a/{{ APIDnumber }}
+        has_path_by_date: false
     CHRONOS:
-        storage_server : GEODE
-        intput_dir : ""
-        output_dir : ""
+        storage_server: GEODE
         source: Notification
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
-        
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'False'
+        is_archived: 'True'
+        is_distributed: 'False'
+    real_path: traitement/swot/l0a/{{ APIDnumber }}
+    NASorGPFS: GPFS

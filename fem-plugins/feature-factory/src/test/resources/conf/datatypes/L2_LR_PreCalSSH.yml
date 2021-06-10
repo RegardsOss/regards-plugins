@@ -1,0 +1,62 @@
+L2_LR_PreCalSSH:
+    name: SWOT_L2_LR_PreCalSSH_{{ FileIdentifier }}_{{ CycleID }}_{{ PassID }}_{{
+        RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter
+        }}.tar
+    Description: 'Produit est nécessaire pour le centre d expertise. En cours de discussion pour voir comment le mettre sur Lom'
+    document: D-56531_SWOT_Product_File_Naming_Convention
+    example:
+    - SWOT_L2_LR_PreCalSSH_Basic_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    - SWOT_L2_LR_PreCalSSH_WindWave_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    - SWOT_L2_LR_PreCalSSH_Expert_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    - SWOT_L2_LR_PreCalSSH_Unsmoothed_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    granule_type: Pass
+    tar_content:
+    - nc
+    - met.json
+    - rc.xml
+    mission: SWOT
+    Nature: Product
+    metadata:
+    - FileIdentifier
+    - CycleID
+    - PassID
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - CRID
+    - ProductCounter
+    FileIdentifier:
+    - "Basic"
+    - "WindWave"
+    - "Expert"
+    - "Unsmoothed"
+    simu_method:
+        name: product
+        file_size: 1.8go
+        directory: swot/l2_lr_precalssh
+        has_path_by_date: false
+    CHRONOS:
+        storage_server: GEODE
+        source: Production
+        has_path_by_date: false
+        geode_sync_duration: null
+        lifetime_duration: 3m
+        pcm_metadata:
+        - RangeBeginningTAI
+        - RangeEndingTAI
+        - RangeBeginningDateTime
+        - RangeEndingDateTime
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: 'geode.regards_centreexpertise.notification_(TBD)'
+        REGARDS_filter: All
+        is_datalake_ce: 'True'
+        is_archived: 'False'
+        is_distributed: 'False'
+    real_path: traitement/swot/l2_lr_precalssh
+    NASorGPFS: GPFS

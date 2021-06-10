@@ -1,32 +1,63 @@
 XDF_U_WIND_PRE:
-    name: SMM_UWP_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime }}
-    Description: ""
-    document: "SWOT-ICD-SYS-0421-CNES"
-    example: ['SMM_UWP_AXVCNE20200303_180000_20200305_120000_20200305_120000']
+    name: SMM_UWP_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
+        }}
+    Description: ''
+    document: SWOT-ICD-SYS-0421-CNES
+    example:
+    - SMM_UWP_AXVCNE20200303_180000_20200305_120000_20200305_120000
     granule_type: Segment
     tar_content: []
     mission: MM
     Nature: Product
-    metadata: [CreationDateTime, StartDateTime, EndDateTime]
-    simu_method: 
+    metadata:
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
+    simu_method:
         name: period
         file_size: 4100ko
-        directory: "commun/meteo/u_wind"
-        has_path_by_date: False
-        creation: [
-          { period: 1, time: "180000", offset_begin: 64800, offset_end: 64800 },
-          { period: 1, time: "180000", offset_begin: 86400, offset_end: 86400 },
-          { period: 1, time: "180000", offset_begin: 108000, offset_end: 108000 },
-          { period: 1, time: "180000", offset_begin: 129600, offset_end: 129600 },
-          { period: 1, time: "180000", offset_begin: 151200, offset_end: 151200 }
-          ] 
+        directory: commun/meteo/u_wind
+        has_path_by_date: false
+        creation:
+        -   period: 1
+            time: '180000'
+            offset_begin: 64800
+            offset_end: 64800
+        -   period: 1
+            time: '180000'
+            offset_begin: 86400
+            offset_end: 86400
+        -   period: 1
+            time: '180000'
+            offset_begin: 108000
+            offset_end: 108000
+        -   period: 1
+            time: '180000'
+            offset_begin: 129600
+            offset_end: 129600
+        -   period: 1
+            time: '180000'
+            offset_begin: 151200
+            offset_end: 151200
     CHRONOS:
-        storage_server : GEODE
-        input_dir : ""
-        output_dir : ""
+        storage_server: GEODE
         source: Notification
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
+        lifetime_duration: ''
         pcm_metadata: []
-        
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'False'
+        REGARDS_queue: ''
+        REGARDS_filter: ''
+        is_datalake: 'True'
+        is_archived: 'False'
+        is_distributed: 'False'
+    real_path: traitement/commun/meteo/u_wind
+    NASorGPFS: NAS

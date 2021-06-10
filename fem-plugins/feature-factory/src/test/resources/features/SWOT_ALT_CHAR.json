@@ -8,14 +8,15 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "SWOT_ALT_CHAR:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
+      "filename": "PSWO_CH1_AXVCNE20200121_000000_20190101_000000_20301231_235959",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//PSWOT_CH_AXVCNE20200121_000000_20190101_000000_20301231_235959",
+      "gpfs_url": "gpfs:///directory/sub//PSWO_CH1_AXVCNE20200121_000000_20190101_000000_20301231_235959",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
@@ -25,6 +26,7 @@
       "type": "SWOT_ALT_CHAR"
     },
     "swot": {
+      "file_identifier": "1",
       "granule_type": "Downlink"
     }
   },

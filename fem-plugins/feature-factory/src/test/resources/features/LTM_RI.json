@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "LTM_RI:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "PSWOT_RI_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc",
+      "filename": "PSWOT_RI1_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc",
       "extension": "nc",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//PSWOT_RI_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc",
+      "gpfs_url": "gpfs:///directory/sub//PSWOT_RI1_AXXCNE20221010_101000_20200202_000000_20221009_000000.nc",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

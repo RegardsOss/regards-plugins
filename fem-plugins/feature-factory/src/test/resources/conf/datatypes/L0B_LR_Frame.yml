@@ -1,24 +1,53 @@
 L0B_LR_Frame:
-    name: SWOT_L0B_LR_Frame_{{ CycleID }}_{{ PassID }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
-    Description: ""
-    example: ['SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_VI0059_01.tar']
-    document: "D-56531_SWOT_Product_File_Naming_Convention"
+    name: SWOT_L0B_LR_Frame_{{ CycleID }}_{{ PassID }}_{{ RangeBeginningDateTime }}_{{
+        RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: ''
+    example:
+    - SWOT_L0B_LR_Frame_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    document: D-56531_SWOT_Product_File_Naming_Convention
     granule_type: Pass
-    tar_content: [nc, met.json, rc.xml, md5]
+    tar_content:
+    - nc
+    - met.json
+    - rc.xml
+    - md5
     mission: SWOT
     Nature: Product
-    metadata: [CycleID, PassID, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
-    simu_method: 
+    metadata:
+    - CycleID
+    - PassID
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - CRID
+    - ProductCounter
+    simu_method:
         name: product
         file_size: 6.9go
-        directory: "swot/l0b_lr"
-        has_path_by_date: False
+        directory: swot/l0b_lr
+        has_path_by_date: false
     CHRONOS:
-        storage_server : GEODE
-        input_dir : ""
-        output_dir : "swot/l0b_lr"
+        storage_server: GEODE
         source: Production
-        has_path_by_date: False
+        has_path_by_date: false
         geode_sync_duration: 6m
-        lifetime_duration: ""
-        pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
+        lifetime_duration: ''
+        pcm_metadata:
+        - RangeBeginningTAI
+        - RangeEndingTAI
+        - RangeBeginningDateTime
+        - RangeEndingDateTime
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake_ce: 'True'
+        is_archived: 'True'
+        is_distributed: 'False'
+    NASorGPFS: GPFS
+    real_path: traitement/swot/l0b_lr

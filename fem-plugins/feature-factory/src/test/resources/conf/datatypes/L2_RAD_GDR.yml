@@ -1,25 +1,54 @@
 L2_RAD_GDR:
-    name: SWOT_GPRAD_2P{{ ProductVersion }}P{{ CycleID }}_{{ PassID }}_{{ StartDateTime }}_{{ EndDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    name: SWOT_GPRAD_2P{{ ProductVersion }}P{{ CycleID }}_{{ PassID }}_{{ StartDateTime
+        }}_{{ EndDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
     Description: ''
-    document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_VI0059_01.tar']
+    document: D-56531_SWOT_Product_File_Naming_Convention
+    example:
+    - SWOT_GPRAD_2PfP003_069_20200203_003320_20200203_012450_VI0059_01.tar
     granule_type: Pass
-    tar_content: [nc, met.json, rc.xml, md5]
+    tar_content:
+    - nc
+    - met.json
+    - rc.xml
+    - md5
     mission: SWOT
     Nature: Product
-    metadata: [ProductVersion, CycleID, PassID, StartDateTime, EndDateTime, CRID, ProductCounter]
+    metadata:
+    - ProductVersion
+    - CycleID
+    - PassID
+    - StartDateTime
+    - EndDateTime
+    - CRID
+    - ProductCounter
     simu_method:
-      directory: swot/l2_rad_gdr
-      file_size: 0.283go
-      has_path_by_date: false
-      name: product
+        directory: swot/l2_rad_gdr
+        file_size: 0.283go
+        has_path_by_date: false
+        name: product
     CHRONOS:
-      geode_sync_duration: 6m
-      has_path_by_date: false
-      input_dir: ''
-      lifetime_duration: ''
-      output_dir: swot/l2_rad_gdr
-      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
-      source: Production
-      storage_server: GEODE
-      
+        geode_sync_duration: 6m
+        has_path_by_date: false
+        lifetime_duration: ''
+        pcm_metadata:
+        - RangeBeginningTAI
+        - RangeEndingTAI
+        - RangeBeginningDateTime
+        - RangeEndingDateTime
+        source: Production
+        storage_server: GEODE
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'True'
+        SDS_queue: geode.sds.notification
+        SDS_filter: All
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: isSentToJPL
+        is_datalake: 'True'
+        is_archived: 'True'
+        is_distributed: 'True'
+    real_path: traitement/swot/l2_rad_gdr
+    NASorGPFS: GPFS
