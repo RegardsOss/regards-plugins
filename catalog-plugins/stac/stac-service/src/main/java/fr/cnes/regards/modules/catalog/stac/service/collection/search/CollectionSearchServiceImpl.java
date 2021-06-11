@@ -38,6 +38,8 @@ import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownPar
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
+import fr.cnes.regards.modules.search.service.accessright.AccessRightFilterException;
+import fr.cnes.regards.modules.search.service.accessright.IAccessRightFilter;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
@@ -88,6 +90,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     @Autowired
     private EsAggregationHelper aggregationHelper;
 
+    @Autowired
+    private IAccessRightFilter accessRightFilter;
+
     // FIXME remove exception ... use trying
     @Override
     public Try<CollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
@@ -107,18 +112,16 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         ICriterion itemCriteria = critBuilder.buildCriterion(stacProperties, collectionItemSearchBody)
                 .getOrElse(ICriterion.all());
         Option<ICriterion> idCriterion;
-        Map<String, Long> datasetCount = null;
+        Try<Map<String, Long>> datasetCount = Try.success(null);
         if (!itemCriteria.isEmpty()) {
             // Search for all matching dataset ids using item query parameters
             // We had to filter results as tags not only contain dataset ids
-            datasetCount = getDatasetIds(itemCriteria, DATASET_AGG_SIZE);
-            // FIXME supprimer ces lignes
-            //            List<String> matchingTags = catalogSearchService
-            //                    .retrieveEnumeratedPropertyValues(itemCriteria, SearchType.DATAOBJECTS,
-            //                                                      StaticProperties.FEATURE_TAGS, 500, DATASET_PREFIX).stream()
-            //                    .filter(t -> t.startsWith(DATASET_PREFIX)).collect(TreeSet.collector()).toList();
+            datasetCount = trying(() -> getDatasetIds(itemCriteria, DATASET_AGG_SIZE))
+                    .mapFailure(DATASET_AGGREGATION_FAILURE, () -> String
+                            .format("Collection search failure on item search filtering with %s",
+                                    collectionItemSearchBody));
             // Add it to the collection search criteria
-            idCriterion = identitiesCriterionBuilder.buildCriterion(stacProperties, List.ofAll(datasetCount.keySet()));
+            idCriterion = identitiesCriterionBuilder.buildCriterion(stacProperties, List.ofAll(datasetCount.get().keySet()));
         } else {
             idCriterion = Option.none();
         }
@@ -131,16 +134,18 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 critBuilder.buildCriterion(stacProperties, collectionSearchBody).getOrElse(ICriterion.all());
 
         // Search for all matching collections
-        Map<String, Long> finalDatasetCount = datasetCount;
+        Map<String, Long> finalDatasetCount = datasetCount.get();
         return trying(
                 () -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null, pageable))
-                .mapFailure(SEARCH, () -> String.format("Search failure for page %d of %s", page, collectionSearchBody))
+                .mapFailure(SEARCH, () -> String
+                        .format("Collection search failure for page %d of %s", page, collectionSearchBody))
                 .flatMap(facetPage -> extractCollection(facetPage, stacProperties, null, null, finalDatasetCount));
         // FIXME set link creator according to expected standard on collection response
     }
 
-    private Map<String, Long> getDatasetIds(ICriterion itemCriteria, int size) {
-        Aggregations aggregations = aggregationHelper.getDatasetAggregations(DATASET_AGG_NAME, itemCriteria, size);
+    private Map<String, Long> getDatasetIds(ICriterion itemCriteria, int size) throws AccessRightFilterException {
+        Aggregations aggregations = aggregationHelper
+                .getDatasetAggregations(DATASET_AGG_NAME, accessRightFilter.addAccessRights(itemCriteria), size);
         Terms datasetIdsAgg = aggregations.get(DATASET_AGG_NAME);
         return datasetIdsAgg.getBuckets().stream().collect(Collectors
                                                                    .toMap(MultiBucketsAggregation.Bucket::getKeyAsString,

@@ -97,9 +97,6 @@ public class EsAggregagtionHelperImpl implements EsAggregationHelper {
     @Override
     public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, int size) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
-        // TODO A voir, ajouter un critère pour filtrer les tags commençant par le préfixe des jeux
-        // pour limiter la recherche aux objets liés à un jeu ou créer un nouveau champ dédié aux id de jeux
-        // TODO gérer le suffixe keyword plus proprement
         AggregationBuilder termsAggBuilder = AggregationBuilders.terms(aggregationName)
                 .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size).includeExclude(DATASET_ONLY);
         return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder));
