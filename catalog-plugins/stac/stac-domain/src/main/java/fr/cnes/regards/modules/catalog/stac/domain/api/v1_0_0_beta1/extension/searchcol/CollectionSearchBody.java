@@ -61,7 +61,6 @@ public class CollectionSearchBody {
         // FIXME pertinent ou non?
         List<String> collections;
         List<String> ids;
-        Integer limit;
         SearchBody.Fields fields;
         Map<String, SearchBody.QueryObject> query;
     }

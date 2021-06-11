@@ -30,10 +30,11 @@ import java.time.OffsetDateTime;
 /**
  * provides methods to get Elasticsearch aggregations.
  */
-public interface EsAggregagtionHelper {
+public interface EsAggregationHelper {
 
     Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs);
 
-    Tuple2<OffsetDateTime,OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath);
+    Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath);
 
+    Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, int size);
 }

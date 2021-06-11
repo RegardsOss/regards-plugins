@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.se
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.IdentitiesCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
@@ -31,23 +32,28 @@ import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
-import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
+import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
-import io.vavr.collection.TreeSet;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
@@ -62,10 +68,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CollectionSearchServiceImpl.class);
 
-    /**
-     * Prefix to identify dataset tags
-     */
-    private static final String DATASET_PREFIX = "URN:AIP:DATASET";
+    private static final String DATASET_AGG_NAME = "datasetIds";
+
+    // FIXME rendre configurable
+    private static final int DATASET_AGG_SIZE = 500;
 
     @Autowired
     private StacSearchCriterionBuilder critBuilder;
@@ -78,6 +84,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     @Autowired
     private IdentitiesCriterionBuilder identitiesCriterionBuilder;
+
+    @Autowired
+    private EsAggregationHelper aggregationHelper;
 
     // FIXME remove exception ... use trying
     @Override
@@ -98,15 +107,18 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         ICriterion itemCriteria = critBuilder.buildCriterion(stacProperties, collectionItemSearchBody)
                 .getOrElse(ICriterion.all());
         Option<ICriterion> idCriterion;
+        Map<String, Long> datasetCount = null;
         if (!itemCriteria.isEmpty()) {
             // Search for all matching dataset ids using item query parameters
             // We had to filter results as tags not only contain dataset ids
-            List<String> matchingTags = catalogSearchService
-                    .retrieveEnumeratedPropertyValues(itemCriteria, SearchType.DATAOBJECTS,
-                                                      StaticProperties.FEATURE_TAGS, 500, DATASET_PREFIX).stream()
-                    .filter(t -> t.startsWith(DATASET_PREFIX)).collect(TreeSet.collector()).toList();
+            datasetCount = getDatasetIds(itemCriteria, DATASET_AGG_SIZE);
+            // FIXME supprimer ces lignes
+            //            List<String> matchingTags = catalogSearchService
+            //                    .retrieveEnumeratedPropertyValues(itemCriteria, SearchType.DATAOBJECTS,
+            //                                                      StaticProperties.FEATURE_TAGS, 500, DATASET_PREFIX).stream()
+            //                    .filter(t -> t.startsWith(DATASET_PREFIX)).collect(TreeSet.collector()).toList();
             // Add it to the collection search criteria
-            idCriterion = identitiesCriterionBuilder.buildCriterion(stacProperties, matchingTags);
+            idCriterion = identitiesCriterionBuilder.buildCriterion(stacProperties, List.ofAll(datasetCount.keySet()));
         } else {
             idCriterion = Option.none();
         }
@@ -119,17 +131,28 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 critBuilder.buildCriterion(stacProperties, collectionSearchBody).getOrElse(ICriterion.all());
 
         // Search for all matching collections
+        Map<String, Long> finalDatasetCount = datasetCount;
         return trying(
                 () -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null, pageable))
                 .mapFailure(SEARCH, () -> String.format("Search failure for page %d of %s", page, collectionSearchBody))
-                .flatMap(facetPage -> extractCollection(facetPage, stacProperties, null, null));
+                .flatMap(facetPage -> extractCollection(facetPage, stacProperties, null, null, finalDatasetCount));
         // FIXME set link creator according to expected standard on collection response
     }
 
+    private Map<String, Long> getDatasetIds(ICriterion itemCriteria, int size) {
+        Aggregations aggregations = aggregationHelper.getDatasetAggregations(DATASET_AGG_NAME, itemCriteria, size);
+        Terms datasetIdsAgg = aggregations.get(DATASET_AGG_NAME);
+        return datasetIdsAgg.getBuckets().stream().collect(Collectors
+                                                                   .toMap(MultiBucketsAggregation.Bucket::getKeyAsString,
+                                                                          MultiBucketsAggregation.Bucket::getDocCount));
+    }
+
     private Try<CollectionsResponse> extractCollection(FacetPage<Dataset> facetPage, List<StacProperty> stacProperties,
-            OGCFeatLinkCreator featLinkCreator, SearchPageLinkCreator searchPageLinkCreator) {
+            OGCFeatLinkCreator featLinkCreator, SearchPageLinkCreator searchPageLinkCreator,
+            Map<String, Long> datasetCount) {
         return trying(() -> new CollectionsResponse(buildCollectionLinks(),
-                                                    buildCollections(Stream.ofAll(facetPage.get()), stacProperties)))
+                                                    buildCollections(Stream.ofAll(facetPage.get()), stacProperties,
+                                                                     datasetCount)))
                 .mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
 
         //        return trying(() -> {
@@ -153,8 +176,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return null;
     }
 
-    private List<Collection> buildCollections(Stream<Dataset> datasetStream, List<StacProperty> stacProperties) {
-        return datasetStream.flatMap(dataset -> buidFromDataset(dataset, stacProperties)).toList();
+    private List<Collection> buildCollections(Stream<Dataset> datasetStream, List<StacProperty> stacProperties,
+            Map<String, Long> datasetCount) {
+        return datasetStream.flatMap(dataset -> buidFromDataset(dataset, stacProperties, datasetCount)).toList();
     }
 
     //    private Collection buildFromDataset(Dataset dataset) {
@@ -165,7 +189,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     //        );
     //    }
 
-    private Try<Collection> buidFromDataset(Dataset dataset, List<StacProperty> stacProperties) {
+    private Try<Collection> buidFromDataset(Dataset dataset, List<StacProperty> stacProperties,
+            Map<String, Long> datasetCount) {
         return trying(() -> {
 
             //            String urn = resourceName.toString();
@@ -197,9 +222,13 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             //
             //            AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
+            // Summaries
+            io.vavr.collection.Map<String, Object> summaries = HashMap
+                    .of("matched", datasetCount != null ? datasetCount.get(dataset.getIpId().toString()) : null);
+
             return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, List.empty(), dataset.getLabel(),
                                   dataset.getIpId().toString(), "", List.empty(), List.empty(), null, List.empty(),
-                                  null, null);
+                                  null, summaries);
 
         }).mapFailure(COLLECTION_CONSTRUCTION,
                       () -> String.format("Failed to build collection for URN %s", dataset.getIpId()));

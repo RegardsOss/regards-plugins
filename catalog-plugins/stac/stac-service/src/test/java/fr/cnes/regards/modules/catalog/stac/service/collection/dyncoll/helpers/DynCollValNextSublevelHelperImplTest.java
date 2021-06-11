@@ -33,7 +33,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.Stri
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelperImpl;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -60,7 +60,7 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     ProjectGeoSettings projectGeoSettings = mock(ProjectGeoSettings.class);
 
-    EsAggregagtionHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
+    EsAggregationHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
 
     ConfigurationAccessor config = mock(ConfigurationAccessor.class);
 

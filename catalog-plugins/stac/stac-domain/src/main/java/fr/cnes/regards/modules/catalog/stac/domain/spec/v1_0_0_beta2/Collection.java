@@ -52,6 +52,13 @@ public class Collection implements LinkCollection<Collection> {
 
     String title;
     String id;
+
+    public enum TypeEnum {
+        @SerializedName("Collection")
+        COLLECTION
+    }
+    TypeEnum type = TypeEnum.COLLECTION;
+
     String description;
     List<Link> links;
 

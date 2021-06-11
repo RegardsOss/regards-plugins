@@ -23,9 +23,12 @@ import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransa
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
@@ -34,6 +37,9 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +62,12 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @Autowired
     private ICatalogSearchService catalogSearchService;
+
+    @Autowired
+    private CollectionSearchService collectionSearchService;
+
+    @Autowired
+    private EsAggregationHelper aggregationHelper;
 
     @Test
     public void getLandingPage() {
@@ -128,8 +140,14 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchCollectionsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        CollectionSearchBody body =  CollectionSearchBody.builder().build();
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(q).build();
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
     }
 
     @Test
@@ -158,16 +176,24 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         //                          customizer, "Search all error", ENGINE_TYPE, datasetUrn);
     }
 
-
-
     @Test
-    public void searchCollections() throws SearchException, OpenSearchUnknownParameter {
+    public void searchTags() throws SearchException, OpenSearchUnknownParameter {
         String propertyPath = "tags";
         String partialText = "URN:AIP:DATASET";
         List<String> matchingDatasets = catalogSearchService
                 .retrieveEnumeratedPropertyValues(ICriterion.all(), SearchType.DATAOBJECTS, propertyPath, 500,
                                                   partialText);
         LOGGER.info("List of matching datasets : {}", matchingDatasets);
+    }
+
+    @Test
+    public void searchTagAggregation() throws SearchException, OpenSearchUnknownParameter {
+        String aggregationName = "datasetIds";
+        Aggregations aggregations = aggregationHelper.getDatasetAggregations(aggregationName, ICriterion.all(), 500);
+        Terms datasetIdsAgg = aggregations.get(aggregationName);
+        for (Terms.Bucket bucket : datasetIdsAgg.getBuckets()) {
+            LOGGER.info("DATASET {} has {} matching items", bucket.getKey(), bucket.getDocCount());
+        }
     }
 
     /**

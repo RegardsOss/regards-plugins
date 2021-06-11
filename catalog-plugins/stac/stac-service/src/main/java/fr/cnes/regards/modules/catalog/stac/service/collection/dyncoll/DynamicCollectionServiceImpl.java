@@ -45,7 +45,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelDefParser;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelValToQueryObjectConverter;
@@ -84,14 +84,14 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     private final ExtentSummaryService extentSummaryService;
 
-    private final EsAggregagtionHelper aggregagtionHelper;
+    private final EsAggregationHelper aggregagtionHelper;
 
     @Autowired
     public DynamicCollectionServiceImpl(RestDynCollValSerdeService restDynCollValSerdeService,
             DynCollLevelDefParser dynCollLevelDefParser,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             DynCollValNextSublevelHelper nextSublevelHelper, StacSearchCriterionBuilder criterionBuilder,
-            ExtentSummaryService extentSummaryService, EsAggregagtionHelper aggregagtionHelper) {
+            ExtentSummaryService extentSummaryService, EsAggregationHelper aggregagtionHelper) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.dynCollLevelDefParser = dynCollLevelDefParser;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
