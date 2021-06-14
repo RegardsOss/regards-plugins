@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.legacy;
 
-import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -271,7 +270,8 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         // COLLECTION : Star
         Model starModel = modelService.importModel(this.getClass().getResourceAsStream("collection_star.xml"));
         // DATASET : Star system
-        Model starSystemModel = modelService.importModel(this.getClass().getResourceAsStream("dataset_star_system.xml"));
+        Model starSystemModel = modelService
+                .importModel(this.getClass().getResourceAsStream("dataset_star_system.xml"));
         // DATA : Planet
         Model planetModel = modelService.importModel(this.getClass().getResourceAsStream("data_planet.xml"));
 
@@ -384,7 +384,8 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         SearchEngineConfiguration seConfOSdataset = new SearchEngineConfiguration();
         seConfOSdataset.setConfiguration(openSearchPluginConf);
         seConfOSdataset.setLabel("Opensearch conf for one dataset");
-        seConfOSdataset.setDatasetUrn("URN:AIP:" + EntityType.DATASET.toString() + ":PROJECT:" + UUID.randomUUID() + ":V1");
+        seConfOSdataset
+                .setDatasetUrn("URN:AIP:" + EntityType.DATASET.toString() + ":PROJECT:" + UUID.randomUUID() + ":V1");
         searchEngineService.createConf(seConfOSdataset);
     }
 
@@ -399,7 +400,8 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
     protected List<Collection> createGalaxies(Model galaxyModel) {
         Collection milkyWay = createEntity(galaxyModel, MILKY_WAY);
         milkyWay.addProperty(IProperty.buildString(GALAXY, MILKY_WAY));
-        milkyWay.addProperty(IProperty.buildString(ABSTRACT, "The Milky Way is the galaxy that contains our Solar System."));
+        milkyWay.addProperty(IProperty.buildString(ABSTRACT,
+                                                   "The Milky Way is the galaxy that contains our Solar System."));
         return Arrays.asList(milkyWay);
     }
 
@@ -462,21 +464,21 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
         DataFile quicklooksd = new DataFile();
         quicklooksd.setMimeType(MimeType.valueOf("application/jpg"));
-        quicklooksd.setUri(URI.create("http://regards/le_quicklook_sd.jpg"));
+        quicklooksd.setUri("http://regards/le_quicklook_sd.jpg");
         quicklooksd.setReference(false);
         quicklooksd.setImageWidth(100d);
         quicklooksd.setImageHeight(100d);
         planet.getFiles().put(DataType.QUICKLOOK_SD, quicklooksd);
         DataFile quicklookmd = new DataFile();
         quicklookmd.setMimeType(MimeType.valueOf("application/jpg"));
-        quicklookmd.setUri(URI.create("http://regards/le_quicklook_md.jpg"));
+        quicklookmd.setUri("http://regards/le_quicklook_md.jpg");
         quicklookmd.setReference(false);
         quicklookmd.setImageWidth(100d);
         quicklookmd.setImageHeight(100d);
         planet.getFiles().put(DataType.QUICKLOOK_MD, quicklookmd);
         DataFile quicklookhd = new DataFile();
         quicklookhd.setMimeType(MimeType.valueOf("application/jpg"));
-        quicklookhd.setUri(URI.create("http://regards/le_quicklook_hd.jpg"));
+        quicklookhd.setUri("http://regards/le_quicklook_hd.jpg");
         quicklookhd.setReference(false);
         quicklookhd.setImageWidth(100d);
         quicklookhd.setImageHeight(100d);
@@ -484,7 +486,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
         DataFile thumbnail = new DataFile();
         thumbnail.setMimeType(MimeType.valueOf("application/png"));
-        thumbnail.setUri(URI.create("http://regards/thumbnail.png"));
+        thumbnail.setUri("http://regards/thumbnail.png");
         thumbnail.setImageWidth(250d);
         thumbnail.setImageHeight(250d);
         thumbnail.setReference(false);
@@ -566,8 +568,8 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
                 throw new UnsupportedOperationException("Unknown entity type " + model.getType());
         }
         if (astroObjects.containsKey(label)) {
-            throw new UnsupportedOperationException(
-                    "Label \"" + label + "\" for astronomical object already exists! Please change it and relaunch test!");
+            throw new UnsupportedOperationException("Label \"" + label
+                    + "\" for astronomical object already exists! Please change it and relaunch test!");
         }
         astroObjects.put(label, entity);
         return (T) entity;
