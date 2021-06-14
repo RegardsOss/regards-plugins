@@ -1,0 +1,28 @@
+{
+  "id": "DATASET:L2_HR_RASTER",
+  "type": "Feature",
+  "entityType": "DATA",
+  "model": "HYGOR001",
+  "geometry": null,
+  "properties": {
+    "title": "L2 HR RASTER Title",
+    "description": "Description of L2 HR RASTER",
+    "keywords": [
+      "SWOT",
+      "Level 2",
+      "HR"
+    ],
+    "license": "CC-BY-4.0",
+    "providers": [
+      {
+        "name": "CNES",
+        "roles": [
+          "licensor",
+          "producer",
+          "processor"
+        ],
+        "url": "http://www.cnes.fr"
+      }
+    ]
+  }
+}

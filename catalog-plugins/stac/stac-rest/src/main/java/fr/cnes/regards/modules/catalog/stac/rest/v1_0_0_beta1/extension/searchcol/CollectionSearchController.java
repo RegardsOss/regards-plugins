@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsR
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination.SearchOtherPageItemBodySerdeService;
@@ -112,7 +113,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
     @ResourceAccess(description = "Search collection with complex filtering", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<CollectionsResponse> complex(@RequestBody CollectionSearchBody collectionSearchBody,
+    public ResponseEntity<SearchCollectionsResponse> complex(@RequestBody CollectionSearchBody collectionSearchBody,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
             throws ModuleException {
         //        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();

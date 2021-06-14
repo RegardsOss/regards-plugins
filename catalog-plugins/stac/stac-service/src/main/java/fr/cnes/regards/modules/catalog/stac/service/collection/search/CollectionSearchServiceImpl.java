@@ -19,8 +19,9 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
@@ -41,6 +42,7 @@ import fr.cnes.regards.modules.search.service.SearchException;
 import fr.cnes.regards.modules.search.service.accessright.AccessRightFilterException;
 import fr.cnes.regards.modules.search.service.accessright.IAccessRightFilter;
 import io.vavr.collection.HashMap;
+import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
@@ -95,7 +97,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     // FIXME remove exception ... use trying
     @Override
-    public Try<CollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
+    public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
             throws SearchException, OpenSearchUnknownParameter {
         // Retrieve configured STAC properties
         List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor()
@@ -121,7 +123,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                             .format("Collection search failure on item search filtering with %s",
                                     collectionItemSearchBody));
             // Add it to the collection search criteria
-            idCriterion = identitiesCriterionBuilder.buildCriterion(stacProperties, List.ofAll(datasetCount.get().keySet()));
+            idCriterion = identitiesCriterionBuilder
+                    .buildCriterion(stacProperties, List.ofAll(datasetCount.get().keySet()));
         } else {
             idCriterion = Option.none();
         }
@@ -152,29 +155,16 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                           MultiBucketsAggregation.Bucket::getDocCount));
     }
 
-    private Try<CollectionsResponse> extractCollection(FacetPage<Dataset> facetPage, List<StacProperty> stacProperties,
-            OGCFeatLinkCreator featLinkCreator, SearchPageLinkCreator searchPageLinkCreator,
-            Map<String, Long> datasetCount) {
-        return trying(() -> new CollectionsResponse(buildCollectionLinks(),
-                                                    buildCollections(Stream.ofAll(facetPage.get()), stacProperties,
-                                                                     datasetCount)))
-                .mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
-
-        //        return trying(() -> {
-        //
-        //
-        //            ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(facetPage.getNumberOfElements(),
-        //                                                                                        facetPage.getPageable()
-        //                                                                                                .getPageSize(),
-        //                                                                                        facetPage.getTotalElements());
-        //            ItemCollectionResponse response = new ItemCollectionResponse(SEARCH_EXTENSIONS,
-        //                                                                         extractStacItems(Stream.ofAll(facetPage.get()),
-        //                                                                                          stacProperties,
-        //                                                                                          featLinkCreator),
-        //                                                                         List.empty(), // resolved later
-        //                                                                         context);
-        //            return response.withLinks(extractLinks(searchPageLinkCreator, response));
-        //        }).mapFailure(ITEMCOLLECTIONRESPONSE_CONSTRUCTION, () -> "Failed to create ItemCollectionResponse");
+    private Try<SearchCollectionsResponse> extractCollection(FacetPage<Dataset> facetPage,
+            List<StacProperty> stacProperties, OGCFeatLinkCreator featLinkCreator,
+            SearchPageLinkCreator searchPageLinkCreator, Map<String, Long> datasetCount) {
+        return trying(() -> {
+            Context context = new Context(facetPage.getNumberOfElements(), facetPage.getPageable().getPageSize(),
+                                          facetPage.getTotalElements());
+            SearchCollectionsResponse response = new SearchCollectionsResponse(HashSet.empty(), buildCollections(
+                    Stream.ofAll(facetPage.get()), stacProperties, datasetCount), buildCollectionLinks(), context);
+            return response;
+        }).mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
     }
 
     private List<Link> buildCollectionLinks() {

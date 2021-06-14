@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -17,41 +17,34 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
+package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol;
 
 import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
 import io.vavr.collection.Set;
-import lombok.Value;
-import lombok.With;
 
 /**
- * This class describes search results, and is not part of the STAC JSON spec, but
- * (since the 1.0.0.beta-1 version) of the STAC API spec.
+ * List of collections, with navigation links.
  *
- * @see <a href="https://api.stacspec.org/v1.0.0-beta.1/item-search/#operation/getItemSearch">definition</a>
+ * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features">Definition</a>
  */
-@Value @With
-public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
+@lombok.Value
+@lombok.With
+public class SearchCollectionsResponse {
 
     @SerializedName("stac_version")
-    String stacVersion = StacSpecConstants.Version.STAC_API_VERSION;
+    String stacVersion = StacSpecConstants.Version.STAC_API_VERSION + ".extended";
+
     @SerializedName("stac_extensions")
     Set<String> stacExtensions;
 
-    enum TypeEnum {
-        @SerializedName("FeatureCollection")
-        FEATURE_COLLECTION
-    }
-    TypeEnum type = TypeEnum.FEATURE_COLLECTION;
+    List<Collection> collections;
 
-    List<Item> features;
     List<Link> links;
 
     Context context;
-
 }

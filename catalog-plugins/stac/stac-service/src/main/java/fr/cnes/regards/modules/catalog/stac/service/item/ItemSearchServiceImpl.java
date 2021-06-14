@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.urn.UniformResourceName;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -118,7 +119,7 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
             SearchPageLinkCreator searchPageLinkCreator
     ) {
         return trying(() -> {
-            ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(
+            Context context = new Context(
                 facetPage.getNumberOfElements(),
                 facetPage.getPageable().getPageSize(),
                 facetPage.getTotalElements()
