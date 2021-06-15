@@ -241,6 +241,11 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         SearchEngineConfiguration conf = loadFromJson(
                 DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-engine-configuration.json"), SearchEngineConfiguration.class);
         searchEngineService.createConf(conf);
+
+        SearchEngineConfiguration collectionConf = loadFromJson(
+                DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-collection-engine-configuration.json"),
+                SearchEngineConfiguration.class);
+        searchEngineService.createConf(collectionConf);
     }
 
     /**

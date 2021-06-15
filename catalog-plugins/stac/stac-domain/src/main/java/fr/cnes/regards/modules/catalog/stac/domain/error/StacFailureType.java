@@ -49,16 +49,15 @@ public enum StacFailureType {
     COLLECTION_CONSTRUCTION,
     CONFORMANCERESPONSE_CONSTRUCTION,
 
-    DATAOBJECT_JSON_EXTRACTION,
-    DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
-    DATAOBJECT_TO_ITEM_CONVERSION,
+    ENTITY_JSON_EXTRACTION,
+    ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
+    ENTITY_TO_ITEM_CONVERSION,
 
     DATASET_AGGREGATION_FAILURE,
 
     ROOT_STATIC_COLLECTIONS_QUERY,
 
     UNKNOWN;
-
 
     private final HttpStatus status;
 
@@ -73,5 +72,4 @@ public enum StacFailureType {
     public HttpStatus getStatus() {
         return status;
     }
-
 }

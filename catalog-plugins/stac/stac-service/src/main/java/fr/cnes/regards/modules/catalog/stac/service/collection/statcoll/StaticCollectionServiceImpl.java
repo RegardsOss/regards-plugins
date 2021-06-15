@@ -23,8 +23,10 @@ import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import io.vavr.collection.Set;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -141,8 +143,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
             AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
             Collection collection = new Collection(
-                    StacSpecConstants.Version.STAC_SPEC_VERSION,
-                    List.empty(),
+                    StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(),
                     regardsCollection.getLabel(),
                     regardsCollection.getIpId().toString(),
 //                    regardsCollection.getModel().getDescription(),
@@ -152,7 +153,9 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     config.getLicense(urn),
                     providers,
                     extent,
-                    summary
+                    summary,
+                    null,
+                    null
             );
 
             return collection;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -16,20 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
-
-import lombok.Value;
-import lombok.With;
+package fr.cnes.regards.modules.catalog.stac.service.configuration.collection;
 
 /**
- * Search context
- *
- * @author Marc SORDI
+ * Initialize a {@link CollectionConfigurationAccessor} based on plugin configuration for STAC collection search.
  */
-@Value
-@With
-public class Context {
-    Integer returned;
-    Integer limit;
-    Long matched;
+public interface CollectionConfigurationAccessorFactory {
+
+    CollectionConfigurationAccessor makeConfigurationAccessor();
 }

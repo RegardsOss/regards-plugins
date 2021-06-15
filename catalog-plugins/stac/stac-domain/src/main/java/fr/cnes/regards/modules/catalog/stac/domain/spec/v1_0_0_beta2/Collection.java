@@ -20,12 +20,15 @@
 package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2;
 
 import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import io.vavr.collection.Set;
 import lombok.Value;
 import lombok.With;
 
@@ -48,7 +51,7 @@ public class Collection implements LinkCollection<Collection> {
     String stacVersion;
 
     @SerializedName("stac_extensions")
-    List<String> stacExtensions;
+    Set<String> stacExtensions;
 
     String title;
     String id;
@@ -64,9 +67,12 @@ public class Collection implements LinkCollection<Collection> {
 
     List<String> keywords;
     String license;
-    List<Provider> providers;
+    Object providers;
 
     Extent extent;
     Map<String, Object> summaries;
 
+    Map<String, Asset> assets;
+
+    Context context;
 }

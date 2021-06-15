@@ -19,8 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATAOBJECT_JSON_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_ATTRIBUTE_VALUE_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_JSON_EXTRACTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.function.Function;
 
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,7 @@ public class RegardsPropertyAccessorFactory {
         this.jsonPathParseContext = JsonPath.using(jsonPathConfig(gson));
     }
 
-    public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacPropertyConfiguration sPropConfig,
+    public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
             StacPropertyType sPropType) {
         String attrName = sPropConfig.getSourcePropertyPath();
         AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
@@ -97,7 +98,7 @@ public class RegardsPropertyAccessorFactory {
     }
 
     // FIXME à revoir l'attribut doit exister!
-    private AttributeModel loadAttribute(String attrName, StacPropertyConfiguration sPropConfig,
+    private AttributeModel loadAttribute(String attrName, StacSourcePropertyConfiguration sPropConfig,
             StacPropertyType sPropType) {
         AttributeModel attribute = Try.of(() -> finder.findByName(attrName)).getOrElseGet(t -> {
             AttributeModel result = new AttributeModel();
@@ -131,7 +132,7 @@ public class RegardsPropertyAccessorFactory {
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
             String attrName) {
         return entity -> trying(() -> extractValue(sPropType.getValueType(), sPropType, entity.getFeature()
-                .getProperty(attrName))).mapFailure(DATAOBJECT_ATTRIBUTE_VALUE_EXTRACTION,
+                .getProperty(attrName))).mapFailure(ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
                                                     () -> format("Failed to extract value for %s in data object %s",
                                                                  attrName, entity.getIpId()));
     }
@@ -158,8 +159,8 @@ public class RegardsPropertyAccessorFactory {
         return entity -> trying(() -> JsonObject.class.cast(entity.getFeature().getProperty(attrName).getValue()))
                 .map(jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
                 .map(value -> extractJsonValue(sPropType, (JsonPrimitive) value))
-                .mapFailure(DATAOBJECT_JSON_EXTRACTION, () -> format("Failed to extract JSON value at %s in data object %s",
-                                                                     jsonPath, entity.getIpId()));
+                .mapFailure(ENTITY_JSON_EXTRACTION, () -> format("Failed to extract JSON value at %s in data object %s",
+                                                                 jsonPath, entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")

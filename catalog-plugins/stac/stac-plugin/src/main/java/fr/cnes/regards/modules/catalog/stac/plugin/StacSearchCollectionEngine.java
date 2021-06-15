@@ -18,14 +18,28 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin;
 
+import com.google.common.collect.Lists;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSimplePropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.search.domain.plugin.IEntityLinkBuilder;
+import fr.cnes.regards.modules.search.domain.plugin.ISearchEngine;
+import fr.cnes.regards.modules.search.domain.plugin.SearchContext;
+import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 /**
- * Only used for STAC collection search configuration
+ * Only used for STAC collection search configuration.
+ * STAC collection search is based on {@link fr.cnes.regards.modules.dam.domain.entities.Dataset}
  *
  * @author Marc SORDI
  */
@@ -36,12 +50,51 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StacSearchCollectionEngine {
+public class StacSearchCollectionEngine implements ISearchEngine<Object, ItemSearchBody, Object, List<String>> {
 
     public static final String PLUGIN_ID = "stac-collection-search";
 
-    @PluginParameter(name = "stac-api-root-dynamic-collection-title", label = "STAC root dynamic collection title",
-            description = "Displayed label for the dynamic collections root.", defaultValue = "dynamic",
-            optional = true)
-    private String rootDynamicCollectionTitle;
+    private static final String BAD_REQUEST_MESSAGE = "Use STAC standard API to use this plugin";
+
+    @PluginParameter(label = "STAC collection title", optional = true)
+    private StacSourcePropertyConfiguration stacCollectionTitle;
+
+    @PluginParameter(label = "STAC collection description")
+    private StacSourcePropertyConfiguration stacCollectionDescription;
+
+    @PluginParameter(label = "STAC collection keywords", optional = true)
+    private StacSourcePropertyConfiguration stacCollectionKeywords;
+
+    @PluginParameter(label = "STAC collection license")
+    private StacSourcePropertyConfiguration stacCollectionLicense;
+
+    @PluginParameter(label = "STAC collection providers", optional = true)
+    private StacSourcePropertyConfiguration stacCollectionProviders;
+
+    // TODO extent ... mapping or computed properties : mapping plus rapide! mais inexact en recherche!
+
+    @PluginParameter(label = "STAC properties for collection summaries (strongly recommended)", optional = true)
+    private List<StacSimplePropertyConfiguration> stacCollectionSummaries = Lists.newArrayList();
+
+    @Override
+    public boolean supports(SearchType searchType) {
+        return false;
+    }
+
+    @Override
+    public ResponseEntity<Object> search(SearchContext context, ISearchEngine<?, ?, ?, ?> requestParser,
+            IEntityLinkBuilder linkBuilder) throws ModuleException {
+        return ResponseEntity.badRequest().body(BAD_REQUEST_MESSAGE);
+    }
+
+    @Override
+    public ICriterion parse(SearchContext context) throws ModuleException {
+        return ICriterion.all();
+    }
+
+    @Override
+    public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder)
+            throws ModuleException {
+        return ResponseEntity.badRequest().body(BAD_REQUEST_MESSAGE);
+    }
 }

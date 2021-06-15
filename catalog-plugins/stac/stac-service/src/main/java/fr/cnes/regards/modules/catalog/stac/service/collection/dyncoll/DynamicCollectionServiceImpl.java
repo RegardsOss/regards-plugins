@@ -28,6 +28,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.slf4j.Logger;
@@ -164,14 +166,14 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     private Collection createCollectionFrom(DynCollVal val, Extent extent, Map<String, Object> summary, List<Link> baseLinks,
             List<Link> childLinks) {
-        List<String> extensions = List.empty();
+        Set<String> extensions = HashSet.empty();
         List<String> keywords = List.empty();
         String license = "";
         List<Provider> providers = List.empty();
 
         return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, extensions, val.getLowestLevelLabel(),
                 representDynamicCollectionsValueAsURN(val), val.toLabel(), baseLinks.appendAll(childLinks), keywords,
-                license, providers, extent, summary);
+                license, providers, extent, summary,null,null);
     }
 
     private List<Link> createChildLinks(List<DynCollVal> nextVals, OGCFeatLinkCreator linkCreator) {

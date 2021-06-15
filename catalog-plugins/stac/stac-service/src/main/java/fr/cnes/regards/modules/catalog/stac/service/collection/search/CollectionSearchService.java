@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;

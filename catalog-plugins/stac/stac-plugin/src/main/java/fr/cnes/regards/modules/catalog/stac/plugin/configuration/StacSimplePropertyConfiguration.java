@@ -44,27 +44,26 @@ public class StacSimplePropertyConfiguration extends StacSourcePropertyConfigura
             label = "Enclosing object name (i.e. namespace) for current property",
             description = "This parameter determines an optional enclosing object for current property",
             optional = true)
-    private String stacPropertyNamespace;
+    protected String stacPropertyNamespace;
 
     @PluginParameter(name = "stacPropertyName", label = "STAC property name (Expected format : {extension:}name)",
             description = "This parameter determines the name of"
                     + " the STAC property corresponding to the model attribute name.")
-    private String stacPropertyName;
+    protected String stacPropertyName;
 
     // FIXME optional?
     @PluginParameter(name = "stacPropertyExtension", label = "Name or URL of the STAC extension",
             description = "If this STAC property is not defined in the standard, give the name or URL of its extension.",
             optional = true)
-    private String stacPropertyExtension;
+    protected String stacPropertyExtension;
 
     @PluginParameter(name = "stacPropertyType", label = "STAC property type",
             description = "Should take a value among: " + "'DATETIME', " + "'URL', " + "'STRING', " + "'ANGLE', "
                     + "'LENGTH', " + "'PERCENTAGE', " + "'NUMBER', " + "'BOOLEAN', " + "'JSON_OBJECT'.",
             defaultValue = "STRING", optional = true)
-    private String stacPropertyType;
+    protected String stacPropertyType;
 
     @PluginParameter(name = STAC_FORMAT, label = "Format for the STAC value", markdown = STAC_FORMAT_MD,
             optional = true)
-    private String stacPropertyFormat;
-
+    protected String stacPropertyFormat;
 }

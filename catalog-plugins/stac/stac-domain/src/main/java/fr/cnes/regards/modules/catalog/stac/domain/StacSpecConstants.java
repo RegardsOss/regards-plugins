@@ -41,6 +41,20 @@ public class StacSpecConstants {
         String TAGS_PROPERTY_NAME = "tags";
 
         String ID_PROPERTY_NAME = "ipId";
+
+        // Collection
+
+        String COLLECTION_TITLE_PROPERTY_NAME = "title";
+
+        String COLLECTION_DESCRIPTION_PROPERTY_NAME = "description";
+
+        String COLLECTION_KEYWORDS_PROPERTY_NAME = "keywords";
+
+        String COLLECTION_LICENSE_PROPERTY_NAME = "license";
+
+        String COLLECTION_PROVIDERS_PROPERTY_NAME = "providers";
+
+        String COLLECTION_SUMMARIES_PROPERTY_NAME = "summaries";
     }
 
     public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()

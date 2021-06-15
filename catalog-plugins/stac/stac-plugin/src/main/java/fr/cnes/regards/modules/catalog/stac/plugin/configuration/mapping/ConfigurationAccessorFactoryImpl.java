@@ -19,28 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.PLUGIN_CONFIGURATION_ACCESS;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
-
-import java.net.URL;
-import java.util.ArrayList;
-
-import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
-import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
-import org.locationtech.spatial4j.io.GeoJSONReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
@@ -57,40 +37,50 @@ import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
+import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
+import org.locationtech.spatial4j.io.GeoJSONReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.net.URL;
+import java.util.ArrayList;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Allows to transform property configuration to domain properties, and access
  * configuration in its "domain" form.
  */
 @Component
-public class StacConfigurationDomainAccessor implements ConfigurationAccessorFactory {
+public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAccessor
+        implements ConfigurationAccessorFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StacConfigurationDomainAccessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationAccessorFactoryImpl.class);
 
     private final PropertyConverterFactory propertyConverterFactory;
-
-    private final IPluginService pluginService;
-
-    private final RegardsPropertyAccessorFactory regardsPropertyAccessorFactory;
 
     private final IRuntimeTenantResolver runtimeTenantResolver;
 
     private final ProjectGeoSettings geoSettings;
 
     @Autowired
-    public StacConfigurationDomainAccessor(PropertyConverterFactory propertyConverterFactory, IPluginService pluginService,
-            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory, IRuntimeTenantResolver runtimeTenantResolver,
-            ProjectGeoSettings geoSettings) {
+    public ConfigurationAccessorFactoryImpl(PropertyConverterFactory propertyConverterFactory,
+            IPluginService pluginService, RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
+            IRuntimeTenantResolver runtimeTenantResolver, ProjectGeoSettings geoSettings) {
+        super(pluginService, regardsPropertyAccessorFactory);
         this.propertyConverterFactory = propertyConverterFactory;
-        this.pluginService = pluginService;
-        this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
         this.runtimeTenantResolver = runtimeTenantResolver;
         this.geoSettings = geoSettings;
     }
 
     @Override
     public ConfigurationAccessor makeConfigurationAccessor() {
-        final Try<StacSearchEngine> plugin = getPlugin();
+        final Try<StacSearchEngine> plugin = getPlugin(StacSearchEngine.PLUGIN_ID);
         return new ConfigurationAccessor() {
 
             @Override
@@ -116,7 +106,8 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public List<StacProperty> getStacProperties() {
-                return plugin.map(StacConfigurationDomainAccessor.this::getConfiguredProperties).getOrElse(List.empty());
+                return plugin.map(ConfigurationAccessorFactoryImpl.this::getConfiguredProperties)
+                        .getOrElse(List.empty());
             }
 
             @Override
@@ -138,7 +129,8 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
 
             @Override
             public String getLicense(String datasetUrn) {
-                return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense).getOrNull();
+                return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense)
+                        .getOrNull();
             }
 
             private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
@@ -166,8 +158,9 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
     }
 
     private Provider getProvider(ProviderConfiguration pc) {
-        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles()).flatMap(role -> trying(() -> ProviderRole.valueOf(role))
-                .onFailure(t -> warn(LOGGER, "Failed to parse provider role {}", role)));
+        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles()).flatMap(
+                role -> trying(() -> ProviderRole.valueOf(role))
+                        .onFailure(t -> warn(LOGGER, "Failed to parse provider role {}", role)));
         URL providerUrl = trying(() -> new URL(pc.getProviderUrl()))
                 .onFailure(t -> warn(LOGGER, "Failed to parse provider URL in {}", pc)).getOrNull();
         return new Provider(pc.getProviderName(), pc.getProviderDescription(), providerUrl, roles);
@@ -177,39 +170,18 @@ public class StacConfigurationDomainAccessor implements ConfigurationAccessorFac
         return paramConfigurations.map(s -> {
             debug(LOGGER, "Converting stac prop config: {}", s);
             StacPropertyType stacType = StacPropertyType.parse(s.getStacPropertyType());
-            @SuppressWarnings("rawtypes")
-            AbstractPropertyConverter converter = propertyConverterFactory.getConverter(stacType, s.getStacPropertyFormat(),
-                                                                                        s.getSourcePropertyFormat());
+            @SuppressWarnings("rawtypes") AbstractPropertyConverter converter = propertyConverterFactory
+                    .getConverter(stacType, s.getStacPropertyFormat(), s.getSourcePropertyFormat());
             return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyNamespace(),
-                    s.getStacPropertyName(), s.getStacPropertyExtension(),
-                    s.getStacComputeSummary() && canComputeSummary(stacType), s.getStacDynamicCollectionLevel(),
-                    s.getStacDynamicCollectionFormat(), stacType, converter);
+                                    s.getStacPropertyName(), s.getStacPropertyExtension(),
+                                    s.getStacComputeSummary() && canComputeSummary(stacType),
+                                    s.getStacDynamicCollectionLevel(), s.getStacDynamicCollectionFormat(), stacType,
+                                    converter);
         }).toList();
-    }
-
-    private RegardsPropertyAccessor extractPropertyAccessor(StacPropertyConfiguration sPropConfig,
-            StacPropertyType stacType) {
-        return regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
     }
 
     private boolean canComputeSummary(StacPropertyType type) {
         return type.canBeSummarized();
-    }
-
-    private Try<StacSearchEngine> getPlugin() {
-        return List.ofAll(pluginService.getActivePluginConfigurations(StacSearchEngine.PLUGIN_ID)).headOption().toTry()
-                .flatMap(this::loadPluginFromConfiguration);
-
-    }
-
-    private Try<StacSearchEngine> loadPluginFromConfiguration(PluginConfiguration pc) {
-        return trying(() -> getOptionalPlugin(pc).get())
-                .mapFailure(PLUGIN_CONFIGURATION_ACCESS, () -> format("Failed to load plugin configuration in %s", pc));
-    }
-
-    private Option<StacSearchEngine> getOptionalPlugin(PluginConfiguration pc)
-            throws NotAvailablePluginConfigurationException {
-        return Option.ofOptional(pluginService.getOptionalPlugin(pc.getBusinessId()));
     }
 
     private List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {
