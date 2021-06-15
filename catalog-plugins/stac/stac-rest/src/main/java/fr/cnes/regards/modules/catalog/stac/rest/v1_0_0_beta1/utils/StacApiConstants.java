@@ -32,6 +32,8 @@ public interface StacApiConstants {
 
     String SEARCH_ITEMBODY_QUERY_PARAM = "itemBody";
 
+    String SEARCH_COLLECTIONBODY_QUERY_PARAM = "collectionBody";
+
     String LIMIT_QUERY_PARAM = "limit";
 
     String PAGE_QUERY_PARAM = "page";

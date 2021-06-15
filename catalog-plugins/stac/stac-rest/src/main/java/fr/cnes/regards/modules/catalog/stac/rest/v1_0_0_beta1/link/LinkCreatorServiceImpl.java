@@ -22,14 +22,15 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.searchcol.CollectionSearchController;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
@@ -47,10 +48,9 @@ import java.lang.reflect.Method;
 import java.net.URI;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryOf;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryOf;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 import static io.vavr.control.Option.none;
 
 /**
@@ -62,7 +62,9 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
 
     private final IRuntimeTenantResolver tenantResolver;
+
     private final UriParamAdder uriParamAdder;
+
     private final Gson gson;
 
     // @formatter:off
@@ -170,66 +172,99 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         };
     }
 
+    // @formatter:on
+
     @Override
-    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page, ItemSearchBody itemSearchBody) {
+    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page,
+            ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
 
             @Override
             public Option<URI> searchAll() {
-                return tryOf(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                ItemSearchController.class,
-                                getMethodNamedInClass(ItemSearchController.class, "simple")
-                        ).toUri()
-                )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                .onFailure(t -> warn(LOGGER, "Failed to create search all", t))
-                .toOption();
+                return tryOf(() -> WebMvcLinkBuilder
+                        .linkTo(ItemSearchController.class, getMethodNamedInClass(ItemSearchController.class, "simple"))
+                        .toUri()).flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create search all", t)).toOption();
             }
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
-                return tryOf(() ->
-                    WebMvcLinkBuilder.linkTo(
-                        ItemSearchController.class,
-                        getMethodNamedInClass(ItemSearchController.class, "otherPage"),
-                        itemBodyB64,
-                        i
-                    ).toUri()
-                )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                .flatMapTry(uriParamAdder.appendParams(HashMap.of(
-                    SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64,
-                    PAGE_QUERY_PARAM, "" + i
-                )))
-                .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
-                .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t))
-                .toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(ItemSearchController.class,
+                                                            getMethodNamedInClass(ItemSearchController.class,
+                                                                                  "otherPage"), itemBodyB64, i).toUri())
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth)).flatMapTry(uriParamAdder.appendParams(
+                                HashMap.of(SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64, PAGE_QUERY_PARAM, "" + i)))
+                        .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
+                        .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t)).toOption();
             }
 
             @Override
-            public Option<URI> createNextPageLink(ItemCollectionResponse itemCollection) {
+            public Option<URI> createNextPageLink() {
                 return createPageLink(page + 1, itemSearchBody, auth);
             }
 
             @Override
-            public Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection) {
+            public Option<URI> createPrevPageLink() {
                 return page == 0 ? none() : createPageLink(page - 1, itemSearchBody, auth);
             }
 
             @Override
-            public Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection) {
+            public Option<URI> createSelfPageLink() {
                 return createPageLink(page, itemSearchBody, auth);
             }
         };
     }
 
     private <T> Method getMethodNamedInClass(Class<T> type, String methodName) {
-        return Stream.of(type.getDeclaredMethods())
-            .filter(m -> methodName.equals(m.getName()))
-            .head();
+        return Stream.of(type.getDeclaredMethods()).filter(m -> methodName.equals(m.getName())).head();
     }
 
-    // @formatter:on
+    @Override
+    public SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth, Integer page,
+            CollectionSearchBody collectionSearchBody) {
+        return new SearchPageLinkCreator() {
 
+            @Override
+            public Option<URI> searchAll() {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionSearchController.class,
+                                                            getMethodNamedInClass(CollectionSearchController.class,
+                                                                                  "simple")).toUri())
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+            }
+
+            private Option<URI> createPageLink(int i, CollectionSearchBody collectionSearchBody,
+                    JWTAuthentication auth) {
+                String collectionBodyB64 = toBase64(gson.toJson(collectionSearchBody));
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionSearchController.class,
+                                                            getMethodNamedInClass(CollectionSearchController.class,
+                                                                                  "otherPage"), collectionBodyB64, i)
+                        .toUri()).flatMapTry(uriParamAdder.appendAuthParams(auth)).flatMapTry(uriParamAdder
+                                                                                                      .appendParams(
+                                                                                                              HashMap.of(
+                                                                                                                      SEARCH_COLLECTIONBODY_QUERY_PARAM,
+                                                                                                                      collectionBodyB64,
+                                                                                                                      PAGE_QUERY_PARAM,
+                                                                                                                      ""
+                                                                                                                              + i)))
+                        .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
+                        .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t)).toOption();
+            }
+
+            @Override
+            public Option<URI> createNextPageLink() {
+                return createPageLink(page + 1, collectionSearchBody, auth);
+            }
+
+            @Override
+            public Option<URI> createPrevPageLink() {
+                return page == 0 ? none() : createPageLink(page - 1, collectionSearchBody, auth);
+            }
+
+            @Override
+            public Option<URI> createSelfPageLink() {
+                return createPageLink(page, collectionSearchBody, auth);
+            }
+        };
+    }
 }

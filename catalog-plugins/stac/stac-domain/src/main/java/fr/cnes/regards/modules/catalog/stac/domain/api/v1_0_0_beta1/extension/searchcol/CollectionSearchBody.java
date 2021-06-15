@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.s
 
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
@@ -39,29 +40,52 @@ import lombok.With;
 public class CollectionSearchBody {
 
     BBox bbox;
+
     DateInterval datetime;
+
     IGeometry intersects;
+
     // FIXME pertinent ou non? on rechercherait dans les jeux liés à ces collections?
     List<String> collections;
+
     List<String> ids;
+
     Integer limit;
+
     SearchBody.Fields fields;
+
     Map<String, SearchBody.QueryObject> query;
+
     List<SearchBody.SortBy> sortBy;
+
     // Item search body
     CollectionItemSearchBody item;
 
     // A light version of ItemSearchBody for collection search.
     // Only used for aggregation
-    @Value @With @Builder
+    @Value
+    @With
+    @Builder
     public static class CollectionItemSearchBody {
+
         BBox bbox;
+
         DateInterval datetime;
+
         IGeometry intersects;
+
         // FIXME pertinent ou non?
         List<String> collections;
+
         List<String> ids;
+
         SearchBody.Fields fields;
+
         Map<String, SearchBody.QueryObject> query;
+
+        public ItemSearchBody toItemSearchBody() {
+            return ItemSearchBody.builder().bbox(bbox).datetime(datetime).intersects(intersects)
+                    .collections(collections).ids(ids).fields(fields).query(query).build();
+        }
     }
 }

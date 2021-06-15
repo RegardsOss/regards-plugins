@@ -20,8 +20,7 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
-import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
-import fr.cnes.regards.modules.search.service.SearchException;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
 
 /**
@@ -31,7 +30,6 @@ import io.vavr.control.Try;
  */
 public interface CollectionSearchService {
 
-    // FIXME remove exception ... use trying
-    Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
-            throws SearchException, OpenSearchUnknownParameter;
+    Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page,
+            SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator);
 }

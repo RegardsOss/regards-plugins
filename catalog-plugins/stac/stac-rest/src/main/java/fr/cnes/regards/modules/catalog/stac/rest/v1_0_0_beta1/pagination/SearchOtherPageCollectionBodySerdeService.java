@@ -17,22 +17,19 @@
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.cnes.regards.modules.catalog.stac.service.link;
+package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 
-import io.vavr.control.Option;
-
-import java.net.URI;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import io.vavr.control.Try;
 
 /**
- * Interface providing methods to build links for search pagination.
+ * Serialize and deserialize item serach bodies into string tokens,
+ * use for next/prev page links.
  */
-public interface SearchPageLinkCreator {
+public interface SearchOtherPageCollectionBodySerdeService {
 
-    Option<URI> searchAll();
+    String serialize(CollectionSearchBody collectionSearchBody);
+    Try<CollectionSearchBody> deserialize(String repr);
 
-    Option<URI> createNextPageLink();
-
-    Option<URI> createPrevPageLink();
-
-    Option<URI> createSelfPageLink();
 }

@@ -25,8 +25,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollecti
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -130,24 +128,12 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
                 List.empty(), // resolved later
                 context
             );
-            return response.withLinks(extractLinks(searchPageLinkCreator, response));
+            return response.withLinks(extractLinks(searchPageLinkCreator));
         })
         .mapFailure(
             ITEMCOLLECTIONRESPONSE_CONSTRUCTION,
             () -> "Failed to create ItemCollectionResponse"
         );
-    }
-
-    private List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, ItemCollectionResponse response) {
-        return List.of(
-            searchPageLinkCreator.createSelfPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
-            searchPageLinkCreator.createNextPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
-            searchPageLinkCreator.createPrevPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
-        )
-        .flatMap(l -> l);
     }
 
     private List<Item> extractStacItems(

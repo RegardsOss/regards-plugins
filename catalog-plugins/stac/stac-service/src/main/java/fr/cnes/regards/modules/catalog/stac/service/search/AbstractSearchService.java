@@ -18,10 +18,14 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.search;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.data.domain.PageRequest;
@@ -59,5 +63,17 @@ public abstract class AbstractSearchService {
                 .map(StacProperty::getRegardsPropertyAccessor)
                 .map(RegardsPropertyAccessor::getRegardsAttributeName) // TODO: this does not work with internal JSON properties
                 .getOrElse(field);
+    }
+
+    protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator) {
+        return List.of(
+                searchPageLinkCreator.createSelfPageLink()
+                        .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
+                searchPageLinkCreator.createNextPageLink()
+                        .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
+                searchPageLinkCreator.createPrevPageLink()
+                        .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
+        )
+                .flatMap(l -> l);
     }
 }

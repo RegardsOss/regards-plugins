@@ -43,10 +43,8 @@ import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
-import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
-import fr.cnes.regards.modules.search.service.SearchException;
 import fr.cnes.regards.modules.search.service.accessright.AccessRightFilterException;
 import fr.cnes.regards.modules.search.service.accessright.IAccessRightFilter;
 import io.vavr.Tuple2;
@@ -105,10 +103,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     @Autowired
     private PropertyExtractionService propertyExtractionService;
 
-    // FIXME remove exception ... use trying
     @Override
-    public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page)
-            throws SearchException, OpenSearchUnknownParameter {
+    public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page,
+            SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator) {
 
         // Retrieve configured collection properties
         CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory
@@ -158,9 +155,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 () -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null, pageable))
                 .mapFailure(SEARCH, () -> String
                         .format("Collection search failure for page %d of %s", page, collectionSearchBody)).flatMap(
-                        facetPage -> extractCollection(facetPage, itemStacProperties, null, null, finalDatasetCount,
-                                                       collectionConfigurationAccessor));
-        // FIXME set link creator according to expected standard on collection response
+                        facetPage -> extractCollection(facetPage, itemStacProperties, null,
+                                                       searchCollectionPageLinkCreator, searchItemPageLinkCreator,
+                                                       finalDatasetCount, collectionConfigurationAccessor));
     }
 
     private Map<String, Long> getDatasetIds(ICriterion itemCriteria, int size) throws AccessRightFilterException {
@@ -169,35 +166,28 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         Terms datasetIdsAgg = aggregations.get(DATASET_AGG_NAME);
         return List.ofAll(datasetIdsAgg.getBuckets()).map(b -> new Tuple2<>(b.getKeyAsString(), b.getDocCount()))
                 .toMap(kv -> kv);
-
-        //        return datasetIdsAgg.getBuckets().stream().collect(Collectors
-        //                                                                   .toMap(MultiBucketsAggregation.Bucket::getKeyAsString,
-        //                                                                          MultiBucketsAggregation.Bucket::getDocCount));
     }
 
     private Try<SearchCollectionsResponse> extractCollection(FacetPage<Dataset> facetPage,
             List<StacProperty> stacProperties, OGCFeatLinkCreator featLinkCreator,
-            SearchPageLinkCreator searchPageLinkCreator, Map<String, Long> datasetCount,
-            CollectionConfigurationAccessor collectionConfigurationAccessor) {
+            SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator,
+            Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor) {
         return trying(() -> {
             Context context = new Context(facetPage.getNumberOfElements(), facetPage.getPageable().getPageSize(),
                                           facetPage.getTotalElements());
             SearchCollectionsResponse response = new SearchCollectionsResponse(HashSet.empty(), buildCollections(
-                    Stream.ofAll(facetPage.get()), stacProperties, datasetCount, collectionConfigurationAccessor),
-                                                                               buildCollectionLinks(), context);
+                    Stream.ofAll(facetPage.get()), stacProperties, datasetCount, collectionConfigurationAccessor,
+                    searchItemPageLinkCreator), extractLinks(searchCollectionPageLinkCreator), context);
             return response;
         }).mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
     }
 
-    private List<Link> buildCollectionLinks() {
-        return null;
-    }
-
     private List<Collection> buildCollections(Stream<Dataset> datasetStream, List<StacProperty> stacProperties,
-            Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor) {
+            Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor,
+            SearchPageLinkCreator searchItemPageLinkCreator) {
         return datasetStream.flatMap(
-                dataset -> buidFromDataset(dataset, stacProperties, datasetCount, collectionConfigurationAccessor))
-                .toList();
+                dataset -> buidFromDataset(dataset, stacProperties, datasetCount, collectionConfigurationAccessor,
+                                           searchItemPageLinkCreator)).toList();
     }
 
     //    private Collection buildFromDataset(Dataset dataset) {
@@ -209,7 +199,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     //    }
 
     private Try<Collection> buidFromDataset(Dataset dataset, List<StacProperty> stacProperties,
-            Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor) {
+            Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor,
+            SearchPageLinkCreator searchItemPageLinkCreator) {
         return trying(() -> {
 
             //            String urn = resourceName.toString();
@@ -242,26 +233,24 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             //            AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
             // Retrieve information from dataset properties
-            Map<String, Object> summaries = extractSummaries(dataset, collectionConfigurationAccessor.getSummariesProperties());
+            Map<String, Object> summaries = extractSummaries(dataset,
+                                                             collectionConfigurationAccessor.getSummariesProperties());
             Set<String> extensions = extractExtensions(summaries);
 
             return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, extensions,
                                   extractTitle(dataset, collectionConfigurationAccessor.getTitleProperty()),
                                   dataset.getIpId().toString(),
                                   extractDescription(dataset, collectionConfigurationAccessor.getDescriptionProperty()),
-                                  extractLinks(),
+                                  extractItemLinks(searchItemPageLinkCreator),
                                   extractKeywords(dataset, collectionConfigurationAccessor.getKeywordsProperty()),
                                   extractLicense(dataset, collectionConfigurationAccessor.getLicenseProperty()),
                                   extractProviders(dataset, collectionConfigurationAccessor.getProvidersProperty()),
-                                  extractExtent(),
-                                  summaries,
-                                  extractAssets(dataset), buildContext(dataset, datasetCount));
+                                  extractExtent(), summaries, extractAssets(dataset),
+                                  buildContext(dataset, datasetCount));
 
         }).mapFailure(COLLECTION_CONSTRUCTION,
                       () -> String.format("Failed to build collection for URN %s", dataset.getIpId()));
     }
-
-
 
     /**
      * @return optional title
@@ -282,8 +271,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     /**
      * @return required links
      */
-    private List<Link> extractLinks() {
-        return List.empty();
+    private List<Link> extractItemLinks(SearchPageLinkCreator searchItemPageLinkCreator) {
+        return List.of(searchItemPageLinkCreator.createSelfPageLink()
+                               .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON,
+                                                    "this search page"))).flatMap(l -> l);
     }
 
     /**
@@ -339,7 +330,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return propertyExtractionService.extractStacProperties(dataset, stacProperties);
     }
 
-    private Set<String> extractExtensions(Map<String, Object> stacProperties)  {
+    private Set<String> extractExtensions(Map<String, Object> stacProperties) {
         return propertyExtractionService.extractExtensions(stacProperties);
     }
 
