@@ -38,6 +38,11 @@ public class StacSimplePropertyConfiguration extends StacSourcePropertyConfigura
             String sourcePropertyFormat, String stacPropertyNamespace, String stacPropertyName,
             String stacPropertyExtension, String stacPropertyType, String stacPropertyFormat) {
         super(sourcePropertyPath,sourceJsonPropertyPath,sourcePropertyFormat);
+        this.stacPropertyNamespace = stacPropertyNamespace;
+        this.stacPropertyName = stacPropertyName;
+        this.stacPropertyExtension = stacPropertyExtension;
+        this.stacPropertyType = stacPropertyType;
+        this.stacPropertyFormat = stacPropertyFormat;
     }
 
     @PluginParameter(name = "stacPropertyNamespace",
