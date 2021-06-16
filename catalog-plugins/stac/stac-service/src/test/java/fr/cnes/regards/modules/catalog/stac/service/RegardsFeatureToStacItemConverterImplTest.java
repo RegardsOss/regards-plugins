@@ -90,7 +90,8 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         when(configurationAccessor.getGeoJSONReader())
                 .thenAnswer(i -> stacGeoHelper.makeGeoJSONReader(stacGeoHelper.updateFactory(true)));
 
-        when(linkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root")).map(uri -> new Link(uri, ROOT, "", "")));
+        when(linkCreator.createRootLink())
+                .thenAnswer(i -> Option.of(uri("/root")).map(uri -> new Link(uri, ROOT, "", "")));
         when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option
                 .of(uri("/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
         when(linkCreator.createItemLink(anyString(), anyString()))
@@ -98,12 +99,13 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                         .map(uri -> new Link(uri, SELF, "", "")));
 
         List<StacProperty> stacProperties = List.of(new StacProperty(
-                accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null, "stac:prop",
-                "", false, 0, null, StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
-        FeatureUniformResourceName itemIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,
-                                                                               tenant, UUID.randomUUID(), 1);
-        DataObjectFeature dof = new DataObjectFeature(itemIpId, "theProvider", "theLabel", "theSessionOwner", "theSession",
-                "theModelName");
+                accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null,
+                "stac:prop", "", false, 0, null, StacPropertyType.DATETIME,
+                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+        FeatureUniformResourceName itemIpId = FeatureUniformResourceName
+                .build(FeatureIdentifier.FEATURE, EntityType.DATA, tenant, UUID.randomUUID(), 1);
+        DataObjectFeature dof = new DataObjectFeature(itemIpId, "theProvider", "theLabel", "theSessionOwner",
+                "theSession", "theModelName");
         DataObject feature = DataObject.wrap(model, dof, true);
         String parentDatasetIpId = FeatureUniformResourceName
                 .build(FeatureIdentifier.FEATURE, EntityType.DATASET, tenant, UUID.randomUUID(), 1).toString();
@@ -148,7 +150,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
 
         DataFile feat1File1 = new DataFile();
         feat1File1.setOnline(true);
-        feat1File1.setUri(uri("file:///test/quicklook.jpg"));
+        feat1File1.setUri("file:///test/quicklook.jpg");
         feat1File1.setFilename("quicklook.jpg");
         feat1File1.setFilesize(42000L);
         feat1File1.setReference(false);
@@ -159,7 +161,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
 
         DataFile feat2File2 = new DataFile();
         feat2File2.setOnline(true);
-        feat2File2.setUri(uri("file:///test/feat2_file2.txt"));
+        feat2File2.setUri("file:///test/feat2_file2.txt");
         feat2File2.setFilename("feat2_file2.txt");
         feat2File2.setFilesize(3050L);
         feat2File2.setReference(false);

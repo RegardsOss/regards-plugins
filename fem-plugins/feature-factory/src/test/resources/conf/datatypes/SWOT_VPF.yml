@@ -1,0 +1,47 @@
+SWOT_VPF:
+    name: SWOT_VPF_AXVCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
+        }}
+    Description: ''
+    example:
+    - SWOT_VPF_AXVCNE20180316_170700_20180212_215523_20180214_002323
+    document: SWOT-IS-CDM-1241-CNES PGE-PCM ICS for Bibli-Alti PRD
+    granule_type: Day
+    tar_content: []
+    mission: SWOT
+    Nature: DAD
+    metadata:
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
+    simu_method:
+        name: period
+        file_size: 64ko
+        directory: swot/corpfalti_poe/
+        has_path_by_date: false
+        creation:
+        -   period: 1
+            time: '120000'
+            offset_begin: -37h
+            offset_end: -11h
+    CHRONOS:
+        storage_server: GEODE
+        source: Notification
+        has_path_by_date: false
+        geode_sync_duration: 6m
+        lifetime_duration: ''
+        pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: ''
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: ''
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: 'True'
+        is_distributed: 'True'
+    real_path: traitement/swot/corpfalti_poe
+    NASorGPFS: GPFS

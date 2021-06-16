@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "L2_NALT_OGDR:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_OPN_2PfS003_068_20200203_000000_20200203_010404.nc",
-      "extension": "nc",
+      "filename": "SWOT_OGDR_CNES_2PfS003_068_20200203_000000_20200203_010404.zip",
+      "extension": "zip",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_OPN_2PfS003_068_20200203_000000_20200203_010404.nc",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_OGDR_CNES_2PfS003_068_20200203_000000_20200203_010404.zip",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

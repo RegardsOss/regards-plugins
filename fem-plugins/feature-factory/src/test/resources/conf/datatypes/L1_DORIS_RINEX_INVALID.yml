@@ -1,25 +1,41 @@
 L1_DORIS_RINEX_INVALID:
     name: DSWOT_FLA_1P{{ ProductVersionRinex }}D{{ SensingDateDay }}_000000
     Description: ''
-    document: "SMM-IF-BN1-EA-22105-CN"
-    example: ['DSWOT_FLA_1PaD20200303_000000']
+    document: SMM-IF-BN1-EA-22105-CN
+    example:
+    - DSWOT_FLA_1PaD20200303_000000
     granule_type: Day
     tar_content: []
     mission: SWOT
     Nature: Product
-    metadata: [ProductVersionRinex, SensingDateDay]
+    metadata:
+    - ProductVersionRinex
+    - SensingDateDay
     simu_method:
-      directory: swot/dor10_invalides
-      file_size: 10mo
-      has_path_by_date: false
-      name: product
+        directory: swot/dor10_invalides
+        file_size: 10mo
+        has_path_by_date: false
+        name: product
     CHRONOS:
-      geode_sync_duration: 6m
-      has_path_by_date: false
-      input_dir: ''
-      lifetime_duration: ''
-      output_dir: swot/dor10_invalides
-      pcm_metadata: []
-      source: Production
-      storage_server: GEODE
-      
+        geode_sync_duration: 6m
+        has_path_by_date: false
+        lifetime_duration: ''
+        pcm_metadata: []
+        source: Production
+        storage_server: GEODE
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'True '
+        SDS_queue: geode.sds.notification
+        SDS_filter: All
+        REGARDS_notified: 'True'
+        REGARDS_queue: 'geode.regards.notification'
+        REGARDS_filter: 'All'
+        is_datalake: 'False'
+        is_archived: 'True'
+        is_distributed: 'False'
+    NASorGPFS: GPFS
+    real_path: traitement/swot/dor10_invalides
+

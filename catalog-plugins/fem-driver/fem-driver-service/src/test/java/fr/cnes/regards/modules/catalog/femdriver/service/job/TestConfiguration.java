@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +33,8 @@ import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;;
 
 /**
  * Test configuration class
@@ -95,6 +95,11 @@ public class TestConfiguration {
     @Bean
     public IToponymsClient toponymsClient() {
         return Mockito.mock(IToponymsClient.class);
+    }
+
+    @Bean
+    public IStorageRestClient storageClient() {
+        return Mockito.mock(IStorageRestClient.class);
     }
 
 }

@@ -8,21 +8,22 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "HISTO_OEF:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_SCC_HISTO_OEF_20200303_070000.xml",
-      "extension": "xml",
+      "filename": "SWOT_SCC_HISTO_OEF_2020-09-03T11-23-45-678.XML",
+      "extension": "XML",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_SCC_HISTO_OEF_20200303_070000.xml",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_SCC_HISTO_OEF_2020-09-03T11-23-45-678.XML",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
-      "production_date": "2020-03-03T07:00:00Z",
-      "end_date": "2030-03-03T07:00:00Z",
-      "start_date": "2020-03-03T07:00:00Z",
+      "production_date": "2020-09-03T11:23:45.678Z",
+      "end_date": "2020-09-16T11:23:45.678Z",
+      "start_date": "2020-01-01T00:00:00Z",
       "type": "HISTO_OEF"
     },
     "swot": {

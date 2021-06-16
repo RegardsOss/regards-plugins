@@ -1,25 +1,56 @@
 L2_HR_PIXCVec:
-    name: SWOT_L2_HR_PIXCVec_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    name: SWOT_L2_HR_PIXCVec_{{ CycleID }}_{{ PassID }}_{{ TileID }}{{ TileSide }}_{{
+        RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter
+        }}.tar
     Description: ''
-    document: "D-56531_SWOT_Product_File_Naming_Convention"
-    example: ['SWOT_L2_HR_PIXCVec_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar']
+    document: D-56531_SWOT_Product_File_Naming_Convention
+    example:
+    - SWOT_L2_HR_PIXCVec_003_069_161L_20200203T010000_20200203T010010_VI0059_01.tar
     granule_type: Tile
-    tar_content: [zip, met.json, rc.xml, md5]
+    tar_content:
+    - zip
+    - met.json
+    - rc.xml
+    - md5
     mission: SWOT
     Nature: Product
-    metadata: [CycleID, PassID, TileID, TileSide, RangeBeginningDateTime, RangeEndingDateTime, CRID, ProductCounter]
+    metadata:
+    - CycleID
+    - PassID
+    - TileID
+    - TileSide
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - CRID
+    - ProductCounter
     simu_method:
-      directory: swot/l2_hr_pixcvec
-      file_size: 52.3go
-      has_path_by_date: false
-      name: product
+        directory: swot/l2_hr_pixcvec
+        file_size: 52.3go
+        has_path_by_date: false
+        name: product
     CHRONOS:
-      geode_sync_duration: 6m
-      has_path_by_date: false
-      input_dir: ''
-      lifetime_duration: ''
-      output_dir: swot/l2_hr_pixcvec
-      pcm_metadata: [RangeBeginningTAI, RangeEndingTAI, RangeBeginningDateTime, RangeEndingDateTime]
-      source: Production
-      storage_server: GEODE
-      
+        geode_sync_duration: 6m
+        has_path_by_date: false
+        lifetime_duration: ''
+        pcm_metadata:
+        - RangeBeginningTAI
+        - RangeEndingTAI
+        - RangeBeginningDateTime
+        - RangeEndingDateTime
+        source: Production
+        storage_server: GEODE
+    GEODE:
+        CHRONOS_notified: 'False'
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: 'True'
+        SDS_queue: geode.sds.notification
+        SDS_filter: All
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: isSentToJPL
+        is_datalake: 'True'
+        is_archived: 'True'
+        is_distributed: 'True'
+    real_path: traitement/swot/l2_hr_pixcvec
+    NASorGPFS: GPFS
