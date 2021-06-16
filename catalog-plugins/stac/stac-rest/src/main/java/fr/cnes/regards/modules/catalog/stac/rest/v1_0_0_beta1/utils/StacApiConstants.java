@@ -70,4 +70,9 @@ public interface StacApiConstants {
 
     String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
 
+    /**
+     * Parameter to pass query parameters on items on a collection search request
+     */
+    String STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX = "item_";
+
 }

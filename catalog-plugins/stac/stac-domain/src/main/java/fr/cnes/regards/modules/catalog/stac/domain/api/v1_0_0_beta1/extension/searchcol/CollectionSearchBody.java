@@ -79,13 +79,11 @@ public class CollectionSearchBody {
 
         List<String> ids;
 
-        SearchBody.Fields fields;
-
         Map<String, SearchBody.QueryObject> query;
 
         public ItemSearchBody toItemSearchBody() {
             return ItemSearchBody.builder().bbox(bbox).datetime(datetime).intersects(intersects)
-                    .collections(collections).ids(ids).fields(fields).query(query).build();
+                    .collections(collections).ids(ids).query(query).build();
         }
     }
 }

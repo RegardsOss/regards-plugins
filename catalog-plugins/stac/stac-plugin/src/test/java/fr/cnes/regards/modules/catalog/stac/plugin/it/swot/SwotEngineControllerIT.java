@@ -141,13 +141,24 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     public void searchCollectionsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define item criteria
-        Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
                 .query(q).build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
                            "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsGet() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("item_datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        // Define item criteria
+        // Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+
+        performDefaultGet(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, customizer, "Cannot search STAC collections");
     }
 
     @Test

@@ -145,6 +145,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         // Build collection search criteria
         // possibly incorporating the filter on the collections from the previous search
         ICriterion collectionCriteria = idCriterion.isDefined() ?
+                // FIXME build criterion according to collection mapping
                 ICriterion.and(idCriterion.get(), critBuilder.buildCriterion(itemStacProperties, collectionSearchBody)
                         .getOrElse(ICriterion.all())) :
                 critBuilder.buildCriterion(itemStacProperties, collectionSearchBody).getOrElse(ICriterion.all());
@@ -190,47 +191,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                            searchItemPageLinkCreator)).toList();
     }
 
-    //    private Collection buildFromDataset(Dataset dataset) {
-    //        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, List.empty(), name, DEFAULT_STATIC_ID,
-    //                              "Static collections", staticCollectionLinks(linkCreator), List.empty(), "", List.empty(),
-    //                              Extent.maximalExtent(), // no extent at this level
-    //                              HashMap.empty() // no summaries at this level
-    //        );
-    //    }
-
     private Try<Collection> buidFromDataset(Dataset dataset, List<StacProperty> stacProperties,
             Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor,
             SearchPageLinkCreator searchItemPageLinkCreator) {
         return trying(() -> {
-
-            //            String urn = resourceName.toString();
-            //
-            //            StacProperty datetimeStacProp = config.getDatetimeStacProperty();
-            //            List<StacProperty> stacProps = config.getStacProperties();
-            //            List<StacProperty> nonDatetimeStacProps = stacProps.remove(datetimeStacProp);
-            //
-            //            List<QueryableAttribute> creationDate = extentSummaryService.extentSummaryQueryableAttributes(
-            //                    datetimeStacProp,
-            //                    nonDatetimeStacProps
-            //            );
-            //
-            //            CollectionWithStats collectionWithStats = catalogSearchService.getCollectionWithDataObjectsStats(
-            //                    resourceName,
-            //                    SearchType.DATAOBJECTS,
-            //                    creationDate.toJavaList()
-            //            );
-
-            //            List<Link> links = getLinks(resourceName, linkCreator, urn);
-            //
-            //            List<Provider> providers = config.getProviders(urn)
-            //                    .map(x -> new Provider(x.getName(), x.getDescription(), x.getUrl(), x.getRoles()));
-            //
-            //            List<Aggregation> aggs = List.ofAll(collectionWithStats.getAggregationList());
-            //            Map<StacProperty, Aggregation> aggregationMap = extentSummaryService.toAggregationMap(stacProps, aggs);
-            //            Extent extent = extentSummaryService.extractExtent(aggregationMap);
-            //            Map<String, Object> summary = extentSummaryService.extractSummary(aggregationMap);
-            //
-            //            AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
             // Retrieve information from dataset properties
             Map<String, Object> summaries = extractSummaries(dataset,
@@ -342,57 +306,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
      * @return collection context
      */
     private Context buildContext(Dataset dataset, Map<String, Long> datasetCount) {
-        return new Context(null, null, datasetCount.get(dataset.getIpId().toString()).getOrNull());
+        return new Context(null, null,
+                           datasetCount == null ? null : datasetCount.get(dataset.getIpId().toString()).getOrNull());
     }
-
-    //    private Try<ItemCollectionResponse> extractItemCollection(
-    //            FacetPage<AbstractEntity<? extends EntityFeature>> facetPage,
-    //            List<StacProperty> stacProperties,
-    //            OGCFeatLinkCreator featLinkCreator,
-    //            SearchPageLinkCreator searchPageLinkCreator
-    //    ) {
-    //        return trying(() -> {
-    //            ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(
-    //                    facetPage.getNumberOfElements(),
-    //                    facetPage.getPageable().getPageSize(),
-    //                    facetPage.getTotalElements()
-    //            );
-    //            ItemCollectionResponse response = new ItemCollectionResponse(
-    //                    SEARCH_EXTENSIONS,
-    //                    extractStacItems(Stream.ofAll(facetPage.get()), stacProperties, featLinkCreator),
-    //                    List.empty(), // resolved later
-    //                    context
-    //            );
-    //            return response.withLinks(extractLinks(searchPageLinkCreator, response));
-    //        })
-    //                .mapFailure(
-    //                        ITEMCOLLECTIONRESPONSE_CONSTRUCTION,
-    //                        () -> "Failed to create ItemCollectionResponse"
-    //                );
-    //    }
-    //
-    //    private List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, ItemCollectionResponse response) {
-    //        return List.of(
-    //                searchPageLinkCreator.createSelfPageLink(response)
-    //                        .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
-    //                searchPageLinkCreator.createNextPageLink(response)
-    //                        .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
-    //                searchPageLinkCreator.createPrevPageLink(response)
-    //                        .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
-    //        )
-    //                .flatMap(l -> l);
-    //    }
-    //
-    //    private List<Item> extractStacItems(
-    //            Stream<AbstractEntity<? extends EntityFeature>> entityStream,
-    //            List<StacProperty> stacProperties,
-    //            OGCFeatLinkCreator featLinkCreator
-    //    ) {
-    //        return entityStream
-    //                .flatMap(entity ->
-    //                                 itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, entity)
-    //                )
-    //                .toList();
-    //    }
-
 }

@@ -108,7 +108,6 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
         return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getBbox()),
                              collectionsCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getCollections()),
                              dateIntervalCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getDatetime()),
-                             fieldsCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getFields()),
                              identitiesCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIds()),
                              geometryCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIntersects()),
                              queryObjectCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getQuery()))
