@@ -1,0 +1,52 @@
+L0B_KCAL_Frame:
+    name: SWOT_L0B_KCAL_Frame_{{ CycleID }}_{{ PassID }}_{{ RangeBeginningDateTime
+        }}_{{ RangeEndingDateTime }}_{{ CRID }}_{{ ProductCounter }}.tar
+    Description: 'Pas utilise pour le moment par le CNES'
+    document: D-56531_SWOT_Product_File_Naming_Convention
+    example:
+    - SWOT_L0B_KCAL_Frame_003_069_20200203T003320_20200203T012450_VI0059_01.tar
+    granule_type: Pass
+    tar_content:
+    - nc
+    - met.json
+    - rc.xml
+    mission: SWOT
+    Nature: Product
+    metadata:
+    - CycleID
+    - PassID
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - CRID
+    - ProductCounter
+    simu_method:
+        directory: swot/l0b_kcal
+        file_size: 0.283go
+        has_path_by_date: false
+        name: product
+    CHRONOS:
+        geode_sync_duration: ''
+        has_path_by_date: false
+        lifetime_duration: ''
+        pcm_metadata:
+        - RangeBeginningTAI
+        - RangeEndingTAI
+        - RangeBeginningDateTime
+        - RangeEndingDateTime
+        source: JPL
+        storage_server: ''
+    GEODE:
+        CHRONOS_notified: ''
+        CHRONOS_queue: ''
+        CHRONOS_filter: ''
+        SDS_notified: ''
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: ''
+        REGARDS_queue: ''
+        REGARDS_filter: ''
+        is_datalake: ''
+        is_archived: ''
+        is_distributed: ''
+    real_path: ''
+    NASorGPFS: GPFS

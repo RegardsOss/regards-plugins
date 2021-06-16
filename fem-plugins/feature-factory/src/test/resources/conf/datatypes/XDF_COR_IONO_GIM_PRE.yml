@@ -1,0 +1,47 @@
+XDF_COR_IONO_GIM_PRE:
+    name: SWOT_ION_AXFCNE{{ CreationDateTime }}_{{ StartDateTime }}_{{ EndDateTime
+        }}
+    Description: ''
+    example:
+    - SWOT_ION_AXFCNE20200303_065500_20200302_000000_20200302_235959
+    document: SWOT-ICD-SYS-0421-CNES
+    granule_type: Segment
+    tar_content: []
+    mission: MM
+    Nature: Product
+    metadata:
+    - CreationDateTime
+    - StartDateTime
+    - EndDateTime
+    simu_method:
+        name: period
+        file_size: 1mo
+        directory: swot/gim
+        has_path_by_date: false
+        creation:
+        -   period: 1
+            time: '065500'
+            offset_begin: -111300
+            offset_end: -24901
+    CHRONOS:
+        storage_server: GEODE
+        source: Notification
+        has_path_by_date: false
+        geode_sync_duration: 6m
+        lifetime_duration: ''
+        pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: 'False'
+        is_distributed: 'False'
+    real_path: traitement/swot/gim
+    NASorGPFS: NAS

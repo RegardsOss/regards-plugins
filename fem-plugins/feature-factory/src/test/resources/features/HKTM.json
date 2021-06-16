@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "HKTM:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID1.PTM_0",
+      "filename": "SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0",
       "extension": "PTM_0",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID1.PTM_0",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_KUX_20200203T013038_20200203T000000_20200203T012038_S_APID0001.PTM_0",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

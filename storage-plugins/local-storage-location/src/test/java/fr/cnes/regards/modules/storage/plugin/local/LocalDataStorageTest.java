@@ -101,7 +101,7 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
-                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
+                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
 
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
@@ -119,7 +119,7 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", 9L,
                         MediaType.APPLICATION_OCTET_STREAM),
-                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
+                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         files.add(storageRequest);
         // rather than mimicking the storage logic, lets just ask for storage and then try it again
         store();
@@ -137,7 +137,7 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "unknown.test", 9877L,
                         MediaType.APPLICATION_OCTET_STREAM),
-                unknownFilePath.toString(), "localStorage", Optional.empty(), "group");
+                unknownFilePath.toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
@@ -153,7 +153,7 @@ public class LocalDataStorageTest {
                 new FileReferenceMetaInfo("abcde123456789abcde123456789abcd", "MD5", "file.name", 9L,
                         MediaType.APPLICATION_OCTET_STREAM),
                 (new URL("file", null, "src/test/resources/file.test")).toString(), "localStorage", Optional.empty(),
-                "group");
+                "group", "TEST", "session-001");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
@@ -169,7 +169,7 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
-                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
+                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> files = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",
@@ -177,7 +177,7 @@ public class LocalDataStorageTest {
                         MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", zipPath.toUri().toURL().toString()));
         fileRef.setId(1L);
-        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
         FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
         Assert.assertTrue("", Files.exists(zipPath));
@@ -202,7 +202,7 @@ public class LocalDataStorageTest {
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("b4b2c823e4a4cf98d755f76679c83918", "MD5", "file2.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
-                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
+                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
 
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
@@ -213,7 +213,7 @@ public class LocalDataStorageTest {
         storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
                         testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
-                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group");
+                testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> fileDeletionRequests = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",
@@ -221,7 +221,7 @@ public class LocalDataStorageTest {
                         MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", zipPath.toUri().toURL().toString()));
         fileRef.setId(1L);
-        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         fileDeletionRequests.add(deletionRequest);
         FileDeletionWorkingSubset fileDeletionWorkingSubset = new FileDeletionWorkingSubset(fileDeletionRequests);
         Assert.assertTrue("", Files.exists(zipPath));
@@ -244,7 +244,7 @@ public class LocalDataStorageTest {
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
         fileRef.setId(1L);
-        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
         FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
 
@@ -269,7 +269,7 @@ public class LocalDataStorageTest {
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
         fileRef.setId(1L);
-        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
         FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
 
@@ -294,7 +294,7 @@ public class LocalDataStorageTest {
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
         fileRef.setId(1L);
-        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId");
+        FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
         FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
 

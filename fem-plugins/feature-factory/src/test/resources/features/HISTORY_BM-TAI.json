@@ -8,14 +8,15 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "HISTORY_BM-TAI:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SMM_3_AXVCNE20200203_180000_20111117_180000_20200513_180000",
+      "filename": "SMM_003_AXVCNE20200203_180000_20111117_180000_20200513_180000",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SMM_3_AXVCNE20200203_180000_20111117_180000_20200513_180000",
+      "gpfs_url": "gpfs:///directory/sub//SMM_003_AXVCNE20200203_180000_20111117_180000_20200513_180000",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {
@@ -25,7 +26,7 @@
       "type": "HISTORY_BM-TAI"
     },
     "swot": {
-      "file_identifier": "3",
+      "file_identifier": "003",
       "granule_type": "Segment"
     }
   },

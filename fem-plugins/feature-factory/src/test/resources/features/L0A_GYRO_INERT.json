@@ -8,15 +8,16 @@
     "deletedBy": null
   },
   "files": [],
+  "last": false,
   "id": "L0A_GYRO_INERT:test",
   "geometry": null,
   "normalizedGeometry": null,
   "properties": {
     "system": {
-      "filename": "SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
+      "filename": "SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID0990.PTM_0",
       "extension": "PTM_0",
       "change_date": "2020-04-10T12:00:00Z",
-      "gpfs_url": "gpfs:///directory/sub//SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID990.PTM_0",
+      "gpfs_url": "gpfs:///directory/sub//SWOT_AUX_20200203T011404_20200203T000000_20200203T010404_S_APID0990.PTM_0",
       "ingestion_date": "2020-04-10T12:00:00Z"
     },
     "data": {

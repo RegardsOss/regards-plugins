@@ -1,0 +1,53 @@
+REF_ORBIT_TRACK_125:
+    name: SWOT_RefOrbitTrack{{ FileIdentifier }}_{{ Orbit }}_{{ RangeBeginningDateTime }}_{{ RangeEndingDateTime }}_{{ ProductionDateTime }}_v{{ Version3 }}.txt
+    Description: ''
+    example:
+    - SWOT_RefOrbitTrack125mPass1_Nom_20000101T000000_20991231T235959_20200630T000000_v101.txt
+    - SWOT_RefOrbitTrack125mPass2_Nom_20000101T000000_20991231T235959_20200630T000000_v101.txt
+    document: PGE-PCM ICS for L2 HR RASTER 20201014
+    granule_type: Segment
+    tar_content: []
+    mission: SWOT
+    Nature: SAD
+    metadata:
+    - FileIdentifier
+    - Orbit
+    - ProductionDateTime
+    - RangeBeginningDateTime
+    - RangeEndingDateTime
+    - Version3
+    FileIdentifier:
+    - "125mPass1"
+    - "125mPass2"
+    simu_method:
+        name: period
+        file_size: 100ko
+        directory: swot/expert_karin/
+        has_path_by_date: false
+        creation:
+        -   period: 0
+            time: 082800
+            offset_begin: -300d
+            offset_end: 100d
+    CHRONOS:
+        storage_server: GEODE
+        source: Notification
+        has_path_by_date: false
+        geode_sync_duration: 6m
+        lifetime_duration: ''
+        pcm_metadata: []
+    GEODE:
+        CHRONOS_notified: 'True'
+        CHRONOS_queue: geode.chronos.notification
+        CHRONOS_filter: All
+        SDS_notified: 'False'
+        SDS_queue: ''
+        SDS_filter: ''
+        REGARDS_notified: 'True'
+        REGARDS_queue: geode.regards.notification
+        REGARDS_filter: All
+        is_datalake: 'True'
+        is_archived: 'True'
+        is_distributed: 'False'
+    real_path: traitement/swot/expert_karin
+    NASorGPFS: GPFS

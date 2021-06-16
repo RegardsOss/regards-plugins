@@ -26,7 +26,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -267,8 +269,8 @@ public class FeatureFactoryService {
                 case "HISTO_OEF":
                     if (productionDate != null) {
                         OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
-                        startDate = IProperty.buildDate(START_DATE, date);
-                        stopDate = IProperty.buildDate(END_DATE, date.plusYears(10L));
+                        startDate = IProperty.buildDate(START_DATE, OffsetDateTime.parse("2020-01-01T00:00:00.000Z"));
+                        stopDate = IProperty.buildDate(END_DATE, date.plusDays(13L));
                     }
                     break;
                 case "ECLIPSE":
@@ -282,10 +284,40 @@ public class FeatureFactoryService {
                     }
                     break;
                 case "L0A_GPSP_Packet":
-                    if (productionDate != null) {
+                    if(productionDate != null) {
                         OffsetDateTime date = (OffsetDateTime) productionDate.getValue();
                         startDate = IProperty.buildDate(START_DATE, date);
                         stopDate = IProperty.buildDate(END_DATE, date);
+                    }
+                    break;
+                case "OF_MEAS_LPF":
+                case "OF_MEAS_PTR":
+                    if(dayDate != null) {
+                        OffsetDateTime date = (OffsetDateTime) dayDate.getValue();
+                        startDate = IProperty.buildDate(START_DATE, date);
+                        stopDate = IProperty.buildDate(END_DATE, date.plusDays(1L));
+                    }
+                    break;
+                case "PARAM_L2_HR_LAkeTile":
+                case "PARAM_INT_LR_XOVERCAL":
+                case "PLD":
+                case "PRD":
+                case "XDF_CTM":
+                case "XDF_GO":
+                    startDate = IProperty.buildDate(START_DATE, OffsetDateTime.parse("2010-01-01T00:00:00.000Z"));
+                    stopDate = IProperty.buildDate(END_DATE, OffsetDateTime.parse("2050-01-01T00:00:00.000Z"));
+                    break;
+                case "TEC_MAP":
+                    IProperty<?> yearDigitProperty = map.get(PropertiesEnum.YEAR_DIGIT.getPropertyPath());
+                    IProperty<?> dayDigitProperty = map.get(PropertiesEnum.DAY_DIGIT.getPropertyPath());
+                    if (yearDigitProperty != null && dayDigitProperty != null) {
+                        OffsetDateTime date = OffsetDateTime.parse("2000-01-01T00:00:00.000Z");
+                        date = date.plusYears(((Integer) yearDigitProperty.getValue()).longValue());
+                        date = date.plusDays(((Integer) dayDigitProperty.getValue()).longValue());
+                        startDate = IProperty.buildDate(START_DATE, date);
+                        stopDate = IProperty.buildDate(END_DATE, date.plusDays(1L));
+                        toCreate.getProperties()
+                                .removeIf(property -> Objects.equals(property.getName(), "YearDigit") || Objects.equals(property.getName(), "DayDigit"));
                     }
                     break;
                 default:
