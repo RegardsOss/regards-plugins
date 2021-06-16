@@ -123,7 +123,7 @@
 					<serverId>REGARDS-DockerHub</serverId>
 					<registryUrl>${docker.registry.host}</registryUrl>
 					<imageTags>
-						<imageTag>fast-release-V1.6.0-beta.4</imageTag>
+						<imageTag>${project.version}</imageTag>
 					</imageTags>
 					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
 					<resources>
