@@ -154,7 +154,8 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchCollectionsAsGet() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        customizer.addParameter("item_datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        // customizer.addParameter("item_datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        customizer.addParameter("item_query", "{\"hydro:data_type\":{\"eq\":\"L1B_HR_SLC\"}}");
         // Define item criteria
         // Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
 
