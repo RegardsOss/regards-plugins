@@ -12,10 +12,10 @@
       "Level 2",
       "HR"
     ],
-    "license": "CC-BY-4.0",
+    "license": "LicenseTwo",
     "providers": [
       {
-        "name": "CNES",
+        "name": "JPL",
         "roles": [
           "licensor",
           "producer",
