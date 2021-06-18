@@ -60,45 +60,50 @@ public class CollectionConfigurationAccessorFactoryImpl extends AbstractConfigur
 
             @Override
             public StacCollectionProperty getTitleProperty() {
-                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionTitle(), StacPropertyType.STRING))
-                        .getOrElse(makeDefaultStacCollectionProperty(
-                                StacSpecConstants.PropertyName.COLLECTION_TITLE_PROPERTY_NAME,
-                                StacPropertyType.STRING));
+                String stacPropertyName = StacSpecConstants.PropertyName.COLLECTION_TITLE_PROPERTY_NAME;
+                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionTitle(), stacPropertyName,
+                                                                  StacPropertyType.STRING)).getOrElse(
+                        makeDefaultStacCollectionProperty(StacSpecConstants.PropertyName.COLLECTION_TITLE_PROPERTY_NAME,
+                                                          stacPropertyName, StacPropertyType.STRING));
             }
 
             @Override
             public StacCollectionProperty getDescriptionProperty() {
-                return plugin
-                        .map(p -> makeStacCollectionProperty(p.getStacCollectionDescription(), StacPropertyType.STRING))
-                        .getOrElse(makeDefaultStacCollectionProperty(
-                                StacSpecConstants.PropertyName.COLLECTION_DESCRIPTION_PROPERTY_NAME,
+                String stacPropertyName = StacSpecConstants.PropertyName.COLLECTION_DESCRIPTION_PROPERTY_NAME;
+                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionDescription(), stacPropertyName,
+                                                                  StacPropertyType.STRING)).getOrElse(
+                        makeDefaultStacCollectionProperty(
+                                StacSpecConstants.PropertyName.COLLECTION_DESCRIPTION_PROPERTY_NAME, stacPropertyName,
                                 StacPropertyType.STRING));
             }
 
             @Override
             public StacCollectionProperty getKeywordsProperty() {
-                return plugin
-                        .map(p -> makeStacCollectionProperty(p.getStacCollectionKeywords(), StacPropertyType.STRING))
-                        .getOrElse(makeDefaultStacCollectionProperty(
-                                StacSpecConstants.PropertyName.COLLECTION_KEYWORDS_PROPERTY_NAME,
+                String stacPropertyName = StacSpecConstants.PropertyName.COLLECTION_KEYWORDS_PROPERTY_NAME;
+                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionKeywords(), stacPropertyName,
+                                                                  StacPropertyType.STRING)).getOrElse(
+                        makeDefaultStacCollectionProperty(
+                                StacSpecConstants.PropertyName.COLLECTION_KEYWORDS_PROPERTY_NAME, stacPropertyName,
                                 StacPropertyType.STRING));
             }
 
             @Override
             public StacCollectionProperty getLicenseProperty() {
-                return plugin
-                        .map(p -> makeStacCollectionProperty(p.getStacCollectionLicense(), StacPropertyType.STRING))
-                        .getOrElse(makeDefaultStacCollectionProperty(
-                                StacSpecConstants.PropertyName.COLLECTION_LICENSE_PROPERTY_NAME,
+                String stacPropertyName = StacSpecConstants.PropertyName.COLLECTION_LICENSE_PROPERTY_NAME;
+                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionLicense(), stacPropertyName,
+                                                                  StacPropertyType.STRING)).getOrElse(
+                        makeDefaultStacCollectionProperty(
+                                StacSpecConstants.PropertyName.COLLECTION_LICENSE_PROPERTY_NAME, stacPropertyName,
                                 StacPropertyType.STRING));
             }
 
             @Override
             public StacCollectionProperty getProvidersProperty() {
-                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionProviders(),
+                String stacPropertyName = StacSpecConstants.PropertyName.COLLECTION_PROVIDERS_PROPERTY_NAME;
+                return plugin.map(p -> makeStacCollectionProperty(p.getStacCollectionProviders(), stacPropertyName,
                                                                   StacPropertyType.JSON_OBJECT)).getOrElse(
                         makeDefaultStacCollectionProperty(
-                                StacSpecConstants.PropertyName.COLLECTION_PROVIDERS_PROPERTY_NAME,
+                                StacSpecConstants.PropertyName.COLLECTION_PROVIDERS_PROPERTY_NAME, stacPropertyName,
                                 StacPropertyType.JSON_OBJECT));
             }
 
@@ -107,19 +112,29 @@ public class CollectionConfigurationAccessorFactoryImpl extends AbstractConfigur
                 return plugin.map(p -> makeStacProperties(List.ofAll(p.getStacCollectionSummaries())))
                         .getOrElse(List.empty());
             }
+
+            @Override
+            public List<StacProperty> getStacProperties() {
+                return List.of(getTitleProperty().toStacProperty(), getDescriptionProperty().toStacProperty(),
+                               getKeywordsProperty().toStacProperty(), getLicenseProperty().toStacProperty(),
+                               getProvidersProperty().toStacProperty()).appendAll(getSummariesProperties());
+            }
         };
     }
 
     private StacCollectionProperty makeStacCollectionProperty(
-            StacSourcePropertyConfiguration sourcePropertyConfiguration, StacPropertyType stacType) {
-        return new StacCollectionProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType));
+            StacSourcePropertyConfiguration sourcePropertyConfiguration, String stacPropertyName,
+            StacPropertyType stacType) {
+        return new StacCollectionProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null,
+                                          stacPropertyName, null);
     }
 
-    private StacCollectionProperty makeDefaultStacCollectionProperty(String sourcePropertyPath,
+    private StacCollectionProperty makeDefaultStacCollectionProperty(String sourcePropertyPath, String stacPropertyName,
             StacPropertyType stacType) {
         StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
                 sourcePropertyPath, null, null);
-        return new StacCollectionProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType));
+        return new StacCollectionProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null,
+                                          stacPropertyName, null);
     }
 
     private List<StacProperty> makeStacProperties(List<StacSimplePropertyConfiguration> simplePropertyConfigurations) {

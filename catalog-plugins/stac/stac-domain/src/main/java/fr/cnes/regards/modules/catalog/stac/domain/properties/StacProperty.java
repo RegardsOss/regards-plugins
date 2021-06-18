@@ -26,7 +26,8 @@ import lombok.With;
 /**
  * Represents a configured STAC property.
  */
-@Value @With
+@Value
+@With
 public class StacProperty {
 
     RegardsPropertyAccessor regardsPropertyAccessor;
@@ -35,7 +36,7 @@ public class StacProperty {
      * Optional object wrapper
      */
     String stacPropertyNamespace;
-    
+
     String stacPropertyName;
 
     String extension;
@@ -54,5 +55,4 @@ public class StacProperty {
     public boolean isDynamicCollectionLevel() {
         return dynamicCollectionLevel != null && dynamicCollectionLevel >= 0;
     }
-
 }

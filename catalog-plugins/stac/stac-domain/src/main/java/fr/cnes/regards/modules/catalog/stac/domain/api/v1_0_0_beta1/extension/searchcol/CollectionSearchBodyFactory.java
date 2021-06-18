@@ -42,8 +42,7 @@ public interface CollectionSearchBodyFactory {
             List<String> ids,
             String fields,
             String query,
-            String sortBy,
-            String item
+            String sortBy
     );
 
     // @formatter:on

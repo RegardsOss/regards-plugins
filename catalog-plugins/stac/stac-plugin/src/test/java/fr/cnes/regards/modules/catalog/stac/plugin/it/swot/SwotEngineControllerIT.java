@@ -52,6 +52,8 @@ import java.util.List;
  * Cross layer integration test : from RESTful API to Elasticsearch index
  *
  * @author Marc SORDI
+ *
+ * FIXME : add assertion everywhere
  */
 @TestPropertySource(locations = { "classpath:test-local.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
@@ -138,7 +140,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     }
 
     @Test
-    public void searchCollectionsAsPost() {
+    public void searchCollectionsAsPostWithItemParameter() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define item criteria
         Map<String, SearchBody.QueryObject> q = HashMap
@@ -146,6 +148,56 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
                 .query(q).build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithCollectionParameter() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("title", StringQueryObject.builder().contains("L1B").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithCollectionAndItemParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(iq).build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("title", StringQueryObject.builder().contains("L1B").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithInconsistentCollectionAndItemParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 0);
+
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(iq).build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("title", StringQueryObject.builder().contains("L2").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
                            "Cannot search STAC collections");

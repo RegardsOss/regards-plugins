@@ -30,4 +30,20 @@ public class StacCollectionProperty {
 
     RegardsPropertyAccessor regardsPropertyAccessor;
 
+    /**
+     * Optional object wrapper
+     */
+    String stacPropertyNamespace;
+
+    String stacPropertyName;
+
+    String extension;
+
+    /**
+     * Only used for reverse mapping for collection search parameters and sorting ones.
+     */
+    public StacProperty toStacProperty() {
+        return new StacProperty(regardsPropertyAccessor, stacPropertyNamespace, stacPropertyName, extension, null, null,
+                                null, null, null);
+    }
 }

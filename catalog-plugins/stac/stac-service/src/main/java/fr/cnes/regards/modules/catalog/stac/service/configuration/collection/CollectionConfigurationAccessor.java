@@ -39,4 +39,9 @@ public interface CollectionConfigurationAccessor {
     StacCollectionProperty getProvidersProperty();
 
     List<StacProperty> getSummariesProperties();
+
+    /**
+     * @return aggregation of all properties as {@link StacProperty} for reverse mapping
+     */
+    List<StacProperty> getStacProperties();
 }

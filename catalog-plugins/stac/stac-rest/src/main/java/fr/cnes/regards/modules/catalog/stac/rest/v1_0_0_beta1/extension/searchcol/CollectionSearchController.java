@@ -119,10 +119,15 @@ public class CollectionSearchController implements TryToResponseEntity {
                     String itemQuery) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         // FIXME collection search not implemented yet, just item parameters
-        CollectionSearchBody collectionSearchBody = CollectionSearchBody.builder().build().withItem(
-                collectionItemSearchBodyFactory
-                        .parseCollectionSearch(itemBbox, itemDatetime, itemCollections, itemIds, itemQuery)
-                        .getOrNull());
+        CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory
+                .parseCollectionSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
+                .getOrElse(CollectionSearchBody.builder().build()).withItem(collectionItemSearchBodyFactory
+                                                                                    .parseCollectionSearch(itemBbox,
+                                                                                                           itemDatetime,
+                                                                                                           itemCollections,
+                                                                                                           itemIds,
+                                                                                                           itemQuery)
+                                                                                    .getOrNull());
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
         return toResponseEntity(collectionSearchService.search(collectionSearchBody, page, linkCreatorService
                 .makeSearchCollectionPageLinkCreation(auth, page, collectionSearchBody), linkCreatorService

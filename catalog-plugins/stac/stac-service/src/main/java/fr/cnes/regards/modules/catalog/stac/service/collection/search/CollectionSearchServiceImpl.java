@@ -110,14 +110,14 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         // Retrieve configured collection properties
         CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory
                 .makeConfigurationAccessor();
+        List<StacProperty> collectionStacProperties = collectionConfigurationAccessor.getStacProperties();
         // Retrieve configured item properties
         ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
         List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
 
         // Build page parameters
-        // FIXME utiliser les bons paramètres
         Pageable pageable = pageable(collectionSearchBody.getLimit(), page, collectionSearchBody.getSortBy(),
-                                     itemStacProperties);
+                                     collectionStacProperties);
 
         // Build item search criteria
         CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
@@ -145,10 +145,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         // Build collection search criteria
         // possibly incorporating the filter on the collections from the previous search
         ICriterion collectionCriteria = idCriterion.isDefined() ?
-                // FIXME build criterion according to collection mapping
-                ICriterion.and(idCriterion.get(), critBuilder.buildCriterion(itemStacProperties, collectionSearchBody)
-                        .getOrElse(ICriterion.all())) :
-                critBuilder.buildCriterion(itemStacProperties, collectionSearchBody).getOrElse(ICriterion.all());
+                ICriterion.and(idCriterion.get(),
+                               critBuilder.buildCriterion(collectionStacProperties, collectionSearchBody)
+                                       .getOrElse(ICriterion.all())) :
+                critBuilder.buildCriterion(collectionStacProperties, collectionSearchBody).getOrElse(ICriterion.all());
 
         // Search for all matching collections
         Map<String, Long> finalDatasetCount = datasetCount.get();

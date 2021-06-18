@@ -63,8 +63,7 @@ public class CollectionSearchBodyFactoryImpl extends AbstractSearchBodyFactoryIm
             List<String> ids,
             String fields,
             String query,
-            String sortBy,
-            String item
+            String sortBy
     ) {
         return parseDateInterval(datetime).flatMap(dt ->
             parseFields(fields).flatMap(f ->
