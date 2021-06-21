@@ -178,7 +178,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                           facetPage.getTotalElements());
             SearchCollectionsResponse response = new SearchCollectionsResponse(HashSet.empty(), buildCollections(
                     Stream.ofAll(facetPage.get()), stacProperties, datasetCount, collectionConfigurationAccessor,
-                    searchItemPageLinkCreator), extractLinks(searchCollectionPageLinkCreator), context);
+                    searchItemPageLinkCreator), extractLinks(searchCollectionPageLinkCreator, facetPage), context);
             return response;
         }).mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
     }

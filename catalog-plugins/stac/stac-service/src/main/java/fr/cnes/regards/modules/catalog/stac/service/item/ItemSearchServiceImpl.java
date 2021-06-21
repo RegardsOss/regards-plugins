@@ -128,7 +128,7 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
                 List.empty(), // resolved later
                 context
             );
-            return response.withLinks(extractLinks(searchPageLinkCreator));
+            return response.withLinks(extractLinks(searchPageLinkCreator, facetPage));
         })
         .mapFailure(
             ITEMCOLLECTIONRESPONSE_CONSTRUCTION,

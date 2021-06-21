@@ -18,14 +18,13 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.search;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.data.domain.PageRequest;
@@ -41,21 +40,20 @@ import static org.springframework.data.domain.Sort.Order.desc;
  */
 public abstract class AbstractSearchService {
 
-    protected Pageable pageable(Integer limit, Integer page, List<SearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {
+    protected Pageable pageable(Integer limit, Integer page, List<SearchBody.SortBy> sortBy,
+            List<StacProperty> stacProperties) {
         return PageRequest.of(page, Option.of(limit).getOrElse(10), sort(sortBy, stacProperties));
     }
 
     private Sort sort(List<SearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {
-        return Option.of(sortBy)
-                .map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList())
-                .map(Sort::by)
+        return Option.of(sortBy).map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList()).map(Sort::by)
                 .getOrElse(Sort::unsorted);
     }
 
     private Sort.Order order(List<StacProperty> stacProperties, SearchBody.SortBy sb) {
-        return sb.getDirection() == ASC
-                ? asc(regardsPropName(sb.getField(), stacProperties))
-                : desc(regardsPropName(sb.getField(), stacProperties));
+        return sb.getDirection() == ASC ?
+                asc(regardsPropName(sb.getField(), stacProperties)) :
+                desc(regardsPropName(sb.getField(), stacProperties));
     }
 
     private String regardsPropName(String field, List<StacProperty> stacProperties) {
@@ -65,15 +63,36 @@ public abstract class AbstractSearchService {
                 .getOrElse(field);
     }
 
-    protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator) {
-        return List.of(
-                searchPageLinkCreator.createSelfPageLink()
-                        .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
-                searchPageLinkCreator.createNextPageLink()
-                        .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
-                searchPageLinkCreator.createPrevPageLink()
-                        .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
-        )
-                .flatMap(l -> l);
+    protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
+        //        return List.of(searchPageLinkCreator.createSelfPageLink()
+        //                               .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON,
+        //                                                    "this search page"))
+        //                               .map(uri -> extractNextPage(searchPageLinkCreator, page))
+        //                               .map(uri -> extractPreviousPage(searchPageLinkCreator, page))).flatMap(l -> l);
+        return List.of(extractSelfPage(searchPageLinkCreator), extractNextPage(searchPageLinkCreator, page),
+                       extractPreviousPage(searchPageLinkCreator, page)).flatMap(l -> l);
+    }
+
+    private Option<Link> extractSelfPage(SearchPageLinkCreator searchPageLinkCreator) {
+        return searchPageLinkCreator.createSelfPageLink()
+                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page"));
+    }
+
+    private Option<Link> extractNextPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
+        if (page.getTotalElements() - page.getNumber() * page.getSize() - page.getNumberOfElements() > 0) {
+            return searchPageLinkCreator.createNextPageLink()
+                    .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON,
+                                         "next search page"));
+        }
+        return Option.none();
+    }
+
+    private Option<Link> extractPreviousPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
+        if (page.getPageable().hasPrevious()) {
+            return searchPageLinkCreator.createPrevPageLink()
+                    .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON,
+                                         "prev search page"));
+        }
+        return Option.none();
     }
 }
