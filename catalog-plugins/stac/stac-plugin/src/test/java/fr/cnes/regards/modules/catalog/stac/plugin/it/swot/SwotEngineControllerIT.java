@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
 import com.google.gson.JsonObject;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
@@ -214,7 +215,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
                            "Cannot search STAC collections");
     }
 
-
     @Test
     public void searchCollectionsAsPostWithCollectionAndItemParameters() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -228,6 +228,27 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         // Define collection criteria
         Map<String, SearchBody.QueryObject> cq = HashMap
                 .of("title", StringQueryObject.builder().contains("L1B").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsWithSpatioTemporalParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        //        customizer.expectValue("$.context.matched", 1);
+        //        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .intersects(IGeometry.simplePolygon(1.3, 43.5, 1.5, 43.5, 1.5, 43.6, 1.3, 43.6))
+                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                .build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("keywords", StringQueryObject.builder().contains("L2").build());
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
