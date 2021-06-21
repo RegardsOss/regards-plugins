@@ -64,11 +64,6 @@ public abstract class AbstractSearchService {
     }
 
     protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
-        //        return List.of(searchPageLinkCreator.createSelfPageLink()
-        //                               .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON,
-        //                                                    "this search page"))
-        //                               .map(uri -> extractNextPage(searchPageLinkCreator, page))
-        //                               .map(uri -> extractPreviousPage(searchPageLinkCreator, page))).flatMap(l -> l);
         return List.of(extractSelfPage(searchPageLinkCreator), extractNextPage(searchPageLinkCreator, page),
                        extractPreviousPage(searchPageLinkCreator, page)).flatMap(l -> l);
     }
