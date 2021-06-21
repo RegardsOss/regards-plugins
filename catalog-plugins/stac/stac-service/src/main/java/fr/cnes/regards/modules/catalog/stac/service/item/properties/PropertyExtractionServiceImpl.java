@@ -59,7 +59,8 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         Map<String, List<StacProperty>> groupedProperties = stacProperties.groupBy(s -> s.getStacPropertyNamespace());
         // Get base map
         Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
-                                                                       groupedProperties.get(null).get());
+                                                                       groupedProperties.get(null).getOrElse(List.empty()));
+
         // Add namespaced properties
         return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(k -> k != null)
                                                   .map(ppt -> extractStacPropertiesByNamespace(feature,

@@ -91,7 +91,6 @@ public class CollectionSearchController implements TryToResponseEntity {
         this.authenticationResolver = authenticationResolver;
     }
 
-    // FIXME à adapter avec le double niveau de critères : collection & item
     @Operation(summary = "Search collection with simple filtering",
             description = "Retrieve collection matching filters. Intended as a shorthand API for simple queries.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
@@ -118,7 +117,6 @@ public class CollectionSearchController implements TryToResponseEntity {
             @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + QUERY_QUERY_PARAM, required = false)
                     String itemQuery) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        // FIXME collection search not implemented yet, just item parameters
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory
                 .parseCollectionSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
                 .getOrElse(CollectionSearchBody.builder().build()).withItem(collectionItemSearchBodyFactory
