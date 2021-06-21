@@ -1,5 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,4 +32,7 @@ public class TestConfiguration {
     public IToponymsClient toponymsClientMock() {
         return Mockito.mock(IToponymsClient.class);
     }
+
+    @Bean
+    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
 }

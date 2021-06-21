@@ -18,8 +18,12 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
-import javax.sql.DataSource;
-
+import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.model.client.IAttributeModelClient;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -28,26 +32,20 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
-import fr.cnes.regards.modules.model.client.IAttributeModelClient;
-import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
-import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import javax.sql.DataSource;
 
 /**
- *
  * Class PostgreDataSourcePluginTestConfiguration
- *
+ * <p>
  * Test Configuration class
  *
  * @author Christophe Mertz
  */
 @Configuration
 /**
-@EnableJpaRepositories(basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils",
-        "fr.cnes.regards.modules.dam.dao.models" })
-@EnableTransactionManagement**/
-public class PostgreDataSourcePluginTestConfiguration {
+ @EnableJpaRepositories(basePackages = { "fr.cnes.regards.modules.dam.plugins.datasources.utils",
+ "fr.cnes.regards.modules.dam.dao.models" })
+ @EnableTransactionManagement**/ public class PostgreDataSourcePluginTestConfiguration {
 
     /**
      * The JDBC PostgreSQL driver
@@ -70,50 +68,48 @@ public class PostgreDataSourcePluginTestConfiguration {
     private String dbPassword;
 
     /**
-     *
      * Create the {@link DataSource}
      *
      * @return the {@link DataSource} created
      */
     @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(POSTGRESQL_JDBC_DRIVER);
-        dataSource.setUrl(buildUrl());
-        dataSource.setUsername(dbUser);
-        dataSource.setPassword(dbPassword);
+    public DataSource dataSource () {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource ();
+        dataSource.setDriverClassName (POSTGRESQL_JDBC_DRIVER);
+        dataSource.setUrl (buildUrl ());
+        dataSource.setUsername (dbUser);
+        dataSource.setPassword (dbPassword);
         return dataSource;
     }
 
-    private String buildUrl() {
+    private String buildUrl () {
         return "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName;
     }
 
     @Bean
-    public IAttributeModelClient attributeModelClient() {
-        return Mockito.mock(IAttributeModelClient.class);
+    public IAttributeModelClient attributeModelClient () { return Mockito.mock (IAttributeModelClient.class); }
+
+    @Bean
+    public IProjectUsersClient projectUsersClient () { return Mockito.mock (IProjectUsersClient.class); }
+
+    @Bean
+    public IToponymsClient toponymsClient () {
+        return Mockito.mock (IToponymsClient.class);
     }
 
     @Bean
-    public IProjectUsersClient projectUsersClient() {
-        return Mockito.mock(IProjectUsersClient.class);
-    }
+    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
 
     @Bean
-    public IToponymsClient toponymsClient() {
-        return Mockito.mock(IToponymsClient.class);
-    }
-
-    @Bean
-    public IProjectsClient projectsClient() {
-        IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
-        Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
-            String tenant = invocation.getArgument(0);
-            Project project = new Project();
-            project.setName(tenant);
-            project.setCrs("WGS_84");
-            project.setPoleToBeManaged(Boolean.FALSE);
-            return ResponseEntity.ok(new EntityModel<>(project));
+    public IProjectsClient projectsClient () {
+        IProjectsClient projectClient = Mockito.mock (IProjectsClient.class);
+        Mockito.when (projectClient.retrieveProject (Mockito.anyString ())).thenAnswer (invocation -> {
+            String tenant = invocation.getArgument (0);
+            Project project = new Project ();
+            project.setName (tenant);
+            project.setCrs ("WGS_84");
+            project.setPoleToBeManaged (Boolean.FALSE);
+            return ResponseEntity.ok (new EntityModel<> (project));
         });
         return projectClient;
     }

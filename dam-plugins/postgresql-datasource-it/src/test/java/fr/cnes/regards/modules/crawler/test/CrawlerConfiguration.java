@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.crawler.test;
 
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,6 +59,9 @@ public class CrawlerConfiguration {
     public IAccessRightService getAccessRightsService() {
         return Mockito.mock(IAccessRightService.class);
     }
+
+    @Bean
+    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
 
     @Bean
     public IProjectsClient projectsClient() {

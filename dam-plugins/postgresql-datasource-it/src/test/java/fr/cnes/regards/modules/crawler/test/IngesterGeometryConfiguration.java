@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.crawler.test;
 
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -80,4 +81,7 @@ public class IngesterGeometryConfiguration {
     public IToponymsClient toponymsClient() {
         return Mockito.mock(IToponymsClient.class);
     }
+
+    @Bean
+    public IStorageRestClient storageRestClient () { return Mockito.mock ( IStorageRestClient.class); }
 }
