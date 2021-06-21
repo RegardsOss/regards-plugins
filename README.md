@@ -1,17 +1,6 @@
-# REGARDS plugins
+# REGARDS OSS PLUGINS
 
-REGARDS is still under development. **This version is a beta version**.
-
-This repository brings together some of the REGARDS framework plugins :
-* **AipDataSourcePlugin** : this plugin allows data extraction from REGARDS AIP storage
-* **DefaultPostgreConnectionPlugin** : this plugin allows the connection to a PostgreSql database
-* **PostgreDataSourcePlugin** : this plugin allows data extraction from a PostgreSql database
-* **PostgreDataSourceFromSingleTablePlugin** : this plugins allows introspection and data extraction from a PostgreSql database
-* **CatalogSecurityDelegation** : this plugin handling the security thanks to REGARDS catalog
-
-This plugins **AipDataSourcePlugin**, **DefaultPostgreConnectionPlugin**, **PostgreDataSourcePlugin** and **PostgreDataSourceFromSingleTablePlugin** are useful for the REGARDS DAM microservice.
-
-The plugin **CatalogSecurityDelegation** is useful for the REGARDS Storage microservice.
+This repository brings together some of the REGARDS framework plugins.
 
 ## Build requirements
 
@@ -25,7 +14,7 @@ Prerequisite tools :
 * RabbitMQ 3.6.5
 
 Dependencies : 
-* The REGARDS microservice framework and the DAM microservice should be generated.
+* regards-oss-backend repository at https://github.com/RegardsOss/regards-oss-backend
 
 ## Build
 
