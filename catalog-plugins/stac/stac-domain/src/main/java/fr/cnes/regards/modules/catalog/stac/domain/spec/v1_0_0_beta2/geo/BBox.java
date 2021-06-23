@@ -44,30 +44,4 @@ public class BBox {
     public Centroid centroid() {
         return new Centroid((minX+maxX)/2d, (minY+maxY)/2d);
     }
-
-    @GsonTypeAdapter(adapted = BBox.class)
-    public static class BBoxTypeAdapter extends TypeAdapter<BBox> {
-        @Override
-        public void write(JsonWriter out, BBox value) throws IOException {
-            if (value == null) { out.nullValue(); return; }
-            out.beginArray();
-            out.value(value.minX);
-            out.value(value.minY);
-            out.value(value.maxX);
-            out.value(value.maxY);
-            out.endArray();
-        }
-
-        @Override
-        public BBox read(JsonReader in) throws IOException {
-            if (in.peek() == NULL) { in.nextNull(); return null; }
-            in.beginArray();
-            double minX = in.nextDouble();
-            double minY = in.nextDouble();
-            double maxX = in.nextDouble();
-            double maxY = in.nextDouble();
-            in.endArray();
-            return new BBox(minX, minY, maxX, maxY);
-        }
-    }
 }

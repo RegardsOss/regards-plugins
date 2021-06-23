@@ -111,7 +111,8 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchItems() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        customizer.addParameter("datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        // customizer.addParameter("datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        customizer.addParameter("bbox", "1.4,43.5,1.5,43.6");
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
 

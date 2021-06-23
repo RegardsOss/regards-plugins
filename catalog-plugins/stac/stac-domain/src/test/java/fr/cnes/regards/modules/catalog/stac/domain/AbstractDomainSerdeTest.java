@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain;
 import com.google.gson.GsonBuilder;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.BBoxTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.DateIntervalTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.QueryObjectTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
@@ -70,7 +71,7 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
 
     @Override
     public GsonBuilder updateGsonBuilder(GsonBuilder builder) {
-        builder.registerTypeAdapter(BBox.class, new BBox.BBoxTypeAdapter());
+        builder.registerTypeAdapter(BBox.class, new BBoxTypeAdapter());
         builder.registerTypeAdapter(SearchBody.QueryObject.class, new QueryObjectTypeAdapter());
         builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());
         return builder;
