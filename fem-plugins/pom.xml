@@ -55,5 +55,6 @@
 	</parent>
 	<modules>
 		<module>feature-factory</module>
-   	</modules>
+        <module>feature-factory-test</module>
+    </modules>
 </project>

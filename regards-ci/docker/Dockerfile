@@ -21,6 +21,7 @@ ADD fem-driver-plugin-1.6.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
 ADD feature-factory-plugin-1.6.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
 COPY datatypes ${REGARDS_HOME}/plugins/fem/datatypes
+ADD feature-factory-test-plugin-1.6.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
 # Notifier
 ADD chronos-recipient-sender-1.6.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 

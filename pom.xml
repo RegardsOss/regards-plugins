@@ -120,6 +120,12 @@
             <version>1.6.0-SNAPSHOT</version>
             <classifier>shaded</classifier>
         </dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.fem.plugins</groupId>
+			<artifactId>feature-factory-test-plugin</artifactId>
+			<version>1.6.0-SNAPSHOT</version>
+			<classifier>shaded</classifier>
+		</dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>fem-driver-plugin</artifactId>
