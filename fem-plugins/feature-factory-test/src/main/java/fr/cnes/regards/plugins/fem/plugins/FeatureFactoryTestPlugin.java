@@ -12,7 +12,7 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Plugin(author = "REGARDS Team",
-        description = "Creates test features from parameters with id and label keys.",
+        description = "Creates test features from parameters with id key.",
         id = FeatureFactoryTestPlugin.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class FeatureFactoryTestPlugin implements IFeatureFactoryPlugin {
@@ -27,11 +27,9 @@ public class FeatureFactoryTestPlugin implements IFeatureFactoryPlugin {
 
     @Override
     public Feature generateFeature(JsonObject parameters) throws ModuleException {
-        String label = fp.getParameter(parameters,"label", String.class);
         String id = fp.getParameter(parameters,"id", String.class);
         Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
-        toCreate.addProperty(IProperty.buildString("label",label));
-        if (label.contains("error")) {
+        if (id.contains("error")) {
             throw new ModuleException("Generated error for tests");
         }
         return toCreate;
