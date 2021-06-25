@@ -25,7 +25,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
     public void stringPrefixQueryObject() {
         // GIVEN
         StringPrefixLevelDef def = (StringPrefixLevelDef) parser
-                .parse(new StacProperty(null, null, "prop", "", false, -1, "PREFIX(2,A9)", StacPropertyType.STRING, null));
+                .parse(new StacProperty(null, null, "prop", "", false, -1, "PREFIX(2,A9)", StacPropertyType.STRING, null, Boolean.FALSE));
 
         // WHEN
         SearchBody.QueryObject q = converter.stringPrefixQueryObject(def.parseValues("AB"), def);
@@ -38,7 +38,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
     public void datePartsYearQueryObject() {
         // GIVEN
         DatePartsLevelDef def = (DatePartsLevelDef) parser
-                .parse(new StacProperty(null, null, "prop", "", false, -1, "YEAR", StacPropertyType.DATETIME, null));
+                .parse(new StacProperty(null, null, "prop", "", false, -1, "YEAR", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
         SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
@@ -53,7 +53,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
     public void datePartsMonthQueryObject() {
         // GIVEN
         DatePartsLevelDef def = (DatePartsLevelDef) parser
-                .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null));
+                .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
         SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021-02"), def);
@@ -68,7 +68,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
     public void datePartsMonthYearQueryObject() {
         // GIVEN
         DatePartsLevelDef def = (DatePartsLevelDef) parser
-                .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null));
+                .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
         SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
@@ -83,7 +83,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
     public void numberRangeQueryObject() {
         // GIVEN
         NumberRangeLevelDef def = (NumberRangeLevelDef) parser
-                .parse(new StacProperty(null, null, "prop", "", false, -1, "5;10;95", StacPropertyType.NUMBER, null));
+                .parse(new StacProperty(null, null, "prop", "", false, -1, "5;10;95", StacPropertyType.NUMBER, null, Boolean.FALSE));
 
         // WHEN
         SearchBody.QueryObject q = converter.numberRangeQueryObject(def.parseValues("15;25"), def);

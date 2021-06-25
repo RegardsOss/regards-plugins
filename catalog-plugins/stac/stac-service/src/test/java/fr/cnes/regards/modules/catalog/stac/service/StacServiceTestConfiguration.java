@@ -45,12 +45,12 @@ public class StacServiceTestConfiguration {
         when(mockConfigurationAccessor.getKeywords(anyString())).thenReturn(List.of("licence"));
 
         StacProperty datetimeProp = new StacProperty(accessor("creationDate", DATETIME, OffsetDateTime.now(), true), null,
-                "datetime", "", false, -1, "", DATETIME, idConverter(DATETIME));
+                "datetime", "", false, -1, "", DATETIME, idConverter(DATETIME), Boolean.FALSE);
 
         when(mockConfigurationAccessor.getDatetimeStacProperty()).thenReturn(datetimeProp);
         when(mockConfigurationAccessor.getStacProperties())
                 .thenReturn(List.of(datetimeProp, new StacProperty(accessor("attrName", NUMBER, 42), null, "propName", "ext",
-                        false, 0, "format", NUMBER, idConverter(NUMBER))));
+                        false, 0, "format", NUMBER, idConverter(NUMBER), Boolean.FALSE)));
         when(mockConfigurationAccessor.getRootStaticCollectionName()).thenReturn("staticCollectionRoot");
 
         when(mockConfigurationAccessor.getGeoJSONReader()).thenReturn(mock(GeoJSONReader.class));

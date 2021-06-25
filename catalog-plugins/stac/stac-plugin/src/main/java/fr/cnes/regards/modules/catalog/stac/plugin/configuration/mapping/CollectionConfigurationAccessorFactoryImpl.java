@@ -115,9 +115,10 @@ public class CollectionConfigurationAccessorFactoryImpl extends AbstractConfigur
 
             @Override
             public List<StacProperty> getStacProperties() {
-                return List.of(getTitleProperty().toStacProperty(), getDescriptionProperty().toStacProperty(),
-                               getKeywordsProperty().toStacProperty(), getLicenseProperty().toStacProperty(),
-                               getProvidersProperty().toStacProperty()).appendAll(getSummariesProperties());
+                return addVirtualStacProperties(
+                        List.of(getTitleProperty().toStacProperty(), getDescriptionProperty().toStacProperty(),
+                                getKeywordsProperty().toStacProperty(), getLicenseProperty().toStacProperty(),
+                                getProvidersProperty().toStacProperty()).appendAll(getSummariesProperties()));
             }
         };
     }
@@ -150,6 +151,6 @@ public class CollectionConfigurationAccessorFactoryImpl extends AbstractConfigur
                                 simplePropertyConfiguration.getStacPropertyNamespace(),
                                 simplePropertyConfiguration.getStacPropertyName(),
                                 simplePropertyConfiguration.getStacPropertyExtension(), null, null, null,
-                                stacPropertyType, converter);
+                                stacPropertyType, converter, Boolean.FALSE);
     }
 }

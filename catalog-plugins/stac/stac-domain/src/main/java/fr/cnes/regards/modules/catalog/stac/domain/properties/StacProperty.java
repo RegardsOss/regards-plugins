@@ -19,7 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
+import lombok.Builder;
 import lombok.Value;
 import lombok.With;
 
@@ -51,6 +53,8 @@ public class StacProperty {
 
     @SuppressWarnings("rawtypes")
     AbstractPropertyConverter converter;
+
+    Boolean virtual;
 
     public boolean isDynamicCollectionLevel() {
         return dynamicCollectionLevel != null && dynamicCollectionLevel >= 0;

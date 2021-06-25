@@ -176,7 +176,7 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
                                     s.getStacPropertyName(), s.getStacPropertyExtension(),
                                     s.getStacComputeSummary() && canComputeSummary(stacType),
                                     s.getStacDynamicCollectionLevel(), s.getStacDynamicCollectionFormat(), stacType,
-                                    converter);
+                                    converter, Boolean.FALSE);
         }).toList();
     }
 
@@ -188,7 +188,7 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
         java.util.List<StacPropertyConfiguration> propConfigs = Option.of(plugin.getStacExtraProperties())
                 .getOrElse(new ArrayList<>());
         StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyConfiguration();
-        return getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp));
+        return addVirtualStacProperties(getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp)));
     }
 
 }

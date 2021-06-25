@@ -55,11 +55,13 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
     @Override
     public Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
             List<StacProperty> stacProperties) {
-        // Group by namespace
-        Map<String, List<StacProperty>> groupedProperties = stacProperties.groupBy(s -> s.getStacPropertyNamespace());
+        // Group by namespace (without virtual properties only used for criterion mapping, not for response)
+        Map<String, List<StacProperty>> groupedProperties = stacProperties.filter(p -> !p.getVirtual())
+                .groupBy(s -> s.getStacPropertyNamespace());
         // Get base map
         Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
-                                                                       groupedProperties.get(null).getOrElse(List.empty()));
+                                                                       groupedProperties.get(null)
+                                                                               .getOrElse(List.empty()));
 
         // Add namespaced properties
         return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(k -> k != null)

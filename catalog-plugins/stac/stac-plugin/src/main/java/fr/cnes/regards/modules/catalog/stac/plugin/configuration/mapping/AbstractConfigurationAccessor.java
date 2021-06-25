@@ -22,9 +22,11 @@ import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -66,5 +68,30 @@ public abstract class AbstractConfigurationAccessor {
     protected RegardsPropertyAccessor extractPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
             StacPropertyType stacType) {
         return regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
+    }
+
+    /**
+     * Theses properties come from attributes of type JSON witch produce themselves virtual attributes
+     *
+     * @return aggregation of all virtual properties as {@link StacProperty} for reverse mapping
+     */
+    protected List<StacProperty> addVirtualStacProperties(List<StacProperty> stacProperties) {
+        return stacProperties.appendAll(stacProperties.filter(p -> PropertyType.JSON
+                .equals(p.getRegardsPropertyAccessor().getAttributeModel().getType()))
+                                                .flatMap(p -> makeVirtualStacProperties(p)));
+    }
+
+    private List<StacProperty> makeVirtualStacProperties(StacProperty jsonBasedProperty) {
+        AttributeModel attributeModel = jsonBasedProperty.getRegardsPropertyAccessor().getAttributeModel();
+        return regardsPropertyAccessorFactory.loadVirtualAttributesFrom(jsonBasedProperty).map(att -> {
+            StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
+                    att.getJsonPath(), null, null);
+            String stacPropertyName = jsonBasedProperty.getStacPropertyName() + att.getJsonPath().substring(attributeModel.getJsonPath().length());
+            return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration,
+                                                            StacPropertyType.translate(attributeModel.getType())),
+                                    jsonBasedProperty.getStacPropertyNamespace(),
+                                    stacPropertyName, null, null,
+                                    null, null, null, null, Boolean.TRUE);
+        });
     }
 }

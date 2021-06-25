@@ -56,7 +56,7 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         List<StacProperty> properties = List.of(new StacProperty(accessor,
 
                 null, "inc1", "inc", false, 0, null, StacPropertyType.STRING,
-                new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
         Fields fields = new Fields(List.of("inc1", "inc2"), List.empty());
         // WHEN
         Option<ICriterion> criterion = new FieldsCriterionBuilder().buildCriterion(properties, fields);
@@ -85,7 +85,7 @@ public class FieldsCriterionBuilderTest implements RegardsPropertyAccessorAwareT
         RegardsPropertyAccessor accessor = accessor("regardsExc1", StacPropertyType.STRING, "value");
 
         List<StacProperty> properties = List.of(new StacProperty(accessor, null, "exc1", "exc", false, 0, null,
-                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
 
         Fields fields = new Fields(List.empty(), List.of("exc1", "exc2"));
         // WHEN

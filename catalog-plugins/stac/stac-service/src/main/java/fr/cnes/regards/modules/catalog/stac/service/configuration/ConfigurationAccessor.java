@@ -57,5 +57,4 @@ public interface ConfigurationAccessor {
 
     String getRootDynamicCollectionName();
     String getRootStaticCollectionName();
-
 }

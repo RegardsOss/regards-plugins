@@ -10,7 +10,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 public class ExactValueLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "", StacPropertyType.STRING, null);
+    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "", StacPropertyType.STRING, null, Boolean.FALSE);
 
     ExactValueLevelDef ldef = new ExactValueLevelDef(prop);
 

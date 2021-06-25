@@ -32,7 +32,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsProp", StacPropertyType.DATETIME, now(UTC)), null, "stacProp", "", false, 0, null,
-                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
         // WHEN
         Option<ICriterion> criterion = new DatetimeQueryCriterionBuilder("stacProp").buildCriterion(properties, null);
         // THEN
@@ -44,7 +44,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, now(UTC)), null, "stacProp", "", false, 0, null,
-                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
 
         OffsetDateTime now = now();
         DatetimeQueryObject qo = DatetimeQueryObject.builder().eq(now).build();
@@ -63,7 +63,7 @@ public class DatetimeQueryCriterionBuilderTest implements RegardsPropertyAccesso
         // GIVEN
         List<StacProperty> properties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, now(UTC)), null, "stacProp", "", false, 0, null,
-                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
 
         OffsetDateTime now = now();
         DatetimeQueryObject qo = DatetimeQueryObject.builder().eq(now).neq(now.minusDays(1)).gt(now.minusMinutes(2))

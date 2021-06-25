@@ -44,6 +44,6 @@ public class StacCollectionProperty {
      */
     public StacProperty toStacProperty() {
         return new StacProperty(regardsPropertyAccessor, stacPropertyNamespace, stacPropertyName, extension, null, null,
-                                null, null, null);
+                                null, null, null, Boolean.FALSE);
     }
 }

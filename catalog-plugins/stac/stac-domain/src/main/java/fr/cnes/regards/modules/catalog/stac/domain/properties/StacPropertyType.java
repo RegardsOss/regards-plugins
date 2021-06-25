@@ -25,6 +25,7 @@ import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.InvalidParameterException;
 import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
@@ -32,30 +33,31 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * This enumeration lists all the supported STAC property types.
- *
+ * <p>
  * For now, we do not attend to properties represented as arrays,
  * because there are no such properties defined in the standard.
- *
+ * <p>
  * The standard recommends to avoid arrays because arrays are not easily queryable.
  * See <a href="https://github.com/radiantearth/stac-spec/tree/v1.0.0-beta.2/extensions#use-of-arrays-and-objects">
- *   this paragraph in the standard
+ * this paragraph in the standard
  * </a>.
  */
 public enum StacPropertyType {
 
     // REPRESENTED AS STRINGS IN JSON
 
-    DATETIME(true, PropertyType.DATE_ISO8601, OffsetDateTime.class),
-    URL(PropertyType.URL, java.net.URL.class),
-    /** Default value */
+    DATETIME(true, PropertyType.DATE_ISO8601, OffsetDateTime.class), URL(PropertyType.URL, java.net.URL.class),
+    /**
+     * Default value
+     */
     STRING(PropertyType.STRING, String.class),
 
     // REPRESENTED AS NUMBERS IN JSON
 
-    ANGLE(true, PropertyType.DOUBLE, Double.class),
-    LENGTH(true, PropertyType.DOUBLE, Double.class),
-    PERCENTAGE(true, PropertyType.DOUBLE, Double.class),
-    NUMBER(true, PropertyType.DOUBLE, Double.class),
+    ANGLE(true, PropertyType.DOUBLE, Double.class), LENGTH(true, PropertyType.DOUBLE, Double.class), PERCENTAGE(true,
+                                                                                                                PropertyType.DOUBLE,
+                                                                                                                Double.class), NUMBER(
+            true, PropertyType.DOUBLE, Double.class),
 
     // REPRESENTED AS BOOLEANS IN JSON
 
@@ -69,7 +71,9 @@ public enum StacPropertyType {
     private static final Logger LOGGER = LoggerFactory.getLogger(StacPropertyType.class);
 
     private final boolean canBeSummarized;
+
     private final PropertyType propertyType;
+
     private final Class<?> valueType;
 
     StacPropertyType(boolean canBeSummarized, PropertyType propertyType, Class<?> valueType) {
@@ -95,11 +99,38 @@ public enum StacPropertyType {
     }
 
     public static StacPropertyType parse(String stacType) {
-        return Option.of(stacType)
-            .map(s -> trying(() -> StacPropertyType.valueOf(s.trim().toUpperCase()))
+        return Option.of(stacType).map(s -> trying(() -> StacPropertyType.valueOf(s.trim().toUpperCase()))
                 .onFailure(t -> warn(LOGGER, "Failed to parse STAC property type: {}, using STRING instead", stacType))
-                .getOrElse(STRING))
-            .getOrElse(STRING);
+                .getOrElse(STRING)).getOrElse(STRING);
     }
 
+    public static StacPropertyType translate(PropertyType type) {
+        switch (type) {
+            case STRING:
+            case STRING_ARRAY:
+                return StacPropertyType.STRING;
+            case URL:
+                return StacPropertyType.URL;
+            case JSON:
+                return StacPropertyType.JSON_OBJECT;
+            case LONG:
+            case DOUBLE:
+            case INTEGER:
+            case LONG_ARRAY:
+            case DOUBLE_ARRAY:
+            case INTEGER_ARRAY:
+            case LONG_INTERVAL:
+            case DOUBLE_INTERVAL:
+            case INTEGER_INTERVAL:
+                return StacPropertyType.NUMBER;
+            case BOOLEAN:
+                return StacPropertyType.BOOLEAN;
+            case DATE_ISO8601:
+            case DATE_ARRAY:
+            case DATE_INTERVAL:
+                return StacPropertyType.DATETIME;
+            default:
+                throw new InvalidParameterException(String.format("Property type % not supported!", type));
+        }
+    }
 }

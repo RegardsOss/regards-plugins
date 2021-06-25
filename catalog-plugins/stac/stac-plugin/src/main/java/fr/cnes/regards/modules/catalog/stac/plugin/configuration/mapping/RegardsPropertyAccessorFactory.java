@@ -19,23 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_ATTRIBUTE_VALUE_EXTRACTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_JSON_EXTRACTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.function.Function;
-
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,12 +27,12 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ParseContext;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
-
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.RegardsConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -58,8 +41,24 @@ import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.function.Function;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_ATTRIBUTE_VALUE_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_JSON_EXTRACTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 
 /**
  * Allows to create {@link RegardsPropertyAccessor} instances from configured String representations of fields.
@@ -85,16 +84,27 @@ public class RegardsPropertyAccessorFactory {
         AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
         Option<String> jsonPath = Option.of(sPropConfig.getSourceJsonPropertyPath()).filter(StringUtils::isNotBlank);
 
-        Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(sPropType,
-                                                                                                                                       attr,
-                                                                                                                                       jsonPath);
+        Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(
+                sPropType, attr, jsonPath);
 
         RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(), attr,
-                classFunctionTuple2._2, classFunctionTuple2._1);
+                                                                     classFunctionTuple2._2, classFunctionTuple2._1);
 
         debug(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
 
         return result;
+    }
+
+    /**
+     * Load virtual attributes related to this STAC property
+     *
+     * @param stacProperty real STAC property configuration
+     * @return List of attribute models.
+     */
+    public List<AttributeModel> loadVirtualAttributesFrom(StacProperty stacProperty) {
+        return Try.of(() -> List.ofAll(finder.findAll()).filter(a -> a.isVirtual() && a.getJsonPath()
+                .startsWith(stacProperty.getRegardsPropertyAccessor().getAttributeModel().getJsonPath())))
+                .getOrElse(List.empty());
     }
 
     // FIXME à revoir l'attribut doit exister!
@@ -131,10 +141,11 @@ public class RegardsPropertyAccessorFactory {
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
             String attrName) {
-        return entity -> trying(() -> extractValue(sPropType.getValueType(), sPropType, entity.getFeature()
-                .getProperty(attrName))).mapFailure(ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
-                                                    () -> format("Failed to extract value for %s in data object %s",
-                                                                 attrName, entity.getIpId()));
+        return entity -> trying(
+                () -> extractValue(sPropType.getValueType(), sPropType, entity.getFeature().getProperty(attrName)))
+                .mapFailure(ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
+                            () -> format("Failed to extract value for %s in data object %s", attrName,
+                                         entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")
@@ -158,9 +169,11 @@ public class RegardsPropertyAccessorFactory {
             String attrName, String jsonPath) {
         return entity -> trying(() -> JsonObject.class.cast(entity.getFeature().getProperty(attrName).getValue()))
                 .map(jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
-                .map(value -> extractJsonValue(sPropType, (JsonPrimitive) value))
-                .mapFailure(ENTITY_JSON_EXTRACTION, () -> format("Failed to extract JSON value at %s in data object %s",
-                                                                 jsonPath, entity.getIpId()));
+                .map(value -> extractJsonValue(sPropType, (JsonPrimitive) value)).mapFailure(ENTITY_JSON_EXTRACTION,
+                                                                                             () -> format(
+                                                                                                     "Failed to extract JSON value at %s in data object %s",
+                                                                                                     jsonPath,
+                                                                                                     entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")
