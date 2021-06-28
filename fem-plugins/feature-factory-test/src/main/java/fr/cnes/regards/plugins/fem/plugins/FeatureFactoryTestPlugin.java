@@ -25,11 +25,14 @@ public class FeatureFactoryTestPlugin implements IFeatureFactoryPlugin {
     @PluginParameter(name = "model", label = "Model name")
     private String model;
 
+    @PluginParameter(name="simulateError", label="Simulate error", defaultValue = "false")
+    private boolean simulateError = false;
+
     @Override
     public Feature generateFeature(JsonObject parameters) throws ModuleException {
         String id = fp.getParameter(parameters,"id", String.class);
         Feature toCreate = Feature.build(id, null, null, null, EntityType.DATA, model);
-        if (id.contains("error")) {
+        if (simulateError) {
             throw new ModuleException("Generated error for tests");
         }
         return toCreate;
