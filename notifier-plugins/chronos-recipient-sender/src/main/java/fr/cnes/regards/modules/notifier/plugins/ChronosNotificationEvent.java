@@ -39,19 +39,24 @@ public class ChronosNotificationEvent implements ISubscribable {
 
     private String uri;
 
-    public static ChronosNotificationEvent build(String action, String actionOwner, String uri) {
-        ChronosNotificationEvent event = new ChronosNotificationEvent();
-        event.action = action;
-        event.actionOwner = actionOwner;
-        event.uri = uri;
-        return event;
+    private String filename;
+
+    public ChronosNotificationEvent(String action, String actionOwner, String uri, String filename) {
+        this.action = action;
+        this.actionOwner = actionOwner;
+        this.uri = uri;
+        this.filename = filename;
+    }
+
+    public String getFilename() {
+        return filename;
     }
 
     public String getAction() {
         return action;
     }
 
-    public String getAcionOwner() {
+    public String getActionOwner() {
         return actionOwner;
     }
 
@@ -69,11 +74,11 @@ public class ChronosNotificationEvent implements ISubscribable {
         }
         ChronosNotificationEvent that = (ChronosNotificationEvent) o;
         return Objects.equals(action, that.action) && Objects.equals(actionOwner, that.actionOwner) && Objects
-                .equals(uri, that.uri);
+                .equals(filename, that.filename);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, actionOwner, uri);
+        return Objects.hash(action, actionOwner, filename);
     }
 }

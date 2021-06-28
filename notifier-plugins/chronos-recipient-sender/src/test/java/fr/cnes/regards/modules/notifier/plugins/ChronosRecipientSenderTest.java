@@ -92,6 +92,7 @@ public class ChronosRecipientSenderTest {
         sender.setUpdatedByPropertyPath("history.updatedBy");
         sender.setDeletedByPropertyPath("history.deletedBy");
         sender.setGpfsUrlPropertyPath("properties.system.gpfs_url");
+        sender.setFilenamePropertyPath("properties.system.filename");
 
         NotificationRequestEvent event = getEvent("input-chronos.json");
 
@@ -114,9 +115,9 @@ public class ChronosRecipientSenderTest {
                                                listCaptor.capture(),
                                                Mockito.eq(headers));
         Assert.assertTrue("Message send as notification to chronos is not valid",
-                          listCaptor.getValue().contains(ChronosNotificationEvent.build(action,
+                          listCaptor.getValue().contains(new ChronosNotificationEvent(action,
                                                                                         actionOwner,
-                                                                                        "file://home/geode/test.tar")));
+                                                                                        "file://home/geode/test.tar", "test.tar")));
         Assert.assertEquals("Message send as notification to chronos is not valid", 1, listCaptor.getValue().size());
 
     }
