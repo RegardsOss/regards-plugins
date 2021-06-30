@@ -309,6 +309,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setGroups(getAccessGroups());
         data.setCreationDate(OffsetDateTime.now());
         data.setGeometry(feature.getGeometry());
+        data.setWgs84(feature.getGeometry()); // As we bypass automatic normalization
         data.setProperties(feature.getProperties());
         // TODO : maybe add files!
         // Link to dataset

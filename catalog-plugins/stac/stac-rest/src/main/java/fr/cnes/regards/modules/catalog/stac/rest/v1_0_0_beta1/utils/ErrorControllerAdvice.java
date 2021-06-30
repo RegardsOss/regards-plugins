@@ -50,6 +50,7 @@ public class ErrorControllerAdvice {
         UUID correlationId;
         String type;
         String message;
+        String cause;
         OffsetDateTime time;
     }
 
@@ -63,6 +64,7 @@ public class ErrorControllerAdvice {
                     cid,
                     e.getType().name(),
                     e.getMessage(),
+                    e.getCause() == null ? null : e.getCause().getMessage(),
                     OffsetDateTime.now()
                 ),
                 headers(),
@@ -86,6 +88,7 @@ public class ErrorControllerAdvice {
                 cid,
                 StacFailureType.UNKNOWN.name(),
                 e.getMessage(),
+                e.getCause() == null ? null : e.getCause().getMessage(),
                 OffsetDateTime.now()
             ),
             headers(),

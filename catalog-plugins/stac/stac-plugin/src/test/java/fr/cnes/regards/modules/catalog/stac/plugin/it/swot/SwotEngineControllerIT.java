@@ -41,11 +41,14 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
@@ -112,9 +115,93 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     public void searchItems() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.addParameter("datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
-        // customizer.addParameter("bbox", "1.4,43.5,1.5,43.6");
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
+
+    /**
+     * bbox outside of authorized -360/+360 range
+     */
+    @Test
+    public void searchItemsWithBbox_OutOfRange() {
+        RequestBuilderCustomizer customizer = customizer().expectStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        customizer.expect(MockMvcResultMatchers.jsonPath("$.cause", Matchers.startsWith("X value must be between")));
+        customizer
+                .addParameter("bbox", "-233.43750000000003, -77.69287033641926, 380.03906250000006, 85.59514981431303");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -180/+180 with lat between +50/+60
+     */
+    @Test
+    public void searchItemsWithBbox_A() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "A");
+        customizer.addParameter("bbox", "-10.0,50.0,+10.0,60.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -180/+360 with lat between +40/+50
+     */
+    @Test
+    public void searchItemsWithBbox_B() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "B");
+        customizer.addParameter("bbox", "-70.0,40.0,190.0,50.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/+180 with lat between +30/+40
+     */
+    @Test
+    public void searchItemsWithBbox_C() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "C");
+        customizer.addParameter("bbox", "-200.0,30.0,70.0,40.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/+360 with lat between +20/+30
+     */
+    @Test
+    public void searchItemsWithBbox_D() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "D");
+        customizer.addParameter("bbox", "-200.0,20.0,200.0,30.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between +180/+360 with lat between +10/+20
+     */
+    @Test
+    public void searchItemsWithBbox_E() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "E");
+        customizer.addParameter("bbox", "190.0,10.0,250.0,20.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/-180 with lat between +0/+10
+     */
+    @Test
+    public void searchItemsWithBbox_F() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "F");
+        customizer.addParameter("bbox", "-350.0,0.0,-300.0,10.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
 
     @Test
     public void searchItemsAsPost() {
