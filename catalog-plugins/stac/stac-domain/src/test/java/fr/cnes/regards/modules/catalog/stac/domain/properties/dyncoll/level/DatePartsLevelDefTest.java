@@ -1,19 +1,19 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MINUTE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import io.vavr.collection.List;
+import org.junit.Test;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MINUTE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DatePartsLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null);
+    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null,
+                                         Boolean.FALSE);
 
     DatePartsLevelDef ldef = new DatePartsLevelDef(prop, MINUTE);
 

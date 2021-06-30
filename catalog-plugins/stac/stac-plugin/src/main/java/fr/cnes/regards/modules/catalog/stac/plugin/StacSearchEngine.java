@@ -28,7 +28,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacDatetimePropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.StacConfigurationDomainAccessor;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.ConfigurationAccessorFactoryImpl;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
@@ -62,7 +62,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     public static final String PLUGIN_ID = "stac";
 
     @Autowired
-    private StacConfigurationDomainAccessor propMapper;
+    private ConfigurationAccessorFactoryImpl propMapper;
     @Autowired
     private LinkCreatorService linkCreator;
 
@@ -116,7 +116,12 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
-
+    // TODO WIP
+//    @PluginParameter(
+//            name = "stac-dataset-properties",
+//            label = "STAC dataset properties",
+//            description = "Configure STAC dataset properties.")
+//    private DatasetConfiguration stacDatasetConfiguration;
 
     @Override
     public boolean supports(SearchType searchType) {

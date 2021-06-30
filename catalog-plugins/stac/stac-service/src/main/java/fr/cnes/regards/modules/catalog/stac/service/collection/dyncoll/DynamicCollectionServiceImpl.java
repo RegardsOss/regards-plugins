@@ -28,6 +28,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.slf4j.Logger;
@@ -45,7 +47,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelDefParser;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelValToQueryObjectConverter;
@@ -84,14 +86,14 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     private final ExtentSummaryService extentSummaryService;
 
-    private final EsAggregagtionHelper aggregagtionHelper;
+    private final EsAggregationHelper aggregagtionHelper;
 
     @Autowired
     public DynamicCollectionServiceImpl(RestDynCollValSerdeService restDynCollValSerdeService,
             DynCollLevelDefParser dynCollLevelDefParser,
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             DynCollValNextSublevelHelper nextSublevelHelper, StacSearchCriterionBuilder criterionBuilder,
-            ExtentSummaryService extentSummaryService, EsAggregagtionHelper aggregagtionHelper) {
+            ExtentSummaryService extentSummaryService, EsAggregationHelper aggregagtionHelper) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.dynCollLevelDefParser = dynCollLevelDefParser;
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
@@ -164,14 +166,14 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
     private Collection createCollectionFrom(DynCollVal val, Extent extent, Map<String, Object> summary, List<Link> baseLinks,
             List<Link> childLinks) {
-        List<String> extensions = List.empty();
+        Set<String> extensions = HashSet.empty();
         List<String> keywords = List.empty();
         String license = "";
         List<Provider> providers = List.empty();
 
         return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, extensions, val.getLowestLevelLabel(),
                 representDynamicCollectionsValueAsURN(val), val.toLabel(), baseLinks.appendAll(childLinks), keywords,
-                license, providers, extent, summary);
+                license, providers, extent, summary,null,null);
     }
 
     private List<Link> createChildLinks(List<DynCollVal> nextVals, OGCFeatLinkCreator linkCreator) {

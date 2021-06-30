@@ -18,22 +18,18 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
-import java.util.List;
-
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.JsonObject;
-
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.StringQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
@@ -42,14 +38,28 @@ import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.hamcrest.Matchers;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.util.List;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
  *
  * @author Marc SORDI
- *
+ * <p>
+ * FIXME : add assertion everywhere
  */
-@TestPropertySource(locations = { "classpath:test.properties" },
+@TestPropertySource(locations = { "classpath:test-local.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {
@@ -58,6 +68,12 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @Autowired
     private ICatalogSearchService catalogSearchService;
+
+    @Autowired
+    private CollectionSearchService collectionSearchService;
+
+    @Autowired
+    private EsAggregationHelper aggregationHelper;
 
     @Test
     public void getLandingPage() {
@@ -102,11 +118,97 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
 
+    /**
+     * bbox outside of authorized -360/+360 range
+     */
+    @Test
+    public void searchItemsWithBbox_OutOfRange() {
+        RequestBuilderCustomizer customizer = customizer().expectStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        customizer.expect(MockMvcResultMatchers.jsonPath("$.cause", Matchers.startsWith("X value must be between")));
+        customizer
+                .addParameter("bbox", "-233.43750000000003, -77.69287033641926, 380.03906250000006, 85.59514981431303");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -180/+180 with lat between +50/+60
+     */
+    @Test
+    public void searchItemsWithBbox_A() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "A");
+        customizer.addParameter("bbox", "-10.0,50.0,+10.0,60.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -180/+360 with lat between +40/+50
+     */
+    @Test
+    public void searchItemsWithBbox_B() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "B");
+        customizer.addParameter("bbox", "-70.0,40.0,190.0,50.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/+180 with lat between +30/+40
+     */
+    @Test
+    public void searchItemsWithBbox_C() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "C");
+        customizer.addParameter("bbox", "-200.0,30.0,70.0,40.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/+360 with lat between +20/+30
+     */
+    @Test
+    public void searchItemsWithBbox_D() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "D");
+        customizer.addParameter("bbox", "-200.0,20.0,200.0,30.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between +180/+360 with lat between +10/+20
+     */
+    @Test
+    public void searchItemsWithBbox_E() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "E");
+        customizer.addParameter("bbox", "190.0,10.0,250.0,20.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Nominal use case : bbox between -360/-180 with lat between +0/+10
+     */
+    @Test
+    public void searchItemsWithBbox_F() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "F");
+        customizer.addParameter("bbox", "-350.0,0.0,-300.0,10.0");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+
     @Test
     public void searchItemsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         ItemSearchBody body = ItemSearchBody.builder()
-                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get()).build();
+                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                .build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
@@ -124,6 +226,151 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         ItemSearchBody body = ItemSearchBody.builder()
                 .query(HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build())).build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithItemParameter() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(q).build();
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithTitle() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("title", StringQueryObject.builder().contains("L1B").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithDescription() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("description", StringQueryObject.builder().contains("Description").build(), "description",
+                    StringQueryObject.builder().contains("L2").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithKeywords() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("keywords", StringQueryObject.builder().contains("Level 2").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithLicense() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("license", StringQueryObject.builder().contains("LicenseOne").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithProviderName() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> q = HashMap
+                .of("providers.name", StringQueryObject.builder().contains("JPL").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithCollectionAndItemParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(iq).build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("title", StringQueryObject.builder().contains("L1B").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsWithSpatioTemporalParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        //        customizer.expectValue("$.context.matched", 1);
+        //        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .intersects(IGeometry.simplePolygon(1.3, 43.5, 1.5, 43.5, 1.5, 43.6, 1.3, 43.6))
+                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                .build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("keywords", StringQueryObject.builder().contains("L2").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithInconsistentCollectionAndItemParameters() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 0);
+
+        // Define item criteria
+        Map<String, SearchBody.QueryObject> iq = HashMap
+                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(iq).build();
+        // Define collection criteria
+        Map<String, SearchBody.QueryObject> cq = HashMap
+                .of("title", StringQueryObject.builder().contains("L2").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsGet() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // customizer.addParameter("item_datetime", "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z");
+        customizer.addParameter("item_query", "{\"hydro:data_type\":{\"eq\":\"L1B_HR_SLC\"}}");
+        // Define item criteria
+        // Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+
+        performDefaultGet(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, customizer, "Cannot search STAC collections");
     }
 
     @Test
@@ -153,7 +400,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     }
 
     @Test
-    public void searchCollections() throws SearchException, OpenSearchUnknownParameter {
+    public void searchTags() throws SearchException, OpenSearchUnknownParameter {
         String propertyPath = "tags";
         String partialText = "URN:AIP:DATASET";
         List<String> matchingDatasets = catalogSearchService
@@ -162,11 +409,22 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         LOGGER.info("List of matching datasets : {}", matchingDatasets);
     }
 
+    @Test
+    public void searchTagAggregation() throws SearchException, OpenSearchUnknownParameter {
+        String aggregationName = "datasetIds";
+        Aggregations aggregations = aggregationHelper.getDatasetAggregations(aggregationName, ICriterion.all(), 500);
+        Terms datasetIdsAgg = aggregations.get(aggregationName);
+        for (Terms.Bucket bucket : datasetIdsAgg.getBuckets()) {
+            LOGGER.info("DATASET {} has {} matching items", bucket.getKey(), bucket.getDocCount());
+        }
+    }
+
     /**
      * Add query to current request
-     * @param customizer current {@link RequestBuilderCustomizer}
+     *
+     * @param customizer           current {@link RequestBuilderCustomizer}
      * @param relativePropertyName name without properties prefix
-     * @param value the property value
+     * @param value                the property value
      */
     private void addSearchTermQuery(RequestBuilderCustomizer customizer, String relativePropertyName, String value) {
         customizer.addParameter("q", StaticProperties.FEATURE_PROPERTIES + "." + relativePropertyName + ":" + value);

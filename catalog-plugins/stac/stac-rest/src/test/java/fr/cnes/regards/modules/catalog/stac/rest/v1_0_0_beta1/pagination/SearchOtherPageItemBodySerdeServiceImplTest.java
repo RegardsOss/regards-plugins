@@ -3,6 +3,8 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 import com.google.gson.GsonBuilder;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.BBoxTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.DateIntervalTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.QueryObjectTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
@@ -48,12 +50,12 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
                     ))
                 )
             )
-            .randomize(ItemSearchBody.QueryObject.class, () -> {
+            .randomize(SearchBody.QueryObject.class, () -> {
                 return generator.nextBoolean()
                         ? generator.nextBoolean()
-                        ? generator.nextObject(ItemSearchBody.BooleanQueryObject.class)
-                        : generator.nextObject(ItemSearchBody.NumberQueryObject.class)
-                        : generator.nextObject(ItemSearchBody.StringQueryObject.class);
+                        ? generator.nextObject(SearchBody.BooleanQueryObject.class)
+                        : generator.nextObject(SearchBody.NumberQueryObject.class)
+                        : generator.nextObject(SearchBody.StringQueryObject.class);
             })
             .randomize(DateInterval.class, () -> {
                 return generator.nextBoolean() ? DateInterval.single(generator.nextObject(OffsetDateTime.class))
@@ -66,8 +68,8 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest
     @Override
     public GsonBuilder updateGsonBuilder(GsonBuilder builder) {
-        builder.registerTypeAdapter(BBox.class, new BBox.BBoxTypeAdapter());
-        builder.registerTypeAdapter(ItemSearchBody.QueryObject.class, new QueryObjectTypeAdapter());
+        builder.registerTypeAdapter(BBox.class, new BBoxTypeAdapter());
+        builder.registerTypeAdapter(SearchBody.QueryObject.class, new QueryObjectTypeAdapter());
         builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());
         return builder;
     }

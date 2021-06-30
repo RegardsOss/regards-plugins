@@ -19,36 +19,17 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.SortBy.Direction.ASC;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ITEMCOLLECTIONRESPONSE_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.SEARCH;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.SEARCH_ITEM;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
-import static org.springframework.data.domain.Sort.Order.asc;
-import static org.springframework.data.domain.Sort.Order.desc;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-
 import fr.cnes.regards.framework.urn.UniformResourceName;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
@@ -58,14 +39,23 @@ import fr.cnes.regards.modules.search.service.CatalogSearchService;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
 
 /**
  * Implementation for {@link ItemSearchService}
  */
 @Service
-public class ItemSearchServiceImpl implements ItemSearchService {
+public class ItemSearchServiceImpl extends AbstractSearchService implements ItemSearchService {
 
     private static final HashSet<String> SEARCH_EXTENSIONS = HashSet.empty();
 
@@ -105,7 +95,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         ICriterion crit = critBuilder.buildCriterion(stacProperties, itemSearchBody).getOrElse(ICriterion.all());
         debug(LOGGER, "Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
 
-        Pageable pageable = pageable(itemSearchBody, page, stacProperties);
+        Pageable pageable = pageable(itemSearchBody.getLimit(), page, itemSearchBody.getSortBy(),stacProperties);
         return trying(() -> catalogSearchService.<AbstractEntity<? extends EntityFeature>>search(crit, SearchType.DATAOBJECTS, null, pageable))
             .mapFailure(SEARCH, () -> format("Search failure for page %d of %s", page, itemSearchBody))
             .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));
@@ -127,7 +117,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             SearchPageLinkCreator searchPageLinkCreator
     ) {
         return trying(() -> {
-            ItemCollectionResponse.Context context = new ItemCollectionResponse.Context(
+            Context context = new Context(
                 facetPage.getNumberOfElements(),
                 facetPage.getPageable().getPageSize(),
                 facetPage.getTotalElements()
@@ -138,24 +128,12 @@ public class ItemSearchServiceImpl implements ItemSearchService {
                 List.empty(), // resolved later
                 context
             );
-            return response.withLinks(extractLinks(searchPageLinkCreator, response));
+            return response.withLinks(extractLinks(searchPageLinkCreator, facetPage));
         })
         .mapFailure(
             ITEMCOLLECTIONRESPONSE_CONSTRUCTION,
             () -> "Failed to create ItemCollectionResponse"
         );
-    }
-
-    private List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, ItemCollectionResponse response) {
-        return List.of(
-            searchPageLinkCreator.createSelfPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page")),
-            searchPageLinkCreator.createNextPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON, "next search page")),
-            searchPageLinkCreator.createPrevPageLink(response)
-                .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON, "prev search page"))
-        )
-        .flatMap(l -> l);
     }
 
     private List<Item> extractStacItems(
@@ -168,30 +146,6 @@ public class ItemSearchServiceImpl implements ItemSearchService {
                 itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, entity)
             )
             .toList();
-    }
-
-    private Pageable pageable(ItemSearchBody itemSearchBody, Integer page, List<StacProperty> stacProperties) {
-        return PageRequest.of(page, Option.of(itemSearchBody.getLimit()).getOrElse(10), sort(itemSearchBody.getSortBy(), stacProperties));
-    }
-
-    private Sort sort(List<ItemSearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {
-        return Option.of(sortBy)
-            .map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList())
-            .map(Sort::by)
-            .getOrElse(Sort::unsorted);
-    }
-
-    private Sort.Order order(List<StacProperty> stacProperties, ItemSearchBody.SortBy sb) {
-        return sb.getDirection() == ASC
-            ? asc(regardsPropName(sb.getField(), stacProperties))
-            : desc(regardsPropName(sb.getField(), stacProperties));
-    }
-
-    private String regardsPropName(String field, List<StacProperty> stacProperties) {
-        return stacProperties.find(sp -> sp.getStacPropertyName().equals(field))
-            .map(StacProperty::getRegardsPropertyAccessor)
-            .map(RegardsPropertyAccessor::getRegardsAttributeName) // TODO: this does not work with internal JSON properties
-            .getOrElse(field);
     }
 
     // @formatter:on

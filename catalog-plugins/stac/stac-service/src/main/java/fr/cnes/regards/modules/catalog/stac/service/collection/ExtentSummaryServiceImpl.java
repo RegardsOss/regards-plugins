@@ -68,13 +68,13 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     public static final String NWPOINTLAT_AGGNAME = NWPOINT_AGGNAME + ".lat";
 
     private static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""), null,
-            NWPOINT_AGGNAME, "", false, -1, "", STRING, null);
+            NWPOINT_AGGNAME, "", false, -1, "", STRING, null, Boolean.FALSE);
 
     private static final StacProperty NWPOINTLON_PROP = new StacProperty(accessor(NWPOINTLON_AGGNAME, NUMBER, -180), null,
-            NWPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null);
+            NWPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
 
     private static final StacProperty NWPOINTLAT_PROP = new StacProperty(accessor(NWPOINTLAT_AGGNAME, NUMBER, 90), null,
-            NWPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null);
+            NWPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
 
     public static final String SEPOINT_AGGNAME = "sePoint";
 
@@ -83,13 +83,13 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     public static final String SEPOINTLAT_AGGNAME = SEPOINT_AGGNAME + ".lat";
 
     private static final StacProperty SEPOINT_PROP = new StacProperty(accessor(SEPOINT_AGGNAME, STRING, ""), null,
-            SEPOINT_AGGNAME, "", false, -1, "", STRING, null);
+            SEPOINT_AGGNAME, "", false, -1, "", STRING, null, Boolean.FALSE);
 
     private static final StacProperty SEPOINTLON_PROP = new StacProperty(accessor(SEPOINTLON_AGGNAME, NUMBER, 180), null,
-            SEPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null);
+            SEPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
 
     private static final StacProperty SEPOINTLAT_PROP = new StacProperty(accessor(SEPOINTLAT_AGGNAME, NUMBER, -90), null,
-            SEPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null);
+            SEPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
 
     @Override
     public List<QueryableAttribute> extentSummaryQueryableAttributes(StacProperty datetimeProp,

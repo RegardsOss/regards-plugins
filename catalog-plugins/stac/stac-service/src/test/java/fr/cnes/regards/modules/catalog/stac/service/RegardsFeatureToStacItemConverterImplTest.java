@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionServiceImpl;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
     UriParamAdder uriParamAdder = mock(UriParamAdderImpl.class);
 
     RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(new StacGeoHelper(gson),
-            configurationAccessorFactory, uriParamAdder);
+            configurationAccessorFactory, new PropertyExtractionServiceImpl(uriParamAdder));
 
     @Test
     public void convertFeatureToItem() throws Exception {
@@ -100,7 +101,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         List<StacProperty> stacProperties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null,
                 "stac:prop", "", false, 0, null, StacPropertyType.DATETIME,
-                new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
         FeatureUniformResourceName itemIpId = FeatureUniformResourceName
                 .build(FeatureIdentifier.FEATURE, EntityType.DATA, tenant, UUID.randomUUID(), 1);
         DataObjectFeature dof = new DataObjectFeature(itemIpId, "theProvider", "theLabel", "theSessionOwner",

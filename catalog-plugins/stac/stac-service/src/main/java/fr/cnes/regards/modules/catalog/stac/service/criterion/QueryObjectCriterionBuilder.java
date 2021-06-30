@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.*;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.query.BooleanQueryCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.query.DatetimeQueryCriterionBuilder;
@@ -39,44 +39,39 @@ import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorre
  * Build criteria from query objects.
  */
 @Component
-public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String, QueryObject>> {
+public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String, SearchBody.QueryObject>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryObjectCriterionBuilder.class);
 
     @Override
-    public Option<ICriterion> buildCriterion(List<StacProperty> properties, Map<String, QueryObject> queryObjects) {
-        if (queryObjects == null || queryObjects.isEmpty()) { return Option.none(); }
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties,
+            Map<String, SearchBody.QueryObject> queryObjects) {
+        if (queryObjects == null || queryObjects.isEmpty()) {
+            return Option.none();
+        }
 
-        List<ICriterion> crits = queryObjects.flatMap(kv -> routeQueryObjectCrit(properties, kv._1(), kv._2())).toList();
+        List<ICriterion> crits = queryObjects.flatMap(kv -> routeQueryObjectCrit(properties, kv._1(), kv._2()))
+                .toList();
         return withAll(crits, ICriterion::and);
     }
 
-    private Option<ICriterion> routeQueryObjectCrit(
-            List<StacProperty> properties,
-            String stacPropName,
-            QueryObject queryObject
-    ) {
-        if (queryObject instanceof BooleanQueryObject) {
+    private Option<ICriterion> routeQueryObjectCrit(List<StacProperty> properties, String stacPropName,
+            SearchBody.QueryObject queryObject) {
+        if (queryObject instanceof SearchBody.BooleanQueryObject) {
             return new BooleanQueryCriterionBuilder(stacPropName)
-                .buildCriterion(properties, (BooleanQueryObject)queryObject);
-        }
-        else if (queryObject instanceof NumberQueryObject) {
+                    .buildCriterion(properties, (SearchBody.BooleanQueryObject) queryObject);
+        } else if (queryObject instanceof SearchBody.NumberQueryObject) {
             return new NumberQueryCriterionBuilder(stacPropName)
-                .buildCriterion(properties, (NumberQueryObject)queryObject);
-        }
-        else if (queryObject instanceof DatetimeQueryObject) {
+                    .buildCriterion(properties, (SearchBody.NumberQueryObject) queryObject);
+        } else if (queryObject instanceof SearchBody.DatetimeQueryObject) {
             return new DatetimeQueryCriterionBuilder(stacPropName)
-                .buildCriterion(properties, (DatetimeQueryObject)queryObject);
-        }
-        else if (queryObject instanceof StringQueryObject) {
+                    .buildCriterion(properties, (SearchBody.DatetimeQueryObject) queryObject);
+        } else if (queryObject instanceof SearchBody.StringQueryObject) {
             return new StringQueryCriterionBuilder(stacPropName)
-                .buildCriterion(properties, (StringQueryObject)queryObject);
-        }
-        else {
-            warn(LOGGER, "Unknown type for QueryObject: {}, ignoring query field {}",
-                queryObject.getClass(),
-                stacPropName
-            );
+                    .buildCriterion(properties, (SearchBody.StringQueryObject) queryObject);
+        } else {
+            warn(LOGGER, "Unknown type for QueryObject: {}, ignoring query field {}", queryObject.getClass(),
+                 stacPropName);
             return Option.none();
         }
     }

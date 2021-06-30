@@ -1,107 +1,120 @@
 {
-    "id": "GOLDEN:L2_HR_RASTER2",
-    "type": "Feature",
-    "entityType": "DATA",
-    "model": "HYGOR001",
-    "geometry": null,
-    "properties": {
-        "datetime": "2020-07-01T00:00:00.012345Z",
-        "start_datetime": "2020-04-02T11:21:39Z",
-        "end_datetime": "2022-04-02T11:21:59Z",
-        "platform": "SWOT",
-        "instruments": [
-            "KaRIn"
-        ],
-        "mission": "SWOT",
-        "version": "012",
-        "provider": {
-            "name": "CNES"
-        },
-        "hydro": {
-            "data_type": "L2_HR_RASTER",
-            "variables": [],
-            "categories": []
-        },
-        "spatial": {
-            "cycle_id": 1,
-            "crid": "PIA0",
-            "pass_id": 42,
-            "tile_id": 38
-        },
-        "dcs": {
-            "techno_id": "spatial",
-            "origin": "CNES"
-        }
+  "id": "GOLDEN:L2_HR_RASTER2",
+  "type": "Feature",
+  "entityType": "DATA",
+  "model": "HYGOR001",
+  "geometry": null,
+  "properties": {
+    "datetime": "2020-07-01T00:00:00.012345Z",
+    "start_datetime": "2020-04-02T11:21:39Z",
+    "end_datetime": "2022-04-02T11:21:59Z",
+    "platform": "SWOT",
+    "instruments": [
+      "KaRIn"
+    ],
+    "mission": "SWOT",
+    "version": "012",
+    "providers": [
+      {
+        "name": "CNES"
+      }
+    ],
+    "hydro": {
+      "data_type": "L2_HR_RASTER",
+      "variables": [],
+      "categories": []
     },
-    "files": [{
-            "locations": [{
-                "storage": "DISK",
-                "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml"
-            }],
-            "attributes": {
-                "dataType": "RAWDATA",
-                "mimeType": "application/xml",
-                "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml",
-                "filesize": 100,
-                "algorithm": "MD5",
-                "checksum": "12072c8dcb2134a2979096b28ce04821"
-            }
-        },
+    "spatial": {
+      "cycle_id": 1,
+      "crid": "PIA0",
+      "pass_id": 42,
+      "tile_id": 38
+    },
+    "dcs": {
+      "techno_id": "spatial",
+      "origin": "CNES"
+    }
+  },
+  "files": [
+    {
+      "locations": [
         {
-            "locations": [{
-                "storage": "DISK",
-                "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.log"
-            }],
-            "attributes": {
-                "dataType": "RAWDATA",
-                "mimeType": "text/plain",
-                "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.log",
-                "filesize": 100,
-                "algorithm": "MD5",
-                "checksum": "3a2fe38accae1ea7926bb6252db26d0e"
-            }
-        },
-        {
-            "locations": [{
-                "storage": "DISK",
-                "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.met.json"
-            }],
-            "attributes": {
-                "dataType": "RAWDATA",
-                "mimeType": "application/json",
-                "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.met.json",
-                "filesize": 100,
-                "algorithm": "MD5",
-                "checksum": "7d260ac17f0ef2ab044332a333f9d8fc"
-            }
-        },
-        {
-            "locations": [{
-                "storage": "DISK",
-                "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.nc"
-            }],
-            "attributes": {
-                "dataType": "RAWDATA",
-                "mimeType": "application/xml",
-                "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.nc",
-                "filesize": 100,
-                "algorithm": "MD5",
-                "checksum": "dd8603779ccee18629c29ff979eda10f"
-            }
-        },
-        {
-            "locations": [{
-                "storage": "DISK",
-                "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml"
-            }],
-            "attributes": {
-                "dataType": "RAWDATA",
-                "mimeType": "application/xml",
-                "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml",
-                "filesize": 100,
-                "algorithm": "MD5",
-                "checksum": "2f12b1a9a9de3e1ec0a7c80d6472c691"
-            }
+          "storage": "DISK",
+          "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml"
         }
-    ]
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "application/xml",
+        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml",
+        "filesize": 100,
+        "algorithm": "MD5",
+        "checksum": "12072c8dcb2134a2979096b28ce04821"
+      }
+    },
+    {
+      "locations": [
+        {
+          "storage": "DISK",
+          "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.log"
+        }
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "text/plain",
+        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.log",
+        "filesize": 100,
+        "algorithm": "MD5",
+        "checksum": "3a2fe38accae1ea7926bb6252db26d0e"
+      }
+    },
+    {
+      "locations": [
+        {
+          "storage": "DISK",
+          "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.met.json"
+        }
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "application/json",
+        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.met.json",
+        "filesize": 100,
+        "algorithm": "MD5",
+        "checksum": "7d260ac17f0ef2ab044332a333f9d8fc"
+      }
+    },
+    {
+      "locations": [
+        {
+          "storage": "DISK",
+          "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.nc"
+        }
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "application/xml",
+        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.nc",
+        "filesize": 100,
+        "algorithm": "MD5",
+        "checksum": "dd8603779ccee18629c29ff979eda10f"
+      }
+    },
+    {
+      "locations": [
+        {
+          "storage": "DISK",
+          "url": "file:/nfs/HYSOPE2_DEV/GOLDEN_DATASET/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml"
+        }
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "application/xml",
+        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml",
+        "filesize": 100,
+        "algorithm": "MD5",
+        "checksum": "2f12b1a9a9de3e1ec0a7c80d6472c691"
+      }
+    }
+  ]
 }

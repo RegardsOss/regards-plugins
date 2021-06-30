@@ -29,85 +29,41 @@ import lombok.With;
  * Definition of the configuration for a STAC property, defining which model attribute
  * it corresponds to and how to convert from the one to the other.
  */
-@Data @With @AllArgsConstructor @NoArgsConstructor
-public class StacPropertyConfiguration {
-    
+@Data
+@With
+@NoArgsConstructor
+@AllArgsConstructor
+public class StacPropertyConfiguration extends StacSimplePropertyConfiguration {
+
     public static final String STAC_DYNAMIC_COLLECTION_LEVEL = "stacDynamicCollectionLevel";
+
     public static final String STAC_DYNAMIC_COLLECTION_LEVEL_MD = "stacDynamicCollectionLevel.md";
 
     public static final String STAC_DYNAMIC_COLLECTION_FORMAT = "stacDynamicCollectionFormat";
+
     public static final String STAC_DYNAMIC_COLLECTION_FORMAT_MD = "stacDynamicCollectionFormat.md";
 
-    public static final String STAC_FORMAT = "stacPropertyFormat";
-    public static final String STAC_FORMAT_MD = "stacFormat.md";
+    public StacPropertyConfiguration(String sourcePropertyPath, String sourceJsonPropertyPath,
+            String sourcePropertyFormat, String stacPropertyNamespace, String stacPropertyName,
+            String stacPropertyExtension, String stacPropertyType, String stacPropertyFormat,
+            Boolean stacComputeSummary, Integer stacDynamicCollectionLevel, String stacDynamicCollectionFormat) {
+        super(sourcePropertyPath, sourceJsonPropertyPath, sourcePropertyFormat, stacPropertyNamespace, stacPropertyName,
+              stacPropertyExtension, stacPropertyType, stacPropertyFormat);
+        this.stacComputeSummary = stacComputeSummary;
+        this.stacDynamicCollectionLevel = stacDynamicCollectionLevel;
+        this.stacDynamicCollectionFormat = stacDynamicCollectionFormat;
+    }
 
-    public static final String REGARDS_FORMAT = "sourcePropertyFormat";
-    public static final String REGARDS_FORMAT_MD = "regardsFormat.md";
-
-    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path",
-            description = "This parameter defines the path to the model attribute and its corresponding "
-                    + "source property in a product")
-    private String sourcePropertyPath;
-
-    @PluginParameter(name = "sourceJsonPropertyPath", label = "JSON property path (for a JSON type attribute only)",
-            description = "If the source model attribute is of type JSON, "
-                    + " this parameter defines the path in the JSON structure where to read the value.",
-            optional = true)
-    private String sourceJsonPropertyPath;
-    
-    @PluginParameter(name = REGARDS_FORMAT, label = "Format for the source property value", markdown = REGARDS_FORMAT_MD,
-            optional = true)
-    private String  sourcePropertyFormat;
-
-    @PluginParameter(name = "stacPropertyNamespace", label = "Enclosing object name (i.e. namespace) for current property",
-            description = "This parameter determines an optional enclosing object for current property", optional = true)
-    private String stacPropertyNamespace;
-
-    // FIXME optional?
-    @PluginParameter(
-            name = "stacPropertyName", label = "STAC property name (Expected format : {extension:}name)",
-            description = "This parameter determines the name of"
-                    + " the STAC property corresponding to the model attribute name.",
-            optional = true)
-    private String stacPropertyName;
-    
-    // FIXME optional?
-    @PluginParameter(name = "stacPropertyExtension", label = "Name or URL of the STAC extension",
-            description = "If this STAC property is not defined in the standard, give the name or URL of its extension.",
-            optional = true)
-    private String stacPropertyExtension;
-
-    @PluginParameter(name = "stacPropertyType", label = "STAC property type",
-            description = "Should take a value among: " + "'DATETIME', " + "'URL', " + "'STRING', " + "'ANGLE', "
-                    + "'LENGTH', " + "'PERCENTAGE', " + "'NUMBER', " + "'BOOLEAN', " + "'JSON_OBJECT'.",
-            defaultValue = "STRING", optional = true)
-    private String stacPropertyType;
-
-    @PluginParameter(name = STAC_FORMAT, label = "Format for the STAC value", markdown = STAC_FORMAT_MD, optional = true)
-    private String stacPropertyFormat;
-
-    @PluginParameter(
-            name = "stacComputeSummary",
-            label = "Compute summary",
-            description = "Whether a summary should be computed for this property in the collections." +
-                    " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'."
-    )
+    @PluginParameter(name = "stacComputeSummary", label = "Compute summary",
+            description = "Whether a summary should be computed for this property in the collections."
+                    + " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'.")
     private Boolean stacComputeSummary;
 
-    @PluginParameter(
-            name = STAC_DYNAMIC_COLLECTION_LEVEL,
-            label = "STAC dynamic collection level",
-            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
-            defaultValue = "-1",
-            optional = true
-    )
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_LEVEL, label = "STAC dynamic collection level",
+            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD, defaultValue = "-1", optional = true)
     private Integer stacDynamicCollectionLevel;
 
-    @PluginParameter(
-            name = STAC_DYNAMIC_COLLECTION_FORMAT,
-            label = "STAC dynamic collection format",
-            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
-            optional = true
-    )
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_FORMAT, label = "STAC dynamic collection format",
+            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD, optional = true)
     private String stacDynamicCollectionFormat;
 }

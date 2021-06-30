@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import io.vavr.control.Option;
 
 import java.net.URI;
@@ -31,17 +30,9 @@ public interface SearchPageLinkCreator {
 
     Option<URI> searchAll();
 
-    Option<URI> createNextPageLink(ItemCollectionResponse itemCollection);
+    Option<URI> createNextPageLink();
 
-    Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection);
+    Option<URI> createPrevPageLink();
 
-    Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection);
-
-    SearchPageLinkCreator USELESS = new SearchPageLinkCreator() {
-            @Override public Option<URI> searchAll() { return Option.none(); }
-            @Override public Option<URI> createNextPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
-            @Override public Option<URI> createPrevPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
-            @Override public Option<URI> createSelfPageLink(ItemCollectionResponse itemCollection) { return Option.none(); }
-        };
-
+    Option<URI> createSelfPageLink();
 }

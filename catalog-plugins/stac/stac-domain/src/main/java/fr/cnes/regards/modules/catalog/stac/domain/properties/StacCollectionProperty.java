@@ -16,24 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
+package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
-package fr.cnes.regards.modules.catalog.stac.service.collection;
-
-import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import io.vavr.Tuple2;
-import io.vavr.collection.List;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.Aggregations;
-
-import java.time.OffsetDateTime;
+import lombok.Value;
+import lombok.With;
 
 /**
- * provides methods to get Elasticsearch aggregations.
+ * @author Marc SORDI
  */
-public interface EsAggregagtionHelper {
+@Value
+@With
+public class StacCollectionProperty {
 
-    Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs);
+    RegardsPropertyAccessor regardsPropertyAccessor;
 
-    Tuple2<OffsetDateTime,OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath);
+    /**
+     * Optional object wrapper
+     */
+    String stacPropertyNamespace;
 
+    String stacPropertyName;
+
+    String extension;
+
+    /**
+     * Only used for reverse mapping for collection search parameters and sorting ones.
+     */
+    public StacProperty toStacProperty() {
+        return new StacProperty(regardsPropertyAccessor, stacPropertyNamespace, stacPropertyName, extension, null, null,
+                                null, null, null, Boolean.FALSE);
+    }
 }

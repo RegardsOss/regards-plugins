@@ -62,28 +62,8 @@
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyNamespace": "provider",
-                        "stacPropertyName": "name",
-                        "sourcePropertyPath": "provider.name",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyNamespace": "provider",
-                        "stacPropertyName": "description",
-                        "sourcePropertyPath": "provider.description",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyNamespace": "provider",
-                        "stacPropertyName": "roles",
-                        "stacPropertyType": "DATETIME",
-                        "sourcePropertyPath": "provider.roles",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyNamespace": "provider",
-                        "stacPropertyName": "url",
-                        "sourcePropertyPath": "provider.url",
+                        "stacPropertyName": "providers",
+                        "sourcePropertyPath": "providers",
                         "stacComputeSummary": false
                     },
                     {

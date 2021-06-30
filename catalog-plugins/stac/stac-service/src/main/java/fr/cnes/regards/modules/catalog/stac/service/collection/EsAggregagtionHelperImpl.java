@@ -19,9 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
+import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
@@ -32,7 +34,9 @@ import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.IncludeExclude;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -40,9 +44,9 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * TODO: EsAggregagtionHelperImpl description
@@ -50,19 +54,25 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
  * @author gandrieu
  */
 @Component
-public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
+public class EsAggregagtionHelperImpl implements EsAggregationHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EsAggregagtionHelperImpl.class);
 
+    /**
+     * Prefix to identify dataset tags
+     */
+    private static final String DATASET_REGEXP = "URN:AIP:DATASET.*";
+
+    private static final IncludeExclude DATASET_ONLY = new IncludeExclude(DATASET_REGEXP, null);
+
     private final IEsRepository esRepository;
+
     private final IRuntimeTenantResolver tenantResolver;
+
     private final ProjectGeoSettings projectGeoSettings;
 
-    public EsAggregagtionHelperImpl(
-            IEsRepository esRepository,
-            IRuntimeTenantResolver tenantResolver,
-            ProjectGeoSettings projectGeoSettings
-    ) {
+    public EsAggregagtionHelperImpl(IEsRepository esRepository, IRuntimeTenantResolver tenantResolver,
+            ProjectGeoSettings projectGeoSettings) {
         this.esRepository = esRepository;
         this.tenantResolver = tenantResolver;
         this.projectGeoSettings = projectGeoSettings;
@@ -81,9 +91,16 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
             OffsetDateTime dateTimeFrom = Option.of(esRepository.minDate(searchKey, criterion, attrPath)).getOrElse(lowestBound());
             OffsetDateTime dateTimeTo = Option.of(esRepository.maxDate(searchKey, criterion, attrPath)).getOrElse(uppestBound());
             return Tuple.of(dateTimeFrom, dateTimeTo);
-        })
-        .onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
-        .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
+        }).onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
+                .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
+    }
+
+    @Override
+    public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, int size) {
+        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+        AggregationBuilder termsAggBuilder = AggregationBuilders.terms(aggregationName)
+                .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size).includeExclude(DATASET_ONLY);
+        return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder));
     }
 
     private SimpleSearchKey<AbstractEntity<?>> searchKey() {
@@ -92,5 +109,4 @@ public class EsAggregagtionHelperImpl implements EsAggregagtionHelper {
         result.setCrs(projectGeoSettings.getCrs());
         return result;
     }
-
 }

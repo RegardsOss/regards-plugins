@@ -16,11 +16,11 @@ import io.vavr.collection.List;
 
 public class DynCollValTest {
 
-    StacProperty prop1 = new StacProperty(null, null, "prop1", "", false, 1, "0;10;100", StacPropertyType.NUMBER, null);
+    StacProperty prop1 = new StacProperty(null, null, "prop1", "", false, 1, "0;10;100", StacPropertyType.NUMBER, null, Boolean.FALSE);
 
-    StacProperty prop2 = new StacProperty(null, null, "prop2", "", false, 2, "DAY", StacPropertyType.DATETIME, null);
+    StacProperty prop2 = new StacProperty(null, null, "prop2", "", false, 2, "DAY", StacPropertyType.DATETIME, null, Boolean.FALSE);
 
-    StacProperty prop3 = new StacProperty(null, null, "prop3", "", false, 3, "PREFIX(2,9)", StacPropertyType.STRING, null);
+    StacProperty prop3 = new StacProperty(null, null, "prop3", "", false, 3, "PREFIX(2,9)", StacPropertyType.STRING, null, Boolean.FALSE);
 
     NumberRangeLevelDef numberRangeLevelDef = new NumberRangeLevelDef(prop1, new NumberRangeSublevelDef(0, 10, 100));
 

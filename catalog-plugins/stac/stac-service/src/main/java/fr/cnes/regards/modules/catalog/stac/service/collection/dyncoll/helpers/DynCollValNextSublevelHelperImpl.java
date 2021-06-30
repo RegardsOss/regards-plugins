@@ -20,13 +20,14 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -63,14 +64,14 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
 
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
     private final StacSearchCriterionBuilder criterionBuilder;
-    private final EsAggregagtionHelper aggregagtionHelper;
+    private final EsAggregationHelper aggregagtionHelper;
     private final ConfigurationAccessorFactory configFactory;
 
     @Autowired
     public DynCollValNextSublevelHelperImpl(
             DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
             StacSearchCriterionBuilder criterionBuilder,
-            EsAggregagtionHelper aggregagtionHelper,
+            EsAggregationHelper aggregagtionHelper,
             ConfigurationAccessorFactory configFactory) {
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.criterionBuilder = criterionBuilder;
@@ -265,7 +266,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     private ICriterion computeCriterion(DynCollVal val, List<StacProperty> props) {
-        Map<String, ItemSearchBody.QueryObject> queryObjects = val.getLevels()
+        Map<String, SearchBody.QueryObject> queryObjects = val.getLevels()
                 .map(levelValToQueryObjectConverter::toQueryObject)
                 .flatMap(o -> o)
                 .toMap(t -> t);

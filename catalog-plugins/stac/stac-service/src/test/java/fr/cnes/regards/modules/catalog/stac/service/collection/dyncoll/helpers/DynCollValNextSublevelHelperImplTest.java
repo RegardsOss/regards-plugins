@@ -33,7 +33,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.Stri
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregagtionHelperImpl;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -60,7 +60,7 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     ProjectGeoSettings projectGeoSettings = mock(ProjectGeoSettings.class);
 
-    EsAggregagtionHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
+    EsAggregationHelper aggregagtionHelper = new EsAggregagtionHelperImpl(esRepository, tenantResolver, projectGeoSettings);
 
     ConfigurationAccessor config = mock(ConfigurationAccessor.class);
 
@@ -70,13 +70,13 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
             criterionBuilder, aggregagtionHelper, configFactory);
 
     StacProperty prop1 = new StacProperty(accessor("prop1", NUMBER, 12d), null, "prop1", "", false, 1, "0;10;20", NUMBER,
-            new IdentityPropertyConverter<>(NUMBER));
+            new IdentityPropertyConverter<>(NUMBER), Boolean.FALSE);
 
     StacProperty prop2 = new StacProperty(accessor("prop2", DATETIME, now()), null, "prop2", "", false, 2, "DAY", DATETIME,
-            new IdentityPropertyConverter<>(DATETIME));
+            new IdentityPropertyConverter<>(DATETIME), Boolean.FALSE);
 
     StacProperty prop3 = new StacProperty(accessor("prop3", STRING, ""), null, "prop3", "", false, 3, "PREFIX(2,9)", STRING,
-            new IdentityPropertyConverter<>(STRING));
+            new IdentityPropertyConverter<>(STRING), Boolean.FALSE);
 
     NumberRangeLevelDef numberRangeLevelDef = new NumberRangeLevelDef(prop1, new NumberRangeSublevelDef(0, 10, 20));
 

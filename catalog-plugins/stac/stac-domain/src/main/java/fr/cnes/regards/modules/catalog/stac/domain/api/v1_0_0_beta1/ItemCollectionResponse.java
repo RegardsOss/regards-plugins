@@ -52,12 +52,6 @@ public class ItemCollectionResponse implements LinkCollection<ItemCollectionResp
     List<Item> features;
     List<Link> links;
 
-    @Value @With
-    public static class Context {
-        int returned;
-        Integer limit;
-        Long matched;
-    }
     Context context;
 
 }

@@ -134,7 +134,7 @@ public class DynCollLevelDefParserImplTest {
     }
 
     private StacProperty makeProperty(int level, String format, StacPropertyType type) {
-        return new StacProperty(null, null, "theName", "core", false, level, format, type, null);
+        return new StacProperty(null, null, "theName", "core", false, level, format, type, null, Boolean.FALSE);
     }
 
 }

@@ -1,0 +1,28 @@
+{
+  "id": "DATASET:L1B_HR_SLC",
+  "type": "Feature",
+  "entityType": "DATA",
+  "model": "HYGOR001",
+  "geometry": null,
+  "properties": {
+    "title": "L1B HR SLC Title",
+    "description": "Description of L1B HR SLC",
+    "keywords": [
+      "SWOT",
+      "Level 1B",
+      "HR"
+    ],
+    "license": "LicenseOne",
+    "providers": [
+      {
+        "name": "CNES",
+        "roles": [
+          "licensor",
+          "producer",
+          "processor"
+        ],
+        "url": "http://www.cnes.fr"
+      }
+    ]
+  }
+}

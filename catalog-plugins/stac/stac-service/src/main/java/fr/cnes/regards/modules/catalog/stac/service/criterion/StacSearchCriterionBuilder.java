@@ -20,10 +20,12 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import org.checkerframework.checker.nullness.Opt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,5 +41,28 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
             .getOrElse(ICriterion::all);
     }
 
+    /**
+     * Build criteria for item level search
+     */
     Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody value);
+
+    default ICriterion toCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody) {
+        return buildCriterion(properties, collectionSearchBody)
+                .getOrElse(ICriterion::all);
+    }
+
+    /**
+     * Build criteria for collection level search
+     */
+    Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody);
+
+    default ICriterion toCriterion(List<StacProperty> properties, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
+        return buildCriterion(properties, collectionItemSearchBody)
+                .getOrElse(ICriterion::all);
+    }
+
+    /**
+     * Build criteria for item level search related to collection search
+     */
+    Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
 }

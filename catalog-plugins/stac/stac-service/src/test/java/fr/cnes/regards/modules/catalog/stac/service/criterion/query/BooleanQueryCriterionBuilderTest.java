@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.BooleanQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.BooleanQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
@@ -22,7 +22,7 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
         // GIVEN
         List<StacProperty> properties = List
                 .of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true), null, "stacBool", "", false, 0,
-                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
         // WHEN
         Option<ICriterion> criterion = new BooleanQueryCriterionBuilder("stacBool").buildCriterion(properties, null);
         // THEN
@@ -34,7 +34,7 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
         // GIVEN
         List<StacProperty> properties = List
                 .of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true), null, "stacBool", "", false, 0,
-                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
         BooleanQueryObject bqo = BooleanQueryObject.builder().eq(true).neq(false).build();
         // WHEN
         Option<ICriterion> criterion = new BooleanQueryCriterionBuilder("stacBool").buildCriterion(properties, bqo);

@@ -35,7 +35,7 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
         List<StacProperty> properties = List.of(new StacProperty(accessor, null, "datetime", "", false, 0, null,
-                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
         OffsetDateTime now = OffsetDateTime.now();
         DateInterval interval = DateInterval.single(now);
         // WHEN
@@ -53,7 +53,7 @@ public class DateIntervalCriterionBuilderTest implements RegardsPropertyAccessor
         // GIVEN
         RegardsPropertyAccessor accessor = accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now(UTC));
         List<StacProperty> properties = List.of(new StacProperty(accessor, null, "datetime", "", false, 0, null,
-                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME)));
+                StacPropertyType.DATETIME, new IdentityPropertyConverter<>(StacPropertyType.DATETIME), Boolean.FALSE));
         OffsetDateTime now = OffsetDateTime.now();
         DateInterval interval = DateInterval.of(now.minusHours(2), now);
         // WHEN

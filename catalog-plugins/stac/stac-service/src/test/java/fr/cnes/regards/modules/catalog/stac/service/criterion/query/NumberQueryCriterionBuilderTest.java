@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody.NumberQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.NumberQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -32,7 +32,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         // GIVEN
         List<StacProperty> properties = List
                 .of(new StacProperty(accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d), null, "stacProp", "", false,
-                        0, null, StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)));
+                        0, null, StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE), Boolean.FALSE));
         // WHEN
         Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, null);
         // THEN
@@ -44,7 +44,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         // GIVEN
         RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(regardsAttr, null, "stacProp", "", false, 0, null,
-                StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)));
+                StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE), Boolean.FALSE));
 
         double value = 12d;
         NumberQueryObject qo = NumberQueryObject.builder().eq(value).build();
@@ -64,7 +64,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         // GIVEN
         RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(regardsAttr, null, "stacProp", "", false, 0, null,
-                StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE)));
+                StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE), Boolean.FALSE));
 
         double value = 12d;
         NumberQueryObject qo = NumberQueryObject.builder().neq(value).build();
@@ -87,7 +87,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         // GIVEN
         RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(regardsAttr, null, "stacProp", "", false, 0, null,
-                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
 
         @SuppressWarnings("unused")
         double value = 12d;
@@ -107,7 +107,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         // GIVEN
         RegardsPropertyAccessor regardsAttr = accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d);
         List<StacProperty> properties = List.of(new StacProperty(regardsAttr, null, "stacProp", "", false, 0, null,
-                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING)));
+                StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
 
         NumberQueryObject qo = NumberQueryObject.builder().in(List.of(12d, 13d)).build();
         // WHEN

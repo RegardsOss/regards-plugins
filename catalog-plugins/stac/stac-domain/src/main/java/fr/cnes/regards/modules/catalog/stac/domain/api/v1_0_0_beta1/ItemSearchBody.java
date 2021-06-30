@@ -47,59 +47,8 @@ public class ItemSearchBody {
     List<String> collections;
     List<String> ids;
     Integer limit;
-    Fields fields;
-    Map<String, QueryObject> query;
-    List<SortBy> sortBy;
-    
-    @Value
-    public static class SortBy {
-        public enum Direction {
-            @SerializedName("asc") ASC, @SerializedName("desc") DESC;
-        }
-        String field;
-        Direction direction;
-    }
+    SearchBody.Fields fields;
+    Map<String, SearchBody.QueryObject> query;
+    List<SearchBody.SortBy> sortBy;
 
-    @Value @With
-    public static class Fields {
-        List<String> includes;
-        List<String> excludes;
-    }
-
-    public interface QueryObject {}
-
-    @Value @Builder
-    public static class BooleanQueryObject implements QueryObject {
-        Boolean eq;
-        Boolean neq;
-    }
-    @Value @Builder
-    public static class NumberQueryObject implements QueryObject {
-        Double eq;
-        Double neq;
-        Double gt;
-        Double lt;
-        Double gte;
-        Double lte;
-        List<Double> in;
-    }
-    @Value @Builder
-    public static class DatetimeQueryObject implements QueryObject {
-        OffsetDateTime eq;
-        OffsetDateTime neq;
-        OffsetDateTime gt;
-        OffsetDateTime lt;
-        OffsetDateTime gte;
-        OffsetDateTime lte;
-        List<OffsetDateTime> in;
-    }
-    @Value @Builder
-    public static class StringQueryObject implements QueryObject {
-        String eq;
-        String neq;
-        String startsWith;
-        String endsWith;
-        String contains;
-        List<String> in;
-    }
 }

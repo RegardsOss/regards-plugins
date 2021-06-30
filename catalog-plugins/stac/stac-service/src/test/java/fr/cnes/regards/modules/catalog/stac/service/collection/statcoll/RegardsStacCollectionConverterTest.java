@@ -1,46 +1,5 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ROOT;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.bucket.range.ParsedDateRange;
-import org.elasticsearch.search.aggregations.bucket.range.Range;
-import org.jeasy.random.EasyRandom;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.locationtech.spatial4j.context.SpatialContext;
-import org.locationtech.spatial4j.context.SpatialContextFactory;
-import org.locationtech.spatial4j.io.GeoJSONReader;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.EntityOperationForbiddenException;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -70,6 +29,39 @@ import io.vavr.collection.List;
 import io.vavr.collection.TreeSet;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.bucket.range.ParsedDateRange;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
+import org.jeasy.random.EasyRandom;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.locationtech.spatial4j.context.SpatialContext;
+import org.locationtech.spatial4j.context.SpatialContextFactory;
+import org.locationtech.spatial4j.io.GeoJSONReader;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @ActiveProfiles({ "test" })
@@ -111,8 +103,9 @@ public class RegardsStacCollectionConverterTest {
     }
 
     @Test
-    public void testConvertCollection() throws EntityOperationForbiddenException, EntityNotFoundException, SearchException,
-            MalformedURLException, OpenSearchUnknownParameter {
+    public void testConvertCollection()
+            throws EntityOperationForbiddenException, EntityNotFoundException, SearchException, MalformedURLException,
+            OpenSearchUnknownParameter {
         fr.cnes.regards.modules.dam.domain.entities.Collection collection = generateRandomDamCollection();
 
         ParsedDateRange parsedDateRange = Mockito.mock(ParsedDateRange.class);
@@ -131,34 +124,37 @@ public class RegardsStacCollectionConverterTest {
 
         TreeSet<String> tags = TreeSet.of("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-123456789012:V1");
         damCollection.getCollection().setTags(tags.toJavaSet());
-        when(catalogSearchService.getCollectionWithDataObjectsStats(any(UniformResourceName.class), any(SearchType.class),
-                                                                    any(java.util.Collection.class)))
-                                                                            .thenReturn(damCollection);
+        when(catalogSearchService
+                     .getCollectionWithDataObjectsStats(any(UniformResourceName.class), any(SearchType.class),
+                                                        any(java.util.Collection.class))).thenReturn(damCollection);
 
         when(facetPage.getContent()).thenReturn(List.of(collectResult).asJava());
 
-        when(catalogSearchService.search(any(ICriterion.class), any(SearchType.class), any(ArrayList.class),
-                                         any(Pageable.class))).thenReturn(facetPage);
+        when(catalogSearchService
+                     .search(any(ICriterion.class), any(SearchType.class), any(ArrayList.class), any(Pageable.class)))
+                .thenReturn(facetPage);
 
-        when(catalogSearchService.search(any(ICriterion.class), any(SimpleSearchKey.class), isNull(), any(Pageable.class)))
+        when(catalogSearchService
+                     .search(any(ICriterion.class), any(SimpleSearchKey.class), isNull(), any(Pageable.class)))
                 .thenReturn(facetPage);
 
         when(configurationAccessor.getGeoJSONReader())
                 .thenReturn(new GeoJSONReader(SpatialContext.GEO, Mockito.mock(SpatialContextFactory.class)));
         when(configurationAccessor.getKeywords(anyString())).thenReturn(List.of("keywords"));
-        when(configurationAccessor.getProviders(anyString())).thenReturn(List.of(new Provider("prov", "desc",
-                new URL("http", "localhost", 1234, "file"), List.of(Provider.ProviderRole.HOST))));
+        when(configurationAccessor.getProviders(anyString())).thenReturn(
+                List.of(new Provider("prov", "desc", new URL("http", "localhost", 1234, "file"),
+                                     List.of(Provider.ProviderRole.HOST))));
         when(configurationAccessor.getLicense(anyString())).thenReturn("licence");
 
         when(featLinkCreator.createRootLink())
                 .thenAnswer(i -> Option.of(uri("/root")).map(uri -> new Link(uri, ROOT, "", "")));
-        when(featLinkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option
-                .of(uri("/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
-        when(featLinkCreator.createItemLink(anyString(), anyString()))
-                .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+        when(featLinkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(
+                i -> Option.of(uri("/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
+        when(featLinkCreator.createItemLink(anyString(), anyString())).thenAnswer(
+                i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                         .map(uri -> new Link(uri, SELF, "", "")));
-        when(featLinkCreator.createCollectionItemsLinkWithRel(anyString(), anyString()))
-                .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+        when(featLinkCreator.createCollectionItemsLinkWithRel(anyString(), anyString())).thenAnswer(
+                i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                         .map(uri -> new Link(uri, SELF, "", "")).map(x -> x.withRel("items")));
 
         when(featLinkCreator.createCollectionLinkWithRel(anyString(), anyString(), anyString())).thenAnswer(i -> {
@@ -172,10 +168,12 @@ public class RegardsStacCollectionConverterTest {
 
         });
 
-        StacProperty stacProperty = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp", "ext",
-                false, 1, "dynFormat", StacPropertyType.NUMBER, Mockito.mock(AbstractPropertyConverter.class));
-        StacProperty dateTimeProp = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp", "ext",
-                false, 1, "dynFormat", StacPropertyType.DATETIME, Mockito.mock(AbstractPropertyConverter.class));
+        StacProperty stacProperty = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp",
+                                                     "ext", false, 1, "dynFormat", StacPropertyType.NUMBER,
+                                                     Mockito.mock(AbstractPropertyConverter.class), Boolean.FALSE);
+        StacProperty dateTimeProp = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp",
+                                                     "ext", false, 1, "dynFormat", StacPropertyType.DATETIME,
+                                                     Mockito.mock(AbstractPropertyConverter.class), Boolean.FALSE);
         when(configurationAccessor.getDatetimeStacProperty()).thenReturn(dateTimeProp);
         when(configurationAccessor.getStacProperties()).thenReturn(List.of(stacProperty));
         when(configurationAccessorFactory.makeConfigurationAccessor()).thenReturn(configurationAccessor);

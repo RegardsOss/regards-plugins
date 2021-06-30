@@ -18,31 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMethod;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -60,7 +36,6 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
-import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
@@ -70,82 +45,33 @@ import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
+import org.junit.Assert;
+import org.junit.Before;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Engine common methods
+ *
  * @author Marc Sordi
  */
 @SuppressWarnings("deprecation")
 //@DirtiesContext
 public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
-
-    // FIXME clean
-    //    /**
-    //     * Common metadata
-    //     */
-    //    protected static final String ATT_DATETIME = "datetime";
-    //
-    //    protected static final String ATT_START_DATETIME = "start_datetime";
-    //
-    //    protected static final String ATT_END_DATETIME = "end_datetime";
-    //
-    //    protected static final String ATT_PROVIDER = "provider";
-    //
-    //    protected static final String ATT_PROVIDER_NAME = "name";
-    //
-    //    protected static final String ATT_PLATFORM = "platform";
-    //
-    //    protected static final String ATT_INSTRUMENT = "instrument";
-    //
-    //    protected static final String ATT_MISSION = "mission";
-    //
-    //    /**
-    //     * Version extension
-    //     */
-    //    protected static final String ATT_VERSION = "version";
-    //
-    //    /**
-    //     * Hydrology extension
-    //     */
-    //    protected static final String ATT_HYDRO = "hydro";
-    //
-    //    protected static final String ATT_HYDRO_DATA_TYPE = "data_type";
-    //
-    //    protected static final String ATT_HYDRO_variables = "variables";
-    //
-    //    protected static final String ATT_HYDRO_categories = "categories";
-    //
-    //    /**
-    //     * Spatial extension
-    //     */
-    //    protected static final String ATT_SPATIAL = "spatial";
-    //
-    //    protected static final String ATT_SPATIAL_CYCLE_ID = "cycle_id";
-    //
-    //    protected static final String ATT_SPATIAL_CRIT = "crid";
-    //
-    //    protected static final String ATT_SPATIAL_PASS_ID = "pass_id";
-    //
-    //    protected static final String ATT_SPATIAL_TILE_ID = "tile_id";
-    //
-    //    protected static final String ATT_SPATIAL_TILE_SIDE = "tile_side";
-    //
-    //    protected static final String ATT_SPATIAL_BASSIN_ID = "bassin_id";
-    //
-    //    protected static final String ATT_SPATIAL_CONTINENT_ID = "continent_id";
-    //
-    //    protected static final String ATT_SCENE_ID = "scene_id";
-    //
-    //    /**
-    //     * Data characteristics extension
-    //     */
-    //    protected static final String ATT_DCS = "dcs";
-    //
-    //    protected static final String ATT_DCS_ORIGIN = "origin";
-    //
-    //    protected static final String ATT_DCS_TECHNO_ID = "techno_id";
-    //
-    //    protected static final String ATT_DCS_REF_CATALOG = "reference_catalog";
 
     /**
      * Data folders
@@ -155,6 +81,13 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     private static final Path DATA_FOLDER_FOR_SWOT = DATA_FOLDER.resolve("swot");
 
     private static final Path DATA_FOLDER_FOR_SWOT_CONFIG = DATA_FOLDER_FOR_SWOT.resolve("config");
+
+    private static final Path DATA_FOLDER_FOR_SWOT_DATASETS = DATA_FOLDER_FOR_SWOT.resolve("datasets");
+
+    /**
+     * Look at files in DATA_FOLDER_FOR_SWOT_DATASETS
+     */
+    private static final String DATASET_ID_PREFIX = "DATASET:";
 
     @Autowired
     protected ModelService modelService;
@@ -260,8 +193,8 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         Model swotModel = modelService
                 .importModel(Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("data_model_hygor_V0.1.0.xml")));
         // DATASET
-        Model datasetModel = modelService
-                .importModel(Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("dataset_model_hygor_V0.1.0.xml")));
+        Model datasetModel = modelService.importModel(
+                Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("dataset_model_hygor_V0.1.0.xml")));
 
         // - Manage attribute model retrieval
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocsFor(Mockito.any())).thenAnswer(invocation -> {
@@ -274,8 +207,9 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         });
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(Mockito.any())).thenAnswer(invocation -> {
             String modelName = invocation.getArgument(0);
-            return ResponseEntity.ok(modelService.getModelAttrAssocs(modelName).stream()
-                    .map(a -> new EntityModel<ModelAttrAssoc>(a)).collect(Collectors.toList()));
+            return ResponseEntity
+                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(a -> new EntityModel<ModelAttrAssoc>(a))
+                                .collect(Collectors.toList()));
         });
 
         // - Refresh attribute factory
@@ -293,7 +227,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         initIndex(getDefaultTenant());
 
         // Create SWOT datasets
-        Map<String, Dataset> swotDatasets = createSwotDataset(datasetModel);
+        Map<String, Dataset> swotDatasets = createSwotDatasets(datasetModel);
         indexerService.saveBulkEntities(getDefaultTenant(), swotDatasets.values());
 
         // Create SWOT data
@@ -304,9 +238,14 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     }
 
     protected void initPlugins() throws ModuleException {
-        SearchEngineConfiguration conf = loadFromJson(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-engine-configuration.json"),
-                                                      SearchEngineConfiguration.class);
+        SearchEngineConfiguration conf = loadFromJson(
+                DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-engine-configuration.json"), SearchEngineConfiguration.class);
         searchEngineService.createConf(conf);
+
+        SearchEngineConfiguration collectionConf = loadFromJson(
+                DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-collection-engine-configuration.json"),
+                SearchEngineConfiguration.class);
+        searchEngineService.createConf(collectionConf);
     }
 
     /**
@@ -320,12 +259,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     /**
      * Return map of dataset with key indicating related data folder
      */
-    private Map<String, Dataset> createSwotDataset(Model datasetModel) {
-        List<Dataset> datasets = new ArrayList<>();
-        datasets.add(createDataset(datasetModel, "L1B_HR_SLC"));
-        datasets.add(createDataset(datasetModel, "L2_HR_RASTER"));
-        // label = data folder here
-        return datasets.stream().collect(Collectors.toMap(d -> d.getLabel(), Function.identity()));
+    private Map<String, Dataset> createSwotDatasets(Model datasetModel) throws IOException {
+        return Files.list(DATA_FOLDER_FOR_SWOT_DATASETS).filter(Files::isRegularFile)
+                .map(p -> createSWOTDatasetFromFeature(datasetModel, p))
+                .collect(Collectors.toMap(d -> ((Dataset) d).getLabel(), Function.identity()));
     }
 
     private List<DataObject> createSWOTData(Model swotModel, Map<String, Dataset> swotDatasets) {
@@ -333,12 +270,32 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         try {
             for (Entry<String, Dataset> entry : swotDatasets.entrySet()) {
                 dataobjects.addAll(Files.list(DATA_FOLDER_FOR_SWOT.resolve(entry.getKey())).filter(Files::isRegularFile)
-                        .map(p -> createDataObjectFromFeature(swotModel, p, entry.getValue())).collect(Collectors.toList()));
+                                           .map(p -> createDataObjectFromFeature(swotModel, p, entry.getValue()))
+                                           .collect(Collectors.toList()));
             }
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }
         return dataobjects;
+    }
+
+    private Dataset createSWOTDatasetFromFeature(Model datasetModel, Path filepath) {
+        // Load from file
+        Feature feature = loadFromJson(filepath, Feature.class);
+        // Create related dataset label!
+        // Warning : label is used to identify dataset item folders
+        if (!feature.getId().startsWith(DATASET_ID_PREFIX)) {
+            Assert.fail(String.format("Feature id for datasets must start with %s", DATASET_ID_PREFIX));
+        }
+        String label = feature.getId().substring(DATASET_ID_PREFIX.length());
+
+        // Compute label to match directory
+        Dataset dataset = createEntity(datasetModel, label);
+        dataset.setGeometry(feature.getGeometry());
+        feature.getProperties().stream().forEach(p -> dataset.addProperty(p));
+        // TODO add summaries
+
+        return dataset;
     }
 
     /**
@@ -352,6 +309,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setGroups(getAccessGroups());
         data.setCreationDate(OffsetDateTime.now());
         data.setGeometry(feature.getGeometry());
+        data.setWgs84(feature.getGeometry()); // As we bypass automatic normalization
         data.setProperties(feature.getProperties());
         // TODO : maybe add files!
         // Link to dataset
@@ -368,8 +326,9 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
     /**
      * Load POJO from JSON file
+     *
      * @param filepath path to the file
-     * @param target {@link Class}
+     * @param clazz    {@link Class}
      * @return {@link Feature}
      */
     private <T> T loadFromJson(Path filepath, Class<T> clazz) {
@@ -401,14 +360,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
                 throw new UnsupportedOperationException("Unknown entity type " + model.getType());
         }
         return (T) entity;
-    }
-
-    private Dataset createDataset(Model datasetModel, String label) {
-        Dataset dataset = createEntity(datasetModel, label);
-        dataset.addProperty(IProperty.buildString("name", label));
-        dataset.addTags("SWOT");
-        dataset.addTags("CNES");
-        return dataset;
     }
 
     /**

@@ -32,6 +32,8 @@ public interface StacApiConstants {
 
     String SEARCH_ITEMBODY_QUERY_PARAM = "itemBody";
 
+    String SEARCH_COLLECTIONBODY_QUERY_PARAM = "collectionBody";
+
     String LIMIT_QUERY_PARAM = "limit";
 
     String PAGE_QUERY_PARAM = "page";
@@ -67,5 +69,10 @@ public interface StacApiConstants {
     // Extension to get collection from an item search 
 
     String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
+
+    /**
+     * Parameter to pass query parameters on items on a collection search request
+     */
+    String STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX = "item_";
 
 }

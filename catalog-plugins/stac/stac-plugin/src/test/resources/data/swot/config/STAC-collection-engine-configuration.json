@@ -1,0 +1,59 @@
+{
+  "label": "STAC collection",
+  "configuration": {
+    "pluginId": "stac-collection-search",
+    "label": "STAC configuration for collection search",
+    "businessId": "hygor-collection-search",
+    "version": "1.0.0",
+    "priorityOrder": 1,
+    "active": true,
+    "parameters": [
+      {
+        "name": "stacCollectionTitle",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "title"
+        }
+      },
+      {
+        "name": "stacCollectionDescription",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "description"
+        }
+      },
+      {
+        "name": "stacCollectionKeywords",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "keywords"
+        }
+      },
+      {
+        "name": "stacCollectionLicense",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "license"
+        }
+      },
+      {
+        "name": "stacCollectionProviders",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "providers"
+        }
+      },
+      {
+        "name": "stacCollectionSummaries",
+        "type": "COLLECTION",
+        "value": [
+          {
+            "sourcePropertyPath": "title",
+            "stacPropertyName": "hydro:title",
+            "stacPropertyExtension": "hydro"
+          }
+        ]
+      }
+    ]
+  }
+}
