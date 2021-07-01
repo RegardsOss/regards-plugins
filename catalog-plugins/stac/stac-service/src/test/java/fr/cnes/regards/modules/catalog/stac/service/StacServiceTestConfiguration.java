@@ -12,6 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.CollectionConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.CollectionConfigurationAccessorFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -57,6 +60,53 @@ public class StacServiceTestConfiguration {
 
         when(mockConfigurationAccessorFactory.makeConfigurationAccessor()).thenReturn(mockConfigurationAccessor);
         return mockConfigurationAccessorFactory;
+    }
+
+    @Bean
+    CollectionConfigurationAccessorFactory collectionConfigurationAccessorFactory() {
+        return new CollectionConfigurationAccessorFactory() {
+
+            @Override
+            public CollectionConfigurationAccessor makeConfigurationAccessor() {
+                return new CollectionConfigurationAccessor() {
+
+                    @Override
+                    public StacCollectionProperty getTitleProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getDescriptionProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getKeywordsProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getLicenseProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getProvidersProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public List<StacProperty> getSummariesProperties() {
+                        return null;
+                    }
+
+                    @Override
+                    public List<StacProperty> getStacProperties() {
+                        return null;
+                    }
+                };
+            }
+        };
     }
 
     @Bean

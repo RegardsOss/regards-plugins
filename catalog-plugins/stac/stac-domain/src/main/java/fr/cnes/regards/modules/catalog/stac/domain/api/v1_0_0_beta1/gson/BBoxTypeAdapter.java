@@ -39,7 +39,7 @@ public class BBoxTypeAdapter extends TypeAdapter<BBox> {
         }
         out.beginArray();
         out.value(value.getMinX());
-        out.value(value.getMaxY());
+        out.value(value.getMinY());
         out.value(value.getMaxX());
         out.value(value.getMaxY());
         out.endArray();
