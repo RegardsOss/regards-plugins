@@ -59,7 +59,7 @@ import java.util.List;
  * <p>
  * FIXME : add assertion everywhere
  */
-@TestPropertySource(locations = { "classpath:test-local.properties" },
+@TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractSwotIT {

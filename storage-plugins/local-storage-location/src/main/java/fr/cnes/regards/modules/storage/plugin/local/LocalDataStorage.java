@@ -35,10 +35,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
@@ -138,6 +135,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
             defaultValue = "500000000")
     private Long maxZipSize;
+
+    @Override
+    public Optional<Path> getRootPath() {
+        return Optional.ofNullable(Paths.get(baseStorageLocationAsString));
+    }
 
     @Override
     public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(
@@ -632,4 +634,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fc.close();
         }
     }
+
+
 }
