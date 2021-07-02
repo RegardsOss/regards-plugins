@@ -39,8 +39,9 @@ public class BBoxConverter implements Converter<String, BBox> {
 
     @Override
     public BBox convert(String source) {
-        if (source == null)
+        if (source == null) {
             return null;
+        }
         // Decorate source with array brackets if necessary
         String sourceToParse = source;
         if (!source.startsWith(OPENING_BRACKET)) {

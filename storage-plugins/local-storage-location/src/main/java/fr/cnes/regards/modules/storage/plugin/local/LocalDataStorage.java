@@ -115,6 +115,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final Long ZIP_ACQUIRE_TIMEOUT = 600L;
 
+    public static final String IOEXCEPTION_ERROR_MESSAGE_FORMAT = "Storage of StorageDataFile(%s) failed due to the following IOException: %s";
+
     /**
      * Base storage location url
      */
@@ -172,7 +174,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fullPathToFile = getStorageLocation(request);
         } catch (IOException ioe) {
             String failureCause = String
-                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                    .format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
                             request.getMetaInfo().getChecksum(), ioe.toString());
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, ioe.getMessage());

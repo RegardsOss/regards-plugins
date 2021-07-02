@@ -32,6 +32,8 @@ public final class StacRequestCorrelationId {
     private static final ThreadLocal<UUID> requestCorrelationId =
         new ThreadLocal<>();
 
+    public static final String STAC_REQUEST = "STAC Request ";
+
     public static UUID fresh() {
         UUID cid = UUID.randomUUID();
         requestCorrelationId.set(cid);
@@ -47,19 +49,19 @@ public final class StacRequestCorrelationId {
     }
 
     public static void trace(Logger logger, String pattern, Object... params) {
-        logger.trace("STAC Request " + currentCId() + " - " + pattern, params);
+        logger.trace(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
     public static void debug(Logger logger, String pattern, Object... params) {
-        logger.debug("STAC Request " + currentCId() + " - " + pattern, params);
+        logger.debug(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
     public static void info(Logger logger, String pattern, Object... params) {
-        logger.info("STAC Request " + currentCId() + " - " + pattern, params);
+        logger.info(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
     public static void warn(Logger logger, String pattern, Object... params) {
-        logger.warn("STAC Request " + currentCId() + " - " + pattern, params);
+        logger.warn(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
     public static void error(Logger logger, String pattern, Object... params) {
-        logger.error("STAC Request " + currentCId() + " - " + pattern, params);
+        logger.error(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
 
 }
