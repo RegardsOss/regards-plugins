@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
 import com.google.gson.Gson;
+import fr.cnes.regards.framework.jsoniter.property.AttributeModelPropertyTypeFinder;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -106,6 +107,9 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
     @Autowired
     protected IAttributeFinder finder;
+
+    @Autowired
+    protected AttributeModelPropertyTypeFinder attributeModelPropertyTypeFinder;
 
     @Autowired
     protected IProjectsClient projectsClientMock;
@@ -212,9 +216,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
                                 .collect(Collectors.toList()));
         });
 
-        // - Refresh attribute factory
+        // - Refresh attribute factory (legacy and Jsoniter)
         List<AttributeModel> atts = attributeModelService.getAttributes(null, null, null);
         gsonAttributeFactory.refresh(getDefaultTenant(), atts);
+        attributeModelPropertyTypeFinder.refresh(getDefaultTenant(), atts);
 
         // - Manage attribute cache
         List<EntityModel<AttributeModel>> resAtts = new ArrayList<>();
