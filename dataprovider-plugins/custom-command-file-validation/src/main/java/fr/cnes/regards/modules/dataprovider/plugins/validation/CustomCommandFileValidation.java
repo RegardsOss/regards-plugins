@@ -58,7 +58,8 @@ public class CustomCommandFileValidation implements IValidationPlugin {
     @PluginParameter(label = "File validation command",
             description = "Custom command to execute to valid each file. "
                     + "Use token ${file} in your command to add the absolute file path to validate. "
-                    + "Due to implementation limitation, it is highly recommended to use custom made scripts once you need more than one command result.",
+                    + "Due to implementation limitation, you need to create your own shell script if you need shell processing "
+                    + "features like variable substitution, or chaining multiple commands together",
             name = "customCommand", optional = false)
     private String customCommand;
 
