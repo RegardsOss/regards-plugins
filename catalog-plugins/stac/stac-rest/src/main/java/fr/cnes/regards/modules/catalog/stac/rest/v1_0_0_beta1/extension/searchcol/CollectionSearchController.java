@@ -98,7 +98,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<SearchCollectionsResponse> simple(
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
             @RequestParam(name = COLLECTIONS_QUERY_PARAM, required = false) List<String> collections,
@@ -140,7 +140,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @ResourceAccess(description = "Search collection with complex filtering", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<SearchCollectionsResponse> complex(@RequestBody CollectionSearchBody collectionSearchBody,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page)
             throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
@@ -160,7 +160,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @RequestMapping(path = "paginate", method = RequestMethod.GET)
     public ResponseEntity<SearchCollectionsResponse> otherPage(
             @RequestParam(name = SEARCH_COLLECTIONBODY_QUERY_PARAM) String collectionBodyBase64,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page)
             throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<CollectionSearchBody> tryCollectionSearchBody = searchTokenSerde.deserialize(collectionBodyBase64);

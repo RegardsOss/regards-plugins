@@ -97,7 +97,7 @@ public class ItemSearchController implements TryToResponseEntity {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> simple(
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false, defaultValue = "10") Integer limit,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
             @RequestParam(name = COLLECTIONS_QUERY_PARAM, required = false) List<String> collections,
