@@ -40,9 +40,11 @@ import static org.springframework.data.domain.Sort.Order.desc;
  */
 public abstract class AbstractSearchService {
 
-    protected Pageable pageable(Integer limit, Integer page, List<SearchBody.SortBy> sortBy,
+    protected Pageable pageable(Integer limit, Integer stacApiPage, List<SearchBody.SortBy> sortBy,
             List<StacProperty> stacProperties) {
-        return PageRequest.of(page, Option.of(limit).getOrElse(10), sort(sortBy, stacProperties));
+        int pageablePage = stacApiPage - 1; //stac-browser forces us to have "first page is 1"-policy in the REST API,
+                                            // while the pageable given to ES has "first-page is 0"-policy
+        return PageRequest.of(pageablePage, Option.of(limit).getOrElse(10), sort(sortBy, stacProperties));
     }
 
     private Sort sort(List<SearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {

@@ -86,10 +86,17 @@ public class OGCFeaturesController implements TryToResponseEntity {
 
     private final ItemSearchService itemSearchService;
 
+    //@formatter:off
+
     @Autowired
-    public OGCFeaturesController(RestDynCollValSerdeService restDynCollValSerdeService, CollectionService collectionService,
-            ConfigurationAccessorFactory configFactory, LinkCreatorService linker,
-            ItemSearchBodyFactory itemSearchBodyFactory, ItemSearchService itemSearchService) {
+    public OGCFeaturesController(
+            RestDynCollValSerdeService restDynCollValSerdeService,
+            CollectionService collectionService,
+            ConfigurationAccessorFactory configFactory,
+            LinkCreatorService linker,
+            ItemSearchBodyFactory itemSearchBodyFactory,
+            ItemSearchService itemSearchService
+    ) {
         this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.collectionService = collectionService;
         this.configFactory = configFactory;
@@ -99,11 +106,13 @@ public class OGCFeaturesController implements TryToResponseEntity {
     }
 
     @Operation(summary = "the feature collections in the dataset",
-            description = "A body of Feature Collections that belong or are used together with additional links. "
-                    + "Request may not return the full set of metadata per Feature Collection.")
-    @ApiResponses(
-            value = { @ApiResponse(responseCode = "200", description = "The feature collections shared by this API.") })
-    @ResourceAccess(description = "the feature collections in the dataset", role = DefaultRole.PUBLIC)
+            description = "A body of Feature Collections that belong or are used together with additional links. " +
+                    "Request may not return the full set of metadata per Feature Collection.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The feature collections shared by this API.") })
+    @ResourceAccess(
+            description = "the feature collections in the dataset",
+            role = DefaultRole.PUBLIC
+    )
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CollectionsResponse> collections() throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
@@ -119,16 +128,20 @@ public class OGCFeaturesController implements TryToResponseEntity {
      * @throws ModuleException
      */
     @Operation(summary = "describe the feature collection with id `collectionId`",
-            description = "A single Feature Collection for the given if collectionId. "
-                    + "Request this endpoint to get a full list of metadata for the Feature Collection.")
+            description = "A single Feature Collection for the given if collectionId. " +
+                    "Request this endpoint to get a full list of metadata for the Feature Collection.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200",
-                    description = "Information about the feature collection with id collectionId."),
-            @ApiResponse(responseCode = "404", description = "Collection not found.") })
-    @ResourceAccess(description = "describe the feature collection with id `collectionId`", role = DefaultRole.PUBLIC)
+            @ApiResponse(responseCode = "200", description = "Information about the feature collection with id collectionId."),
+            @ApiResponse(responseCode = "404", description = "Collection not found.")
+    })
+    @ResourceAccess(
+            description = "describe the feature collection with id `collectionId`",
+            role = DefaultRole.PUBLIC
+    )
     @RequestMapping(path = STAC_COLLECTION_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<Collection> collection(@PathVariable(COLLECTION_ID_PARAM) String collectionId)
-            throws ModuleException {
+    public ResponseEntity<Collection> collection(
+            @PathVariable(COLLECTION_ID_PARAM) String collectionId
+    ) throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         // FIXME use IAuthoritiesProvider instead of JWTAuthentication and SecurityContextHolder
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -136,33 +149,45 @@ public class OGCFeaturesController implements TryToResponseEntity {
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config));
     }
 
-    @Operation(summary = "fetch features", description = "Fetch features of the feature collection with id collectionId.")
+    @Operation(summary = "fetch features",
+            description = "Fetch features of the feature collection with id collectionId.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200",
-                    description = "The response is a document consisting of features in the collection."),
-            @ApiResponse(responseCode = "404", description = "Collection not found.") })
-    @ResourceAccess(description = "fetch features", role = DefaultRole.PUBLIC)
+            @ApiResponse(responseCode = "200", description = "The response is a document consisting of features in the collection."),
+            @ApiResponse(responseCode = "404", description = "Collection not found.")
+    })
+    @ResourceAccess(
+            description = "fetch features",
+            role = DefaultRole.PUBLIC
+    )
     @RequestMapping(path = STAC_ITEMS_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<ItemCollectionResponse> features(@PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
+    public ResponseEntity<ItemCollectionResponse> features(
+            @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
-            throws ModuleException {
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
+    ) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         return toResponseEntity(collectionService
                 .getItemsForCollection(collectionId, limit, page, bbox, datetime, linker.makeOGCFeatLinkCreator(auth),
-                                       isb -> linker.makeSearchPageLinkCreator(auth, page, isb)));
+                                       isb -> linker.makeCollectionItemsPageLinkCreator(auth, page, collectionId)));
     }
 
     @Operation(summary = "fetch a single feature",
             description = "Fetch the feature with id featureId in the feature collection with id collectionId.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The feature content."),
-            @ApiResponse(responseCode = "404", description = "Feature not found.") })
-    @ResourceAccess(description = "fetch a single feature", role = DefaultRole.PUBLIC)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The feature content."),
+            @ApiResponse(responseCode = "404", description = "Feature not found.")
+    })
+    @ResourceAccess(
+            description = "fetch a single feature",
+            role = DefaultRole.PUBLIC
+    )
     @RequestMapping(path = STAC_ITEM_PATH_SUFFIX, method = RequestMethod.GET)
-    public ResponseEntity<Item> feature(@PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
-            @PathVariable(name = ITEM_ID_PARAM) String featureId) throws ModuleException {
+    public ResponseEntity<Item> feature(
+            @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
+            @PathVariable(name = ITEM_ID_PARAM) String featureId
+    ) throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
         Try<Item> result = itemSearchService.searchById(featureId, linkCreator);

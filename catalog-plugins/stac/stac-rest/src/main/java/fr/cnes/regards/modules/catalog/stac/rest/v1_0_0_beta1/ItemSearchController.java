@@ -78,6 +78,8 @@ public class ItemSearchController implements TryToResponseEntity {
 
     private final ItemSearchService itemSearchService;
 
+    //@formatter:off
+
     @Autowired
     public ItemSearchController(ItemSearchBodyFactory itemSearchBodyFactory,
             SearchOtherPageItemBodySerdeService searchTokenSerde, LinkCreatorService linkCreatorService,
@@ -102,7 +104,8 @@ public class ItemSearchController implements TryToResponseEntity {
             @RequestParam(name = IDS_QUERY_PARAM, required = false) List<String> ids,
             @RequestParam(name = FIELDS_QUERY_PARAM, required = false) String fields,
             @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
-            @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy) throws ModuleException {
+            @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy
+    ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(itemSearchBodyFactory
@@ -117,9 +120,10 @@ public class ItemSearchController implements TryToResponseEntity {
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "An ItemCollection.") })
     @ResourceAccess(description = "search with complex filtering", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ItemCollectionResponse> complex(@RequestBody ItemSearchBody itemSearchBody,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
-            throws ModuleException {
+    public ResponseEntity<ItemCollectionResponse> complex(
+            @RequestBody ItemSearchBody itemSearchBody,
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
+    ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(itemSearchService
@@ -128,15 +132,15 @@ public class ItemSearchController implements TryToResponseEntity {
     }
 
     @Operation(summary = "continue to next/previous search page",
-            description = "Pagination for search in STAC is done through links," + " this endpoint provides the way to reuse"
+            description = "Pagination for search in STAC is done through links, this endpoint provides the way to reuse"
                     + " the same search parameters but skip to an offset of results.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "An ItemCollection.") })
     @ResourceAccess(description = "continue to next/previous search page", role = DefaultRole.PUBLIC)
     @RequestMapping(path = "paginate", method = RequestMethod.GET)
     public ResponseEntity<ItemCollectionResponse> otherPage(
             @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM) String itemBodyBase64,
-            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "0") Integer page)
-            throws ModuleException {
+            @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
+    ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(searchTokenSerde.deserialize(itemBodyBase64)

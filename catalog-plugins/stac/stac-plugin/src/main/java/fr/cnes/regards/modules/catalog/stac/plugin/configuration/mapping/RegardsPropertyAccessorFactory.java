@@ -112,6 +112,7 @@ public class RegardsPropertyAccessorFactory {
             StacPropertyType sPropType) {
         AttributeModel attribute = Try.of(() -> finder.findByName(attrName)).getOrElseGet(t -> {
             AttributeModel result = new AttributeModel();
+            result.setName(attrName);
             result.setType(sPropType.getPropertyType());
             result.setAlterable(false);
             result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
