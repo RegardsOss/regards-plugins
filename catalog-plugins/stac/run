@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #### CONSTANTS
-JAR_VERSION="1.4.1-SNAPSHOT"
+JAR_VERSION="1.6.0-SNAPSHOT"
 JAR_NAME="stac-plugin-$JAR_VERSION-shaded.jar"
 
 USER_HOST="root@vm-perf.cloud-espace.si.c-s.fr"

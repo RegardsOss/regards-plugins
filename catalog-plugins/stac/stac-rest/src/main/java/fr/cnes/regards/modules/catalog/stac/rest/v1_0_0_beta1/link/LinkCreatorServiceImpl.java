@@ -215,8 +215,52 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         };
     }
 
+    @Override
+    public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page, String collectionId) {
+        return new SearchPageLinkCreator() {
+            @Override
+            public Option<URI> searchAll() {
+                return Option.none(); // unused when generating collection items page
+            }
+            private Option<URI> createPageLink(int i, JWTAuthentication auth) {
+                return tryOf(() ->
+                        WebMvcLinkBuilder.linkTo(
+                                OGCFeaturesController.class,
+                                getMethodNamedInClass(OGCFeaturesController.class, "features"),
+                                collectionId,
+                                i
+                        ).toUri()
+                )
+                .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                .flatMapTry(uriParamAdder.appendParams(HashMap.of(
+                        PAGE_QUERY_PARAM, "" + i
+                )))
+                .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
+                .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t))
+                .toOption();
+            }
+
+            @Override
+            public Option<URI> createNextPageLink() {
+                return createPageLink(page + 1, auth);
+            }
+
+            @Override
+            public Option<URI> createPrevPageLink() {
+                return page == 1 ? none() : createPageLink(page - 1, auth);
+            }
+
+            @Override
+            public Option<URI> createSelfPageLink() {
+                return createPageLink(page, auth);
+            }
+        };
+    }
+
     private <T> Method getMethodNamedInClass(Class<T> type, String methodName) {
-        return Stream.of(type.getDeclaredMethods()).filter(m -> methodName.equals(m.getName())).head();
+        return Stream.of(type.getDeclaredMethods())
+                .filter(m -> methodName.equals(m.getName()))
+                .head();
     }
 
     @Override

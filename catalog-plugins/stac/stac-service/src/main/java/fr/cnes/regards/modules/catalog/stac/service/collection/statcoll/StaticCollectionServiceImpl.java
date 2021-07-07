@@ -116,7 +116,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
             StacProperty datetimeStacProp = config.getDatetimeStacProperty();
             List<StacProperty> stacProps = config.getStacProperties();
-            List<StacProperty> nonDatetimeStacProps = stacProps.remove(datetimeStacProp);
+            List<StacProperty> nonDatetimeStacProps = Try.of(() -> stacProps.remove(datetimeStacProp)).getOrElse(stacProps);
 
             List<QueryableAttribute> creationDate = extentSummaryService.extentSummaryQueryableAttributes(
                     datetimeStacProp,
