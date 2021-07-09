@@ -41,14 +41,11 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
@@ -122,11 +119,35 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
      * bbox outside of authorized -360/+360 range
      */
     @Test
-    public void searchItemsWithBbox_OutOfRange() {
-        RequestBuilderCustomizer customizer = customizer().expectStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        customizer.expect(MockMvcResultMatchers.jsonPath("$.cause", Matchers.startsWith("X value must be between")));
-        customizer
-                .addParameter("bbox", "-233.43750000000003, -77.69287033641926, 380.03906250000006, 85.59514981431303");
+    public void searchItemsWithBbox_OutOfRange_withMaxExtent() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "A");
+        customizer.addParameter("bbox", "-230.0, 50.0, 380.0, 60.0"); // Match A between +50/+60
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * bbox minX < -360
+     */
+    @Test
+    public void searchItemsWithBbox_OutOfRange_MinX() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "A");
+        customizer.addParameter("bbox", "-800.0, 50.0, -700.0, 60.0"); // Match A between +50/+60
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * bbox maxX > 360
+     */
+    @Test
+    public void searchItemsWithBbox_OutOfRange_MaxX() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].properties.version", "A");
+        customizer.addParameter("bbox", "700.0, 50.0, 800.0, 60.0"); // Match A between +50/+60
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
 
@@ -201,7 +222,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         customizer.addParameter("bbox", "-350.0,0.0,-300.0,10.0");
         performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
     }
-
 
     @Test
     public void searchItemsAsPost() {
