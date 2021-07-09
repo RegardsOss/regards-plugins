@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
@@ -111,7 +112,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
 
         return CatalogPluginResponseFactory
                 .createStreamSuccessResponse(response, streamMetalinkXml(parameters.getSearchRequest()),
-                                             METALINK_FILE_NAME, MediaType.APPLICATION_OCTET_STREAM);
+                                             METALINK_FILE_NAME, MediaType.APPLICATION_OCTET_STREAM, Optional.empty());
     }
 
     private StreamingResponseBody streamMetalinkXml(SearchRequest searchRequest) {
