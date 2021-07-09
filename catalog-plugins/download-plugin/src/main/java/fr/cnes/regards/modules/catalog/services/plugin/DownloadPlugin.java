@@ -309,7 +309,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                     // To download through storage client we must be authenticate as user in order to
                     // impact the download quotas, but we upgrade the privileges so that the request passes.
                     FeignSecurityManager.asUser(authResolver.getUser(), DefaultRole.PROJECT_ADMIN.name());
-                    response = storageRestClient.downloadFile(file.getChecksum());
+                    response = storageRestClient.downloadFile(file.getChecksum(), false);
                     if ((response.status() == HttpStatus.OK.value()) && (response.body() != null)) {
                         ByteStreams.copy(response.body().asInputStream(), zos);
                     } else {
