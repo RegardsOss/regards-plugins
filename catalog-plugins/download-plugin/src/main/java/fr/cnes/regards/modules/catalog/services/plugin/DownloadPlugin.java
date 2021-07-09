@@ -194,7 +194,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         // Create and stream the ZIP archive containing all downloadable files
         return CatalogPluginResponseFactory.createStreamSuccessResponse(response, getFilesAsZip(toDownloadFilesMap),
                                                                         getArchiveName(),
-                                                                        MediaType.APPLICATION_OCTET_STREAM);
+                                                                        MediaType.APPLICATION_OCTET_STREAM, Optional.of(filesSizeInBytes));
     }
 
     /**

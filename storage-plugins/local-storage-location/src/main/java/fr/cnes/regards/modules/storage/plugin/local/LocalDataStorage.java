@@ -128,7 +128,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP, label = "Files maximum size for zips (octets)",
             description = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \\\"small files\\\" in a zip archive. The size is in octets.",
-            defaultValue = "10000")
+            defaultValue = "1000")
     private Long maxFileSizeForZip;
 
     @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size (octets)",
