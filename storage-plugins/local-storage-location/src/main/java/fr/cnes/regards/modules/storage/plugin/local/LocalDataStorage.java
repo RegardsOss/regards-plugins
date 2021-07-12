@@ -432,8 +432,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     progressManager.deletionSucceed(request);
                 } catch (IOException ioe) {
                     String failureCause = String
-                            .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
-                                    request.getFileReference().getMetaInfo().getChecksum(), ioe.getMessage());
+                            .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s %s",
+                                    ioe.getClass().getSimpleName(), request.getFileReference().getMetaInfo().getChecksum(), ioe.getMessage());
                     LOGGER.error(failureCause, ioe);
                     progressManager.deletionFailed(request, failureCause);
                 }
