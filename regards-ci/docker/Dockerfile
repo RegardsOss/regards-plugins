@@ -18,6 +18,7 @@ ADD custom-command-file-validation-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/data
 ADD download-metalink-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD download-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 ADD fem-driver-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
+ADD stac-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/catalog/
 # FEM
 ADD feature-factory-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/fem/
 COPY datatypes ${REGARDS_HOME}/plugins/fem/datatypes
@@ -47,6 +48,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/catalog/download-metalink-plugin*.jar && \
 	rm -f /regards-plugins/catalog/download-plugin*.jar && \
 	rm -f /regards-plugins/catalog/fem-driver-plugin*.jar && \
+	rm -f /regards-plugins/catalog/stac-plugin*.jar && \
 	# Remove old fem plugins
 	rm -f /regards-plugins/fem/feature-factory-plugin*.jar && \
 	rm -f /regards-plugins/fem/datatypes/* && \
