@@ -110,6 +110,12 @@
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+            <artifactId>stac-plugin</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+            <classifier>shaded</classifier>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>download-plugin</artifactId>
             <version>1.6.0-SNAPSHOT</version>
             <classifier>shaded</classifier>
