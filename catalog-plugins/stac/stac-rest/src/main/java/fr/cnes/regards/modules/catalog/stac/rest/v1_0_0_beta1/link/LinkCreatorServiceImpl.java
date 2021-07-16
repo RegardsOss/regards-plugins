@@ -67,6 +67,10 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     private final Gson gson;
 
+    private final static String URI_PATTERN_MESSAGE = "URI after  adding token: {}";
+
+    private final static String FAILURE_PATTERN_MESSAGE = "Failure creating page link: {}";
+
     // @formatter:off
 
     @Autowired
@@ -194,8 +198,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                   "otherPage"), itemBodyB64, i).toUri())
                         .flatMapTry(uriParamAdder.appendAuthParams(auth)).flatMapTry(uriParamAdder.appendParams(
                                 HashMap.of(SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64, PAGE_QUERY_PARAM, "" + i)))
-                        .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
-                        .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t)).toOption();
+                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
             }
 
             @Override
@@ -235,8 +239,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 .flatMapTry(uriParamAdder.appendParams(HashMap.of(
                         PAGE_QUERY_PARAM, "" + i
                 )))
-                .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
-                .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t))
+                .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t))
                 .toOption();
             }
 
@@ -291,8 +295,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                                                       PAGE_QUERY_PARAM,
                                                                                                                       ""
                                                                                                                               + i)))
-                        .onSuccess(u -> debug(LOGGER, "URI after  adding token: {}", u))
-                        .onFailure(t -> error(LOGGER, "Failure creating page link: {}", t.getMessage(), t)).toOption();
+                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
             }
 
             @Override

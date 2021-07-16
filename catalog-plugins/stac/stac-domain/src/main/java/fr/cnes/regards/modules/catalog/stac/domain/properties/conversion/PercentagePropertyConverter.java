@@ -38,6 +38,8 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PercentagePropertyConverter.class);
 
+    private static final String MISSING_CASE_MESSAGE = "Missing case for PercentageBase value: ";
+
     public enum PercentageBase {
         /** Means that the percentage is expressed as a ratio: a number between 0 and 1 */
         ONE,
@@ -82,7 +84,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
                         case HUNDRED:
                             return fromValue * 100d;
                         default:
-                            throw new NotImplementedException("Missing case for PercentageBase value: " + fromBase);
+                            throw new NotImplementedException(MISSING_CASE_MESSAGE + fromBase);
                     }
                 case HUNDRED:
                     switch (toBase) {
@@ -91,10 +93,10 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
                         case HUNDRED:
                             return fromValue;
                         default:
-                            throw new NotImplementedException("Missing case for PercentageBase value: " + fromBase);
+                            throw new NotImplementedException(MISSING_CASE_MESSAGE + fromBase);
                     }
                 default:
-                    throw new NotImplementedException("Missing case for PercentageBase value: " + toBase);
+                    throw new NotImplementedException(MISSING_CASE_MESSAGE + toBase);
             }
         })
         .mapFailure(

@@ -231,7 +231,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
             String failureCause = String
-                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                    .format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
                             request.getMetaInfo().getChecksum(), ioe.toString());
             LOGGER.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
