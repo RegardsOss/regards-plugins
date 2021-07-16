@@ -31,8 +31,8 @@ import static java.lang.Double.POSITIVE_INFINITY;
  */
 public class DoubleIntervalBoundary {
 
-    public static DoubleIntervalBoundary LOWEST = open(NEGATIVE_INFINITY);
-    public static DoubleIntervalBoundary HIGHEST = open(POSITIVE_INFINITY);
+    public static final DoubleIntervalBoundary LOWEST = open(NEGATIVE_INFINITY);
+    public static final DoubleIntervalBoundary HIGHEST = open(POSITIVE_INFINITY);
 
     private final Closedness closedness;
     private final double value;
