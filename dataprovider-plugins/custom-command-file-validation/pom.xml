@@ -24,7 +24,7 @@
 	<groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
 	<artifactId>custom-command-file-validation</artifactId>
 	<description>Plugin to validate file to acquire by running a custom command</description>
-	<version>1.6.0-SNAPSHOT</version>
+	<version>1.7.0-SNAPSHOT</version>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -50,7 +50,7 @@
 	<parent>
 		<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
 		<artifactId>dataprovider-plugins</artifactId>
-		<version>1.6.0-SNAPSHOT</version>
+		<version>1.7.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
