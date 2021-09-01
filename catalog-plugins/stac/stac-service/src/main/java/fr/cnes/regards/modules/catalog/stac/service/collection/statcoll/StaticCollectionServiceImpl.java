@@ -15,6 +15,7 @@ import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
@@ -88,7 +89,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     }
 
     public List<AbstractEntity<?>> getRootCollectionsDatasets() throws SearchException, OpenSearchUnknownParameter {
-        ICriterion crit = ICriterion.not(ICriterion.startsWith("tags", "URN"));
+        ICriterion crit = ICriterion.not(ICriterion.startsWith("tags", "URN", StringMatchType.KEYWORD));
         List<AbstractEntity<?>> collections = searchCriterion(crit, EntityType.COLLECTION);
         List<AbstractEntity<?>> datasets = searchCriterion(crit, EntityType.DATASET);
         return collections.appendAll(datasets);
@@ -210,7 +211,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
     private List<AbstractEntity<?>> getSubCollectionsOrDatasets(String urn, EntityType entityType)
             throws SearchException, OpenSearchUnknownParameter {
-        ICriterion tags = ICriterion.contains("tags", urn);
+        ICriterion tags = ICriterion.contains("tags", urn, StringMatchType.KEYWORD);
         FacetPage<AbstractEntity<?>> subCollections = catalogSearchService.search(tags,
                 Searches.onSingleEntity(entityType),
                 null,
@@ -229,7 +230,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
     private List<String> getParentCollectionsId(String urn)
             throws SearchException, OpenSearchUnknownParameter {
-            ICriterion tags = ICriterion.contains("ipId", urn);
+            ICriterion tags = ICriterion.contains("ipId", urn, StringMatchType.KEYWORD);
             return searchCriterion(tags, EntityType.COLLECTION)
                 .map(AbstractEntity::getIpId)
                 .map(Object::toString);

@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ public class IdentitiesCriterionBuilder implements CriterionBuilder<List<String>
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> ids) {
         if (ids == null || ids.isEmpty()) { return Option.none(); }
-        return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id)), ICriterion::or);
+        return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id, StringMatchType.KEYWORD)), ICriterion::or);
     }
 
 }

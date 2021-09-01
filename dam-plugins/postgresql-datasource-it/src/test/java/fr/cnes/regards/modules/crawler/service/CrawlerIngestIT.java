@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -370,7 +371,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
 
         Page<DataObject> objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
-                                                            ICriterion.eq("tags", dataset.getIpId().toString()));
+                                                            ICriterion.eq("tags", dataset.getIpId().toString(), StringMatchType.KEYWORD));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
@@ -384,7 +385,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         // Search for DataObjects tagging dataset1
         objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
-                                           ICriterion.eq("tags", dataset.getIpId().toString()));
+                                           ICriterion.eq("tags", dataset.getIpId().toString(), StringMatchType.KEYWORD));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
         Assert.assertEquals(1, objectsPage.getContent().stream()
                 .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());

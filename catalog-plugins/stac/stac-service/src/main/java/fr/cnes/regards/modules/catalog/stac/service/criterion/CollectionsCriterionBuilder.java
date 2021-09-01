@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,7 @@ public class CollectionsCriterionBuilder implements CriterionBuilder<List<String
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> collections) {
         // In the index, collections / dataset a feature belongs to is stored in the "tags" attribute.
         return collections == null || collections.isEmpty() ? Option.none()
-            : collections.size() == 1 ? Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0)))
-            : Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME, c))));
+            : collections.size() == 1 ? Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD))
+            : Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME, c, StringMatchType.KEYWORD))));
     }
 }

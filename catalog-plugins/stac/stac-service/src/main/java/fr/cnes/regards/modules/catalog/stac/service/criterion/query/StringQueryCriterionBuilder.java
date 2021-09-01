@@ -27,6 +27,7 @@ import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
@@ -45,13 +46,13 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     @Override
     public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
             StringQueryObject queryObject) {
-        return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
-                             Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
-                             Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st))),
-                             Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en))),
-                             Option.of(queryObject.getContains()).map(en -> contains(attr, en)),
+        return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq, StringMatchType.KEYWORD)),
+                             Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq, StringMatchType.KEYWORD))),
+                             Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st), StringMatchType.KEYWORD)),
+                             Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en), StringMatchType.KEYWORD)),
+                             Option.of(queryObject.getContains()).map(en -> contains(attr, en, StringMatchType.KEYWORD)),
                              Option.of(queryObject.getIn())
-                                     .flatMap(in -> in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or)));
+                                     .flatMap(in -> in.map(d -> eq(attr, d, StringMatchType.KEYWORD)).reduceLeftOption(ICriterion::or)));
     }
 
     private String toEndRegexp(String en) {
