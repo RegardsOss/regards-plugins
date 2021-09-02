@@ -264,10 +264,17 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @Test
     public void searchCollectionsAsPostWithTitle() {
+        searchCollectionsAsPostWithTitle("keyword",0);
+        searchCollectionsAsPostWithTitle("text", 1);
+        searchCollectionsAsPostWithTitle(null, 1); // Same as text
+    }
+
+    private void searchCollectionsAsPostWithTitle(String matchType, int matchedCollections) {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", matchedCollections);
         // Define collection criteria
         Map<String, SearchBody.QueryObject> q = HashMap
-                .of("title", StringQueryObject.builder().contains("L1B").build());
+                .of("title", StringQueryObject.builder().contains("rast").matchType(matchType).build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
