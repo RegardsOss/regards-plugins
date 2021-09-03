@@ -47,17 +47,33 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
             StringQueryObject queryObject) {
         StringMatchType stringMatchType = IFeatureCriterion.parseStringMatchType(queryObject.getMatchType())
                 .orElseGet(() -> StringMatchType.FULL_TEXT_SEARCH);
-        return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq, stringMatchType)),
-                             Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq, stringMatchType))),
-                             Option.of(queryObject.getStartsWith())
+        return andAllPresent(Option.of(adaptCase(queryObject.getEq(), stringMatchType)).map(eq -> eq(attr, eq, stringMatchType)),
+                             Option.of(adaptCase(queryObject.getNeq(), stringMatchType)).map(neq -> not(eq(attr, neq, stringMatchType))),
+                             Option.of(adaptCase(queryObject.getStartsWith(), stringMatchType))
                                      .map(st -> regexp(attr, toStartRegexp(st), stringMatchType)),
-                             Option.of(queryObject.getEndsWith())
+                             Option.of(adaptCase(queryObject.getEndsWith(), stringMatchType))
                                      .map(en -> regexp(attr, toEndRegexp(en), stringMatchType)),
-                             Option.of(queryObject.getContains())
+                             Option.of(adaptCase(queryObject.getContains(), stringMatchType))
                                      .map(en -> contains(attr, en, stringMatchType)),
-                             Option.of(queryObject.getIn()).flatMap(
+                             Option.of(adaptCase(queryObject.getIn(), stringMatchType)).flatMap(
                                      in -> in.map(d -> eq(attr, d, stringMatchType))
                                              .reduceLeftOption(ICriterion::or)));
+    }
+
+    private String adaptCase(String text, StringMatchType stringMatchType) {
+        if (text != null && StringMatchType.FULL_TEXT_SEARCH.equals(stringMatchType)) {
+            return text.toLowerCase();
+        } else {
+            return text;
+        }
+    }
+
+    private List<String> adaptCase(List<String> texts, StringMatchType stringMatchType) {
+        if (texts != null && StringMatchType.FULL_TEXT_SEARCH.equals(stringMatchType)) {
+            return texts.map(t -> t.toLowerCase()).toList();
+        } else {
+            return texts;
+        }
     }
 
     private String toEndRegexp(String en) {
