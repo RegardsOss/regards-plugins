@@ -25,6 +25,7 @@ COPY datatypes ${REGARDS_HOME}/plugins/fem/datatypes
 ADD feature-factory-test-plugin-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/fem/
 # Notifier
 ADD chronos-recipient-sender-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/notifier/
+ADD sds-recipient-sender-1.6.0-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 

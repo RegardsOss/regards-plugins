@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -117,7 +117,7 @@ public class ChronosRecipientSenderTest {
         Assert.assertTrue("Message send as notification to chronos is not valid",
                           listCaptor.getValue().contains(new ChronosNotificationEvent(action,
                                                                                         actionOwner,
-                                                                                        "file://home/geode/test.tar", "test.tar")));
+                                                                                        "file:/home/geode/test.tar", "test.tar")));
         Assert.assertEquals("Message send as notification to chronos is not valid", 1, listCaptor.getValue().size());
 
     }

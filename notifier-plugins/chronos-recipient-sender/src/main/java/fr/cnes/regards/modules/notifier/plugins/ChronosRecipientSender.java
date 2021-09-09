@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2020 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -142,7 +142,11 @@ public class ChronosRecipientSender implements IRecipientNotifier {
                 String action = metadata.getAsJsonObject().get(ACTION_KEY).getAsString();
                 headers.put(OWNER_KEY, actionOwner);
                 headers.put(ACTION_KEY, action);
-                toSend.put(headers, new ChronosNotificationEvent(action, actionOwner, uri, filename));
+                if (uri == null) {
+                    toSend.put(headers, new ChronosNotificationEvent(action, actionOwner, uri, filename));
+                } else {
+                    toSend.put(headers, new ChronosNotificationEvent(action, actionOwner, uri.replaceAll("//", "/"), filename));
+                }
             }
         }
         for (Map<String, Object> headers : toSend.keySet()) {
