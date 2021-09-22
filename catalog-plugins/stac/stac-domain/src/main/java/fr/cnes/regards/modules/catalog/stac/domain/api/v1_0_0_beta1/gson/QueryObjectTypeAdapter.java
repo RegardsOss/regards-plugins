@@ -137,6 +137,14 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
             if (nqo.getContains() != null) {
                 out.name("contains").value((nqo.getContains()));
             }
+            if (nqo.getContainsAll() != null) {
+                out.name("containsAll");
+                out.beginArray();
+                for (String in : nqo.getContainsAll()) {
+                    out.value((in));
+                }
+                out.endArray();
+            }
             if (nqo.getIn() != null) {
                 out.name("in");
                 out.beginArray();
@@ -201,6 +209,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                             .startsWith((String) inProps.get("startsWith").getOrNull())
                             .endsWith((String) inProps.get("endsWith").getOrNull())
                             .contains((String) inProps.get("contains").getOrNull())
+                            .containsAll((List<String>) inProps.get("containsAll").get())
                             .in((List<String>) inProps.get("in").getOrNull())
                             .matchType((String) inProps.get("matchType").getOrNull()).build();
                 } else {

@@ -80,6 +80,7 @@ public class SearchBody {
         String startsWith;
         String endsWith;
         String contains;
+        List<String> containsAll;
         List<String> in;
         String matchType;
     }
