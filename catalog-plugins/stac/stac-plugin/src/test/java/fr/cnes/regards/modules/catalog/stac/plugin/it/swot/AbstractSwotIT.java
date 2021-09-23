@@ -31,19 +31,25 @@ import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.indexer.dao.mapping.AttributeDescription;
+import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.domain.attributes.AttributeProperty;
+import fr.cnes.regards.modules.model.domain.attributes.restriction.JsonSchemaRestriction;
+import fr.cnes.regards.modules.model.domain.attributes.restriction.RestrictionType;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import fr.cnes.regards.modules.model.gson.AbstractAttributeHelper;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
 import org.junit.Assert;
@@ -230,6 +236,8 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         initPlugins();
 
         initIndex(getDefaultTenant());
+        configureMappings(getDefaultTenant(), swotModel.getName());
+        configureMappings(getDefaultTenant(), datasetModel.getName());
 
         // Create SWOT datasets
         Map<String, Dataset> swotDatasets = createSwotDatasets(datasetModel);
@@ -376,5 +384,45 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
             return value;
         }
         return String.format("%s%s%s", protect, value, protect);
+    }
+
+    // Look at MappingService for operational mapping configuration ...
+    // TODO centralise IMappingService to use its method instead
+    private void configureMappings(String tenant, String modelName) {
+        List<ModelAttrAssoc> modelAttributes = modelService.getModelAttrAssocs(modelName);
+        if (!modelAttributes.isEmpty()) {
+            Set<AttributeDescription> mappings = new HashSet<>();
+            for (ModelAttrAssoc modelAttribute : modelAttributes) {
+                AttributeModel attribute = modelAttribute.getAttribute();
+                // If attribute is JSON type, then generate virtual attributes from given jsonSchema to create mapping.
+                if ((attribute.getType() == PropertyType.JSON) && (
+                        RestrictionType.JSON_SCHEMA.equals(attribute.getRestrictionType())
+                                && attribute.getEsMapping() == null)) {
+                    JsonSchemaRestriction restriction = (JsonSchemaRestriction) attribute.getRestriction();
+                    AbstractAttributeHelper.fromJsonSchema(attribute.getJsonPropertyPath(), restriction.getJsonSchema())
+                            .forEach(a -> {
+                                mappings.add(new AttributeDescription("feature." + a.getJsonPath(), a.getType(),
+                                                                      a.hasRestriction() ?
+                                                                              a.getRestrictionType() :
+                                                                              RestrictionType.NO_RESTRICTION,
+                                                                      a.getProperties().stream().collect(Collectors
+                                                                                                                 .toMap(AttributeProperty::getKey,
+                                                                                                                        AttributeProperty::getValue)),
+                                                                      a.getEsMapping()));
+                            });
+                } else {
+                    mappings.add(new AttributeDescription("feature." + attribute.getJsonPath(), attribute.getType(),
+                                                          attribute.hasRestriction() ?
+                                                                  attribute.getRestrictionType() :
+                                                                  RestrictionType.NO_RESTRICTION,
+                                                          attribute.getProperties().stream().collect(Collectors
+                                                                                                             .toMap(AttributeProperty::getKey,
+                                                                                                                    AttributeProperty::getValue)),
+                                                          attribute.getEsMapping()));
+                }
+            }
+            // now lets put the mappings into ES
+            esRepository.putMappings(tenant, mappings);
+        }
     }
 }
