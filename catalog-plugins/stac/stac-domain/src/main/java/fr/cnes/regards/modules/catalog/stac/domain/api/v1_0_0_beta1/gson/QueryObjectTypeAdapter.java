@@ -30,7 +30,10 @@ import io.vavr.Tuple2;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
+import io.vavr.collection.Seq;
 import org.apache.commons.lang3.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -44,6 +47,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_
  */
 @GsonTypeAdapter(adapted = SearchBody.QueryObject.class)
 public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryObjectTypeAdapter.class);
 
     @Override
     public void write(JsonWriter out, SearchBody.QueryObject value) throws IOException {
@@ -153,13 +158,25 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                 }
                 out.endArray();
             }
-            if (nqo.getMatchType()!= null) {
+            if (nqo.getMatchType() != null) {
                 out.name("matchType").value(nqo.getMatchType());
             }
             out.endObject();
         } else {
             throw new NotImplementedException("Missing QueryObject adapter for class: " + value.getClass());
         }
+    }
+
+    private Object findFirstDiscriminantValue(Seq<Object> values) {
+        Object head = values.head();
+        if (head instanceof List) {
+            // Get first element of the list if not empty or find deeper
+            return ((List<Object>) head).headOption().getOrElse(() -> findFirstDiscriminantValue(values.tail()));
+            // This should not really happen as a list should not be empty,
+            // even more if there is no other criterion, so it's basically safe
+            // to assume another criterion.
+        }
+        return head;
     }
 
     @SuppressWarnings("unchecked")
@@ -177,14 +194,8 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
             return SearchBody.BooleanQueryObject.builder().build();
         } else {
             try {
-                Object head = inProps.values().head();
-                if (head instanceof List) {
-                    head = ((List<Object>) head).headOption()
-                            // This should not really happen as a "in" list should not be empty,
-                            // even more if there is no other criterion, so it's basically safe
-                            // to assume another criterion.
-                            .getOrElse(() -> inProps.values().tail().head());
-                }
+                // Try to find first discriminant value
+                Object head = findFirstDiscriminantValue(inProps.values());
 
                 if (head instanceof Boolean) {
                     return SearchBody.BooleanQueryObject.builder().eq((Boolean) inProps.get("eq").getOrNull())
@@ -209,7 +220,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                             .startsWith((String) inProps.get("startsWith").getOrNull())
                             .endsWith((String) inProps.get("endsWith").getOrNull())
                             .contains((String) inProps.get("contains").getOrNull())
-                            .containsAll((List<String>) inProps.get("containsAll").get())
+                            .containsAll((List<String>) inProps.get("containsAll").getOrNull())
                             .in((List<String>) inProps.get("in").getOrNull())
                             .matchType((String) inProps.get("matchType").getOrNull()).build();
                 } else {
