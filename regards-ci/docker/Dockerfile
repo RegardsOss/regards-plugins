@@ -55,6 +55,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/fem/datatypes/* && \
 	# Remove old notifier plugins
 	rm -f /regards-plugins/notifier/chronos-recipient-sender*.jar && \
+	rm -f /regards-plugins/notifier/sds-recipient-sender-*.jar && \
 	# Remove old ingest plugins
 	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
 	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \
