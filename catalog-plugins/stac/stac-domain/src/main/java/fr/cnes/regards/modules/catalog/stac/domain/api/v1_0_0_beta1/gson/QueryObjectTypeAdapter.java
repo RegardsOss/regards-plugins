@@ -145,6 +145,9 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                 }
                 out.endArray();
             }
+            if (nqo.getMatchType()!= null) {
+                out.name("matchType").value(nqo.getMatchType());
+            }
             out.endObject();
         } else {
             throw new NotImplementedException("Missing QueryObject adapter for class: " + value.getClass());
@@ -198,7 +201,8 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                             .startsWith((String) inProps.get("startsWith").getOrNull())
                             .endsWith((String) inProps.get("endsWith").getOrNull())
                             .contains((String) inProps.get("contains").getOrNull())
-                            .in((List<String>) inProps.get("in").getOrNull()).build();
+                            .in((List<String>) inProps.get("in").getOrNull())
+                            .matchType((String) inProps.get("matchType").getOrNull()).build();
                 } else {
                     throw new IOException("Unparsable QueryObject");
                 }

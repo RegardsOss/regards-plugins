@@ -81,5 +81,6 @@ public class SearchBody {
         String endsWith;
         String contains;
         List<String> in;
+        String matchType;
     }
 }

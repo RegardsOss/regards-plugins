@@ -264,10 +264,22 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
     @Test
     public void searchCollectionsAsPostWithTitle() {
+        String text = "rast";
+        searchCollectionsAsPostWithTitle(text, "keyword",0);
+        searchCollectionsAsPostWithTitle(text, "text", 1);
+        searchCollectionsAsPostWithTitle(text, null, 1); // Same as text
+        text = "RAST";
+        searchCollectionsAsPostWithTitle(text, "keyword",1);
+        searchCollectionsAsPostWithTitle(text, "text", 1);
+        searchCollectionsAsPostWithTitle(text, null, 1); // Same as text
+    }
+
+    private void searchCollectionsAsPostWithTitle(String text, String matchType, int matchedCollections) {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", matchedCollections);
         // Define collection criteria
         Map<String, SearchBody.QueryObject> q = HashMap
-                .of("title", StringQueryObject.builder().contains("L1B").build());
+                .of("title", StringQueryObject.builder().contains(text).matchType(matchType).build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
@@ -356,7 +368,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
                 .build();
         // Define collection criteria
         Map<String, SearchBody.QueryObject> cq = HashMap
-                .of("keywords", StringQueryObject.builder().contains("L2").build());
+                .of("keywords", StringQueryObject.builder().contains("L2").matchType("keyword").build());
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,

@@ -19,18 +19,18 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.contains;
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.regexp;
-import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
-
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
+
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
+import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 
 /**
  * Criterion builder for a {@link StringQueryObject}
@@ -45,13 +45,35 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     @Override
     public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
             StringQueryObject queryObject) {
-        return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
-                             Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
-                             Option.of(queryObject.getStartsWith()).map(st -> regexp(attr, toStartRegexp(st))),
-                             Option.of(queryObject.getEndsWith()).map(en -> regexp(attr, toEndRegexp(en))),
-                             Option.of(queryObject.getContains()).map(en -> contains(attr, en)),
-                             Option.of(queryObject.getIn())
-                                     .flatMap(in -> in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or)));
+        StringMatchType stringMatchType = IFeatureCriterion.parseStringMatchType(queryObject.getMatchType())
+                .orElseGet(() -> StringMatchType.FULL_TEXT_SEARCH);
+        return andAllPresent(Option.of(adaptCase(queryObject.getEq(), stringMatchType)).map(eq -> eq(attr, eq, stringMatchType)),
+                             Option.of(adaptCase(queryObject.getNeq(), stringMatchType)).map(neq -> not(eq(attr, neq, stringMatchType))),
+                             Option.of(adaptCase(queryObject.getStartsWith(), stringMatchType))
+                                     .map(st -> regexp(attr, toStartRegexp(st), stringMatchType)),
+                             Option.of(adaptCase(queryObject.getEndsWith(), stringMatchType))
+                                     .map(en -> regexp(attr, toEndRegexp(en), stringMatchType)),
+                             Option.of(adaptCase(queryObject.getContains(), stringMatchType))
+                                     .map(en -> contains(attr, en, stringMatchType)),
+                             Option.of(adaptCase(queryObject.getIn(), stringMatchType)).flatMap(
+                                     in -> in.map(d -> eq(attr, d, stringMatchType))
+                                             .reduceLeftOption(ICriterion::or)));
+    }
+
+    private String adaptCase(String text, StringMatchType stringMatchType) {
+        if (text != null && StringMatchType.FULL_TEXT_SEARCH.equals(stringMatchType)) {
+            return text.toLowerCase();
+        } else {
+            return text;
+        }
+    }
+
+    private List<String> adaptCase(List<String> texts, StringMatchType stringMatchType) {
+        if (texts != null && StringMatchType.FULL_TEXT_SEARCH.equals(stringMatchType)) {
+            return texts.map(t -> t.toLowerCase()).toList();
+        } else {
+            return texts;
+        }
     }
 
     private String toEndRegexp(String en) {
