@@ -3,33 +3,7 @@
   "type": "Feature",
   "entityType": "DATA",
   "model": "HYGOR_V2",
-  "geometry": {
-    "type": "Polygon",
-    "coordinates": [
-      [
-        [
-          1.4,
-          43.5
-        ],
-        [
-          1.5,
-          43.5
-        ],
-        [
-          1.5,
-          43.6
-        ],
-        [
-          1.4,
-          43.6
-        ],
-        [
-          1.4,
-          43.5
-        ]
-      ]
-    ]
-  },
+  "geometry": null,
   "properties": {
     "datetime": "2018-04-01T00:00:00.012345Z",
     "start_datetime": "2020-04-02T11:21:39Z",

@@ -18,11 +18,15 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.jsoniter.property.AttributeModelPropertyTypeFinder;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
+import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
@@ -30,6 +34,7 @@ import fr.cnes.regards.modules.dam.domain.entities.Collection;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.feature.dto.FeatureFile;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.mapping.AttributeDescription;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
@@ -50,6 +55,7 @@ import fr.cnes.regards.modules.model.service.ModelService;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
 import org.junit.Assert;
@@ -85,16 +91,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
      */
     private static final Path DATA_FOLDER = Paths.get("src", "test", "resources", "data");
 
-    private static final Path DATA_FOLDER_FOR_SWOT = DATA_FOLDER.resolve("swot");
-
-    private static final Path DATA_FOLDER_FOR_SWOT_CONFIG = DATA_FOLDER_FOR_SWOT.resolve("config");
-
-    private static final Path DATA_FOLDER_FOR_SWOT_DATASETS = DATA_FOLDER_FOR_SWOT.resolve("datasets");
-
-    /**
-     * Look at files in DATA_FOLDER_FOR_SWOT_DATASETS
-     */
-    private static final String DATASET_ID_PREFIX = "DATASET:";
 
     @Autowired
     protected ModelService modelService;
@@ -138,6 +134,19 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     @Autowired
     protected Gson gson;
 
+    protected abstract String getDataFolderName();
+
+    protected Path getDataFolder() {
+        return DATA_FOLDER.resolve(getDataFolderName());
+    }
+
+    protected Path getConfigFolder() {
+        return getDataFolder().resolve("config");
+    }
+
+    protected Path getDatasetFolder() {
+        return getDataFolder().resolve("datasets");
+    }
     protected void initIndex(String index) {
         if (esRepository.indexExists(index)) {
             esRepository.deleteIndex(index);
@@ -193,18 +202,20 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         manageAccessRights();
     }
 
+    protected abstract String getDataModel();
+
+    protected abstract String getDatasetModel();
     @Before
-    public void prepareData() throws ModuleException, InterruptedException, IOException {
+    public void prepareData() throws ModuleException, IOException {
 
         prepareProject();
 
         // - Import models
         // DATA : SWOT feature
-        Model swotModel = modelService
-                .importModel(Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("data_model_hygor_V0.1.0.xml")));
+        Model swotModel = modelService.importModel(Files.newInputStream(getConfigFolder().resolve(getDataModel())));
         // DATASET
-        Model datasetModel = modelService.importModel(
-                Files.newInputStream(DATA_FOLDER_FOR_SWOT_CONFIG.resolve("dataset_model_hygor_V0.1.0.xml")));
+        Model datasetModel = modelService
+                .importModel(Files.newInputStream(getConfigFolder().resolve(getDatasetModel())));
 
         // - Manage attribute model retrieval
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocsFor(Mockito.any())).thenAnswer(invocation -> {
@@ -218,7 +229,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(Mockito.any())).thenAnswer(invocation -> {
             String modelName = invocation.getArgument(0);
             return ResponseEntity
-                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(a -> new EntityModel<ModelAttrAssoc>(a))
+                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(EntityModel::new)
                                 .collect(Collectors.toList()));
         });
 
@@ -229,15 +240,13 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
         // - Manage attribute cache
         List<EntityModel<AttributeModel>> resAtts = new ArrayList<>();
-        atts.forEach(att -> resAtts.add(new EntityModel<AttributeModel>(att)));
+        atts.forEach(att -> resAtts.add(new EntityModel<>(att)));
         Mockito.when(attributeModelClientMock.getAttributes(null, null)).thenReturn(ResponseEntity.ok(resAtts));
         finder.refresh(getDefaultTenant());
 
         initPlugins();
 
         initIndex(getDefaultTenant());
-        configureMappings(getDefaultTenant(), swotModel.getName());
-        configureMappings(getDefaultTenant(), datasetModel.getName());
 
         // Create SWOT datasets
         Map<String, Dataset> swotDatasets = createSwotDatasets(datasetModel);
@@ -250,16 +259,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
     }
 
-    protected void initPlugins() throws ModuleException {
-        SearchEngineConfiguration conf = loadFromJson(
-                DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-engine-configuration.json"), SearchEngineConfiguration.class);
-        searchEngineService.createConf(conf);
-
-        SearchEngineConfiguration collectionConf = loadFromJson(
-                DATA_FOLDER_FOR_SWOT_CONFIG.resolve("STAC-collection-engine-configuration.json"),
-                SearchEngineConfiguration.class);
-        searchEngineService.createConf(collectionConf);
-    }
+    protected abstract void initPlugins() throws ModuleException;
 
     /**
      * Default implementation
@@ -273,16 +273,16 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
      * Return map of dataset with key indicating related data folder
      */
     private Map<String, Dataset> createSwotDatasets(Model datasetModel) throws IOException {
-        return Files.list(DATA_FOLDER_FOR_SWOT_DATASETS).filter(Files::isRegularFile)
+        return Files.list(getDatasetFolder()).filter(Files::isRegularFile)
                 .map(p -> createSWOTDatasetFromFeature(datasetModel, p))
-                .collect(Collectors.toMap(d -> ((Dataset) d).getLabel(), Function.identity()));
+                .collect(Collectors.toMap(AbstractEntity::getLabel, Function.identity()));
     }
 
     private List<DataObject> createSWOTData(Model swotModel, Map<String, Dataset> swotDatasets) {
         List<DataObject> dataobjects = new ArrayList<>();
         try {
             for (Entry<String, Dataset> entry : swotDatasets.entrySet()) {
-                dataobjects.addAll(Files.list(DATA_FOLDER_FOR_SWOT.resolve(entry.getKey())).filter(Files::isRegularFile)
+                dataobjects.addAll(Files.list(getDataFolder().resolve(entry.getKey())).filter(Files::isRegularFile)
                                            .map(p -> createDataObjectFromFeature(swotModel, p, entry.getValue()))
                                            .collect(Collectors.toList()));
             }
@@ -297,16 +297,16 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         Feature feature = loadFromJson(filepath, Feature.class);
         // Create related dataset label!
         // Warning : label is used to identify dataset item folders
-        if (!feature.getId().startsWith(DATASET_ID_PREFIX)) {
-            Assert.fail(String.format("Feature id for datasets must start with %s", DATASET_ID_PREFIX));
+        if (!EntityType.DATASET.equals(feature.getEntityType())) {
+            Assert.fail(String.format("Feature type must be of type %s", EntityType.DATASET));
         }
-        String label = feature.getId().substring(DATASET_ID_PREFIX.length());
+        String label = feature.getId();
 
         // Compute label to match directory
         Dataset dataset = createEntity(datasetModel, label);
         dataset.setGeometry(feature.getGeometry());
-        feature.getProperties().stream().forEach(p -> dataset.addProperty(p));
-        // TODO add summaries
+        feature.getProperties().forEach(dataset::addProperty);
+        dataset.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
 
         return dataset;
     }
@@ -324,12 +324,26 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setGeometry(feature.getGeometry());
         data.setWgs84(feature.getGeometry()); // As we bypass automatic normalization
         data.setProperties(feature.getProperties());
-        // TODO : maybe add files!
+        data.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
         // Link to dataset
         data.addTags("CNES", "SWOT", dataset.getIpId().toString());
         return data;
     }
 
+    private Multimap<DataType, DataFile> createFeatureFiles(List<FeatureFile> featureFiles) {
+        Multimap<DataType, DataFile> files = null;
+        if (featureFiles != null) {
+            files = ArrayListMultimap.create();
+            // TODO
+            for (FeatureFile ff : featureFiles) {
+                DataFile dataFile = DataFile.build(ff.getAttributes().getDataType(), ff.getAttributes().getFilename(),
+                                                   ff.getLocations().stream().findFirst().orElseThrow(()->new RsRuntimeException("Feature file does not have url!!!!")).getUrl(),
+                                                   ff.getAttributes().getMimeType(), true, false);
+                files.put(dataFile.getDataType(), dataFile);
+            }
+        }
+        return files;
+    }
     /**
      * Default implementation : no group on data object
      */
@@ -344,7 +358,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
      * @param clazz    {@link Class}
      * @return {@link Feature}
      */
-    private <T> T loadFromJson(Path filepath, Class<T> clazz) {
+    protected <T> T loadFromJson(Path filepath, Class<T> clazz) {
         try (Reader reader = Files.newBufferedReader(filepath)) {
             return gson.fromJson(reader, clazz);
         } catch (Exception e) {
@@ -386,43 +400,4 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         return String.format("%s%s%s", protect, value, protect);
     }
 
-    // Look at MappingService for operational mapping configuration ...
-    // TODO centralise IMappingService to use its method instead
-    private void configureMappings(String tenant, String modelName) {
-        List<ModelAttrAssoc> modelAttributes = modelService.getModelAttrAssocs(modelName);
-        if (!modelAttributes.isEmpty()) {
-            Set<AttributeDescription> mappings = new HashSet<>();
-            for (ModelAttrAssoc modelAttribute : modelAttributes) {
-                AttributeModel attribute = modelAttribute.getAttribute();
-                // If attribute is JSON type, then generate virtual attributes from given jsonSchema to create mapping.
-                if ((attribute.getType() == PropertyType.JSON) && (
-                        RestrictionType.JSON_SCHEMA.equals(attribute.getRestrictionType())
-                                && attribute.getEsMapping() == null)) {
-                    JsonSchemaRestriction restriction = (JsonSchemaRestriction) attribute.getRestriction();
-                    AbstractAttributeHelper.fromJsonSchema(attribute.getJsonPropertyPath(), restriction.getJsonSchema())
-                            .forEach(a -> {
-                                mappings.add(new AttributeDescription("feature." + a.getJsonPath(), a.getType(),
-                                                                      a.hasRestriction() ?
-                                                                              a.getRestrictionType() :
-                                                                              RestrictionType.NO_RESTRICTION,
-                                                                      a.getProperties().stream().collect(Collectors
-                                                                                                                 .toMap(AttributeProperty::getKey,
-                                                                                                                        AttributeProperty::getValue)),
-                                                                      a.getEsMapping()));
-                            });
-                } else {
-                    mappings.add(new AttributeDescription("feature." + attribute.getJsonPath(), attribute.getType(),
-                                                          attribute.hasRestriction() ?
-                                                                  attribute.getRestrictionType() :
-                                                                  RestrictionType.NO_RESTRICTION,
-                                                          attribute.getProperties().stream().collect(Collectors
-                                                                                                             .toMap(AttributeProperty::getKey,
-                                                                                                                    AttributeProperty::getValue)),
-                                                          attribute.getEsMapping()));
-                }
-            }
-            // now lets put the mappings into ES
-            esRepository.putMappings(tenant, mappings);
-        }
-    }
 }

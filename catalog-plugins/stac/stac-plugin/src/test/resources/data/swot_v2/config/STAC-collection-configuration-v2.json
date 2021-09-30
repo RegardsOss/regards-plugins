@@ -1,0 +1,148 @@
+{
+  "label": "STAC collection",
+  "configuration": {
+    "pluginId": "stac-collection-search",
+    "label": "STAC configuration for collection search",
+    "businessId": "hygor-collection-search",
+    "version": "1.0.0",
+    "priorityOrder": 1,
+    "active": true,
+    "parameters": [
+      {
+        "name": "stacCollectionTitle",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.title"
+        }
+      },
+      {
+        "name": "stacCollectionDescription",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.description"
+        }
+      },
+      {
+        "name": "stacCollectionKeywords",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.keywords"
+        }
+      },
+      {
+        "name": "stacCollectionLicense",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.license"
+        }
+      },
+      {
+        "name": "stacCollectionProviders",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.providers"
+        }
+      },
+      {
+        "name": "stacCollectionLinks",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.links"
+        }
+      },
+      {
+        "name": "temporalExtent",
+        "type": "POJO",
+        "value": {
+          "lower": {
+            "sourcePropertyPath": "min_start_datetime"
+          },
+          "upper": {
+            "sourcePropertyPath": "max_end_datetime"
+          }
+        }
+      },
+      {
+        "name": "stacCollectionSummaries",
+        "type": "COLLECTION",
+        "value": [
+          {
+            "sourcePropertyPath": "properties.version",
+            "stacPropertyName": "version",
+            "stacPropertyExtension": "version"
+          },
+          {
+            "sourcePropertyPath": "last",
+            "stacPropertyName": "latest",
+            "stacPropertyExtension": "version"
+          },
+          {
+            "sourcePropertyPath": "properties.release",
+            "stacPropertyName": "release",
+            "stacPropertyExtension": "version"
+          },
+          {
+            "sourcePropertyPath": "processing.level",
+            "stacPropertyName": "processing:level",
+            "stacPropertyExtension": "processing"
+          },
+          {
+            "sourcePropertyPath": "processing.software",
+            "stacPropertyName": "processing:software",
+            "stacPropertyExtension": "processing"
+          },
+          {
+            "sourcePropertyPath": "resolution.spatial_res",
+            "stacPropertyName": "resolution:spatial",
+            "stacPropertyExtension": "resolution"
+          },
+          {
+            "sourcePropertyPath": "resolution.temporal_res",
+            "stacPropertyName": "resolution:temporal",
+            "stacPropertyExtension": "resolution"
+          },
+          {
+            "sourcePropertyPath": "dcs.reference_catalog",
+            "stacPropertyName": "dcs:reference_catalog",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "dcs.acquisition_type",
+            "stacPropertyName": "dcs:acquisition_type",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "dcs.datasource",
+            "stacPropertyName": "dcs:datasource",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "dcs.data_format",
+            "stacPropertyName": "dcs:data_format",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "dcs.data_file_format",
+            "stacPropertyName": "dcs:data_file_format",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "dcs.item_type",
+            "stacPropertyName": "dcs:item_type",
+            "stacPropertyExtension": "dcs"
+          },
+          {
+            "sourcePropertyPath": "hydro.data_type",
+            "stacPropertyName": "hydro:data_type",
+            "stacPropertyExtension": "hydro"
+          },
+          {
+            "sourcePropertyPath": "hydro.variables",
+            "stacPropertyName": "hydro:variables",
+            "stacPropertyExtension": "hydro"
+          }
+        ]
+      }
+    ]
+  }
+}

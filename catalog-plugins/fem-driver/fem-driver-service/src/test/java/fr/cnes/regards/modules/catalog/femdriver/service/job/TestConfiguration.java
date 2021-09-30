@@ -27,14 +27,13 @@ import org.springframework.http.ResponseEntity;
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
-import fr.cnes.regards.modules.dam.client.dataaccess.IUserClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import fr.cnes.regards.modules.toponyms.client.IToponymsClient;;
+import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 
 /**
  * Test configuration class
@@ -70,11 +69,6 @@ public class TestConfiguration {
     @Bean
     public IDatasetClient dataSetClient() {
         return Mockito.mock(IDatasetClient.class);
-    }
-
-    @Bean
-    public IUserClient userClient() {
-        return Mockito.mock(IUserClient.class);
     }
 
     @Bean

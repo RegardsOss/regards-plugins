@@ -33,7 +33,6 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
-import fr.cnes.regards.modules.dam.client.dataaccess.IUserClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.dataaccess.accessgroup.AccessGroup;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
@@ -64,7 +63,7 @@ public class StacTestConfiguration {
         mockDataset
                 .setIpId(UniformResourceName.fromString("URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
         Mockito.when(client.retrieveDataset(Mockito.anyString()))
-                .thenReturn(new ResponseEntity<EntityModel<Dataset>>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
+                .thenReturn(new ResponseEntity<>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
         return client;
     }
 
@@ -76,11 +75,6 @@ public class StacTestConfiguration {
     @Bean
     public IToponymsClient toponymesClient() {
         return Mockito.mock(IToponymsClient.class);
-    }
-
-    @Bean
-    public IUserClient userClient() {
-        return Mockito.mock(IUserClient.class);
     }
 
     @Bean
@@ -115,7 +109,7 @@ public class StacTestConfiguration {
     //    }
     //
     @Bean
-    public IModelAttrAssocClient modelAttrAssocClient() throws ModuleException {
+    public IModelAttrAssocClient modelAttrAssocClient() {
         return Mockito.mock(IModelAttrAssocClient.class);
     }
 

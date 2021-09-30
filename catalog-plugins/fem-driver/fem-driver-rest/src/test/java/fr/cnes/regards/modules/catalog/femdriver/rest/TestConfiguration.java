@@ -28,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
-import fr.cnes.regards.modules.dam.client.dataaccess.IUserClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
@@ -48,7 +47,7 @@ public class TestConfiguration {
     public IProjectsClient projectsClient() {
         IProjectsClient projectsClientMock = Mockito.mock(IProjectsClient.class);
         // Manage project
-        Project project = new Project(1L, "Solar system project", "http://plop/icon.png", true, "SolarSystem");
+        Project project = new Project("Solar system project", "http://plop/icon.png", true, "SolarSystem");
         project.setHost("http://regards/solarsystem");
         ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(new EntityModel<>(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);
@@ -68,11 +67,6 @@ public class TestConfiguration {
     @Bean
     public IDatasetClient dataSetClient() {
         return Mockito.mock(IDatasetClient.class);
-    }
-
-    @Bean
-    public IUserClient userClient() {
-        return Mockito.mock(IUserClient.class);
     }
 
     @Bean

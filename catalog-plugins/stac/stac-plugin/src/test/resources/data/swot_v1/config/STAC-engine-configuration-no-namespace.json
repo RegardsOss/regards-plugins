@@ -62,8 +62,23 @@
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyName": "providers",
-                        "sourcePropertyPath": "providers",
+                        "stacPropertyName": "name",
+                        "sourcePropertyPath": "provider.name",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyName": "description",
+                        "sourcePropertyPath": "provider.description",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyName": "roles",
+                        "sourcePropertyPath": "provider.roles",
+                        "stacComputeSummary": false
+                    },
+                    {
+                        "stacPropertyName": "url",
+                        "sourcePropertyPath": "provider.url",
                         "stacComputeSummary": false
                     },
                     {
@@ -82,7 +97,7 @@
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyName": "version",
+                        "stacPropertyName": "properties.version",
                         "sourcePropertyPath": "version",
                         "stacComputeSummary": false
                     },
