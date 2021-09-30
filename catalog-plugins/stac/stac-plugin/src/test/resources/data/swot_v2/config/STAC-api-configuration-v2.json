@@ -1,0 +1,237 @@
+{
+  "label": "STAC",
+  "configuration": {
+    "pluginId": "stac",
+    "label": "STAC label",
+    "businessId": "hygor-stac-api",
+    "version": "1.0.0",
+    "priorityOrder": 1,
+    "active": true,
+    "parameters": [
+      {
+        "name": "stac-api-title",
+        "type": "STRING",
+        "value": "HYSOPE2 STAC API"
+      },
+      {
+        "name": "stac-api-description",
+        "type": "STRING",
+        "value": "HYSOPE2 STAC browsing and searching API"
+      },
+      {
+        "name": "stac-api-root-static-collection-title",
+        "type": "STRING",
+        "value": "static"
+      },
+      {
+        "name": "stac-api-root-dynamic-collection-title",
+        "type": "STRING",
+        "value": "dynamic"
+      },
+      {
+        "name": "stac-api-datetime-property",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "datetime"
+        }
+      },
+      {
+        "name": "stac-api-links-property",
+        "type": "POJO",
+        "value": {
+          "sourcePropertyPath": "properties.links"
+        }
+      },
+      {
+        "name": "stac-properties",
+        "type": "COLLECTION",
+        "value": [
+          {
+            "sourcePropertyPath": "start_datetime",
+            "stacPropertyName": "start_datetime",
+            "stacPropertyType": "DATETIME",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "end_datetime",
+            "stacPropertyName": "end_datetime",
+            "stacPropertyType": "DATETIME",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "license",
+            "stacPropertyName": "license",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "providers",
+            "stacPropertyName": "providers",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "platform",
+            "stacPropertyName": "platform",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "instruments",
+            "stacPropertyName": "instruments",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "mission",
+            "stacPropertyName": "mission",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "properties.version",
+            "stacPropertyName": "version",
+            "stacPropertyExtension": "version",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "last",
+            "stacPropertyName": "latest",
+            "stacPropertyExtension": "version",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "release",
+            "stacPropertyName": "release",
+            "stacPropertyExtension": "version",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "processing.level",
+            "stacPropertyName": "processing:level",
+            "stacPropertyExtension": "processing",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "processing.software",
+            "stacPropertyName": "processing:software",
+            "stacPropertyExtension": "processing",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "resolution.spatial_res",
+            "stacPropertyName": "resolution:spatial",
+            "stacPropertyExtension": "resolution",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "resolution.temporal_res",
+            "stacPropertyName": "resolution:temporal",
+            "stacPropertyExtension": "resolution",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.reference_catalog",
+            "stacPropertyName": "dcs:reference_catalog",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.acquisition_type",
+            "stacPropertyName": "dcs:acquisition_type",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.datasource",
+            "stacPropertyName": "dcs:datasource",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.data_format",
+            "stacPropertyName": "dcs:data_format",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.data_file_format",
+            "stacPropertyName": "dcs:data_file_format",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "dcs.item_type",
+            "stacPropertyName": "dcs:item_type",
+            "stacPropertyExtension": "dcs",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "hydro.data_type",
+            "stacPropertyName": "hydro:data_type",
+            "stacPropertyExtension": "hydro",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "hydro.variables",
+            "stacPropertyName": "hydro:variables",
+            "stacPropertyExtension": "hydro",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.cycle_id",
+            "stacPropertyName": "spatial:cycle_id",
+            "stacPropertyType": "NUMBER",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.pass_id",
+            "stacPropertyName": "spatial:pass_id",
+            "stacPropertyExtension": "spatial",
+            "stacPropertyType": "NUMBER",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.tile_id",
+            "stacPropertyName": "spatial:tile_id",
+            "stacPropertyExtension": "spatial",
+            "stacPropertyType": "NUMBER",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.tile_side",
+            "stacPropertyName": "spatial:tile_side",
+            "stacPropertyExtension": "spatial",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.bassin_id",
+            "stacPropertyName": "spatial:bassin_id",
+            "stacPropertyExtension": "spatial",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.continent_id",
+            "stacPropertyName": "spatial:continent_id",
+            "stacPropertyExtension": "spatial",
+            "stacComputeSummary": false
+          },
+          {
+            "sourcePropertyPath": "spatial.scene_id",
+            "stacPropertyName": "spatial:scene_id",
+            "stacPropertyExtension": "spatial",
+            "stacPropertyType": "NUMBER",
+            "stacComputeSummary": false
+          }
+        ]
+      },
+      {
+        "name": "stac-collection-dataset-properties",
+        "type": "COLLECTION",
+        "value": [
+          {
+            "license": "Proprietary",
+            "datasetUrns": [
+              "*"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

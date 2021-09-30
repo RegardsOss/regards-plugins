@@ -12,21 +12,21 @@
         "name": "stacCollectionTitle",
         "type": "POJO",
         "value": {
-          "sourcePropertyPath": "title"
+          "sourcePropertyPath": "properties.title"
         }
       },
       {
         "name": "stacCollectionDescription",
         "type": "POJO",
         "value": {
-          "sourcePropertyPath": "description"
+          "sourcePropertyPath": "properties.description"
         }
       },
       {
         "name": "stacCollectionKeywords",
         "type": "POJO",
         "value": {
-          "sourcePropertyPath": "keywords"
+          "sourcePropertyPath": "properties.keywords"
         }
       },
       {

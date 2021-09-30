@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -33,6 +34,7 @@ import fr.cnes.regards.modules.catalog.stac.service.collection.search.Collection
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
+import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
@@ -55,6 +57,7 @@ import java.util.List;
  * @author Marc SORDI
  * <p>
  * FIXME : add assertion everywhere
+ * </p>
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
@@ -72,6 +75,32 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Autowired
     private EsAggregationHelper aggregationHelper;
 
+    @Override
+    protected String getDataFolderName() {
+        return "swot_v1";
+    }
+
+    @Override
+    protected String getDataModel() {
+        return "data_model_hygor_V0.1.0.xml";
+    }
+
+    @Override
+    protected String getDatasetModel() {
+        return "dataset_model_hygor_V0.1.0.xml";
+    }
+
+    @Override
+    protected void initPlugins() throws ModuleException {
+        SearchEngineConfiguration conf = loadFromJson(getConfigFolder().resolve("STAC-engine-configuration.json"),
+                                                      SearchEngineConfiguration.class);
+        searchEngineService.createConf(conf);
+
+        SearchEngineConfiguration collectionConf = loadFromJson(
+                getConfigFolder().resolve("STAC-collection-engine-configuration.json"),
+                SearchEngineConfiguration.class);
+        searchEngineService.createConf(collectionConf);
+    }
     @Test
     public void getLandingPage() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -432,7 +461,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     }
 
     @Test
-    public void searchTags() throws SearchException, OpenSearchUnknownParameter {
+    public void searchTags() {
         String propertyPath = "tags";
         String partialText = "URN:AIP:DATASET";
         List<String> matchingDatasets = catalogSearchService
@@ -442,7 +471,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     }
 
     @Test
-    public void searchTagAggregation() throws SearchException, OpenSearchUnknownParameter {
+    public void searchTagAggregation() {
         String aggregationName = "datasetIds";
         Aggregations aggregations = aggregationHelper.getDatasetAggregations(aggregationName, ICriterion.all(), 500);
         Terms datasetIdsAgg = aggregations.get(aggregationName);

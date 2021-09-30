@@ -62,23 +62,8 @@
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyName": "name",
-                        "sourcePropertyPath": "provider.name",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyName": "description",
-                        "sourcePropertyPath": "provider.description",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyName": "roles",
-                        "sourcePropertyPath": "provider.roles",
-                        "stacComputeSummary": false
-                    },
-                    {
-                        "stacPropertyName": "url",
-                        "sourcePropertyPath": "provider.url",
+                        "stacPropertyName": "providers",
+                        "sourcePropertyPath": "providers",
                         "stacComputeSummary": false
                     },
                     {
@@ -98,7 +83,7 @@
                     },
                     {
                         "stacPropertyName": "version",
-                        "sourcePropertyPath": "version",
+                        "sourcePropertyPath": "properties.version",
                         "stacComputeSummary": false
                     },
                     {

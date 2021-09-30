@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	Last changes :
+-->
+<model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="model_V1.0.xsd">
+	<name>HYGOR_DATASET_V2</name>
+	<description>Hydrology datasets (one per data type)</description>
+	<version>beta</version>
+	<type>DATASET</type>
+	<attribute optional="true">
+		<label>Title</label>
+		<name>title</name>
+		<type>STRING</type>
+	</attribute>
+	<attribute>
+		<label>Description</label>
+		<name>description</name>
+		<type>STRING</type>
+	</attribute>
+	<attribute optional="true">
+		<label>Keywords</label>
+		<name>keywords</name>
+		<type>STRING_ARRAY</type>
+	</attribute>
+	<attribute>
+		<label>License</label>
+		<name>license</name>
+		<type>STRING</type>
+	</attribute>
+	<attribute optional="true">
+		<label>Providers</label>
+		<name>providers</name>
+		<type>JSON</type>
+		<restriction>
+			<json_schema>
+				<![CDATA[ {
+				"$schema": "http://json-schema.org/draft-07/schema#",
+				"$id": "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/provider.json#",
+				"title": "Providers",
+				"type": "array",
+				"items": {
+					"type": "object",
+					"required": [
+						"name"
+					],
+					"properties": {
+						"name": {
+							"title": "Organization name",
+							"type": "string",
+							"minLength": 1
+						},
+						"description": {
+							"title": "Organization description",
+							"type": "string"
+						},
+						"roles": {
+							"title": "Organization roles",
+							"type": "array",
+							"items": {
+								"type": "string",
+								"enum": [
+									"producer",
+									"licensor",
+									"processor",
+									"host"
+								]
+							}
+						},
+						"url": {
+							"title": "Organization homepage",
+							"type": "string",
+							"format": "iri"
+						}
+					}
+				}
+			}]]>
+			</json_schema>
+		</restriction>
+	</attribute>
+	<attribute optional="true">
+		<label>Links</label>
+		<name>links</name>
+		<description>Links to be added to item ones</description>
+		<type>JSON</type>
+		<restriction>
+			<json_schema>
+				<![CDATA[{
+					"$schema": "http://json-schema.org/draft-07/schema#",
+					"$id": "https://schemas.stacspec.org/v1.0.0/item-spec/json-schema/links.json#",
+					"title": "Links",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"rel",
+							"href"
+						],
+						"properties": {
+							"href": {
+								"title": "Link reference",
+								"type": "string",
+								"format": "iri-reference",
+								"minLength": 1
+							},
+							"rel": {
+								"title": "Link relation type",
+								"type": "string",
+								"minLength": 1
+							},
+							"type": {
+								"title": "Link type",
+								"type": "string"
+							},
+							"title": {
+								"title": "Link title",
+								"type": "string"
+							}
+						}
+					}
+				}]]>
+			</json_schema>
+		</restriction>
+	</attribute>
+	<!-- Computed properties -->
+	<attribute>
+		<label>Item count</label>
+		<name>items</name>
+		<type>LONG</type>
+		<computation>
+			<label>Item count computation</label>
+			<count />
+		</computation>
+	</attribute>
+	<attribute>
+		<label>Min start datetime</label>
+		<name>min_start_datetime</name>
+		<type>DATE_ISO8601</type>
+		<computation>
+			<label>Min datetime computation</label>
+			<min_compute parameterAttributeName="start_datetime" />
+		</computation>
+	</attribute>
+	<attribute>
+		<label>Max end datetime</label>
+		<name>max_end_datetime</name>
+		<type>DATE_ISO8601</type>
+		<computation>
+			<label>Max datetime computation</label>
+			<max_compute parameterAttributeName="end_datetime" />
+		</computation>
+	</attribute>
+	<!-- Extensions -->
+	<!-- Version -->
+	<attribute>
+		<label>Version</label>
+		<name>version</name>
+		<type>STRING</type>
+	</attribute>
+	<attribute>
+		<label>Release</label>
+		<name>release</name>
+		<type>STRING</type>
+	</attribute>
+	<!-- Processing -->
+	<fragment>
+		<name>processing</name>
+		<attribute>
+			<label>Level</label>
+			<name>level</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute optional="true">
+			<label>Software</label>
+			<name>software</name>
+			<type>JSON</type>
+			<restriction>
+				<json_schema>
+					<![CDATA[ {
+						"$schema": "http://json-schema.org/draft-07/schema#",
+						"$id": "https://hysope2/software.json",
+						"title": "Software",
+						"type": "object",
+						"properties": {
+							"crid": {
+								"type": "string",
+								"pattern" : "[DPTVX][GIO][A-Z0-9]{2}[A-Z0-9]{0,2}"
+							}
+						}
+					}]]>
+				</json_schema>
+			</restriction>
+		</attribute>
+	</fragment>
+	<!-- Resolution -->
+	<fragment>
+		<name>resolution</name>
+		<attribute>
+			<label>Product spatial resolution</label>
+			<name>spatial_res</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Product temporal resolution</label>
+			<name>temporal_res</name>
+			<type>STRING</type>
+		</attribute>
+	</fragment>
+	<!-- Data characteristics -->
+	<fragment>
+		<name>dcs</name>
+		<attribute optional="true">
+			<label>Reference catalog</label>
+			<name>reference_catalog</name>
+			<description>If HYSOPE2 only references metadata without giving access to physical data, this field indicates which catalog contains data.</description>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Acquisition type</label>
+			<name>acquisition_type</name>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>in-situ</value>
+					<value>satellite</value>
+					<value>airborne</value>
+					<value>model</value>
+				</enumeration>
+			</restriction>
+		</attribute>
+		<attribute>
+			<label>Datasource</label>
+			<name>datasource</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Data format</label>
+			<name>data_format</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Data file format</label>
+			<name>data_file_format</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Item type</label>
+			<name>item_type</name>
+			<type>STRING</type>
+			<restriction>
+				<enumeration>
+					<value>tile</value>
+					<value>station</value>
+					<value>track</value>
+				</enumeration>
+			</restriction>
+		</attribute>
+	</fragment>
+	<!-- Hydrology -->
+	<fragment>
+		<name>hydro</name>
+		<attribute optional="true">
+			<label>Data type</label>
+			<name>data_type</name>
+			<type>STRING</type>
+		</attribute>
+		<attribute>
+			<label>Variables</label>
+			<name>variables</name>
+			<type>JSON</type>
+			<restriction>
+				<json_schema>
+					<![CDATA[ {
+						"$schema": "http://json-schema.org/draft-07/schema#",
+						"$id": "https://hysope2/thesaurus.json",
+						"title": "Thesaurus concepts",
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"categories",
+								"uri",
+								"short_name",
+								"long_name",
+								"unit"
+							],
+							"properties": {
+								"categories": {
+									"title": "Related broader categories URIs",
+									"type": "array",
+									"items": {
+										"type": "string",
+										"format": "uri"
+									}
+								},
+								"uri": {
+									"title": "Thesaurus variable URI",
+									"type": "string",
+									"format": "uri"
+								},
+								"short_name": {
+									"title": "Variable short name",
+									"type": "string"
+								},
+								"long_name": {
+									"title": "Variable long name",
+									"type": "string"
+								},
+								"unit": {
+									"title": "Variable unit",
+									"type": "string"
+								},
+								"description": {
+									"title": "Optional variable description",
+									"type": "string"
+								}
+							}
+						}
+					}]]>
+				</json_schema>
+			</restriction>
+		</attribute>
+	</fragment>
+</model>

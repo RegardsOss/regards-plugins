@@ -1,21 +1,21 @@
 {
-  "id": "DATASET:L2_HR_RASTER",
+  "id": "L1B_HR_SLC",
   "type": "Feature",
-  "entityType": "DATA",
+  "entityType": "DATASET",
   "model": "HYGOR001",
   "geometry": null,
   "properties": {
-    "title": "L2 HR RASTER Title",
-    "description": "Description of L2 HR RASTER",
+    "title": "L1B HR SLC Title",
+    "description": "Description of L1B HR SLC",
     "keywords": [
       "SWOT",
-      "Level 2",
+      "Level 1B",
       "HR"
     ],
-    "license": "LicenseTwo",
+    "license": "LicenseOne",
     "providers": [
       {
-        "name": "JPL",
+        "name": "CNES",
         "roles": [
           "licensor",
           "producer",
