@@ -66,6 +66,12 @@ public class ChronosRecipientSender implements IRecipientNotifier {
     @PluginParameter(label = "RabbitMQ queue name", name = "queueName", optional = true)
     private String queueName;
 
+    @PluginParameter(label = "Recipient ID", name = "recipientId", optional = true)
+    private String recipientId;
+
+    @PluginParameter(label = "Ack required", name = "ackRequired", optional = true, defaultValue = "false")
+    private boolean ackRequired;
+
     @PluginParameter(label = "Feature created_by property path", name = "createdByPropertyPath", optional = true,
             defaultValue = "history.createdBy")
     private String createdByPropertyPath;
@@ -149,6 +155,16 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             publisher.broadcastAll(exchange, Optional.of(queueName), 0, toSend.get(headers), headers);
         }
         return errors;
+    }
+
+    @Override
+    public String getRecipientId() {
+        return recipientId;
+    }
+
+    @Override
+    public boolean isAckRequired() {
+        return ackRequired;
     }
 
     public void setExchange(String exchange) {
