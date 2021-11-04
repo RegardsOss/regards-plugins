@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.rest;
 
+import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,6 +94,11 @@ public class TestConfiguration {
     @Bean
     public IToponymsClient toponymsClient() {
         return Mockito.mock(IToponymsClient.class);
+    }
+
+    @Bean
+    public IAttachmentClient attachmentClient() {
+        return Mockito.mock(IAttachmentClient.class);
     }
 
 }

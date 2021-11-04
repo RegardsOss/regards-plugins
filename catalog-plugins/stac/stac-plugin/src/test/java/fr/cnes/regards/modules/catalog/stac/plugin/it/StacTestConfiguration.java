@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it;
 
 import java.util.ArrayList;
 
+import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -126,6 +127,11 @@ public class StacTestConfiguration {
     @Bean
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IAttachmentClient attachmentClient() {
+        return Mockito.mock(IAttachmentClient.class);
     }
 
 }
