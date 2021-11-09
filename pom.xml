@@ -144,6 +144,12 @@
             <version>1.8.0-SNAPSHOT</version>
             <classifier>shaded</classifier>
         </dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+			<artifactId>rabbitmq-sender</artifactId>
+			<version>1.8.0-SNAPSHOT</version>
+			<classifier>shaded</classifier>
+		</dependency>
     </dependencies>
 
 	<build>

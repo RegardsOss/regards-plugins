@@ -45,22 +45,27 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+			<artifactId>common-plugins</artifactId>
+			<version>1.8.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.modules.notifier</groupId>
 			<artifactId>notifier-domain</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>fr.cnes.regards.framework.test</groupId>
-			<artifactId>regards-test</artifactId>
+			<groupId>fr.cnes.regards.framework</groupId>
+			<artifactId>jpa-multitenant-regards-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework.utils</groupId>
+			<artifactId>plugin-utils</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.framework</groupId>
 			<artifactId>gson-regards-starter</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-            <groupId>fr.cnes.regards.framework</groupId>
-			<artifactId>amqp-regards-starter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

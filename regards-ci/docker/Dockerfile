@@ -25,6 +25,7 @@ COPY datatypes ${REGARDS_HOME}/plugins/fem/datatypes
 ADD feature-factory-test-plugin-1.8.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/fem/
 # Notifier
 ADD chronos-recipient-sender-1.8.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
+ADD rabbitmq-sender-1.8.0-SNAPSHOT-shaded.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
@@ -54,6 +55,7 @@ CMD mkdir -p /regards-plugins/storage/ && \
 	rm -f /regards-plugins/fem/datatypes/* && \
 	# Remove old notifier plugins
 	rm -f /regards-plugins/notifier/chronos-recipient-sender*.jar && \
+	rm -f /regards-plugins/notifier/rabbitmq-sender*.jar && \
 	# Remove old ingest plugins
 	rm -f /regards-plugins/ingest/enhanced-descriptive-aip-generation*.jar && \
 	rm -f /regards-plugins/ingest/ingest-test-plugins*.jar && \

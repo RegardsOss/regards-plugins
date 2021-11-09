@@ -55,5 +55,7 @@
 	</parent>
 	<modules>
 		<module>chronos-recipient-sender</module>
-   	</modules>
+		<module>common-plugins</module>
+		<module>rabbitmq-sender</module>
+	</modules>
 </project>

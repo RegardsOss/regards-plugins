@@ -18,38 +18,41 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.gson.JsonElement;
-import fr.cnes.regards.framework.amqp.IPublisher;
+import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
-import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Sender to send CHRONOS formatted feature notification
  *
  * @author Sébastien Binda
- *
  */
 @Plugin(author = "REGARDS Team", description = "Sender to send CHRONOS formatted feature notification",
         id = ChronosRecipientSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
         owner = "CNES", url = "https://regardsoss.github.io/")
-public class ChronosRecipientSender implements IRecipientNotifier {
+public class ChronosRecipientSender extends AbstractRabbitMQSender {
 
     public static final String PLUGIN_ID = "ChronosRecipientSender";
+
+    public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
+
+    public static final String CREATED_BY_PROPERTY_PATH_PARAM_NAME = "createdByPropertyPath";
+
+    public static final String UPDATED_BY_PROPERTY_PATH_PARAM_NAME = "updatedByPropertyPath";
+
+    public static final String DELETED_BY_PROPERTY_PATH_PARAM_NAME = "deletedByPropertyPath";
+
+    public static final String GPFS_URL_PROPERTY_PATH_PARAM_NAME = "gpfsUrlPropertyPath";
+
+    public static final String FILENAME_PROPERTY_PATH_PARAM_NAME = "filenamePropertyPath";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSender.class);
 
@@ -57,50 +60,28 @@ public class ChronosRecipientSender implements IRecipientNotifier {
 
     private static final String ACTION_KEY = "action";
 
-    @Autowired
-    private IPublisher publisher;
-
-    @PluginParameter(label = "RabbitMQ exchange name", name = "exchange")
-    private String exchange;
-
-    @PluginParameter(label = "RabbitMQ queue name", name = "queueName", optional = true)
-    private String queueName;
-
-    @PluginParameter(label = "Recipient ID", name = "recipientId", optional = true)
-    private String recipientId;
-
-    @PluginParameter(label = "Ack required", name = "ackRequired", optional = true, defaultValue = "false")
+    @PluginParameter(label = "Ack required", name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
     private boolean ackRequired;
 
-    @PluginParameter(label = "Feature created_by property path", name = "createdByPropertyPath", optional = true,
+    @PluginParameter(label = "Feature created_by property path", name = CREATED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
             defaultValue = "history.createdBy")
     private String createdByPropertyPath;
 
-    @PluginParameter(label = "Feature updated_by property path", name = "updatedByPropertyPath", optional = true,
+    @PluginParameter(label = "Feature updated_by property path", name = UPDATED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
             defaultValue = "history.updatedBy")
     private String updatedByPropertyPath;
 
-    @PluginParameter(label = "Feature deleted_by property path", name = "updatedByPropertyPath", optional = true,
+    @PluginParameter(label = "Feature deleted_by property path", name = DELETED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
             defaultValue = "history.deletedBy")
     private String deletedByPropertyPath;
 
-    @PluginParameter(label = "Feature gpfs_url property path", name = "gpfsUrlPropertyPath", optional = true,
+    @PluginParameter(label = "Feature gpfs_url property path", name = GPFS_URL_PROPERTY_PATH_PARAM_NAME, optional = true,
             defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
 
-    @PluginParameter(label = "Feature filename property path", name = "filenamePropertyPath", optional = true,
+    @PluginParameter(label = "Feature filename property path", name = FILENAME_PROPERTY_PATH_PARAM_NAME, optional = true,
             defaultValue = "properties.system.filename")
     private String filenamePropertyPath;
-
-    public ChronosRecipientSender() {
-    }
-
-    /**
-     * This constructor is needed for tests unfortunately
-     */
-    protected ChronosRecipientSender(IPublisher publisher) {
-        this.publisher = publisher;
-    }
 
     public Optional<String> getValue(JsonElement element, String key) {
         if (key.contains(".")) {
@@ -135,12 +116,8 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             if ((metadata == null) || !createdBy.isPresent() || (filename == null)) {
                 LOGGER.error(
                         "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
-                        metadata == null ? null : metadata.toString(),
-                        createdByPropertyPath,
-                        createdBy,
-                        gpfsUrlPropertyPath,
-                        uri,
-                        element == null ? null : element.toString());
+                        metadata == null ? null : metadata.toString(), createdByPropertyPath, createdBy,
+                        gpfsUrlPropertyPath, uri, element == null ? null : element.toString());
                 errors.add(request);
             } else {
                 Map<String, Object> headers = new HashMap<>();
@@ -152,46 +129,13 @@ public class ChronosRecipientSender implements IRecipientNotifier {
             }
         }
         for (Map<String, Object> headers : toSend.keySet()) {
-            publisher.broadcastAll(exchange, Optional.of(queueName), 0, toSend.get(headers), headers);
+            sendEvents(toSend.get(headers), headers);
         }
         return errors;
     }
 
     @Override
-    public String getRecipientId() {
-        return recipientId;
-    }
-
-    @Override
     public boolean isAckRequired() {
         return ackRequired;
-    }
-
-    public void setExchange(String exchange) {
-        this.exchange = exchange;
-    }
-
-    public void setQueueName(String queueName) {
-        this.queueName = queueName;
-    }
-
-    public void setCreatedByPropertyPath(String createdByPropertyPath) {
-        this.createdByPropertyPath = createdByPropertyPath;
-    }
-
-    public void setUpdatedByPropertyPath(String updatedByPropertyPath) {
-        this.updatedByPropertyPath = updatedByPropertyPath;
-    }
-
-    public void setDeletedByPropertyPath(String deletedByPropertyPath) {
-        this.deletedByPropertyPath = deletedByPropertyPath;
-    }
-
-    public void setGpfsUrlPropertyPath(String gpfsUrlPropertyPath) {
-        this.gpfsUrlPropertyPath = gpfsUrlPropertyPath;
-    }
-
-    public void setFilenamePropertyPath(String filenamePropertyPath) {
-        this.filenamePropertyPath = filenamePropertyPath;
     }
 }
