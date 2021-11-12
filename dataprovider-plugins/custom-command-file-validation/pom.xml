@@ -24,7 +24,12 @@
 	<groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
 	<artifactId>custom-command-file-validation</artifactId>
 	<description>Plugin to validate file to acquire by running a custom command</description>
-	<version>1.8.0-SNAPSHOT</version>
+
+	<parent>
+		<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
+		<artifactId>dataprovider-plugins</artifactId>
+		<version>${revision}</version>
+	</parent>
 
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
@@ -47,12 +52,6 @@
 		</developer>
 	</developers>
 
-	<parent>
-		<groupId>fr.cnes.regards.modules.dataprovider.plugins</groupId>
-		<artifactId>dataprovider-plugins</artifactId>
-		<version>1.8.0-SNAPSHOT</version>
-	</parent>
-
 	<dependencies>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.acquisition</groupId>
@@ -71,6 +70,29 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
             </plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<retryPushCount>0</retryPushCount>
+					<skipDockerBuild>false</skipDockerBuild>
+					<forceTags>true</forceTags>
+					<imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
+					<serverId>REGARDS-DockerHub</serverId>
+					<registryUrl>${docker.registry.host}</registryUrl>
+					<imageTags>
+						<imageTag>${revision}</imageTag>
+					</imageTags>
+					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
+					<resources>
+						<resource>
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>*-shaded.jar</include>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 </project>

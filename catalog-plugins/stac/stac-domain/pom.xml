@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>stac-domain</artifactId>
+
     <parent>
         <artifactId>stac</artifactId>
         <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>stac-domain</artifactId>
 
     <dependencies>
         <!--=== Regards ===-->
@@ -46,13 +46,13 @@
         <dependency>
             <groupId>org.noggit</groupId>
             <artifactId>noggit</artifactId>
-            <version>0.5</version>
         </dependency>
 
         <!--=== Tests ===-->
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>stac-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

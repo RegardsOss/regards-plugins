@@ -4,12 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
     <artifactId>webservice-datasource</artifactId>
     <description>Webservice datasource. Those datasources pull data from an opensearch webservice and convert them in
         REGARDS DATA. They allow user specifying authentication to pull data and use corresponding files.
     </description>
-    <version>1.8.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+        <artifactId>dam-plugins</artifactId>
+        <version>${revision}</version>
+    </parent>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
     <inceptionYear>2016</inceptionYear>
@@ -31,12 +35,6 @@
             <organizationUrl>http://www.c-s.fr</organizationUrl>
         </developer>
     </developers>
-
-    <parent>
-        <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-        <artifactId>dam-plugins</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
-    </parent>
 
     <dependencies>
         <dependency>
@@ -110,6 +108,29 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <retryPushCount>0</retryPushCount>
+                    <skipDockerBuild>false</skipDockerBuild>
+                    <forceTags>true</forceTags>
+                    <imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
+                    <serverId>REGARDS-DockerHub</serverId>
+                    <registryUrl>${docker.registry.host}</registryUrl>
+                    <imageTags>
+                        <imageTag>${revision}</imageTag>
+                    </imageTags>
+                    <dockerDirectory>${project.basedir}/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>*-shaded.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
             </plugin>
         </plugins>
     </build>

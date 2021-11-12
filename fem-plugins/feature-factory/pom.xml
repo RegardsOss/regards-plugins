@@ -16,6 +16,12 @@
 	<artifactId>feature-factory-plugin</artifactId>
 	<description>Creation of feature from file reference</description>
 
+	<parent>
+		<groupId>fr.cnes.regards.modules.fem.plugins</groupId>
+		<artifactId>fem-plugins</artifactId>
+		<version>${revision}</version>
+	</parent>
+
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -36,12 +42,6 @@
 			<organizationUrl>http://www.c-s.fr</organizationUrl>
 		</developer>
 	</developers>
-
-	<parent>
-		<groupId>fr.cnes.regards.modules.fem.plugins</groupId>
-		<artifactId>fem-plugins</artifactId>
-		<version>1.8.0-SNAPSHOT</version>
-	</parent>
 
 	<dependencies>
 		<dependency>
@@ -95,6 +95,34 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<retryPushCount>0</retryPushCount>
+					<skipDockerBuild>false</skipDockerBuild>
+					<forceTags>true</forceTags>
+					<imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
+					<serverId>REGARDS-DockerHub</serverId>
+					<registryUrl>${docker.registry.host}</registryUrl>
+					<imageTags>
+						<imageTag>${revision}</imageTag>
+					</imageTags>
+					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
+					<resources>
+						<resource>
+							<targetPath>/datatypes</targetPath>
+							<directory>${project.basedir}/src/test/resources/conf/datatypes</directory>
+							<include>*</include>
+						</resource>
+						<resource>
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>*-shaded.jar</include>
+						</resource>
+					</resources>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

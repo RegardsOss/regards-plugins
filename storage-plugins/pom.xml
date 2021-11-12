@@ -21,10 +21,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.storage</groupId>
+    <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
     <artifactId>storage-plugins</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>plugins</artifactId>
+        <version>${revision}</version>
+    </parent>
 
     <description>Plugins for storage module</description>
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
@@ -48,12 +53,6 @@
         </developer>
     </developers>
 
-    <parent>
-        <groupId>fr.cnes.regards</groupId>
-        <artifactId>regards-oss-backend</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
-        <relativePath/>
-    </parent>
     <modules>
         <module>local-storage-location</module>
     </modules>

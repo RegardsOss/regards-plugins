@@ -2,14 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>stac-plugin</artifactId>
+
     <parent>
         <artifactId>stac</artifactId>
         <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>stac-plugin</artifactId>
 
     <dependencies>
         <!--=== STAC ===-->
@@ -79,7 +80,7 @@
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>2.2.1.RELEASE</version>
+                        <version>${spring-boot-maven-plugin.version}</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -113,28 +114,28 @@
                 </executions>
             </plugin>
             <plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<retryPushCount>0</retryPushCount>
-					<skipDockerBuild>false</skipDockerBuild>
-					<forceTags>true</forceTags>
-					<imageName>${docker.registry.host}/rs-stac-plugin</imageName>
-					<serverId>REGARDS-DockerHub</serverId>
-					<registryUrl>${docker.registry.host}</registryUrl>
-					<imageTags>
-						<imageTag>${project.version}</imageTag>
-					</imageTags>
-					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
-					<resources>
-						<resource>
-							<targetPath>/</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>*-shaded.jar</include>
-						</resource>
-					</resources>
-				</configuration>
-			</plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <retryPushCount>0</retryPushCount>
+                    <skipDockerBuild>false</skipDockerBuild>
+                    <forceTags>true</forceTags>
+                    <imageName>${docker.registry.host}/rs-${project.artifactId}</imageName>
+                    <serverId>REGARDS-DockerHub</serverId>
+                    <registryUrl>${docker.registry.host}</registryUrl>
+                    <imageTags>
+                        <imageTag>${revision}</imageTag>
+                    </imageTags>
+                    <dockerDirectory>${project.basedir}/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>*-shaded.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

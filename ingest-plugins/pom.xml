@@ -20,21 +20,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <groupId>fr.cnes.regards</groupId>
-        <artifactId>regards-oss-backend</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
-        <relativePath />
-    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.cnes.regards.modules.ingest</groupId>
     <artifactId>ingest-plugins</artifactId>
     <packaging>pom</packaging>
+
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>plugins</artifactId>
+        <version>${revision}</version>
+    </parent>
     <modules>
         <module>enhanced-descriptive-aip-generation</module>
         <module>ingest-test-plugins</module>
     </modules>
-
-
 </project>

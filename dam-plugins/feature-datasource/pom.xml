@@ -16,6 +16,12 @@
 	<artifactId>feature-datasource</artifactId>
 	<description>Feature manager as a datasource</description>
 
+	<parent>
+		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+		<artifactId>dam-plugins</artifactId>
+		<version>${revision}</version>
+	</parent>
+
 	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
 	<inceptionYear>2016</inceptionYear>
 	<licenses>
@@ -36,12 +42,6 @@
 			<organizationUrl>http://www.c-s.fr</organizationUrl>
 		</developer>
 	</developers>
-
-	<parent>
-		<groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-		<artifactId>dam-plugins</artifactId>
-		<version>1.8.0-SNAPSHOT</version>
-	</parent>
 
 	<dependencies>
 		<dependency>
@@ -110,11 +110,11 @@
 					<retryPushCount>0</retryPushCount>
 					<skipDockerBuild>false</skipDockerBuild>
 					<forceTags>true</forceTags>
-					<imageName>${docker.registry.host}/rs-feature-datasource-plugin</imageName>
+					<imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
 					<serverId>REGARDS-DockerHub</serverId>
 					<registryUrl>${docker.registry.host}</registryUrl>
 					<imageTags>
-						<imageTag>${project.version}</imageTag>
+						<imageTag>${revision}</imageTag>
 					</imageTags>
 					<dockerDirectory>${project.basedir}/docker</dockerDirectory>
 					<resources>
