@@ -33,6 +33,17 @@
         "title": "Apache License 2.0"
       }
     ],
+    "assets" : {
+      "my_asset": {
+        "href": "https://my_url.com",
+        "title": "Title of my url",
+        "description": "Description of my url",
+        "type": "text/plain",
+        "roles": [
+          "my_role", "my_other_role"
+        ]
+      }
+    },
     "min_start_datetime": "2020-04-02T11:21:39Z",
     "items": 0,
     "version": "1",

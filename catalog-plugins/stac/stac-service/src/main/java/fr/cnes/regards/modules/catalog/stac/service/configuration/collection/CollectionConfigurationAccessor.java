@@ -40,6 +40,8 @@ public interface CollectionConfigurationAccessor {
 
     StacCollectionProperty getLinksProperty();
 
+    StacCollectionProperty getAssetsProperty();
+
     StacCollectionProperty getLowerTemporalExtentProperty();
 
     StacCollectionProperty getUpperTemporalExtentProperty();

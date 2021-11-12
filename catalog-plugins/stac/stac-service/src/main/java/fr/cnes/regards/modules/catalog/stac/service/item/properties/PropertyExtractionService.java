@@ -42,7 +42,15 @@ public interface PropertyExtractionService {
 
     Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature);
 
-    List<Link> extractLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty sp);
+    /**
+     * Static assets if directly available in the feature with the proper structure
+     */
+    Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature, StacProperty stacAssetsProperty);
+
+    /**
+     * Static links if directly available in the feature with the proper structure
+     */
+    List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty stacLinksProperty);
 
     Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties);
 

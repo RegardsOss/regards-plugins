@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.item.properties;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -134,6 +135,28 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         return result;
     }
 
+    /**
+     * @return static feature assets
+     */
+    @Override
+    public Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature,
+            StacProperty stacAssetsProperty) {
+        return Try.of(() -> {
+            Object object = stacAssetsProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
+                    .getOrNull();
+            return HashMap.ofAll(extractStaticAssetsFromJson(object));
+        }).getOrElse(HashMap.empty());
+    }
+
+    private java.util.Map<String, Asset> extractStaticAssetsFromJson(Object object) {
+        if (JsonObject.class.isAssignableFrom(object.getClass())) {
+            return gson.fromJson((JsonObject) object, new TypeToken<java.util.Map<String, Asset>>() {
+
+            }.getType());
+        }
+        return null;
+    }
+
     private URI authdUri(URI uri, Tuple2<String, String> authParam) {
         return Try.success(uri).flatMapTry(uriParamAdder.appendParams(HashMap.of(authParam))).getOrElse(uri);
     }
@@ -155,16 +178,18 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
     }
 
     /**
-     * @return feature links
+     * @return static feature links
      */
-    public List<Link> extractLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty sp) {
+    public List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature,
+            StacProperty stacLinksProperty) {
         return Try.of(() -> {
-            Object object = sp.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature).getOrNull();
-            return List.ofAll(extractLinksFromJson(object));
+            Object object = stacLinksProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
+                    .getOrNull();
+            return List.ofAll(extractStaticLinksFromJson(object));
         }).getOrElse(List.empty());
     }
 
-    private java.util.List<Link> extractLinksFromJson(Object object) {
+    private java.util.List<Link> extractStaticLinksFromJson(Object object) {
         if (JsonArray.class.isAssignableFrom(object.getClass())) {
             return gson.fromJson((JsonArray) object, new TypeToken<java.util.List<Link>>() {
 

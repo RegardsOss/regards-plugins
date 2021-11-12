@@ -53,6 +53,18 @@
         "title": "Apache License 2.0"
       }
     ],
+    "assets" : {
+      "my_item_asset": {
+        "href": "https://my_item_url.com",
+        "title": "Title of my item url",
+        "description": "Description of my item url",
+        "type": "image/png",
+        "roles": [
+          "my_item_role",
+          "my_other_item_role"
+        ]
+      }
+    },
     "platform": "SWOT",
     "instruments": [
       "KaRIn"

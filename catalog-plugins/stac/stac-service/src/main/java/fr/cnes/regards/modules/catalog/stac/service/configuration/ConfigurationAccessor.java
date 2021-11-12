@@ -46,6 +46,8 @@ public interface ConfigurationAccessor {
 
     StacProperty getLinksStacProperty();
 
+    StacProperty getAssetsStacProperty();
+
     List<Provider> getProviders(String datasetUrn);
 
     List<String> getKeywords(String datasetUrn);

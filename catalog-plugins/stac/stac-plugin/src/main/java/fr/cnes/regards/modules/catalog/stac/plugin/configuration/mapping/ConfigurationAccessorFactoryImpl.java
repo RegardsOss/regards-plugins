@@ -123,7 +123,16 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
                 String stacPropertyName = StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME;
                 return plugin.map(p -> makeStacProperty(p.getStacLinksProperty(), stacPropertyName,
                                                         StacPropertyType.JSON_OBJECT)).getOrElse(
-                        makeDefaultStacProperty(StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME,
+                        makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
+                                                stacPropertyName, StacPropertyType.JSON_OBJECT));
+            }
+
+            @Override
+            public StacProperty getAssetsStacProperty() {
+                String stacPropertyName = StacSpecConstants.PropertyName.STAC_ASSETS_PROPERTY_NAME;
+                return plugin.map(p -> makeStacProperty(p.getStacAssetsProperty(), stacPropertyName,
+                                                        StacPropertyType.JSON_OBJECT)).getOrElse(
+                        makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
                                                 stacPropertyName, StacPropertyType.JSON_OBJECT));
             }
 

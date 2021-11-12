@@ -23,6 +23,7 @@ import fr.cnes.regards.framework.geojson.GeoJsonType;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
@@ -80,18 +81,20 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         debug(LOGGER, "Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return trying(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
-            Map<String, Object> featureStacProperties = propertyExtractionService
-                    .extractStacProperties(feature, properties);
-            List<Link> featureLinks = propertyExtractionService
-                    .extractLinks(feature, configurationAccessor.getLinksStacProperty());
+            Map<String, Object> featureStacProperties = propertyExtractionService.extractStacProperties(feature,
+                                                                                                           properties);
+            List<Link> staticFeatureLinks = propertyExtractionService.extractStaticLinks(feature,
+                                                                                         configurationAccessor.getLinksStacProperty());
+            Map<String, Asset> staticFeatureAssets = propertyExtractionService.extractStaticAssets(feature,
+                                                                                                   configurationAccessor.getAssetsStacProperty());
             Set<String> extensions = propertyExtractionService.extractExtensionsFromConfiguration(properties);
             Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
             String collection = extractCollection(feature).getOrNull();
             String itemId = feature.getIpId().toString();
 
             Item result = new Item(extensions, itemId, geo._2, geo._1, geo._3, collection, featureStacProperties,
-                                   extractLinks(itemId, collection, linkCreator).appendAll(featureLinks),
-                                   propertyExtractionService.extractAssets(feature));
+                                   extractLinks(itemId, collection, linkCreator).appendAll(staticFeatureLinks),
+                                   propertyExtractionService.extractAssets(feature).merge(staticFeatureAssets));
             debug(LOGGER, "Result Item={}", result);
             return result;
         }).mapFailure(ENTITY_TO_ITEM_CONVERSION,
@@ -114,7 +117,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         if (geometry.isDefined() && !GeoJsonType.UNLOCATED.equals(geometry.get().getType())) {
             Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
             return geometry.flatMap(g -> bbox.map(b -> Tuple.of(g, b, b.centroid()))
-                    .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
+                            .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
                     .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid())))
                     .getOrElse(() -> Tuple.of(null, null, null));
         } else {

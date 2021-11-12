@@ -123,8 +123,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator) {
 
         // Retrieve configured collection properties
-        CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory
-                .makeConfigurationAccessor();
+        CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory.makeConfigurationAccessor();
         List<StacProperty> collectionStacProperties = collectionConfigurationAccessor.getStacProperties();
         // Retrieve configured item properties
         ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
@@ -146,13 +145,14 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         if (!itemCriteria.isEmpty()) {
             // Search for all matching dataset ids using item query parameters
             // We had to filter results as tags not only contain dataset ids
-            datasetCount = trying(() -> getDatasetIds(itemCriteria, aggregationHelper.getDatasetTotalCount()))
-                    .mapFailure(DATASET_AGGREGATION_FAILURE, () -> String
-                            .format("Collection search failure on item search filtering with %s",
-                                    collectionItemSearchBody));
+            datasetCount = trying(
+                    () -> getDatasetIds(itemCriteria, aggregationHelper.getDatasetTotalCount())).mapFailure(
+                    DATASET_AGGREGATION_FAILURE,
+                    () -> String.format("Collection search failure on item search filtering with %s",
+                                        collectionItemSearchBody));
             // Add it to the collection search criteria
-            idCriterion = identitiesCriterionBuilder
-                    .buildCriterion(itemStacProperties, List.ofAll(datasetCount.get().keySet()));
+            idCriterion = identitiesCriterionBuilder.buildCriterion(itemStacProperties,
+                                                                    List.ofAll(datasetCount.get().keySet()));
             // No dataset matches!
             if (!idCriterion.isDefined()) {
                 return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
@@ -174,18 +174,18 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
         // Search for all matching collections
         Map<String, Long> finalDatasetCount = datasetCount.get();
-        return trying(
-                () -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null, pageable))
-                .mapFailure(SEARCH, () -> String
-                        .format("Collection search failure for page %d of %s", page, collectionSearchBody)).flatMap(
-                        facetPage -> extractCollection(facetPage, collectionStacProperties, null,
-                                                       searchCollectionPageLinkCreator, searchItemPageLinkCreator,
-                                                       finalDatasetCount, collectionConfigurationAccessor));
+        return trying(() -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null,
+                                                                 pageable)).mapFailure(SEARCH, () -> String.format(
+                "Collection search failure for page %d of %s", page, collectionSearchBody)).flatMap(
+                facetPage -> extractCollection(facetPage, collectionStacProperties, null,
+                                               searchCollectionPageLinkCreator, searchItemPageLinkCreator,
+                                               finalDatasetCount, collectionConfigurationAccessor));
     }
 
     private Map<String, Long> getDatasetIds(ICriterion itemCriteria, Long size) throws AccessRightFilterException {
-        Aggregations aggregations = aggregationHelper
-                .getDatasetAggregations(DATASET_AGG_NAME, accessRightFilter.addAccessRights(itemCriteria), size);
+        Aggregations aggregations = aggregationHelper.getDatasetAggregations(DATASET_AGG_NAME,
+                                                                             accessRightFilter.addAccessRights(
+                                                                                     itemCriteria), size);
         Terms datasetIdsAgg = aggregations.get(DATASET_AGG_NAME);
         return List.ofAll(datasetIdsAgg.getBuckets()).map(b -> new Tuple2<>(b.getKeyAsString(), b.getDocCount()))
                 .toMap(kv -> kv);
@@ -236,7 +236,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                   extractExtent(dataset,
                                                 collectionConfigurationAccessor.getLowerTemporalExtentProperty(),
                                                 collectionConfigurationAccessor.getUpperTemporalExtentProperty()),
-                                  summaries, extractAssets(dataset), buildContext(dataset, datasetCount));
+                                  summaries,
+                                  extractAssets(dataset, collectionConfigurationAccessor.getAssetsProperty()),
+                                  buildContext(dataset, datasetCount));
 
         }).mapFailure(COLLECTION_CONSTRUCTION,
                       () -> String.format("Failed to build collection for URN %s", dataset.getIpId()));
@@ -265,16 +267,16 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             StacCollectionProperty stacCollectionProperty) {
         return List.of(searchItemPageLinkCreator.createSelfPageLink()
                                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON,
-                                                    "this search page"))).flatMap(l -> l)
-                .appendAll(propertyExtractionService.extractLinks(dataset, stacCollectionProperty.toStacProperty()));
+                                                    "this search page"))).flatMap(l -> l).appendAll(
+                propertyExtractionService.extractStaticLinks(dataset, stacCollectionProperty.toStacProperty()));
     }
 
     /**
      * @return optional keywords
      */
     private List<String> extractKeywords(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        Option<PropertyType> propertyType = Try
-                .of(() -> stacCollectionProperty.getRegardsPropertyAccessor().getAttributeModel().getType()).toOption();
+        Option<PropertyType> propertyType = Try.of(
+                () -> stacCollectionProperty.getRegardsPropertyAccessor().getAttributeModel().getType()).toOption();
         return stacCollectionProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset).map(o -> {
             LOGGER.debug("Property type : {}", propertyType);
             if (propertyType.isDefined()) {
@@ -330,8 +332,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return propertyExtractionService.extractExtensionsFromConfiguration(stacProperties);
     }
 
-    private Map<String, Asset> extractAssets(Dataset dataset) {
-        return propertyExtractionService.extractAssets(dataset);
+    private Map<String, Asset> extractAssets(Dataset dataset, StacCollectionProperty stacAssetsProperty) {
+        return propertyExtractionService.extractAssets(dataset)
+                .merge(propertyExtractionService.extractStaticAssets(dataset, stacAssetsProperty.toStacProperty()));
     }
 
     /**
@@ -350,10 +353,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             java.util.List<TinyUrl> tinyUrls = new ArrayList<>();
 
             // Prepare response by collection
-            List<DownloadPreparationResponse.DownloadCollectionPreparationResponse> collections = downloadPreparationBody
-                    .getCollections().flatMap(
-                            itemSearchBody -> prepareDownloadCollectionResponse(itemSearchBody, downloadLinkCreator,
-                                                                                tinyUrls)).toList();
+            List<DownloadPreparationResponse.DownloadCollectionPreparationResponse> collections = downloadPreparationBody.getCollections()
+                    .flatMap(itemSearchBody -> prepareDownloadCollectionResponse(itemSearchBody, downloadLinkCreator,
+                                                                                 tinyUrls)).toList();
 
             // Compute total
             Long totalSize = 0L, totalItems = 0L, totalFiles = 0L;
@@ -378,8 +380,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return Try.of(() -> {
 
             // Translate collection id to urn
-            UniformResourceName datasetUrn = parseCollectionUrn(downloadCollectionPreparationBody.getCollectionId())
-                    .get();
+            UniformResourceName datasetUrn = parseCollectionUrn(
+                    downloadCollectionPreparationBody.getCollectionId()).get();
 
             // Retrieve configured item properties
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
@@ -390,12 +392,11 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     downloadCollectionPreparationBody.getFilters() == null ?
                             CollectionSearchBody.CollectionItemSearchBody.builder().build() :
                             downloadCollectionPreparationBody.getFilters();
-            ICriterion itemCriteria = ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS,
-                                                                   downloadCollectionPreparationBody.getCollectionId(),
-                                                                   StringMatchType.KEYWORD), searchCriterionBuilder
-                                                             .buildCriterion(itemStacProperties,
-                                                                             collectionItemSearchBody)
-                                                             .getOrElse(ICriterion.all()));
+            ICriterion itemCriteria = ICriterion.and(
+                    ICriterion.eq(StaticProperties.FEATURE_TAGS, downloadCollectionPreparationBody.getCollectionId(),
+                                  StringMatchType.KEYWORD),
+                    searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
+                            .getOrElse(ICriterion.all()));
 
             // Compute summary
             DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();
@@ -414,15 +415,14 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     }
 
     private Try<UniformResourceName> parseCollectionUrn(String collectionId) {
-        return trying(() -> UniformResourceName.fromString(collectionId))
-                .mapFailure(DOWNLOAD_COLLECTION_ID_PARSING, () -> "Cannot parse collection id as valid URN");
+        return trying(() -> UniformResourceName.fromString(collectionId)).mapFailure(DOWNLOAD_COLLECTION_ID_PARSING,
+                                                                                     () -> "Cannot parse collection id as valid URN");
     }
 
     private Try<DocFilesSummary> computeSummary(ICriterion itemCriteria, UniformResourceName datasetUrn) {
         return trying(() -> {
-            return catalogSearchService
-                    .computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS, datasetUrn,
-                                            Lists.newArrayList(DataType.RAWDATA));
+            return catalogSearchService.computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS, datasetUrn,
+                                                               Lists.newArrayList(DataType.RAWDATA));
         }).mapFailure(DOWNLOAD_COLLECTION_SUMMARY, () -> "Cannot compute collection summary");
     }
 
@@ -464,7 +464,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 break;
             default:
                 // Store a new context
-                java.util.Set<String> tinyUrlUuids = tinyUrls.stream().map(TinyUrl::getUuid).collect(Collectors.toSet());
+                java.util.Set<String> tinyUrlUuids = tinyUrls.stream().map(TinyUrl::getUuid)
+                        .collect(Collectors.toSet());
                 tinyUrl = tinyUrlService.create(tinyUrlUuids);
                 break;
         }

@@ -75,6 +75,9 @@ public class StacSearchCollectionEngine implements ISearchEngine<Object, ItemSea
     @PluginParameter(label = "STAC collection links", optional = true)
     private StacSourcePropertyConfiguration stacCollectionLinks;
 
+    @PluginParameter(label = "STAC collection assets", optional = true)
+    private StacSourcePropertyConfiguration stacCollectionAssets;
+
     @PluginParameter(label = "STAC temporal extent", optional = true)
     private TemporalExtentConfiguration temporalExtent;
 

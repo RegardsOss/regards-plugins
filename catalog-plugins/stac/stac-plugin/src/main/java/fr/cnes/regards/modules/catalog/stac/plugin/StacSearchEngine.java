@@ -87,6 +87,9 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(name = "stac-api-links-property", label = "STAC links property", optional = true)
     private StacSourcePropertyConfiguration stacLinksProperty;
 
+    @PluginParameter(name = "stac-api-assets-property", label = "STAC assets property", optional = true)
+    private StacSourcePropertyConfiguration stacAssetsProperty;
+
     @PluginParameter(name = "stac-properties", label = "STAC properties",
             description = "List of STAC properties to be mapped to product properties.", optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();

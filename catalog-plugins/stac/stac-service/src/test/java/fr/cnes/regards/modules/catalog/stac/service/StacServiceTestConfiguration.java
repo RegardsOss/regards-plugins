@@ -101,6 +101,11 @@ public class StacServiceTestConfiguration {
                     }
 
                     @Override
+                    public StacCollectionProperty getAssetsProperty() {
+                        return null;
+                    }
+
+                    @Override
                     public StacCollectionProperty getLowerTemporalExtentProperty() {
                         return null;
                     }

@@ -47,6 +47,8 @@ public class StacSpecConstants {
 
         String STAC_LINKS_PROPERTY_NAME = "links";
 
+        String STAC_ASSETS_PROPERTY_NAME = "assets";
+
         String STAC_LOWER_TEMPORAL_EXTENT_PROPERTY_NAME = "lower_temporal";
 
         String STAC_UPPER_TEMPORAL_EXTENT_NAME = "upper_temporal";
@@ -87,5 +89,7 @@ public class StacSpecConstants {
         String STAC_PROVIDERS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "providers";
 
         String STAC_LINKS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "links";
+
+        String STAC_ASSETS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "assets";
     }
 }

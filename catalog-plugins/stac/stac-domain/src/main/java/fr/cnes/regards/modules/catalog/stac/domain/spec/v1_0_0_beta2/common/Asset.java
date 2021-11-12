@@ -19,7 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common;
 
+import com.google.gson.annotations.JsonAdapter;
 import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.RoleTypeAdapter;
 import io.vavr.collection.Set;
 import lombok.Value;
 import lombok.With;
@@ -43,6 +45,7 @@ public class Asset {
     /** Media type of the asset */
     String type;
 
+    @JsonAdapter(RoleTypeAdapter.class)
     Set<String> roles;
 
     /**
