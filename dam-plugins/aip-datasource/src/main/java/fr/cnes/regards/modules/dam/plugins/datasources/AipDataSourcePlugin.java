@@ -18,45 +18,11 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.beanutils.NestedNullException;
-import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.util.UriUtils;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.amqp.IInstanceSubscriber;
 import fr.cnes.regards.framework.amqp.domain.IHandler;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
@@ -74,7 +40,7 @@ import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IAipDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
@@ -96,6 +62,31 @@ import fr.cnes.regards.modules.project.domain.ProjectUpdateEvent;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
+import org.apache.commons.beanutils.NestedNullException;
+import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.util.UriUtils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Plugin to crawl data from OAIS feature manager (ingest microservice).
@@ -106,11 +97,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 @Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
         description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
         license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
-public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<ProjectUpdateEvent> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
-
-    private static final String CATALOG_DOWNLOAD_PATH = "/downloads/{aip_id}/files/{checksum}";
+public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<ProjectUpdateEvent> {
 
     /**
      * Property in AIP contentInformation.representationInformation.environmentDescription.softwareEnvironment to
@@ -118,14 +105,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
      */
     public static final String AIP_PROPERTY_DATA_FILES_TYPES = "types";
 
-    @Autowired
-    private IAIPRestClient aipClient;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
-    @Autowired
-    private IStorageRestClient storageRestClient;
-
-    @Autowired
-    private IProjectsClient projectClient;
+    private static final String CATALOG_DOWNLOAD_PATH = "/downloads/{aip_id}/files/{checksum}";
 
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
             description = "Common tags to be put on all data objects created by the data source")
@@ -153,9 +135,20 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
      */
     private final PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
 
+    private final Multimap<String, String> multimap = HashMultimap.create();
+
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
             description = "Associated data source model name")
     protected String modelName;
+
+    @Autowired
+    private IAIPRestClient aipClient;
+
+    @Autowired
+    private IStorageRestClient storageRestClient;
+
+    @Autowired
+    private IProjectsClient projectClient;
 
     @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
             description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
@@ -166,15 +159,15 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             description = "The plugin will fetch data storage to find AIPs with the given catories. If no category is specified, plugin will fetch all the available AIPs.")
     private Set<String> categories;
 
-    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
-            label = "AIP property path",
-            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
-    private Map<String, String> bindingMap;
-
     //    @PluginParameter(name = "overlap",
     //            description = "Overlap so that AIP search starts from the specified date minus the overlap in second",
     //            label = "Overlap in second")
     //    private final Long overlap = 60L;
+
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
+            label = "AIP property path",
+            description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
+    private Map<String, String> bindingMap;
 
     @Autowired
     private IModelService modelService;
@@ -202,6 +195,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             label = "Attribute model for RAW DATA files size",
             description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
+
+    private static String encode4Uri(String str) {
+        return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
+    }
 
     @Override
     public void handle(String tenant, ProjectUpdateEvent projectEvent) {
@@ -235,9 +232,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                 // Manage dynamic properties
                 if (doPropertyPath.endsWith(DataSourcePluginConstants.LOWER_BOUND_SUFFIX)) {
                     // - interval lower bound
-                    String modelKey = entry.getKey()
-                            .substring(0,
-                                       doPropertyPath.length() - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
+                            - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -248,9 +244,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                     }
                 } else if (doPropertyPath.endsWith(DataSourcePluginConstants.UPPER_BOUND_SUFFIX)) {
                     // - interval upper bound
-                    String modelKey = entry.getKey()
-                            .substring(0,
-                                       doPropertyPath.length() - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
+                    String modelKey = entry.getKey().substring(0, doPropertyPath.length()
+                            - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -295,12 +290,12 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                + " has to be mapped to exactly 2 values");
+                                                          + " has to be mapped to exactly 2 values");
                     }
                 } else {
                     if (entry.getValue().size() != 1) {
                         throw new ModuleException(attributeType + " properties " + entry.getKey()
-                                + " has to be mapped to a single value");
+                                                          + " has to be mapped to a single value");
                     }
                 }
             }
@@ -311,8 +306,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
     public int getRefreshRate() {
         return refreshRate;
     }
-
-    private final Multimap<String, String> multimap = HashMultimap.create();
 
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
@@ -328,10 +321,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                 from = date.minusSeconds(60L);
             }
 
-            ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient
-                    .searchAIPs(SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
+            ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(
+                    SearchAIPsParameters.build().withState(AIPState.STORED).withTags(subsettingTags)
                             .withCategories(categories).withLastUpdateFrom(from), pageable.getPageNumber(),
-                                pageable.getPageSize());
+                    pageable.getPageSize());
             Storages storages = Storages.build(storageLocationDTOList);
             if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
                 List<DataObjectFeature> list = new ArrayList<>();
@@ -353,8 +346,8 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                 PagedModel.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
                 int pageSize = (int) responsePageMeta.getSize();
                 return new PageImpl<>(list,
-                        PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
-                        responsePageMeta.getTotalElements());
+                                      PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
+                                      responsePageMeta.getTotalElements());
             } else {
                 throw new DataSourceException(
                         "Error while calling storage client (HTTP STATUS : " + aipResponseEntity.getStatusCode());
@@ -368,6 +361,7 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
 
     /**
      * Build DataObjectFeature from AIPEntity
+     *
      * @param aipEntity
      * @param storages
      */
@@ -408,10 +402,10 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
                 dataFile.setChecksum(oaisDo.getChecksum());
                 dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
                 dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
-                if ((ci.getRepresentationInformation() != null)
-                        && (ci.getRepresentationInformation().getEnvironmentDescription() != null)
-                        && (ci.getRepresentationInformation().getEnvironmentDescription()
-                                .getSoftwareEnvironment() != null)) {
+                if ((ci.getRepresentationInformation() != null) && (
+                        ci.getRepresentationInformation().getEnvironmentDescription() != null) && (
+                        ci.getRepresentationInformation().getEnvironmentDescription().getSoftwareEnvironment()
+                                != null)) {
                     Object types = ci.getRepresentationInformation().getEnvironmentDescription()
                             .getSoftwareEnvironment().get(AIP_PROPERTY_DATA_FILES_TYPES);
                     if (types instanceof Collection) {
@@ -431,9 +425,9 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             //handle fragment
             String[] fragNAttr = modelAttrNameFileSize.split("\\.");
             if (fragNAttr.length > 1) {
-                feature.addProperty(IProperty
-                        .buildObject(fragNAttr[0],
-                                     IProperty.forType(PropertyType.LONG, fragNAttr[1], rawDataFilesSize)));
+                feature.addProperty(IProperty.buildObject(fragNAttr[0],
+                                                          IProperty.forType(PropertyType.LONG, fragNAttr[1],
+                                                                            rawDataFilesSize)));
             } else {
                 feature.addProperty(IProperty.forType(PropertyType.LONG, modelAttrNameFileSize, rawDataFilesSize));
             }
@@ -539,15 +533,16 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             projects.put(tenant, project);
             FeignSecurityManager.reset();
         }
-        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH
-                .replace("{aip_id}", uniformResourceName.toString()).replace("{checksum}", checksum);
+        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH.replace(
+                "{aip_id}", uniformResourceName.toString()).replace("{checksum}", checksum);
     }
 
     private Optional<String> checkReference(OAISDataObject oaisDo, Storages storages) {
         Optional<String> referenceUrl = Optional.empty();
         for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
-            Boolean isOffline = storages.getOfflines().contains(oaisDataObjectLocation.getStorage())
-                    || !storages.getAll().contains(oaisDataObjectLocation.getStorage());
+            Boolean isOffline =
+                    storages.getOfflines().contains(oaisDataObjectLocation.getStorage()) || !storages.getAll()
+                            .contains(oaisDataObjectLocation.getStorage());
             if (isOffline && oaisDataObjectLocation.getUrl().startsWith("http")) {
                 referenceUrl = Optional.of(oaisDataObjectLocation.getUrl());
                 break;
@@ -569,7 +564,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
 
     /**
      * Get nested property managing null value
-      *
      */
     private Object getNestedProperty(AIP aip, String propertyJsonPath)
             throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -587,10 +581,6 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
         return modelName;
     }
 
-    private static String encode4Uri(String str) {
-        return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
-    }
-
     private static class Storages {
 
         private List<String> all;
@@ -603,13 +593,11 @@ public class AipDataSourcePlugin implements IAipDataSourcePlugin, IHandler<Proje
             Storages storages = new Storages();
             storages.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
             storages.onlines = storageLocationDTOList.stream()
-                    .filter(s -> (s.getConfiguration() != null)
-                            && (s.getConfiguration().getStorageType() == StorageType.ONLINE))
-                    .map(n -> n.getName()).collect(Collectors.toList());
+                    .filter(s -> (s.getConfiguration() != null) && (s.getConfiguration().getStorageType()
+                            == StorageType.ONLINE)).map(n -> n.getName()).collect(Collectors.toList());
             storages.offlines = storageLocationDTOList.stream()
-                    .filter(s -> (s.getConfiguration() == null)
-                            || (s.getConfiguration().getStorageType() == StorageType.OFFLINE))
-                    .map(n -> n.getName()).collect(Collectors.toList());
+                    .filter(s -> (s.getConfiguration() == null) || (s.getConfiguration().getStorageType()
+                            == StorageType.OFFLINE)).map(n -> n.getName()).collect(Collectors.toList());
             return storages;
         }
 
