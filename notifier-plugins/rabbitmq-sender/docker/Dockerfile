@@ -4,7 +4,7 @@ ENV REGARDS_HOME /regards
 ENV REGARDS_PLUGINS /regards-plugins
 
 # Store JAR
-ADD rabbitmq-sender-plugin-*.jar ${REGARDS_HOME}/plugins/notifier/
+ADD rabbitmq-sender-*.jar ${REGARDS_HOME}/plugins/notifier/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
