@@ -10,7 +10,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import io.vavr.collection.HashMap;
-import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -95,43 +94,6 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         BBox bbox = new BBox(1.1540490566502684, 43.498828738236014, 1.7531472622166748, 43.704683650908095);
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
                 .bbox(bbox).query(iq).build();
-        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
-
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
-    }
-
-    @Test
-    public void searchCollectionsWithItemVariables() {
-        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        //        customizer.expectValue("$.context.matched", 1);
-        // Define item criteria
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
-                                                            SearchBody.StringQueryObject.builder()
-                                                                    .contains("https://w3id.org/hysope2/waterLevel")
-                                                                    .matchType("keyword").build());
-        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
-        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
-
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
-    }
-
-    @Test
-    public void searchCollectionsWithItemVariablesAnd() {
-        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        //        customizer.expectValue("$.context.matched", 1);
-        // Define item criteria
-        // https://w3id.org/hysope2/waterLevel
-        // https://w3id.org/hysope2/landWaterMask
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
-                                                            SearchBody.StringQueryObject.builder().containsAll(
-                                                                    List.of("https://w3id.org/hysope2/waterLevel",
-                                                                            "https://w3id.org/hysope2/landWaterMask"))
-                                                                    .build());
-        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,

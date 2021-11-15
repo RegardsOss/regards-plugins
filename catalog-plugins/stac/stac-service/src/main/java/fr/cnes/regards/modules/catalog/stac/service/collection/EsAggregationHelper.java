@@ -36,5 +36,7 @@ public interface EsAggregationHelper {
 
     Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath);
 
-    Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, int size);
+    Long getDatasetTotalCount();
+
+    Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, Long size);
 }

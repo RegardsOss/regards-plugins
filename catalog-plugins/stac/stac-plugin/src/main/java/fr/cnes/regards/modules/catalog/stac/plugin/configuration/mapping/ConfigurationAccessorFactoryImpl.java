@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
@@ -31,6 +32,7 @@ import fr.cnes.regards.modules.catalog.stac.plugin.StacSearchEngine;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.ProviderConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
@@ -117,6 +119,15 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
             }
 
             @Override
+            public StacProperty getLinksStacProperty() {
+                String stacPropertyName = StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME;
+                return plugin.map(p -> makeStacProperty(p.getStacLinksProperty(), stacPropertyName,
+                                                        StacPropertyType.JSON_OBJECT)).getOrElse(
+                        makeDefaultStacProperty(StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME,
+                                                stacPropertyName, StacPropertyType.JSON_OBJECT));
+            }
+
+            @Override
             public List<Provider> getProviders(String datasetUrn) {
                 return getCollectionConfigs(datasetUrn).flatMap(CollectionConfiguration::getProviders)
                         .map(pc -> getProvider(pc));
@@ -191,4 +202,17 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
         return addVirtualStacProperties(getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp)));
     }
 
+    private StacProperty makeStacProperty(StacSourcePropertyConfiguration sourcePropertyConfiguration,
+            String stacPropertyName, StacPropertyType stacType) {
+        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null, stacPropertyName,
+                                null, false, null, null, stacType, null, Boolean.FALSE);
+    }
+
+    private StacProperty makeDefaultStacProperty(String sourcePropertyPath, String stacPropertyName,
+            StacPropertyType stacType) {
+        StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
+                sourcePropertyPath, null, null);
+        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null, stacPropertyName,
+                                null, false, null, null, stacType, null, Boolean.FALSE);
+    }
 }

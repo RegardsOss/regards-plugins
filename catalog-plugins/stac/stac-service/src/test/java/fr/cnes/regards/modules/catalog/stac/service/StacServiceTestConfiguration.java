@@ -96,6 +96,21 @@ public class StacServiceTestConfiguration {
                     }
 
                     @Override
+                    public StacCollectionProperty getLinksProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getLowerTemporalExtentProperty() {
+                        return null;
+                    }
+
+                    @Override
+                    public StacCollectionProperty getUpperTemporalExtentProperty() {
+                        return null;
+                    }
+
+                    @Override
                     public List<StacProperty> getSummariesProperties() {
                         return null;
                     }

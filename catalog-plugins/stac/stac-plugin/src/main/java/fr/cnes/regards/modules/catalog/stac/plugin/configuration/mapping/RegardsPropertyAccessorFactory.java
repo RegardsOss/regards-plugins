@@ -78,6 +78,15 @@ public class RegardsPropertyAccessorFactory {
         this.jsonPathParseContext = JsonPath.using(jsonPathConfig(gson));
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, IProperty<?> property) {
+        return property == null ? null : (T) property.getValue();
+    }
+
+    private static Configuration jsonPathConfig(Gson gson) {
+        return Configuration.builder().jsonProvider(new GsonJsonProvider(gson)).options().build();
+    }
+
     public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
             StacPropertyType sPropType) {
         String attrName = sPropConfig.getSourcePropertyPath();
@@ -107,7 +116,6 @@ public class RegardsPropertyAccessorFactory {
                 .getOrElse(List.empty());
     }
 
-    // FIXME à revoir l'attribut doit exister!
     private AttributeModel loadAttribute(String attrName, StacSourcePropertyConfiguration sPropConfig,
             StacPropertyType sPropType) {
         AttributeModel attribute = Try.of(() -> finder.findByName(attrName)).getOrElseGet(t -> {
@@ -118,11 +126,6 @@ public class RegardsPropertyAccessorFactory {
             result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
             return result;
         });
-        // FIXME Pourquoi cette mutation? tester avec des attributs de type JSON en particulier.
-        //        String realAttrName = Option.of(sPropConfig.getModelPropertyJSONPath()).filter(StringUtils::isNotBlank)
-        //                .map(path -> attrName + "." + path).getOrElse(attrName);
-        //        attribute.setName(realAttrName);
-        //        attribute.setJsonPath(sPropConfig.getModelPropertyJSONPath());
         return attribute;
     }
 
@@ -135,35 +138,25 @@ public class RegardsPropertyAccessorFactory {
             extractFn = makeJsonExtractFn(sPropType, attr.getJsonPropertyPath(), jsonPath.get());
         } else {
             // Extract from well known property
-            extractFn = makeExtractFn(sPropType, attr.getJsonPropertyPath());
+            extractFn = makeExtractFn(sPropType, attr.getJsonPropertyPath(), attr.isDynamic());
         }
         return Tuple.of(valueType, extractFn);
     }
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
-            String attrName) {
-        return entity -> trying(
-                () -> extractValue(sPropType.getValueType(), sPropType, entity.getFeature().getProperty(attrName)))
+            String attrName, boolean dynamic) {
+        return entity -> trying(() -> extractValue(sPropType.getValueType(), sPropType,
+                                                   getProperty(attrName, dynamic, entity.getFeature())))
                 .mapFailure(ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
                             () -> format("Failed to extract value for %s in data object %s", attrName,
                                          entity.getIpId()));
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, IProperty<?> property) {
-        // FIXME pourquoi transformer les valeurs?
-        //        switch (sPropType) {
-        //            case URL:
-        //                return (T) ((MarkdownURL) value).getUrl();
-        //            case ANGLE:
-        //            case LENGTH:
-        //            case PERCENTAGE:
-        //            case NUMBER:
-        //                return (T) Double.valueOf(value.toString());
-        //            default:
-        //                return valueType.cast(value);
-        //        }
-        return property == null ? null : (T) property.getValue();
+    /**
+     * Retrieve dynamic or static properties
+     */
+    private IProperty<?> getProperty(String attrName, boolean dynamic, EntityFeature feature) {
+        return dynamic ? feature.getProperty(attrName) : feature.getStaticProperty(attrName);
     }
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeJsonExtractFn(StacPropertyType sPropType,
@@ -203,10 +196,6 @@ public class RegardsPropertyAccessorFactory {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static Configuration jsonPathConfig(Gson gson) {
-        return Configuration.builder().jsonProvider(new GsonJsonProvider(gson)).options().build();
     }
 
 }

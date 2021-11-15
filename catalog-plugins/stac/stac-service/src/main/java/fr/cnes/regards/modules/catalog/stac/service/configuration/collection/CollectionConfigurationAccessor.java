@@ -38,6 +38,12 @@ public interface CollectionConfigurationAccessor {
 
     StacCollectionProperty getProvidersProperty();
 
+    StacCollectionProperty getLinksProperty();
+
+    StacCollectionProperty getLowerTemporalExtentProperty();
+
+    StacCollectionProperty getUpperTemporalExtentProperty();
+
     List<StacProperty> getSummariesProperties();
 
     /**

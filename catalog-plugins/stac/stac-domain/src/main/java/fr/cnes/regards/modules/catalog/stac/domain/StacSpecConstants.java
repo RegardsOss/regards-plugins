@@ -19,6 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain;
 
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
+
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 
@@ -26,6 +28,9 @@ import java.time.format.DateTimeFormatterBuilder;
  * Lists a bunch of constant values defined by the STAC specification.
  */
 public class StacSpecConstants {
+
+    public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).optionalStart().appendOffset("+HH:MM", "Z").toFormatter();
 
     public interface Version {
 
@@ -35,6 +40,18 @@ public class StacSpecConstants {
     }
 
     public interface PropertyName {
+
+        // Common
+
+        String STAC_PROVIDERS_PROPERTY_NAME = "providers";
+
+        String STAC_LINKS_PROPERTY_NAME = "links";
+
+        String STAC_LOWER_TEMPORAL_EXTENT_PROPERTY_NAME = "lower_temporal";
+
+        String STAC_UPPER_TEMPORAL_EXTENT_NAME = "upper_temporal";
+
+        // Items
 
         String DATETIME_PROPERTY_NAME = "datetime";
 
@@ -52,11 +69,23 @@ public class StacSpecConstants {
 
         String COLLECTION_LICENSE_PROPERTY_NAME = "license";
 
-        String COLLECTION_PROVIDERS_PROPERTY_NAME = "providers";
-
         String COLLECTION_SUMMARIES_PROPERTY_NAME = "summaries";
     }
 
-    public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()
-            .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).optionalStart().appendOffset("+HH:MM", "Z").toFormatter();
+    public interface SourcePropertyName {
+
+        String PROPERTY_NAMESPACE = StaticProperties.FEATURE_PROPERTIES + ".";
+
+        String COLLECTION_TITLE_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "title";
+
+        String COLLECTION_DESCRIPTION_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "description";
+
+        String COLLECTION_KEYWORDS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "keywords";
+
+        String COLLECTION_LICENSE_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "license";
+
+        String STAC_PROVIDERS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "providers";
+
+        String STAC_LINKS_SOURCE_PROPERTY_NAME = PROPERTY_NAMESPACE + "links";
+    }
 }

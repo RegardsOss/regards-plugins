@@ -55,9 +55,6 @@ import java.util.List;
  * Cross layer integration test : from RESTful API to Elasticsearch index
  *
  * @author Marc SORDI
- * <p>
- * FIXME : add assertion everywhere
- * </p>
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
@@ -101,6 +98,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
                 SearchEngineConfiguration.class);
         searchEngineService.createConf(collectionConf);
     }
+
     @Test
     public void getLandingPage() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -473,7 +471,7 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchTagAggregation() {
         String aggregationName = "datasetIds";
-        Aggregations aggregations = aggregationHelper.getDatasetAggregations(aggregationName, ICriterion.all(), 500);
+        Aggregations aggregations = aggregationHelper.getDatasetAggregations(aggregationName, ICriterion.all(), 500L);
         Terms datasetIdsAgg = aggregations.get(aggregationName);
         for (Terms.Bucket bucket : datasetIdsAgg.getBuckets()) {
             LOGGER.info("DATASET {} has {} matching items", bucket.getKey(), bucket.getDocCount());

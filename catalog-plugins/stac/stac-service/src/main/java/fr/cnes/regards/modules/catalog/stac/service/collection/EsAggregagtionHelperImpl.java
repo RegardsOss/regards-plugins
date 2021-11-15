@@ -80,30 +80,44 @@ public class EsAggregagtionHelperImpl implements EsAggregationHelper {
 
     @Override
     public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs) {
-        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+        SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
         return esRepository.getAggregationsFor(searchKey, criterion, aggDefs.toJavaList());
     }
 
     @Override
     public Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String attrPath) {
         return trying(() -> {
-            SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
-            OffsetDateTime dateTimeFrom = Option.of(esRepository.minDate(searchKey, criterion, attrPath)).getOrElse(lowestBound());
-            OffsetDateTime dateTimeTo = Option.of(esRepository.maxDate(searchKey, criterion, attrPath)).getOrElse(uppestBound());
+            SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
+            OffsetDateTime dateTimeFrom = Option.of(esRepository.minDate(searchKey, criterion, attrPath))
+                    .getOrElse(lowestBound());
+            OffsetDateTime dateTimeTo = Option.of(esRepository.maxDate(searchKey, criterion, attrPath))
+                    .getOrElse(uppestBound());
             return Tuple.of(dateTimeFrom, dateTimeTo);
         }).onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
                 .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
     }
 
     @Override
-    public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, int size) {
-        SimpleSearchKey<AbstractEntity<?>> searchKey = searchKey();
+    public Long getDatasetTotalCount() {
+        return esRepository.count(searchDatasetKey(),ICriterion.all());
+    }
+
+    private SimpleSearchKey<AbstractEntity<?>> searchDatasetKey() {
+        SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATASET);
+        result.setSearchIndex(tenantResolver.getTenant());
+        result.setCrs(projectGeoSettings.getCrs());
+        return result;
+    }
+
+    @Override
+    public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, Long size) {
+        SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
         AggregationBuilder termsAggBuilder = AggregationBuilders.terms(aggregationName)
-                .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size).includeExclude(DATASET_ONLY);
+                .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size.intValue()).includeExclude(DATASET_ONLY);
         return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder));
     }
 
-    private SimpleSearchKey<AbstractEntity<?>> searchKey() {
+    private SimpleSearchKey<AbstractEntity<?>> searchDataKey() {
         SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATA);
         result.setSearchIndex(tenantResolver.getTenant());
         result.setCrs(projectGeoSettings.getCrs());

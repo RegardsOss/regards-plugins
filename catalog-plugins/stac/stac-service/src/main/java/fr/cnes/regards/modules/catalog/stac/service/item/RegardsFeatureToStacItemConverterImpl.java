@@ -82,13 +82,15 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String, Object> featureStacProperties = propertyExtractionService
                     .extractStacProperties(feature, properties);
-            Set<String> extensions = propertyExtractionService.extractExtensions(featureStacProperties);
+            List<Link> featureLinks = propertyExtractionService
+                    .extractLinks(feature, configurationAccessor.getLinksStacProperty());
+            Set<String> extensions = propertyExtractionService.extractExtensionsFromConfiguration(properties);
             Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
             String collection = extractCollection(feature).getOrNull();
             String itemId = feature.getIpId().toString();
 
             Item result = new Item(extensions, itemId, geo._2, geo._1, geo._3, collection, featureStacProperties,
-                                   extractLinks(itemId, collection, linkCreator),
+                                   extractLinks(itemId, collection, linkCreator).appendAll(featureLinks),
                                    propertyExtractionService.extractAssets(feature));
             debug(LOGGER, "Result Item={}", result);
             return result;

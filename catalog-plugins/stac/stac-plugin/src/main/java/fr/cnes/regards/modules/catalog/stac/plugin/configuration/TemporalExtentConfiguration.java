@@ -23,36 +23,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 /**
  * Allows to configure the main catalog collection configuration.
  */
-@Data @AllArgsConstructor @NoArgsConstructor
-public class CollectionConfiguration {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class TemporalExtentConfiguration {
 
-    @PluginParameter(name = "datasetUrns",
-            label = "Dataset URNs",
-            description = "URN of the datasets concerned by this collection configuration.",
-            optional = true)
-    List<String> datasetUrns;
+    @PluginParameter(label = "STAC overall temporal extent lower bound")
+    private StacSourcePropertyConfiguration lower;
 
-    @PluginParameter(name = "license",
-            label = "License",
-            description = "Which license this collection is released under.",
-            optional = true)
-    String license;
-
-    @PluginParameter(name = "keywords",
-            label = "Keywords",
-            description = "Which keywords this collection corresponds to.",
-            optional = true)
-    List<String> keywords;
-
-    @PluginParameter(name = "providers",
-            label = "Providers",
-            description = "Define providers for dataset URN.",
-            optional = true)
-    List<ProviderConfiguration> providers;
-
+    @PluginParameter(label = "STAC overall temporal extent upper bound")
+    private StacSourcePropertyConfiguration upper;
 }

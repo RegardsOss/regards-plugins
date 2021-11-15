@@ -59,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
@@ -75,9 +77,6 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     private static final String DATASET_AGG_NAME = "datasetIds";
 
     private static final String PROPRIETARY_LICENSING = "proprietary";
-
-    // FIXME rendre configurable
-    private static final int DATASET_AGG_SIZE = 500;
 
     @Autowired
     private StacSearchCriterionBuilder critBuilder;
@@ -131,13 +130,20 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         if (!itemCriteria.isEmpty()) {
             // Search for all matching dataset ids using item query parameters
             // We had to filter results as tags not only contain dataset ids
-            datasetCount = trying(() -> getDatasetIds(itemCriteria, DATASET_AGG_SIZE))
+            datasetCount = trying(() -> getDatasetIds(itemCriteria, aggregationHelper.getDatasetTotalCount()))
                     .mapFailure(DATASET_AGGREGATION_FAILURE, () -> String
                             .format("Collection search failure on item search filtering with %s",
                                     collectionItemSearchBody));
             // Add it to the collection search criteria
             idCriterion = identitiesCriterionBuilder
                     .buildCriterion(itemStacProperties, List.ofAll(datasetCount.get().keySet()));
+            // No dataset matches!
+            if (!idCriterion.isDefined()) {
+                return extractCollection(
+                        new FacetPage<Dataset>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
+                        collectionStacProperties, null, searchCollectionPageLinkCreator, searchItemPageLinkCreator,
+                        HashMap.empty(), collectionConfigurationAccessor);
+            }
         } else {
             idCriterion = Option.none();
         }
@@ -156,12 +162,12 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 () -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null, pageable))
                 .mapFailure(SEARCH, () -> String
                         .format("Collection search failure for page %d of %s", page, collectionSearchBody)).flatMap(
-                        facetPage -> extractCollection(facetPage, itemStacProperties, null,
+                        facetPage -> extractCollection(facetPage, collectionStacProperties, null,
                                                        searchCollectionPageLinkCreator, searchItemPageLinkCreator,
                                                        finalDatasetCount, collectionConfigurationAccessor));
     }
 
-    private Map<String, Long> getDatasetIds(ICriterion itemCriteria, int size) throws AccessRightFilterException {
+    private Map<String, Long> getDatasetIds(ICriterion itemCriteria, Long size) throws AccessRightFilterException {
         Aggregations aggregations = aggregationHelper
                 .getDatasetAggregations(DATASET_AGG_NAME, accessRightFilter.addAccessRights(itemCriteria), size);
         Terms datasetIdsAgg = aggregations.get(DATASET_AGG_NAME);
@@ -199,18 +205,21 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             // Retrieve information from dataset properties
             Map<String, Object> summaries = extractSummaries(dataset,
                                                              collectionConfigurationAccessor.getSummariesProperties());
-            Set<String> extensions = extractExtensions(summaries);
+            Set<String> extensions = extractExtensions(stacProperties);
 
             return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, extensions,
                                   extractTitle(dataset, collectionConfigurationAccessor.getTitleProperty()),
                                   dataset.getIpId().toString(),
                                   extractDescription(dataset, collectionConfigurationAccessor.getDescriptionProperty()),
-                                  extractItemLinks(searchItemPageLinkCreator),
+                                  extractLinks(searchItemPageLinkCreator, dataset,
+                                               collectionConfigurationAccessor.getLinksProperty()),
                                   extractKeywords(dataset, collectionConfigurationAccessor.getKeywordsProperty()),
                                   extractLicense(dataset, collectionConfigurationAccessor.getLicenseProperty()),
                                   extractProviders(dataset, collectionConfigurationAccessor.getProvidersProperty()),
-                                  extractExtent(), summaries, extractAssets(dataset),
-                                  buildContext(dataset, datasetCount));
+                                  extractExtent(dataset,
+                                                collectionConfigurationAccessor.getLowerTemporalExtentProperty(),
+                                                collectionConfigurationAccessor.getUpperTemporalExtentProperty()),
+                                  summaries, extractAssets(dataset), buildContext(dataset, datasetCount));
 
         }).mapFailure(COLLECTION_CONSTRUCTION,
                       () -> String.format("Failed to build collection for URN %s", dataset.getIpId()));
@@ -233,12 +242,14 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     }
 
     /**
-     * @return required links
+     * @return required links appended with feature ones
      */
-    private List<Link> extractItemLinks(SearchPageLinkCreator searchItemPageLinkCreator) {
+    private List<Link> extractLinks(SearchPageLinkCreator searchItemPageLinkCreator, Dataset dataset,
+            StacCollectionProperty stacCollectionProperty) {
         return List.of(searchItemPageLinkCreator.createSelfPageLink()
                                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON,
-                                                    "this search page"))).flatMap(l -> l);
+                                                    "this search page"))).flatMap(l -> l)
+                .appendAll(propertyExtractionService.extractLinks(dataset, stacCollectionProperty.toStacProperty()));
     }
 
     /**
@@ -282,8 +293,12 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     /**
      * @return required extent
      */
-    private Extent extractExtent() {
-        // FIXME à calculer à la volée pour précision max ... mais peut-être couteux en temps et pas utile! A voir!
+    private Extent extractExtent(Dataset dataset, StacCollectionProperty lowerTemporalExtent,
+            StacCollectionProperty upperTemporalExtent) {
+        if (lowerTemporalExtent != null && upperTemporalExtent != null) {
+            return Extent.maximalExtent().withTemporal(
+                    propertyExtractionService.extractTemporalExtent(dataset, lowerTemporalExtent, upperTemporalExtent));
+        }
         return Extent.maximalExtent();
     }
 
@@ -294,8 +309,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return propertyExtractionService.extractStacProperties(dataset, stacProperties);
     }
 
-    private Set<String> extractExtensions(Map<String, Object> stacProperties) {
-        return propertyExtractionService.extractExtensions(stacProperties);
+    private Set<String> extractExtensions(List<StacProperty> stacProperties) {
+        return propertyExtractionService.extractExtensionsFromConfiguration(stacProperties);
     }
 
     private Map<String, Asset> extractAssets(Dataset dataset) {

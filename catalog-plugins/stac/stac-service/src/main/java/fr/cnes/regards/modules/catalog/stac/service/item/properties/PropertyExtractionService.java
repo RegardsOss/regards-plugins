@@ -18,16 +18,22 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.item.properties;
 
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Set;
 
 /**
- * Service able to extract properties from a REGARDS entity
+ * Extraction tools for both collections and items
+ *
+ * @author Marc SORDI
  */
 public interface PropertyExtractionService {
 
@@ -36,5 +42,10 @@ public interface PropertyExtractionService {
 
     Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature);
 
-    Set<String> extractExtensions(Map<String, Object> stacProperties);
+    List<Link> extractLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty sp);
+
+    Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties);
+
+    Extent.Temporal extractTemporalExtent(Dataset dataset, StacCollectionProperty lowerTemporalExtent,
+            StacCollectionProperty upperTemporalExtent);
 }

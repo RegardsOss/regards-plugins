@@ -133,5 +133,4 @@ public class StacTestConfiguration {
     public IAttachmentClient attachmentClient() {
         return Mockito.mock(IAttachmentClient.class);
     }
-
 }

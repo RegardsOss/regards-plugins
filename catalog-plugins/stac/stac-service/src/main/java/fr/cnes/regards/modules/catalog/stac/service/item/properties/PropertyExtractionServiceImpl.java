@@ -18,11 +18,19 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.item.properties;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
+import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import io.vavr.Tuple;
@@ -35,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
@@ -47,6 +56,8 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyExtractionServiceImpl.class);
 
     private final UriParamAdder uriParamAdder;
+
+    private final Gson gson = new Gson();
 
     public PropertyExtractionServiceImpl(UriParamAdder uriParamAdder) {
         this.uriParamAdder = uriParamAdder;
@@ -143,10 +154,43 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         }
     }
 
-    public Set<String> extractExtensions(Map<String, Object> stacProperties) {
-        return stacProperties.keySet().flatMap(name -> {
-            int colonIndex = name.indexOf(":");
-            return colonIndex == -1 ? Option.none() : Option.of(name.substring(0, colonIndex));
+    /**
+     * @return feature links
+     */
+    public List<Link> extractLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty sp) {
+        return Try.of(() -> {
+            Object object = sp.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature).getOrNull();
+            return List.ofAll(extractLinksFromJson(object));
+        }).getOrElse(List.empty());
+    }
+
+    private java.util.List<Link> extractLinksFromJson(Object object) {
+        if (JsonArray.class.isAssignableFrom(object.getClass())) {
+            return gson.fromJson((JsonArray) object, new TypeToken<java.util.List<Link>>() {
+
+            }.getType());
+        }
+        return null;
+    }
+
+    @Override
+    public Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties) {
+        return Try.of(() -> stacProperties.map(p -> p.getExtension()).filter(e -> e != null && !e.isEmpty()).toSet())
+                .getOrElse(HashSet.empty());
+    }
+
+    @Override
+    public Extent.Temporal extractTemporalExtent(Dataset dataset, StacCollectionProperty lowerTemporalExtent,
+            StacCollectionProperty upperTemporalExtent) {
+        return new Extent.Temporal(List.of(Tuple.of(
+                getTemporalExtentBound(dataset, lowerTemporalExtent).getOrElse(OffsetDatetimeUtils.lowestBound()),
+                getTemporalExtentBound(dataset, upperTemporalExtent).getOrElse(OffsetDatetimeUtils.uppestBound()))));
+    }
+
+    private Try<OffsetDateTime> getTemporalExtentBound(Dataset dataset, StacCollectionProperty temporalExtentBound) {
+        return Try.of(() -> {
+            Try<?> bound = temporalExtentBound.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset);
+            return bound.map(b -> (OffsetDateTime) b).getOrNull();
         });
     }
 }

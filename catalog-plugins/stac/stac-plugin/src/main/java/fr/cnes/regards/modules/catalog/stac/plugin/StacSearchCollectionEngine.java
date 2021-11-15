@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSimplePropertyConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.TemporalExtentConfiguration;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.domain.plugin.IEntityLinkBuilder;
 import fr.cnes.regards.modules.search.domain.plugin.ISearchEngine;
@@ -70,6 +71,12 @@ public class StacSearchCollectionEngine implements ISearchEngine<Object, ItemSea
 
     @PluginParameter(label = "STAC collection providers", optional = true)
     private StacSourcePropertyConfiguration stacCollectionProviders;
+
+    @PluginParameter(label = "STAC collection links", optional = true)
+    private StacSourcePropertyConfiguration stacCollectionLinks;
+
+    @PluginParameter(label = "STAC temporal extent", optional = true)
+    private TemporalExtentConfiguration temporalExtent;
 
     // TODO extent ... mapping or computed properties : mapping plus rapide! mais inexact en recherche!
 

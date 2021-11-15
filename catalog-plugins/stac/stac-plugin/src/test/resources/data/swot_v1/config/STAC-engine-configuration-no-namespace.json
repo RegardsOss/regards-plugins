@@ -97,8 +97,8 @@
                         "stacComputeSummary": false
                     },
                     {
-                        "stacPropertyName": "properties.version",
-                        "sourcePropertyPath": "version",
+                        "stacPropertyName": "version",
+                        "sourcePropertyPath": "properties.version",
                         "stacComputeSummary": false
                     },
                     {

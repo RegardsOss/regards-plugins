@@ -36,7 +36,6 @@ import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureFile;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
-import fr.cnes.regards.modules.indexer.dao.mapping.AttributeDescription;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
@@ -90,7 +89,6 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
      * Data folders
      */
     private static final Path DATA_FOLDER = Paths.get("src", "test", "resources", "data");
-
 
     @Autowired
     protected ModelService modelService;
@@ -147,6 +145,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     protected Path getDatasetFolder() {
         return getDataFolder().resolve("datasets");
     }
+
     protected void initIndex(String index) {
         if (esRepository.indexExists(index)) {
             esRepository.deleteIndex(index);
@@ -205,6 +204,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     protected abstract String getDataModel();
 
     protected abstract String getDatasetModel();
+
     @Before
     public void prepareData() throws ModuleException, IOException {
 
@@ -305,7 +305,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         // Compute label to match directory
         Dataset dataset = createEntity(datasetModel, label);
         dataset.setGeometry(feature.getGeometry());
-        feature.getProperties().forEach(dataset::addProperty);
+        feature.getProperties().stream().forEach(p -> dataset.addProperty(p));
         dataset.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
 
         return dataset;
@@ -337,13 +337,14 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
             // TODO
             for (FeatureFile ff : featureFiles) {
                 DataFile dataFile = DataFile.build(ff.getAttributes().getDataType(), ff.getAttributes().getFilename(),
-                                                   ff.getLocations().stream().findFirst().orElseThrow(()->new RsRuntimeException("Feature file does not have url!!!!")).getUrl(),
+                                                   ff.getLocations().stream().findFirst().get().getUrl(),
                                                    ff.getAttributes().getMimeType(), true, false);
                 files.put(dataFile.getDataType(), dataFile);
             }
         }
         return files;
     }
+
     /**
      * Default implementation : no group on data object
      */
