@@ -38,6 +38,8 @@ public interface UriParamAdder {
 
     CheckedFunction1<URI, Try<URI>> appendTinyUrl(String tinyUrlId);
 
+    CheckedFunction1<URI, Try<URI>> appendTinyUrl (String tinyUrlId);
+
     Tuple2<String, String> makeAuthParam(JWTAuthentication auth);
 
     Tuple2<String, String> makeAuthParam();
