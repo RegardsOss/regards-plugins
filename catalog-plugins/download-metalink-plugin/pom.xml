@@ -88,7 +88,7 @@
 					<retryPushCount>0</retryPushCount>
 					<skipDockerBuild>false</skipDockerBuild>
 					<forceTags>true</forceTags>
-					<imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
+					<imageName>${docker.registry.host}/rs-${project.artifactId}</imageName>
 					<serverId>REGARDS-DockerHub</serverId>
 					<registryUrl>${docker.registry.host}</registryUrl>
 					<imageTags>

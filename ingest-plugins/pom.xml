@@ -33,6 +33,6 @@
     </parent>
     <modules>
         <module>enhanced-descriptive-aip-generation</module>
-        <module>ingest-test-plugins</module>
+        <module>ingest-test-plugin</module>
     </modules>
 </project>

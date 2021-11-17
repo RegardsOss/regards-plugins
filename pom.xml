@@ -271,7 +271,7 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
-                <artifactId>ingest-test-plugins</artifactId>
+                <artifactId>ingest-test-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
 

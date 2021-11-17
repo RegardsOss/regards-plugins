@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
-    <artifactId>ingest-test-plugins</artifactId>
+    <artifactId>ingest-test-plugin</artifactId>
 
     <parent>
         <groupId>fr.cnes.regards.modules.ingest</groupId>
@@ -39,7 +39,7 @@
                     <retryPushCount>0</retryPushCount>
                     <skipDockerBuild>false</skipDockerBuild>
                     <forceTags>true</forceTags>
-                    <imageName>${docker.registry.host}/rs-${project.artifactId}-plugin</imageName>
+                    <imageName>${docker.registry.host}/rs-${project.artifactId}</imageName>
                     <serverId>REGARDS-DockerHub</serverId>
                     <registryUrl>${docker.registry.host}</registryUrl>
                     <imageTags>
