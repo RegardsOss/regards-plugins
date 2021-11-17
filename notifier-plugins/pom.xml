@@ -35,5 +35,6 @@
 		<module>chronos-recipient-sender</module>
 		<module>common-plugins</module>
 		<module>rabbitmq-sender</module>
-	</modules>
+		<module>worker-manager-sender</module>
+   	</modules>
 </project>
