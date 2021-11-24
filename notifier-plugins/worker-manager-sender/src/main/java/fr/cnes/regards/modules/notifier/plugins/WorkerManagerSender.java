@@ -18,9 +18,14 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -53,6 +58,47 @@ import org.springframework.beans.factory.annotation.Autowired;
         owner = "CNES", url = "https://regardsoss.github.io/")
 public class WorkerManagerSender extends AbstractRabbitMQSender {
 
+    //@formatter:off
+    @PluginParameter(
+            label = "When value is True, the recipient will send back an acknowledgment.",
+            name = ACK_REQUIRED_PARAM_NAME,
+            optional = true,
+            defaultValue = "false")
+    private boolean ackRequired;
+
+    @PluginParameter(
+            label = "Pattern to name the session on the dashboard (optional).",
+            name = WS_SESSION_NAME_PATTERN_NAME,
+            description = "If the parameter is not filled, the session will be named with the metadata of "
+                    + "the requests received. If a value is provided, the session will be named the following way "
+                    + "\"^\\{(<jsonPathToAccessProductType>)\\}-(#day)(.*)\""
+                    + ", where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
+                    + "The RegExp could be for instance : \"^\\{(feature.properties.data.type)\\}-(#day)(.*)\". "
+                    + "The parameter feature.properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
+                    + "formatted current date. Note that any additional parameters can be provided after #day to help "
+                    + "identifying the session names on the dashboard. If the pattern is not found, the "
+                    + "session will be named with the pattern " + SESSION_NAME_PATTERN_ERROR + ". In that "
+                    + "case, check if the path to access the product type is valid and if the regexp match the "
+                    + "pattern mentioned before.",
+            optional = true)
+    private String sessionNamePattern;
+
+    @PluginParameter(
+            label = "Type of products processed",
+            name = WS_CONTENT_TYPE_NAME)
+    private String contentType;
+
+    @PluginParameter(
+            label = "Recipient tenant (optional)",
+            name = RECIPIENT_TENANT_NAME,
+            description = "Specify the recipient tenant in case it is different from the one sending the messages.",
+            optional = true)
+    private String recipientTenant;
+    //@formatter:on
+
+    @Autowired
+    private IRuntimeTenantResolver runtimeTenantResolver;
+
     public static final String PLUGIN_ID = "WorkerManagerSend";
 
     /**
@@ -69,43 +115,21 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
     /**
      * RegExp to build the session name
      */
+
     public static final String WS_SESSION_PATTERN = "^\\{(.+)\\}-(#day)(.*)$";
 
-    public static final String DEFAULT_SOURCE_TOKEN = "REGARDS-";
+    public static final String DEFAULT_SESSION_OWNER_TOKEN = "REGARDS-";
 
     public static final String SESSION_NAME_PATTERN_ERROR = "{sessionNamePatternError}-#day";
 
-    private static final Configuration JSON_PATH_CONFIGURATION = Configuration.defaultConfiguration()
-            .setOptions(Option.SUPPRESS_EXCEPTIONS);
+    public static final String SESSION_OWNER_METADATA_PATH = "sessionOwner";
+
+    public static final String SESSION_METADATA_PATH = "session";
+
+    private static final Configuration JSON_PATH_CONFIGURATION = Configuration.builder()
+            .jsonProvider(new GsonJsonProvider()).options(Option.SUPPRESS_EXCEPTIONS).build();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerManagerSender.class);
-
-    @PluginParameter(label = "When value is True, the recipient will send back an acknowledgment.",
-            name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
-    private boolean ackRequired;
-
-    @PluginParameter(label = "Pattern to name the session on the dashboard.", name = WS_SESSION_NAME_PATTERN_NAME,
-            description =
-                    "The session will be named the following way \"^\\{(<jsonPathToAccessProductType>)\\}-(#day)(.*)\""
-                            + "where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
-                            + "The RegExp could be for instance : \"^\\{(feature.properties.data.type)\\}-(#day)(.*)\". "
-                            + "The parameter feature.properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
-                            + "formatted current date. Note that any additional parameters can be provided after #day to help "
-                            + "identifying the session names on the dashboard. If the pattern is not found, the "
-                            + "session will be named with the pattern " + SESSION_NAME_PATTERN_ERROR + ". In that "
-                            + "case, check if the path to access the product type is valid and if the regexp match the "
-                            + "pattern mentioned before.")
-    private String sessionNamePattern;
-
-    @PluginParameter(label = "Type of products processed", name = WS_CONTENT_TYPE_NAME)
-    private String contentType;
-
-    @PluginParameter(label = "Recipient tenant", name = RECIPIENT_TENANT_NAME, description = "Specify the recipient "
-            + "tenant in case it is different from the one sending the messages.", optional = true)
-    private String recipientTenant;
-
-    @Autowired
-    private IRuntimeTenantResolver runtimeTenantResolver;
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToProcess) {
@@ -122,43 +146,55 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
     private List<Message> buildWorkerManagerSenderMessages(Collection<NotificationRequest> requestsToProcess) {
         List<Message> messagesToSend = new ArrayList<>();
         String tenantName = recipientTenant == null ? runtimeTenantResolver.getTenant() : recipientTenant;
-        String source = DEFAULT_SOURCE_TOKEN + tenantName;
 
         for (NotificationRequest notificationRequest : requestsToProcess) {
-            String jsonProductString = notificationRequest.getPayload().toString();
-            String session = getSessionNameFromPattern(jsonProductString);
-            messagesToSend.add(
-                    RawMessageBuilder.build(tenantName, contentType, source, session, UUID.randomUUID().toString(),
-                                            jsonProductString.getBytes(StandardCharsets.UTF_8)));
+            JsonObject feature = notificationRequest.getPayload();
+            String sessionOwnerName;
+            String sessionName;
+
+            // if the session pattern is null fill sessionOwnerName and session with the request metadata
+            // else use the pattern
+            if (sessionNamePattern == null) {
+                DocumentContext metadataContext = JsonPath.using(JSON_PATH_CONFIGURATION)
+                        .parse(notificationRequest.getMetadata());
+                sessionOwnerName = ((JsonPrimitive) metadataContext.read(SESSION_OWNER_METADATA_PATH)).getAsString();
+                sessionName = ((JsonPrimitive) metadataContext.read(SESSION_METADATA_PATH)).getAsString();
+            } else {
+                sessionOwnerName = DEFAULT_SESSION_OWNER_TOKEN + tenantName;
+                sessionName = getSessionNameFromPattern(feature);
+            }
+            messagesToSend.add(RawMessageBuilder.build(tenantName, contentType, sessionOwnerName, sessionName,
+                                                       UUID.randomUUID().toString(),
+                                                       feature.toString().getBytes(StandardCharsets.UTF_8)));
         }
         return messagesToSend;
     }
 
-    private String getSessionNameFromPattern(String product) {
-        String productType = null;
+    private String getSessionNameFromPattern(JsonObject feature) {
+        JsonElement featureType = null;
         String currentDate = OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        // check if product type can be retrieved from the WS_SESSION_PATTERN
+        // check if the feature type can be retrieved from the WS_SESSION_PATTERN
         Pattern pattern = Pattern.compile(WS_SESSION_PATTERN);
         Matcher matcher = pattern.matcher(sessionNamePattern);
         if (matcher.find()) {
-            // access product type from json path
-            String jsonPathToAccessProductType = matcher.group(1);
-            productType = JsonPath.using(JSON_PATH_CONFIGURATION).parse(product).read(jsonPathToAccessProductType);
+            // access the feature type from json path
+            String jsonPathToAccessFeatureType = matcher.group(1);
+            featureType = JsonPath.using(JSON_PATH_CONFIGURATION).parse(feature).read(jsonPathToAccessFeatureType);
         }
 
-        // if the property was not found, replace the session with a default session name
-        if (productType == null) {
+        // if the property was not found, replace the session with the default session name
+        if (featureType == null || !featureType.isJsonPrimitive()) {
             String defaultSessionName = SESSION_NAME_PATTERN_ERROR.replaceAll(WS_SESSION_PATTERN,
                                                                               String.format("$1-%s", currentDate));
             LOGGER.warn("The pattern configured in {} \"{}\" has an invalid pattern. Check if : \n "
                                 + "- The RegExp is valid and follow the pattern \"{}\" \n - The JsonPath to access the "
-                                + "product type is valid.\nThe session will be named by default: \"{}\".",
+                                + "feature type is valid.\nThe session will be named by default: \"{}\".",
                         sessionNamePattern, WS_SESSION_NAME_PATTERN_NAME, WS_SESSION_PATTERN, defaultSessionName);
             return defaultSessionName;
         } else {
             return sessionNamePattern.replaceAll(WS_SESSION_PATTERN,
-                                                 String.format("%s-%s$3", productType, currentDate));
+                                                 String.format("%s-%s$3", featureType.getAsString(), currentDate));
         }
     }
 }
