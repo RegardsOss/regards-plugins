@@ -18,18 +18,22 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
+import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
+import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
+import fr.cnes.regards.modules.feature.dto.*;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
+import fr.cnes.regards.modules.indexer.domain.DataFile;
+import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
+import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -43,26 +47,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
 
-import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
-import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
-import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
-import fr.cnes.regards.modules.feature.dto.Feature;
-import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
-import fr.cnes.regards.modules.feature.dto.FeatureFile;
-import fr.cnes.regards.modules.feature.dto.FeatureFileAttributes;
-import fr.cnes.regards.modules.feature.dto.FeatureFileLocation;
-import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
-import fr.cnes.regards.modules.indexer.domain.DataFile;
-import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
-import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Plugin to get data from feature manager
@@ -73,7 +63,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 @Plugin(id = "feature-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
         author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
         url = "https://github.com/RegardsOss")
-public class FeatureDatasourcePlugin implements IDataSourcePlugin {
+public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     private static final String URN_PLACEHOLDER = "{urn}";
 
@@ -82,7 +72,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
     private static final String CATALOG_DOWNLOAD_PATH = "/downloads/" + URN_PLACEHOLDER + "/files/"
             + CHECKSUM_PLACEHOLDER;
 
-    @Value("${geode.plugin.refreshRate:1000}")
+    @Value("${regards.feature.datasource.plugin.refreshRate:1000}")
     private int refreshRate;
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
@@ -186,6 +176,7 @@ public class FeatureDatasourcePlugin implements IDataSourcePlugin {
                 dataFile.setFilesize(atts.getFilesize());
                 dataFile.setDigestAlgorithm(atts.getAlgorithm());
                 dataFile.setChecksum(atts.getChecksum());
+                dataFile.setCrc32(atts.getCrc32());
                 dataObject.getFiles().put(dataFile.getDataType(), dataFile);
             }
         }

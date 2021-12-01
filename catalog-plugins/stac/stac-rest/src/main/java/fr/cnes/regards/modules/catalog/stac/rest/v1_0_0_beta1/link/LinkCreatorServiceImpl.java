@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
 import com.google.gson.Gson;
+import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -30,7 +31,9 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.CoreController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.ItemSearchController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.OGCFeaturesController;
+import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.download.CollectionDownloadController;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.searchcol.CollectionSearchController;
+import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
@@ -61,15 +64,15 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkCreatorServiceImpl.class);
 
+    private final static String URI_PATTERN_MESSAGE = "URI after  adding token: {}";
+
+    private final static String FAILURE_PATTERN_MESSAGE = "Failure creating page link: {}";
+
     private final IRuntimeTenantResolver tenantResolver;
 
     private final UriParamAdder uriParamAdder;
 
     private final Gson gson;
-
-    private final static String URI_PATTERN_MESSAGE = "URI after  adding token: {}";
-
-    private final static String FAILURE_PATTERN_MESSAGE = "Failure creating page link: {}";
 
     // @formatter:off
 
@@ -220,28 +223,23 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     }
 
     @Override
-    public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page, String collectionId) {
+    public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page,
+            String collectionId) {
         return new SearchPageLinkCreator() {
+
             @Override
             public Option<URI> searchAll() {
                 return Option.none(); // unused when generating collection items page
             }
+
             private Option<URI> createPageLink(int i, JWTAuthentication auth) {
-                return tryOf(() ->
-                        WebMvcLinkBuilder.linkTo(
-                                OGCFeaturesController.class,
-                                getMethodNamedInClass(OGCFeaturesController.class, "features"),
-                                collectionId,
-                                i
-                        ).toUri()
-                )
-                .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                .flatMapTry(uriParamAdder.appendParams(HashMap.of(
-                        PAGE_QUERY_PARAM, "" + i
-                )))
-                .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
-                .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t))
-                .toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(OGCFeaturesController.class,
+                                                            getMethodNamedInClass(OGCFeaturesController.class,
+                                                                                  "features"), collectionId, i).toUri())
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .flatMapTry(uriParamAdder.appendParams(HashMap.of(PAGE_QUERY_PARAM, "" + i)))
+                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
             }
 
             @Override
@@ -262,9 +260,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     }
 
     private <T> Method getMethodNamedInClass(Class<T> type, String methodName) {
-        return Stream.of(type.getDeclaredMethods())
-                .filter(m -> methodName.equals(m.getName()))
-                .head();
+        return Stream.of(type.getDeclaredMethods()).filter(m -> methodName.equals(m.getName())).head();
     }
 
     @Override
@@ -312,6 +308,56 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             @Override
             public Option<URI> createSelfPageLink() {
                 return createPageLink(page, collectionSearchBody, auth);
+            }
+        };
+    }
+
+    @Override
+    public DownloadLinkCreator makeDownloadLinkCreator(JWTAuthentication auth,
+            FeignSecurityManager feignSecurityManager) {
+        return new DownloadLinkCreator() {
+
+            private String systemToken = null;
+
+            @Override
+            public Option<URI> createAllCollectionsDownloadLink(String tinyUrlId) {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class,
+                                                            getMethodNamedInClass(CollectionDownloadController.class,
+                                                                                  "downloadAllCollectionsAsZip"))
+                        .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+            }
+
+            @Override
+            public Option<URI> createSingleCollectionDownloadLink(String collectionId, String tinyUrlId) {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class,
+                                                            getMethodNamedInClass(CollectionDownloadController.class,
+                                                                                  "downloadSingeCollectionAsZip"),
+                                                            collectionId).toUri())
+                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+            }
+
+            @Override
+            public String appendAuthParamsForNginx(String uri) {
+                return tryOf(() -> URI.create(uri)).flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to append authentication parameters")).get().toString();
+            }
+
+            @Override
+            public String getSystemToken() {
+                if (systemToken == null) {
+                    try {
+                        // Generate client token
+                        FeignSecurityManager.asSystem();
+                        systemToken = feignSecurityManager.getToken();
+                    } finally {
+                        FeignSecurityManager.reset();
+                    }
+                }
+                return systemToken;
             }
         };
     }

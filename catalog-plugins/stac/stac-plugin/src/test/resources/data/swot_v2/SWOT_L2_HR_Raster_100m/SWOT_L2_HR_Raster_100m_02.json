@@ -1,9 +1,35 @@
 {
-  "id": "SWOT:GOLDEN:L2_HR_RASTER_100m_01",
+  "id": "SWOT:GOLDEN:L2_HR_RASTER_100m_02",
   "type": "Feature",
   "entityType": "DATA",
   "model": "HYGOR_V2",
-  "geometry": null,
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          1.4,
+          43.5
+        ],
+        [
+          1.5,
+          43.5
+        ],
+        [
+          1.5,
+          43.6
+        ],
+        [
+          1.4,
+          43.6
+        ],
+        [
+          1.4,
+          43.5
+        ]
+      ]
+    ]
+  },
   "properties": {
     "datetime": "2018-04-01T00:00:00.012345Z",
     "start_datetime": "2020-04-02T11:21:39Z",
@@ -32,7 +58,7 @@
       "KaRIn"
     ],
     "mission": "SWOT",
-    "version": "012",
+    "version": "013",
     "release": "NRT",
     "processing": {
       "level": "L2",
@@ -85,27 +111,11 @@
     },
     "spatial": {
       "cycle_id": 1,
-      "pass_id": 42,
+      "pass_id": 43,
       "scene_id": 1
     }
   },
   "files": [
-    {
-      "locations": [
-        {
-          "storage": "DISK",
-          "url": "https://tu-hysope2-d06.sis.cnes.fr/api/v1/rs-catalog/downloads/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml"
-        }
-      ],
-      "attributes": {
-        "dataType": "RAWDATA",
-        "mimeType": "application/xml",
-        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.iso.xml",
-        "filesize": 1000,
-        "algorithm": "MD5",
-        "checksum": "12072c8dcb2134a2979096b28ce04821"
-      }
-    },
     {
       "locations": [
         {
@@ -117,26 +127,9 @@
         "dataType": "RAWDATA",
         "mimeType": "application/xml",
         "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.nc",
-        "filesize": 100000,
+        "filesize": 250000,
         "algorithm": "MD5",
-        "checksum": "dd8603779ccee18629c29ff979eda10f",
-        "crc32": "crc-32"
-      }
-    },
-    {
-      "locations": [
-        {
-          "storage": "DISK",
-          "url": "https://tu-hysope2-d06.sis.cnes.fr/api/v1/rs-catalog/downloads/L2_HR_RASTER/SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml"
-        }
-      ],
-      "attributes": {
-        "dataType": "DOCUMENT",
-        "mimeType": "application/xml",
-        "filename": "SWOT_L2_HR_RASTER_001_042M_038_20220402T112139_20220402T112159_PIA0_012.rc.xml",
-        "filesize": 5000,
-        "algorithm": "MD5",
-        "checksum": "2f12b1a9a9de3e1ec0a7c80d6472c691"
+        "checksum": "dd8603779ccee18629c29ff979eda10f"
       }
     }
   ]

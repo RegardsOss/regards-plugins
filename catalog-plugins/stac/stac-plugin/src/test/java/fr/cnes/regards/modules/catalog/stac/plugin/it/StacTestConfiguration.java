@@ -18,22 +18,12 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it;
 
-import java.util.ArrayList;
-
-import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import fr.cnes.regards.framework.hateoas.HateoasUtils;
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
+import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.dataaccess.accessgroup.AccessGroup;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
@@ -44,6 +34,15 @@ import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.ArrayList;
 
 /**
  * Module-wide configuration for integration tests.
@@ -54,15 +53,20 @@ import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 public class StacTestConfiguration {
 
     @Bean
+    public IResourceService resourceService() {
+        return Mockito.mock(IResourceService.class);
+    }
+
+    @Bean
     public IDatasetClient datasetClient() {
         IDatasetClient client = Mockito.mock(IDatasetClient.class);
         Model mockedModel = new Model();
         mockedModel.setName("MockedModel");
         Dataset mockDataset = new Dataset(mockedModel, "tenant", "DSMOCK",
-                "Mocked dataset response from mock dataset dam client");
+                                          "Mocked dataset response from mock dataset dam client");
         mockDataset.setId(1L);
-        mockDataset
-                .setIpId(UniformResourceName.fromString("URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
+        mockDataset.setIpId(
+                UniformResourceName.fromString("URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
         Mockito.when(client.retrieveDataset(Mockito.anyString()))
                 .thenReturn(new ResponseEntity<>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
         return client;
@@ -84,9 +88,11 @@ public class StacTestConfiguration {
 
         // Build accessGroupMock mock
         PagedModel.PageMetadata md = new PagedModel.PageMetadata(0, 0, 0);
-        PagedModel<EntityModel<AccessGroup>> pagedResources = new PagedModel<>(new ArrayList<>(), md, new ArrayList<>());
+        PagedModel<EntityModel<AccessGroup>> pagedResources = new PagedModel<>(new ArrayList<>(), md,
+                                                                               new ArrayList<>());
         ResponseEntity<PagedModel<EntityModel<AccessGroup>>> pageResponseEntity = ResponseEntity.ok(pagedResources);
-        Mockito.when(accessGroupClient.retrieveAccessGroupsList(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt()))
+        Mockito.when(
+                accessGroupClient.retrieveAccessGroupsList(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(pageResponseEntity);
         return accessGroupClient;
     }

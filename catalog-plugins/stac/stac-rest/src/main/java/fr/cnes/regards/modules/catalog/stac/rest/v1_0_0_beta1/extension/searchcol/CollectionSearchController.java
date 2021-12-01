@@ -52,7 +52,7 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
  * This endpoint is dedicated to return REGARDS datasets as STAC collections
  * from an item search and/or a collection search.
  * Both item and collection query parameters can be passed.
- * <p>
+ * </p>
  * We add a non-standard 0-based <code>page</code> query param for pagination. Links to next/prev page are done using the
  * {@link #otherPage(String, Integer)} endpoint.
  *
@@ -118,7 +118,7 @@ public class CollectionSearchController implements TryToResponseEntity {
                     String itemQuery) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory
-                .parseCollectionSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
+                .parseCollectionSearch(page, limit, bbox, datetime, collections, ids, fields, query, sortBy)
                 .getOrElse(CollectionSearchBody.builder().build()).withItem(collectionItemSearchBodyFactory
                                                                                     .parseCollectionSearch(itemBbox,
                                                                                                            itemDatetime,
@@ -144,11 +144,16 @@ public class CollectionSearchController implements TryToResponseEntity {
             throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
-        return toResponseEntity(collectionSearchService.search(collectionSearchBody, page, linkCreatorService
-                .makeSearchCollectionPageLinkCreation(auth, page, collectionSearchBody), linkCreatorService
-                                                                       .makeSearchPageLinkCreator(auth, 0,
-                                                                                                  itemSearchBody
-                                                                                                          .getOrNull())));
+        return toResponseEntity(collectionSearchService.search(collectionSearchBody,
+                                                               collectionSearchBody.getPage() == null ?
+                                                                       page :
+                                                                       collectionSearchBody.getPage(),
+                                                               linkCreatorService
+                                                                       .makeSearchCollectionPageLinkCreation(auth, page,
+                                                                                                             collectionSearchBody),
+                                                               linkCreatorService.makeSearchPageLinkCreator(auth, 0,
+                                                                                                            itemSearchBody
+                                                                                                                    .getOrNull())));
     }
 
     @Operation(summary = "continue to next/previous search collection page",

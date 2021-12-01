@@ -16,31 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
+package fr.cnes.regards.modules.catalog.stac.service.link;
 
-package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
+import io.vavr.control.Option;
 
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import io.vavr.collection.List;
-import io.vavr.control.Try;
+import java.net.URI;
 
 /**
- * Defines methods to create ItemSearchBody from simpler components
+ * Interface providing methods for building download links
  */
-public interface ItemSearchBodyFactory {
+public interface DownloadLinkCreator {
 
-    // @formatter:off
+    Option<URI> createAllCollectionsDownloadLink(String tinyUrlId);
 
-    Try<ItemSearchBody> parseItemSearch(
-            Integer page,
-            Integer limit,
-            BBox bbox,
-            String datetime,
-            List<String> collections,
-            List<String> ids,
-            String fields,
-            String query,
-            String sortBy
-    );
+    Option<URI> createSingleCollectionDownloadLink(String collectionId, String tinyUrlId);
 
-    // @formatter:on
+    String appendAuthParamsForNginx(String uri);
+
+    /**
+     * @return an internally used token to download file directly from STORAGE
+     */
+    String getSystemToken();
 }

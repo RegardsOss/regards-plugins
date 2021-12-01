@@ -18,9 +18,16 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
+import com.google.common.collect.Lists;
+import fr.cnes.regards.framework.modules.tinyurl.domain.TinyUrl;
+import fr.cnes.regards.framework.modules.tinyurl.service.TinyUrlService;
+import fr.cnes.regards.framework.urn.DataType;
+import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -36,12 +43,16 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.Col
 import fr.cnes.regards.modules.catalog.stac.service.criterion.IdentitiesCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
+import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
+import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
+import fr.cnes.regards.modules.indexer.domain.summary.DocFilesSummary;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
@@ -59,7 +70,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
@@ -79,7 +92,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     private static final String PROPRIETARY_LICENSING = "proprietary";
 
     @Autowired
-    private StacSearchCriterionBuilder critBuilder;
+    private StacSearchCriterionBuilder searchCriterionBuilder;
 
     @Autowired
     private ICatalogSearchService catalogSearchService;
@@ -102,6 +115,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     @Autowired
     private PropertyExtractionService propertyExtractionService;
 
+    @Autowired
+    private TinyUrlService tinyUrlService;
+
     @Override
     public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page,
             SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator) {
@@ -123,7 +139,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 collectionSearchBody.getItem() == null ?
                         CollectionSearchBody.CollectionItemSearchBody.builder().build() :
                         collectionSearchBody.getItem();
-        ICriterion itemCriteria = critBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
+        ICriterion itemCriteria = searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
                 .getOrElse(ICriterion.all());
         Option<ICriterion> idCriterion;
         Try<Map<String, Long>> datasetCount = Try.success(null);
@@ -139,10 +155,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     .buildCriterion(itemStacProperties, List.ofAll(datasetCount.get().keySet()));
             // No dataset matches!
             if (!idCriterion.isDefined()) {
-                return extractCollection(
-                        new FacetPage<Dataset>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
-                        collectionStacProperties, null, searchCollectionPageLinkCreator, searchItemPageLinkCreator,
-                        HashMap.empty(), collectionConfigurationAccessor);
+                return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
+                                         collectionStacProperties, null, searchCollectionPageLinkCreator,
+                                         searchItemPageLinkCreator, HashMap.empty(), collectionConfigurationAccessor);
             }
         } else {
             idCriterion = Option.none();
@@ -152,9 +167,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         // possibly incorporating the filter on the collections from the previous search
         ICriterion collectionCriteria = idCriterion.isDefined() ?
                 ICriterion.and(idCriterion.get(),
-                               critBuilder.buildCriterion(collectionStacProperties, collectionSearchBody)
+                               searchCriterionBuilder.buildCriterion(collectionStacProperties, collectionSearchBody)
                                        .getOrElse(ICriterion.all())) :
-                critBuilder.buildCriterion(collectionStacProperties, collectionSearchBody).getOrElse(ICriterion.all());
+                searchCriterionBuilder.buildCriterion(collectionStacProperties, collectionSearchBody)
+                        .getOrElse(ICriterion.all());
 
         // Search for all matching collections
         Map<String, Long> finalDatasetCount = datasetCount.get();
@@ -182,10 +198,11 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return trying(() -> {
             Context context = new Context(facetPage.getNumberOfElements(), facetPage.getPageable().getPageSize(),
                                           facetPage.getTotalElements());
-            SearchCollectionsResponse response = new SearchCollectionsResponse(HashSet.empty(), buildCollections(
-                    Stream.ofAll(facetPage.get()), stacProperties, datasetCount, collectionConfigurationAccessor,
-                    searchItemPageLinkCreator), extractLinks(searchCollectionPageLinkCreator, facetPage), context);
-            return response;
+            return new SearchCollectionsResponse(HashSet.empty(),
+                                                 buildCollections(Stream.ofAll(facetPage.get()), stacProperties,
+                                                                  datasetCount, collectionConfigurationAccessor,
+                                                                  searchItemPageLinkCreator),
+                                                 extractLinks(searchCollectionPageLinkCreator, facetPage), context);
         }).mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
     }
 
@@ -193,11 +210,11 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor,
             SearchPageLinkCreator searchItemPageLinkCreator) {
         return datasetStream.flatMap(
-                dataset -> buidFromDataset(dataset, stacProperties, datasetCount, collectionConfigurationAccessor,
-                                           searchItemPageLinkCreator)).toList();
+                dataset -> buildFromDataset(dataset, stacProperties, datasetCount, collectionConfigurationAccessor,
+                                            searchItemPageLinkCreator)).toList();
     }
 
-    private Try<Collection> buidFromDataset(Dataset dataset, List<StacProperty> stacProperties,
+    private Try<Collection> buildFromDataset(Dataset dataset, List<StacProperty> stacProperties,
             Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor,
             SearchPageLinkCreator searchItemPageLinkCreator) {
         return trying(() -> {
@@ -230,7 +247,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
      */
     private String extractTitle(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
         return stacCollectionProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset)
-                .map(v -> v.toString()).getOrNull();
+                .map(Object::toString).getOrNull();
     }
 
     /**
@@ -238,7 +255,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
      */
     private String extractDescription(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
         return stacCollectionProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset)
-                .map(v -> v.toString()).getOrElse(dataset.getLabel());
+                .map(Object::toString).getOrElse(dataset.getLabel());
     }
 
     /**
@@ -279,7 +296,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
      */
     private String extractLicense(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
         return stacCollectionProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset)
-                .map(v -> v.toString()).getOrElse(PROPRIETARY_LICENSING);
+                .map(Object::toString).getOrElse(PROPRIETARY_LICENSING);
     }
 
     /**
@@ -323,5 +340,135 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     private Context buildContext(Dataset dataset, Map<String, Long> datasetCount) {
         return new Context(null, null,
                            datasetCount == null ? null : datasetCount.get(dataset.getIpId().toString()).getOrNull());
+    }
+
+    @Override
+    public Try<DownloadPreparationResponse> prepareZipDownload(DownloadPreparationBody downloadPreparationBody,
+            DownloadLinkCreator downloadLinkCreator) {
+        return trying(() -> {
+            // Store all tiny url ids to build global download link
+            java.util.List<TinyUrl> tinyUrls = new ArrayList<>();
+
+            // Prepare response by collection
+            List<DownloadPreparationResponse.DownloadCollectionPreparationResponse> collections = downloadPreparationBody
+                    .getCollections().flatMap(
+                            itemSearchBody -> prepareDownloadCollectionResponse(itemSearchBody, downloadLinkCreator,
+                                                                                tinyUrls)).toList();
+
+            // Compute total
+            Long totalSize = 0L, totalItems = 0L, totalFiles = 0L;
+            for (DownloadPreparationResponse.DownloadCollectionPreparationResponse c : collections) {
+                if (c.getErrors().isEmpty()) {
+                    totalSize += c.getSize();
+                    totalItems += c.getItems();
+                    totalFiles += c.getFiles();
+                }
+            }
+
+            return new DownloadPreparationResponse(totalSize, totalItems, totalFiles,
+                                                   buildAllCollectionsDownloadLink(downloadLinkCreator, tinyUrls),
+                                                   collections);
+        }).mapFailure(DOWNLOAD_PREPARATION, () -> "Download preparation failure");
+    }
+
+    private Try<DownloadPreparationResponse.DownloadCollectionPreparationResponse> prepareDownloadCollectionResponse(
+            DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody,
+            DownloadLinkCreator downloadLinkCreator, java.util.List<TinyUrl> tinyUrls) {
+
+        return Try.of(() -> {
+
+            // Translate collection id to urn
+            UniformResourceName datasetUrn = parseCollectionUrn(downloadCollectionPreparationBody.getCollectionId())
+                    .get();
+
+            // Retrieve configured item properties
+            ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
+            List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
+
+            // Build item search criteria with dataset filter
+            CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
+                    downloadCollectionPreparationBody.getFilters() == null ?
+                            CollectionSearchBody.CollectionItemSearchBody.builder().build() :
+                            downloadCollectionPreparationBody.getFilters();
+            ICriterion itemCriteria = ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS,
+                                                                   downloadCollectionPreparationBody.getCollectionId(),
+                                                                   StringMatchType.KEYWORD), searchCriterionBuilder
+                                                             .buildCriterion(itemStacProperties,
+                                                                             collectionItemSearchBody)
+                                                             .getOrElse(ICriterion.all()));
+
+            // Compute summary
+            DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();
+
+            return new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
+                    downloadCollectionPreparationBody.getCollectionId(), docFilesSummary.getFilesSize(),
+                    docFilesSummary.getDocumentsCount(), docFilesSummary.getFilesCount(),
+                    docFilesSummary.getDocumentsCount() == 0 ?
+                            null :
+                            buildCollectionDownloadLink(downloadCollectionPreparationBody.getCollectionId(),
+                                                        itemCriteria, downloadLinkCreator, tinyUrls),
+                    docFilesSummary.getDocumentsCount() == 0 ? List.of("No item found") : List.empty());
+        }).recover(throwable -> new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
+                downloadCollectionPreparationBody.getCollectionId(), null, null, null, null,
+                List.of(throwable.getMessage())));
+    }
+
+    private Try<UniformResourceName> parseCollectionUrn(String collectionId) {
+        return trying(() -> UniformResourceName.fromString(collectionId))
+                .mapFailure(DOWNLOAD_COLLECTION_ID_PARSING, () -> "Cannot parse collection id as valid URN");
+    }
+
+    private Try<DocFilesSummary> computeSummary(ICriterion itemCriteria, UniformResourceName datasetUrn) {
+        return trying(() -> {
+            return catalogSearchService
+                    .computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS, datasetUrn,
+                                            Lists.newArrayList(DataType.RAWDATA));
+        }).mapFailure(DOWNLOAD_COLLECTION_SUMMARY, () -> "Cannot compute collection summary");
+    }
+
+    /**
+     * Build download link for a single collection
+     *
+     * @param itemCriteria        tiny url context
+     * @param downloadLinkCreator build proper link
+     * @param tinyUrls            set of tiny URLs
+     * @return download link
+     */
+    private URI buildCollectionDownloadLink(String collectionId, ICriterion itemCriteria,
+            DownloadLinkCreator downloadLinkCreator, java.util.List<TinyUrl> tinyUrls) {
+        // Store context
+        TinyUrl tinyUrl = tinyUrlService.create(itemCriteria);
+        // Mutate set of tiny URLs
+        tinyUrls.add(tinyUrl);
+        // Build URI
+        return downloadLinkCreator.createSingleCollectionDownloadLink(collectionId, tinyUrl.getUuid()).get();
+    }
+
+    /**
+     * Build download link for a set of collections
+     *
+     * @param downloadLinkCreator build proper link
+     * @param tinyUrls            set of tiny URL
+     * @return download link
+     */
+    private URI buildAllCollectionsDownloadLink(DownloadLinkCreator downloadLinkCreator,
+            java.util.List<TinyUrl> tinyUrls) {
+        TinyUrl tinyUrl;
+        switch (tinyUrls.size()) {
+            case 0:
+                // Return directly
+                return null;
+            case 1:
+                // Reuse existing one
+                tinyUrl = tinyUrls.get(0);
+                break;
+            default:
+                // Store a new context
+                java.util.Set<String> tinyUrlUuids = tinyUrls.stream().map(TinyUrl::getUuid).collect(Collectors.toSet());
+                tinyUrl = tinyUrlService.create(tinyUrlUuids);
+                break;
+        }
+        // Build URI
+        return downloadLinkCreator.createAllCollectionsDownloadLink(tinyUrl.getUuid()).get();
     }
 }

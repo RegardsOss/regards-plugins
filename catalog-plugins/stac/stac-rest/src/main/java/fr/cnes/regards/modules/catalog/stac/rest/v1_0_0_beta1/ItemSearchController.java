@@ -19,28 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.BBOX_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.COLLECTIONS_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.DATETIME_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.FIELDS_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.IDS_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.LIMIT_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.PAGE_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.QUERY_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SEARCH_ITEMBODY_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.SORTBY_QUERY_PARAM;
-import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.STAC_SEARCH_PATH;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
@@ -57,10 +35,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants.*;
 
 /**
  * Search API.
- *
+ * <p>
  * We add a non-standard 0-based <code>page</code> query param for pagination. Links to next/prev page are done using the
  * {@link #otherPage(String, Integer)} endpoint.
  *
@@ -109,7 +94,7 @@ public class ItemSearchController implements TryToResponseEntity {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
         return toResponseEntity(itemSearchBodyFactory
-                .parseItemSearch(limit, bbox, datetime, collections, ids, fields, query, sortBy)
+                .parseItemSearch(page, limit, bbox, datetime, collections, ids, fields, query, sortBy)
                 .flatMap(itemSearchBody -> itemSearchService
                         .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(auth),
                                 linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody))));
@@ -125,9 +110,8 @@ public class ItemSearchController implements TryToResponseEntity {
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
     ) throws ModuleException {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-
         return toResponseEntity(itemSearchService
-                .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(auth),
+                .search(itemSearchBody, itemSearchBody.getPage() == null ? page : itemSearchBody.getPage(), linkCreatorService.makeOGCFeatLinkCreator(auth),
                         linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)));
     }
 

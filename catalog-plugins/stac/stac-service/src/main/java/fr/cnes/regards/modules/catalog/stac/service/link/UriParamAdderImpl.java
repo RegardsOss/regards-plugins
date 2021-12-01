@@ -81,6 +81,14 @@ public class UriParamAdderImpl implements UriParamAdder {
     }
 
     @Override
+    public CheckedFunction1<URI, Try<URI>> appendTinyUrl(String tinyUrlId) {
+        return uri -> {
+            return trying(() -> fromUri(uri).queryParam("tinyurl", tinyUrlId).build().toUri())
+                    .mapFailure(URI_AUTH_PARAM_ADDING, () -> format("Failed to add tiny URL to URI %s", uri));
+        };
+    }
+
+    @Override
     public Tuple2<String, String> makeAuthParam(JWTAuthentication auth) {
         String tenant = auth.getTenant();
         UserDetails user = auth.getUser();

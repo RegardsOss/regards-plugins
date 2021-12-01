@@ -56,6 +56,7 @@ public class CollectionSearchBodyFactoryImpl extends AbstractSearchBodyFactoryIm
 
     @Override
     public Try<CollectionSearchBody> parseCollectionSearch(
+            Integer page,
             Integer limit,
             BBox bbox,
             String datetime,
@@ -70,7 +71,7 @@ public class CollectionSearchBodyFactoryImpl extends AbstractSearchBodyFactoryIm
                 parseQuery(query).flatMap(q ->
                     parseSortBy(sortBy).map(s ->
                         new CollectionSearchBody(
-                            bbox, dt.getOrNull(), null, collections, ids, limit, f, q, s,null
+                            bbox, dt.getOrNull(), null, collections, ids, page, limit, f, q, s,null
                         )
                     )
                 )

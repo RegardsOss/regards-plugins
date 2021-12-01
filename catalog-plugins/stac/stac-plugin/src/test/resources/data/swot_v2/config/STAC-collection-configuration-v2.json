@@ -77,6 +77,10 @@
             "stacPropertyExtension": "version"
           },
           {
+            "sourcePropertyPath": "properties.items",
+            "stacPropertyName": "total_items"
+          },
+          {
             "sourcePropertyPath": "properties.release",
             "stacPropertyName": "release",
             "stacPropertyExtension": "version"

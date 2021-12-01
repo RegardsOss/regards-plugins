@@ -50,6 +50,8 @@ public class CollectionSearchBody {
 
     List<String> ids;
 
+    Integer page;
+
     Integer limit;
 
     SearchBody.Fields fields;
@@ -74,7 +76,6 @@ public class CollectionSearchBody {
 
         IGeometry intersects;
 
-        // FIXME pertinent ou non?
         List<String> collections;
 
         List<String> ids;

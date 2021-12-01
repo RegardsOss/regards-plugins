@@ -292,11 +292,11 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
     @Test
     public void searchCollectionsAsPostWithTitle() {
         String text = "rast";
-        searchCollectionsAsPostWithTitle(text, "keyword",0);
+        searchCollectionsAsPostWithTitle(text, "keyword", 0);
         searchCollectionsAsPostWithTitle(text, "text", 1);
         searchCollectionsAsPostWithTitle(text, null, 1); // Same as text
         text = "RAST";
-        searchCollectionsAsPostWithTitle(text, "keyword",1);
+        searchCollectionsAsPostWithTitle(text, "keyword", 1);
         searchCollectionsAsPostWithTitle(text, "text", 1);
         searchCollectionsAsPostWithTitle(text, null, 1); // Same as text
     }
@@ -311,6 +311,31 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
 
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
                            "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollectionsAsPostWithTitleWith2Value() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        // customizer.expectValue("$.context.matched", 1);
+        // Define collection criteria
+        //        Map<String, SearchBody.QueryObject> q = HashMap
+        //                .of("title", StringQueryObject.builder().containsAll(io.vavr.collection.List.of("hr slc")).matchType("text").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("title", StringQueryObject.builder()
+                .containsAll(io.vavr.collection.List.of("ras", "HR")).matchType("text").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+                           "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchDatasetPropertyValues() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("maxCount", "10");
+        addFullTextSearchQuery(customizer,"swot");
+        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATASETS_PROPERTY_VALUES,
+                          customizer, "Search all error", "legacy",
+                          StaticProperties.FEATURE_PROPERTIES + "." + "title");
     }
 
     @Test
@@ -487,5 +512,12 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
      */
     private void addSearchTermQuery(RequestBuilderCustomizer customizer, String relativePropertyName, String value) {
         customizer.addParameter("q", StaticProperties.FEATURE_PROPERTIES + "." + relativePropertyName + ":" + value);
+    }
+
+    /**
+     * Add full text query to current request
+     */
+    private void addFullTextSearchQuery(RequestBuilderCustomizer customizer, String value) {
+        customizer.addParameter("q", value);
     }
 }

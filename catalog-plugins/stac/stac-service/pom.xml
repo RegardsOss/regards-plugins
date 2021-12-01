@@ -32,6 +32,10 @@
             <groupId>fr.cnes.regards.modules.indexer</groupId>
             <artifactId>indexer-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules</groupId>
+            <artifactId>tinyurl</artifactId>
+        </dependency>
 
         <!--=== LIBRARIES ===-->
 

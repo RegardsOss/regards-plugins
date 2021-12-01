@@ -66,9 +66,25 @@ public interface StacApiConstants {
 
     String STAC_SEARCH_PATH = STAC_PATH + "/search";
 
-    // Extension to get collection from an item search 
-
+    // Extension to get collection from both item and collection searches
     String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
+
+    // Extension to get download information for a set of collections
+    String STAC_DOWNLOAD_BY_COLLECTION_PATH = STAC_PATH + "/download/collections";
+
+    String STAC_DOWNLOAD_AS_ZIP_SUFFIX = "/zip";
+
+    String STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX = "/zipstream";
+
+    String STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX = STAC_DOWNLOAD_AS_ZIP_SUFFIX + "/prepare";
+
+    String STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX = STAC_DOWNLOAD_AS_ZIP_SUFFIX;
+
+    String STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIPSTREAM_SUFFIX = STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
+
+    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX = "{collectionId}" + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
+
+    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX = "{collectionId}" + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
 
     /**
      * Parameter to pass query parameters on items on a collection search request

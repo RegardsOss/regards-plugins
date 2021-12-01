@@ -20,9 +20,12 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.jsoniter.property.AttributeModelPropertyTypeFinder;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
+import fr.cnes.regards.framework.modules.tinyurl.dao.TinyUrlRepository;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -40,6 +43,9 @@ import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
+import fr.cnes.regards.modules.model.dao.IAttributeModelRepository;
+import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
+import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -54,7 +60,7 @@ import fr.cnes.regards.modules.model.service.ModelService;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
+import fr.cnes.regards.modules.search.dao.ISearchEngineConfRepository;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
 import org.junit.Assert;
@@ -132,6 +138,33 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     @Autowired
     protected Gson gson;
 
+    @Autowired
+    private IAttributeModelRepository attributeModelRepository;
+
+    @Autowired
+    private IModelAttrAssocRepository modelAttrAssocRepository;
+
+    @Autowired
+    private IModelRepository modelRepository;
+
+    @Autowired
+    private IPluginConfigurationRepository pluginConfigurationRepository;
+
+    @Autowired
+    private ISearchEngineConfRepository searchEngineConfRepository;
+
+    @Autowired
+    private TinyUrlRepository tinyUrlRepository;
+
+    protected void cleanDatabase() {
+        modelAttrAssocRepository.deleteAllInBatch();
+        modelRepository.deleteAll();
+        attributeModelRepository.deleteAll();
+        searchEngineConfRepository.deleteAllInBatch();
+        pluginConfigurationRepository.deleteAllInBatch();
+        tinyUrlRepository.deleteAllInBatch();
+    }
+
     protected abstract String getDataFolderName();
 
     protected Path getDataFolder() {
@@ -206,7 +239,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     protected abstract String getDatasetModel();
 
     @Before
-    public void prepareData() throws ModuleException, IOException {
+    public void prepareData() throws ModuleException, InterruptedException, IOException {
 
         prepareProject();
 
@@ -339,6 +372,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
                 DataFile dataFile = DataFile.build(ff.getAttributes().getDataType(), ff.getAttributes().getFilename(),
                                                    ff.getLocations().stream().findFirst().get().getUrl(),
                                                    ff.getAttributes().getMimeType(), true, false);
+                dataFile.setFilesize(ff.getAttributes().getFilesize());
+                dataFile.setCrc32(ff.getAttributes().getCrc32());
+                dataFile.setChecksum(ff.getAttributes().getChecksum());
+                dataFile.setTypes(Sets.newHashSet("Netcdf"));
                 files.put(dataFile.getDataType(), dataFile);
             }
         }

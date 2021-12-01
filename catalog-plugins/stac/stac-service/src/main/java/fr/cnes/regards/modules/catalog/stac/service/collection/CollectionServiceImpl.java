@@ -184,23 +184,23 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
         final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId) ?
-                getDynCollItemSearchBody(collectionId, limit, bbox, datetime, config) :
-                getCollectionItemSearchBody(limit, bbox, datetime, List.of(collectionId));
+                getDynCollItemSearchBody(collectionId, page, limit, bbox, datetime, config) :
+                getCollectionItemSearchBody(page, limit, bbox, datetime, List.of(collectionId));
 
         return tryIsb.flatMap(
                 isb -> itemSearchService.search(isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)));
     }
 
-    private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId, Integer limit, BBox bbox, String datetime,
+    private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId, Integer page, Integer limit, BBox bbox, String datetime,
             ConfigurationAccessor config) {
         return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config).flatMap(
-                val -> getCollectionItemSearchBody(limit, bbox, datetime, null)
+                val -> getCollectionItemSearchBody(page, limit, bbox, datetime, null)
                         .map(isb -> isb.withQuery(dynCollService.toItemSearchBody(val).getQuery())));
     }
 
-    private Try<ItemSearchBody> getCollectionItemSearchBody(Integer limit, BBox bbox, String datetime,
+    private Try<ItemSearchBody> getCollectionItemSearchBody(Integer page, Integer limit, BBox bbox, String datetime,
             List<String> collections) {
-        return itemSearchBodyFactory.parseItemSearch(limit, bbox, datetime, collections, null, null, null, null);
+        return itemSearchBodyFactory.parseItemSearch(page, limit, bbox, datetime, collections, null, null, null, null);
     }
 
     @Override

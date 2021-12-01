@@ -55,7 +55,6 @@ public class ErrorControllerAdvice {
     }
 
     @ExceptionHandler(StacException.class)
-    @ResponseBody
     public ResponseEntity<ErrorStructure> formatStacError(StacException e) {
         UUID cid = StacRequestCorrelationId.currentCId();
         error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);

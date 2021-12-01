@@ -66,16 +66,16 @@ public class DoubleInterval {
                 return ICriterion.all();
             } else {
                 if (max.isClosed()) {
-                    return ICriterion.lt(prop, max.highValue());
-                } else {
                     return ICriterion.le(prop, max.highValue());
+                } else {
+                    return ICriterion.lt(prop, max.highValue());
                 }
             }
         } else if (max.isInfiniteHigh()) {
             if (min.isClosed()) {
-                return ICriterion.gt(prop, min.lowValue());
-            } else {
                 return ICriterion.ge(prop, min.lowValue());
+            } else {
+                return ICriterion.gt(prop, min.lowValue());
             }
         } else {
             return ICriterion.between(prop, min.lowValue(), min.isClosed(), max.highValue(), max.isClosed());

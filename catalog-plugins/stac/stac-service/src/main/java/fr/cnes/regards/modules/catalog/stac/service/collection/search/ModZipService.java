@@ -18,24 +18,30 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.io.OutputStream;
+import java.util.Optional;
 
 /**
- * Extension service for searching collection
+ * Prepare mod_zip descriptor file according to passed tiny url
  *
  * @author Marc SORDI
+ * @see <a href="https://www.nginx.com/resources/wiki/modules/zip/">Zip NGINX</a>
  */
-public interface CollectionSearchService {
+public interface ModZipService {
 
-    Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody, Integer page,
-            SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator);
+    /**
+     * Use standard response output stream
+     */
+    void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, final String tinyurl,
+            DownloadLinkCreator downloadLinkCreator);
 
-    Try<DownloadPreparationResponse> prepareZipDownload(DownloadPreparationBody downloadPreparationBody,
+    /**
+     * Use a non blocking stream
+     */
+    Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
             DownloadLinkCreator downloadLinkCreator);
 }

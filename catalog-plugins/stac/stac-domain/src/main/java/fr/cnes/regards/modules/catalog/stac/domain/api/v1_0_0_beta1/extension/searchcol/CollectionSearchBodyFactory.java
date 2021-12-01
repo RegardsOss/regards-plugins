@@ -35,6 +35,7 @@ public interface CollectionSearchBodyFactory {
     // @formatter:off
 
     Try<CollectionSearchBody> parseCollectionSearch(
+            Integer page,
             Integer limit,
             BBox bbox,
             String datetime,
