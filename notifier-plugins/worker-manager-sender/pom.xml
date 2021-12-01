@@ -112,11 +112,6 @@
                     <dockerDirectory>${project.basedir}/docker</dockerDirectory>
                     <resources>
                         <resource>
-                            <targetPath>/datatypes</targetPath>
-                            <directory>${project.basedir}/src/test/resources/conf/datatypes</directory>
-                            <include>*</include>
-                        </resource>
-                        <resource>
                             <targetPath>/</targetPath>
                             <directory>${project.build.directory}</directory>
                             <include>*-shaded.jar</include>
