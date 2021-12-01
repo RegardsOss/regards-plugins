@@ -78,7 +78,7 @@
       "item_type": "tile"
     },
     "hydro": {
-      "data_type": "L2_HR_RASTER_100m",
+      "data_type": "L2_HR_RASTER_250m",
       "variables": [
         {
           "categories": [

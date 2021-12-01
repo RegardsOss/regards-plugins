@@ -40,7 +40,6 @@ import java.util.ArrayList;
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swotv2", "spring.jpa.properties.hibernate.default_schema=swotv2" })
-//@MultitenantTransactional
 public class SwotV2EngineControllerIT extends AbstractSwotIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotV2EngineControllerIT.class);
@@ -108,6 +107,22 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
+    /**
+     * Basic ITEM search returning null geometry
+     */
+    @Test
+    public void searchItemWithNullGeometryAsPost() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.features[0].geometry", null);
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
+                                                            SearchBody.StringQueryObject.builder().eq("012").build(),
+                                                            "hydro:data_type", SearchBody.StringQueryObject.builder()
+                                                                    .eq("L2_HR_RASTER_100m").build());
+        ItemSearchBody body = ItemSearchBody.builder().query(iq).build();
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
     @Test
     public void searchCollectionsWithSpatioTemporalParameters() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -116,9 +131,9 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         // Define item criteria
         Map<String, SearchBody.QueryObject> iq = HashMap.of("start_datetime", SearchBody.DatetimeQueryObject.builder()
                                                                     .lte(OffsetDateTime.parse("2021-08-19T08:47:59.813Z")).build(), "end_datetime",
-                                                            SearchBody.DatetimeQueryObject.builder().gte(OffsetDateTime
-                                                                                                                 .parse("2021-07-19T08:47:59.813Z"))
-                                                                    .build());
+                                                            SearchBody.DatetimeQueryObject.builder()
+                                                                    .gte(OffsetDateTime.parse(
+                                                                            "2021-07-19T08:47:59.813Z")).build());
         BBox bbox = new BBox(1.1540490566502684, 43.498828738236014, 1.7531472622166748, 43.704683650908095);
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
                 .bbox(bbox).query(iq).build();
@@ -155,8 +170,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         // https://w3id.org/hysope2/landWaterMask
         Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
                                                             SearchBody.StringQueryObject.builder().containsAll(
-                                                                    List.of("https://w3id.org/hysope2/waterLevel",
-                                                                            "https://w3id.org/hysope2/landWaterMask"))
+                                                                            List.of("https://w3id.org/hysope2/waterLevel",
+                                                                                    "https://w3id.org/hysope2/landWaterMask"))
                                                                     .matchType("keyword").build(), "total_items",
                                                             SearchBody.NumberQueryObject.builder().gt(0D).build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
@@ -182,8 +197,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectToHaveSize("collections", 1);
         customizer.expectToHaveSize("$.collections[0].errors", 1);
-        DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody
-                .builder().collectionId("unknown").build();
+        DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody.builder()
+                .collectionId("unknown").build();
 
         DownloadPreparationBody body = DownloadPreparationBody.builder()
                 .collections(List.of(downloadCollectionPreparationBody)).build();
@@ -197,8 +212,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectToHaveSize("collections", 1);
         customizer.expectToHaveSize("$.collections[0].errors", 1);
-        DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody
-                .builder().collectionId("URN:AIP:DATASET:swotv2:b32d9001-4c15-4c57-841a-000000000000:V1").build();
+        DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody.builder()
+                .collectionId("URN:AIP:DATASET:swotv2:b32d9001-4c15-4c57-841a-000000000000:V1").build();
 
         DownloadPreparationBody body = DownloadPreparationBody.builder()
                 .collections(List.of(downloadCollectionPreparationBody)).build();
@@ -214,10 +229,10 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
 
     @Test
     public void given_oneCollection_when_prepareDownloadWithFilter_then_successfulRequest() {
-        Map<String, SearchBody.QueryObject> iq = HashMap
-                .of("version", SearchBody.StringQueryObject.builder().eq("012").build());
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody
-                .builder().query(iq).build();
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
+                                                            SearchBody.StringQueryObject.builder().eq("012").build());
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                .query(iq).build();
         prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 101000, 1, 2);
     }
 
@@ -286,9 +301,9 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
                         .isDefined() ?
                         itemSearchBodies.get(collectionDataType).get() :
                         CollectionSearchBody.CollectionItemSearchBody.builder().build();
-                downloadCollectionPreparationBodies
-                        .add(DownloadPreparationBody.DownloadCollectionPreparationBody.builder()
-                                     .collectionId(collectionId).filters(itemBody).build());
+                downloadCollectionPreparationBodies.add(
+                        DownloadPreparationBody.DownloadCollectionPreparationBody.builder().collectionId(collectionId)
+                                .filters(itemBody).build());
             }
         }
 
