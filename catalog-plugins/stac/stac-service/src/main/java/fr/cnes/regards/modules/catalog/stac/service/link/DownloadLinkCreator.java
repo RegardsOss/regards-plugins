@@ -31,6 +31,8 @@ public interface DownloadLinkCreator {
 
     Option<URI> createSingleCollectionDownloadLink(String collectionId, String tinyUrlId);
 
+    Option<URI> createSingleCollectionSampleDownloadLink(String collectionId, String tinyUrlId);
+
     String appendAuthParamsForNginx(String uri);
 
     /**

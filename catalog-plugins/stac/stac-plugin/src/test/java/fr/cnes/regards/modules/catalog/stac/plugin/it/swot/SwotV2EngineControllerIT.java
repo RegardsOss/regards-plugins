@@ -17,6 +17,7 @@ import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -263,6 +264,41 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
                                   + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, downloadCustomizer,
                           "Cannot download all collections");
+    }
+
+    @Test
+    public void given_oneCollection_when_download_then_successfulRequest() {
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.collections[0].sample.download");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
+
+        // Get mod_zip file
+        ResultActions allItemsActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
+                                  + StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections", "uselessCollectionId");
+        String modZip4Collection = payload(allItemsActions);
+        String[] lines = modZip4Collection.split("\n");
+        // Expected 3 files (all files with RAWDATA type of all collection items)
+        Assert.assertEquals(3, lines.length);
+
+
+        // Get sample mod_zip file
+        ResultActions sampleResultActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
+                                  + StacApiConstants.STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections", "uselessCollectionId");
+        String sampleModZipFiles = payload(sampleResultActions);
+        String[] sampleLines = sampleModZipFiles.split("\n");
+        // Expected 1 or 2 files (first item files)
+        Assert.assertTrue(3 > sampleLines.length);
     }
 
     @Test

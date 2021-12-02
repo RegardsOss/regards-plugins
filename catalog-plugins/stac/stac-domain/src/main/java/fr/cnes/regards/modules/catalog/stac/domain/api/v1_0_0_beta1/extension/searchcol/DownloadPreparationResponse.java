@@ -76,10 +76,28 @@ public class DownloadPreparationResponse {
 
         URI download;
 
+        DownloadSamplePreparationResponse sample;
+
         /**
          * Only set if at least one error occurs during preparation of this collection
          */
         List<String> errors;
+    }
+
+    @Value
+    @With
+    public static class DownloadSamplePreparationResponse {
+        /**
+         * Size in bytes
+         */
+        Long size;
+
+        /**
+         * Number of files
+         */
+        Long files;
+
+        URI download;
     }
 
 }

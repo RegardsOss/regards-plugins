@@ -326,7 +326,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                   "downloadAllCollectionsAsZip"))
                         .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
                         .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+                        .onFailure(t -> warn(LOGGER, "Failed to create all collections download link", t)).toOption();
             }
 
             @Override
@@ -337,7 +337,18 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                             collectionId).toUri())
                         .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
                         .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+                        .onFailure(t -> warn(LOGGER, "Failed to create single collection download link", t)).toOption();
+            }
+
+            @Override
+            public Option<URI> createSingleCollectionSampleDownloadLink(String collectionId, String tinyUrlId) {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class,
+                                                            getMethodNamedInClass(CollectionDownloadController.class,
+                                                                                  "downloadSingeCollectionSampleAsZip"),
+                                                            collectionId).toUri())
+                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create single collection sample download link", t)).toOption();
             }
 
             @Override

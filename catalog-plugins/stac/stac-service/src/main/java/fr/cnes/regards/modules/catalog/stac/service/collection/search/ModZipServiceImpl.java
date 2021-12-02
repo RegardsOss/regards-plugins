@@ -100,24 +100,63 @@ public class ModZipServiceImpl implements ModZipService {
 
     @Override
     public void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, String tinyurl,
-            DownloadLinkCreator downloadLinkCreator) {
+            DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
         try (PrintWriter writer = new PrintWriter(outputStream)) {
-            addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+            if (onlySample) {
+                addSampleFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+            } else {
+                addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+            }
         }
     }
 
     @Override
     public Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator) {
+            DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
         return trying(() -> {
             StreamingResponseBody stream = outputStream -> {
                 try (PrintWriter writer = new PrintWriter(outputStream)) {
-                    addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+                    if (onlySample) {
+                        addSampleFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+                    } else {
+                        addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+                    }
                 }
             };
             return stream;
-        }).mapFailure(StacFailureType.MOD_ZIP_DESC_BUILD, () -> String
-                .format("Download preparation failure for %s", collectionId.orElseGet(() -> "all collections")));
+        }).mapFailure(StacFailureType.MOD_ZIP_DESC_BUILD, () -> String.format("Download preparation failure for %s",
+                                                                              collectionId.orElseGet(
+                                                                                      () -> "all collections")));
+    }
+
+    private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
+            Optional<String> collectionId, final String tinyurl) {
+
+        if (collectionId.isPresent()) {
+            LOGGER.info("Handling sample for tinyurl {} for collection {}", tinyurl, collectionId.get());
+        } else {
+            throw new StacException("Sample can only be downloaded for a specified collection", null,
+                                    StacFailureType.DOWNLOAD_SAMPLE_ONLY_FOR_SINGLE_COLLECTION);
+        }
+
+        // Retrieve context from tinyurl
+        TinyUrl tiny = getTinyUrl(tinyurl);
+
+        // Load criteria
+        ICriterion itemCriteria = tinyUrlService.loadContext(tiny, ICriterion.class);
+
+        try {
+            // Extract file from first matching item
+            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria, SearchType.DATAOBJECTS,
+                                                                                  null, PageRequest.of(0, 1));
+            // Extract file from it
+            facetPage.forEach(feature -> printFeatureReferences(downloadLinkCreator, writer, feature));
+
+        } catch (SearchException | OpenSearchUnknownParameter e) {
+            throw new StacException(String.format("Cannot retrieve sample files to download for collection %s",
+                                                  collectionId.orElseGet(() -> "unknown collection")), e,
+                                    StacFailureType.DOWNLOAD_RETRIEVE_SAMPLE_FILES);
+        }
     }
 
     private void addFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
@@ -130,9 +169,7 @@ public class ModZipServiceImpl implements ModZipService {
         }
 
         // Retrieve context from tinyurl
-        TinyUrl tiny = tinyUrlService.get(tinyurl).orElseThrow(
-                () -> new StacException(String.format("Tiny URL not found with this identifier : %s", tinyurl), null,
-                                        StacFailureType.DOWNLOAD_UNKNOWN_TINYURL));
+        TinyUrl tiny = getTinyUrl(tinyurl);
 
         // Criterion of list of tiny url id
         try {
@@ -153,28 +190,20 @@ public class ModZipServiceImpl implements ModZipService {
         }
     }
 
+    private TinyUrl getTinyUrl(final String tinyurl) {
+        return tinyUrlService.get(tinyurl).orElseThrow(
+                () -> new StacException(String.format("Tiny URL not found with this identifier : %s", tinyurl), null,
+                                        StacFailureType.DOWNLOAD_UNKNOWN_TINYURL));
+    }
+
     private void extractFilesFromPage(DownloadLinkCreator downloadLinkCreator, PrintWriter writer, Pageable pageable,
             ICriterion itemCriteria) {
         try {
             // Get a page of feature
-            FacetPage<DataObjectFeature> facetPage = businessSearchService
-                    .search(itemCriteria, SearchType.DATAOBJECTS, null, pageable);
+            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria, SearchType.DATAOBJECTS,
+                                                                                  null, pageable);
             // Extract file from each one
-            //            extractFiles(writer, facetPage);
-            facetPage.forEach(feature -> {
-                Collection<DataFile> dataFiles = feature.getFiles().get(DataType.RAWDATA);
-                Path dir = getFeatureDirectory(feature);
-                if (dataFiles != null) {
-                    dataFiles.forEach(
-                            // Download
-                            file -> printFileReference(writer, Optional.ofNullable(file.getCrc32()), file.getFilesize(),
-                                                       DownloadSource.STORAGE.equals(downloadSource) ?
-                                                               getStorageLocation(file.getChecksum(),
-                                                                                  downloadLinkCreator) :
-                                                               getCatalogLocation(file.getUri(), downloadLinkCreator),
-                                                       Optional.of(dir), file.getFilename()));
-                }
-            });
+            facetPage.forEach(feature -> printFeatureReferences(downloadLinkCreator, writer, feature));
             // Handle next page if necessary
             if (facetPage.hasNext()) {
                 extractFilesFromPage(downloadLinkCreator, writer, facetPage.getPageable().next(), itemCriteria);
@@ -183,6 +212,21 @@ public class ModZipServiceImpl implements ModZipService {
             throw new StacException(
                     String.format("Cannot retrieve files to download at page %d with size %d", pageable.getPageNumber(),
                                   pageable.getPageSize()), e, StacFailureType.DOWNLOAD_RETRIEVE_FILES);
+        }
+    }
+
+    private void printFeatureReferences(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
+            DataObjectFeature feature) {
+        Collection<DataFile> dataFiles = feature.getFiles().get(DataType.RAWDATA);
+        Path dir = getFeatureDirectory(feature);
+        if (dataFiles != null) {
+            dataFiles.forEach(
+                    // Download
+                    file -> printFileReference(writer, Optional.ofNullable(file.getCrc32()), file.getFilesize(),
+                                               DownloadSource.STORAGE.equals(downloadSource) ?
+                                                       getStorageLocation(file.getChecksum(), downloadLinkCreator) :
+                                                       getCatalogLocation(file.getUri(), downloadLinkCreator),
+                                               Optional.of(dir), file.getFilename()));
         }
     }
 
@@ -203,8 +247,8 @@ public class ModZipServiceImpl implements ModZipService {
     private void printFileReference(PrintWriter writer, Optional<String> crc32, Long size, String location,
             Optional<Path> dir, String filename) {
         String targetFilename = dir.isPresent() ? dir.get().resolve(filename).toString() : filename;
-        String line = String
-                .format(MOD_ZIP_LINE_FORMAT, crc32.orElseGet(() -> UNKNOWN_CRC32), size, location, targetFilename);
+        String line = String.format(MOD_ZIP_LINE_FORMAT, crc32.orElseGet(() -> UNKNOWN_CRC32), size, location,
+                                    targetFilename);
         LOGGER.debug("Mod_zip line : {}", line);
         writer.println(line);
     }
@@ -231,7 +275,7 @@ public class ModZipServiceImpl implements ModZipService {
      *
      * @param checksum file checksum
      *                 <p>
-     *                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
+     *                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
      */
     private String getStorageLocation(String checksum, DownloadLinkCreator downloadLinkCreator) {
         return String.format(STORAGE_DOWNLOAD_FILE_PATH, nginxPrefix, checksum, downloadLinkCreator.getSystemToken());

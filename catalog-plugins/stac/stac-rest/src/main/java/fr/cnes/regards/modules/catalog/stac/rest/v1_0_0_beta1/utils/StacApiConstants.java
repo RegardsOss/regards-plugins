@@ -57,22 +57,18 @@ public interface StacApiConstants {
     String STAC_CONFORMANCE_PATH = STAC_PATH + "/conformance";
 
     String STAC_COLLECTIONS_PATH = STAC_PATH + "/collections";
-
-    String STAC_COLLECTION_PATH_SUFFIX = "/{" + COLLECTION_ID_PARAM + "}";
-
-    String STAC_ITEMS_PATH_SUFFIX = STAC_COLLECTION_PATH_SUFFIX + "/items";
-
-    String STAC_ITEM_PATH_SUFFIX = STAC_ITEMS_PATH_SUFFIX + "/{" + ITEM_ID_PARAM + "}";
-
-    String STAC_SEARCH_PATH = STAC_PATH + "/search";
-
     // Extension to get collection from both item and collection searches
     String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
-
+    String STAC_COLLECTION_PATH_SUFFIX = "/{" + COLLECTION_ID_PARAM + "}";
+    String STAC_ITEMS_PATH_SUFFIX = STAC_COLLECTION_PATH_SUFFIX + "/items";
+    String STAC_ITEM_PATH_SUFFIX = STAC_ITEMS_PATH_SUFFIX + "/{" + ITEM_ID_PARAM + "}";
+    String STAC_SEARCH_PATH = STAC_PATH + "/search";
     // Extension to get download information for a set of collections
     String STAC_DOWNLOAD_BY_COLLECTION_PATH = STAC_PATH + "/download/collections";
 
     String STAC_DOWNLOAD_AS_ZIP_SUFFIX = "/zip";
+
+    String STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX = "/sample";
 
     String STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX = "/zipstream";
 
@@ -82,9 +78,15 @@ public interface StacApiConstants {
 
     String STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIPSTREAM_SUFFIX = STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
 
-    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX = "{collectionId}" + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
+    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX = "/{collectionId}" + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
 
-    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX = "{collectionId}" + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
+    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX =
+            "/{collectionId}" + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
+
+    String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX = "/{collectionId}" + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
+
+    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX =
+            "/{collectionId}" + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
 
     /**
      * Parameter to pass query parameters on items on a collection search request

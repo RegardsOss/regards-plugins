@@ -88,8 +88,9 @@ public class CollectionDownloadController implements TryToResponseEntity {
     public ResponseEntity<DownloadPreparationResponse> prepareZipDownload(
             @RequestBody DownloadPreparationBody downloadPreparationBody) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return toResponseEntity(collectionSearchService.prepareZipDownload(downloadPreparationBody, linkCreatorService
-                .makeDownloadLinkCreator(auth, feignSecurityManager)));
+        return toResponseEntity(collectionSearchService.prepareZipDownload(downloadPreparationBody,
+                                                                           linkCreatorService.makeDownloadLinkCreator(
+                                                                                   auth, feignSecurityManager)));
     }
 
     @Operation(summary = "Download all collections as zip at once",
@@ -122,7 +123,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
             description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of a single collection")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
-    @ResourceAccess(description = "Download by collection", role = DefaultRole.PUBLIC)
+    @ResourceAccess(description = "(Stream) Download by collection", role = DefaultRole.PUBLIC)
     @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX, method = RequestMethod.GET,
             produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadSingeCollectionAsZipStream(final HttpServletResponse response,
@@ -132,8 +133,23 @@ public class CollectionDownloadController implements TryToResponseEntity {
                 delegateDownloadToNginxAsStream(response, Optional.of(collectionId), tinyurl, filename));
     }
 
+    @Operation(summary = "Download a collection sample as zip",
+            description = "(Stream) Prepare NGINX mod_zip descriptor file to download first item of the collection")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+    @ResourceAccess(description = "(Stream) Download sample by collection", role = DefaultRole.PUBLIC)
+    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX, method = RequestMethod.GET,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<StreamingResponseBody> downloadSingeCollectionSampleAsZipStream(
+            final HttpServletResponse response, @PathVariable(name = "collectionId") String collectionId,
+            @RequestParam(name = "tinyurl") String tinyurl,
+            @RequestParam(name = "filename", defaultValue = "regards.zip") String filename) {
+        return toResponseEntity(
+                delegateDownloadToNginxAsStream(response, Optional.of(collectionId), tinyurl, filename, Boolean.TRUE));
+    }
+
     @Operation(summary = "Download a single collection as zip",
-            description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of a single collection")
+            description = "Prepare NGINX mod_zip descriptor file to download all items of a single collection")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
     @ResourceAccess(description = "Download by collection", role = DefaultRole.PUBLIC)
@@ -145,8 +161,27 @@ public class CollectionDownloadController implements TryToResponseEntity {
         delegateDownloadToNginx(response, Optional.of(collectionId), tinyurl, filename);
     }
 
+    @Operation(summary = "Download a collection sample as zip",
+            description = "Prepare NGINX mod_zip descriptor file to download first item of the collection")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+    @ResourceAccess(description = "Download sample by collection", role = DefaultRole.PUBLIC)
+    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX, method = RequestMethod.GET,
+            produces = MediaType.TEXT_PLAIN_VALUE)
+    public void downloadSingeCollectionSampleAsZip(final HttpServletResponse response,
+            @PathVariable(name = "collectionId") String collectionId, @RequestParam(name = "tinyurl") String tinyurl,
+            @RequestParam(name = "filename", defaultValue = "regards.zip") String filename) {
+        delegateDownloadToNginx(response, Optional.of(collectionId), tinyurl, filename, Boolean.TRUE);
+    }
+
     private Try<StreamingResponseBody> delegateDownloadToNginxAsStream(final HttpServletResponse response,
             final Optional<String> collectionId, final String tinyurl, final String filename) {
+        return delegateDownloadToNginxAsStream(response, collectionId, tinyurl, filename, Boolean.FALSE);
+    }
+
+    private Try<StreamingResponseBody> delegateDownloadToNginxAsStream(final HttpServletResponse response,
+            final Optional<String> collectionId, final String tinyurl, final String filename,
+            final boolean onlySample) {
         LOGGER.debug("(stream) Preparing mod_zip descriptor...");
         // Activate mod_zip on NGINX
         response.addHeader("X-Archive-Files", "zip");
@@ -154,12 +189,19 @@ public class CollectionDownloadController implements TryToResponseEntity {
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
         // Prepare mod_zip descriptor file
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return modZipService.prepareDescriptorAsStream(collectionId, tinyurl, linkCreatorService
-                .makeDownloadLinkCreator(auth, feignSecurityManager));
+        return modZipService.prepareDescriptorAsStream(collectionId, tinyurl,
+                                                       linkCreatorService.makeDownloadLinkCreator(auth,
+                                                                                                  feignSecurityManager),
+                                                       onlySample);
     }
 
     private void delegateDownloadToNginx(final HttpServletResponse response, final Optional<String> collectionId,
             final String tinyurl, final String filename) {
+        delegateDownloadToNginx(response, collectionId, tinyurl, filename, Boolean.FALSE);
+    }
+
+    private void delegateDownloadToNginx(final HttpServletResponse response, final Optional<String> collectionId,
+            final String tinyurl, final String filename, final boolean onlySample) {
         LOGGER.debug("Preparing mod_zip descriptor...");
         // Activate mod_zip on NGINX
         response.addHeader("X-Archive-Files", "zip");
@@ -168,8 +210,9 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Prepare mod_zip descriptor file
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         try {
-            modZipService.prepareDescriptor(response.getOutputStream(), Optional.empty(), tinyurl,
-                                            linkCreatorService.makeDownloadLinkCreator(auth, feignSecurityManager));
+            modZipService.prepareDescriptor(response.getOutputStream(), collectionId, tinyurl,
+                                            linkCreatorService.makeDownloadLinkCreator(auth, feignSecurityManager),
+                                            onlySample);
             response.getOutputStream().flush();
         } catch (IOException e) {
             throw new StacException("Cannot open output stream", e, StacFailureType.DOWNLOAD_IO_EXCEPTION);

@@ -47,6 +47,7 @@ import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
+import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
@@ -67,13 +68,17 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.ID_PROPERTY_NAME;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
@@ -354,8 +359,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
             // Prepare response by collection
             List<DownloadPreparationResponse.DownloadCollectionPreparationResponse> collections = downloadPreparationBody.getCollections()
-                    .flatMap(itemSearchBody -> prepareDownloadCollectionResponse(itemSearchBody, downloadLinkCreator,
-                                                                                 tinyUrls)).toList();
+                    .flatMap(downloadCollectionPreparationBody -> prepareDownloadCollectionResponse(
+                            downloadCollectionPreparationBody, downloadLinkCreator, tinyUrls)).toList();
 
             // Compute total
             Long totalSize = 0L, totalItems = 0L, totalFiles = 0L;
@@ -398,20 +403,44 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
                             .getOrElse(ICriterion.all()));
 
-            // Compute summary
+            // Compute summary and getting first hit
             DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();
+
+            // Compute information for sample
+            DocFilesSummary sampleDocFilesSummary = getSampleDocFileSummary(itemCriteria, datasetUrn).get();
+
+            Pair<TinyUrl, URI> tinyUrlURIPair = buildCollectionDownloadLink(
+                    downloadCollectionPreparationBody.getCollectionId(), itemCriteria, downloadLinkCreator, tinyUrls);
 
             return new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
                     downloadCollectionPreparationBody.getCollectionId(), docFilesSummary.getFilesSize(),
                     docFilesSummary.getDocumentsCount(), docFilesSummary.getFilesCount(),
-                    docFilesSummary.getDocumentsCount() == 0 ?
-                            null :
-                            buildCollectionDownloadLink(downloadCollectionPreparationBody.getCollectionId(),
-                                                        itemCriteria, downloadLinkCreator, tinyUrls),
+                    docFilesSummary.getDocumentsCount() == 0 ? null : tinyUrlURIPair.getSecond(),
+                    buildCollectionSample(downloadCollectionPreparationBody.getCollectionId(),
+                                          tinyUrlURIPair.getFirst(), downloadLinkCreator,
+                                          sampleDocFilesSummary.getFilesSize(), sampleDocFilesSummary.getFilesCount()),
                     docFilesSummary.getDocumentsCount() == 0 ? List.of("No item found") : List.empty());
         }).recover(throwable -> new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
-                downloadCollectionPreparationBody.getCollectionId(), null, null, null, null,
+                downloadCollectionPreparationBody.getCollectionId(), null, null, null, null, null,
                 List.of(throwable.getMessage())));
+    }
+
+    private Try<DocFilesSummary> getSampleDocFileSummary(ICriterion itemCriteria, UniformResourceName datasetUrn) {
+        return trying(() -> {
+            // Retrieve first item
+            FacetPage<DataObject> page = catalogSearchService.search(itemCriteria, SearchType.DATAOBJECTS, null,
+                                                                     PageRequest.of(0, 1));
+            Optional<DataObject> firstItem = page.stream().findFirst();
+            // Compute sample summary if item found
+            if (firstItem.isPresent()) {
+                ICriterion sampleCriterion = ICriterion.eq(ID_PROPERTY_NAME, firstItem.get().getIpId().toString(),
+                                                           StringMatchType.KEYWORD);
+                return catalogSearchService.computeDatasetsSummary(sampleCriterion, SearchType.DATAOBJECTS, datasetUrn,
+                                                                   Lists.newArrayList(DataType.RAWDATA));
+            }
+            // Else return empty summary
+            return new DocFilesSummary();
+        }).mapFailure(DOWNLOAD_COLLECTION_SAMPLE_SUMMARY, () -> "Cannot compute sample collection summary");
     }
 
     private Try<UniformResourceName> parseCollectionUrn(String collectionId) {
@@ -421,27 +450,43 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     private Try<DocFilesSummary> computeSummary(ICriterion itemCriteria, UniformResourceName datasetUrn) {
         return trying(() -> {
-            return catalogSearchService.computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS, datasetUrn,
-                                                               Lists.newArrayList(DataType.RAWDATA));
+            return catalogSearchService.computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS,
+                                                               datasetUrn, Lists.newArrayList(DataType.RAWDATA));
         }).mapFailure(DOWNLOAD_COLLECTION_SUMMARY, () -> "Cannot compute collection summary");
     }
 
     /**
      * Build download link for a single collection
      *
+     * @param collectionId        collection urn
      * @param itemCriteria        tiny url context
      * @param downloadLinkCreator build proper link
      * @param tinyUrls            set of tiny URLs
      * @return download link
      */
-    private URI buildCollectionDownloadLink(String collectionId, ICriterion itemCriteria,
+    private Pair<TinyUrl, URI> buildCollectionDownloadLink(String collectionId, ICriterion itemCriteria,
             DownloadLinkCreator downloadLinkCreator, java.util.List<TinyUrl> tinyUrls) {
         // Store context
         TinyUrl tinyUrl = tinyUrlService.create(itemCriteria);
         // Mutate set of tiny URLs
         tinyUrls.add(tinyUrl);
         // Build URI
-        return downloadLinkCreator.createSingleCollectionDownloadLink(collectionId, tinyUrl.getUuid()).get();
+        return Pair.of(tinyUrl,
+                       downloadLinkCreator.createSingleCollectionDownloadLink(collectionId, tinyUrl.getUuid()).get());
+    }
+
+    /**
+     * @param collectionId        collection urn
+     * @param tinyUrl             tiny url taken from collection download link
+     * @param downloadLinkCreator build proper link
+     * @return sample download link
+     */
+    private DownloadPreparationResponse.DownloadSamplePreparationResponse buildCollectionSample(String collectionId,
+            TinyUrl tinyUrl, DownloadLinkCreator downloadLinkCreator, Long size, Long files) {
+        return new DownloadPreparationResponse.DownloadSamplePreparationResponse(size, files,
+                                                                                 downloadLinkCreator.createSingleCollectionSampleDownloadLink(
+                                                                                         collectionId,
+                                                                                         tinyUrl.getUuid()).get());
     }
 
     /**

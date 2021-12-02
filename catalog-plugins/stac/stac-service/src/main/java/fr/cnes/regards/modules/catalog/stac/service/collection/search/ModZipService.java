@@ -37,11 +37,11 @@ public interface ModZipService {
      * Use standard response output stream
      */
     void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator);
+            DownloadLinkCreator downloadLinkCreator, boolean onlySample);
 
     /**
      * Use a non blocking stream
      */
     Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator);
+            DownloadLinkCreator downloadLinkCreator, boolean onlySample);
 }
