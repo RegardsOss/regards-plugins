@@ -36,5 +36,6 @@
 		<module>common-plugins</module>
 		<module>rabbitmq-sender</module>
 		<module>worker-manager-sender</module>
-   	</modules>
+		<module>dissemination-ack-sender</module>
+	</modules>
 </project>

@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rabbitmq-sender</artifactId>
-    <description>Default recipient sender</description>
+    <artifactId>dissemination-ack-sender</artifactId>
+    <description>Product dissemination acknowledge Sender</description>
 
     <parent>
         <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
@@ -13,20 +13,45 @@
         <version>${revision}</version>
     </parent>
 
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Systèmes d'Information</organization>
+            <organizationUrl>http://www.c-s.fr</organizationUrl>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
             <artifactId>common-plugins</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>geojson-starter</artifactId>
+            <artifactId>jpa-multitenant-regards-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>jpa-multitenant-regards-test</artifactId>
+            <artifactId>geojson-starter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

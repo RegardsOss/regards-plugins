@@ -296,6 +296,11 @@
                 <artifactId>rabbitmq-sender</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+                <artifactId>dissemination-ack-sender</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
             <!-- Storage -->
             <dependency>

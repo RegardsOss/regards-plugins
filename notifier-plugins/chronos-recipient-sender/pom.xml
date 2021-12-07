@@ -83,7 +83,7 @@
 							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<includes>
-									<include>fr.cnes.regards.modules.notifier.plugins:chronos-recipient-sender</include>
+									<include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
 								</includes>
 							</artifactSet>
 						</configuration>

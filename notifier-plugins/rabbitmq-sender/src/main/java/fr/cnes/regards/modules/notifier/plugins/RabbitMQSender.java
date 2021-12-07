@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.notifier.plugins;
 
 import com.google.gson.JsonElement;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
-import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.Event;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.amqp.event.JsonMessageConverter;
@@ -28,7 +27,6 @@ import fr.cnes.regards.framework.amqp.event.Target;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,12 +36,14 @@ import java.util.stream.Collectors;
 
 /**
  * Default plugin notification sender
+ *
  * @author Kevin Marchois
  */
 @Plugin(author = "REGARDS Team", description = "Default recipient sender", id = RabbitMQSender.PLUGIN_ID,
         version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
         url = "https://regardsoss.github.io/")
 public class RabbitMQSender extends AbstractRabbitMQSender {
+
     @Event(target = Target.ONE_PER_MICROSERVICE_TYPE, converter = JsonMessageConverter.GSON)
     private static class NotificationEvent implements ISubscribable {
 
@@ -77,12 +77,15 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
 
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    @PluginParameter(label = "RabbitMQ ack required", name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
+    @PluginParameter(label = "Recipient acknowledgment",
+            description = "When value is True, the recipient will send back an acknowledgment.",
+            name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
     private boolean ackRequired;
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
-        List<NotificationEvent> toSend = requestsToSend.stream().map(NotificationEvent::new).collect(Collectors.toList());
+        List<NotificationEvent> toSend = requestsToSend.stream().map(NotificationEvent::new)
+                .collect(Collectors.toList());
         Map<String, Object> headers = new HashMap<>();
         return sendEvents(toSend, headers);
     }

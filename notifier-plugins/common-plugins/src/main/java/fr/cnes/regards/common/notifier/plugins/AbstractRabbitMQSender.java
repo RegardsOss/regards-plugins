@@ -49,11 +49,14 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @PluginParameter(label = "RabbitMQ queue name", name = QUEUE_PARAM_NAME, optional = true)
     private String queueName;
 
-    @PluginParameter(label = "Recipient label (must be unique)", name = RECIPIENT_LABEL_PARAM_NAME, optional = true)
+    @PluginParameter(label = "Recipient label (must be unique).",
+            description = " When not specified, the emitter wont know what's the recipient label that should receive its events",
+            name = RECIPIENT_LABEL_PARAM_NAME, optional = true)
     private String recipientLabel;
 
     public <T> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
-        this.publisher.broadcastAll(exchange, Optional.ofNullable(queueName), Optional.empty(), Optional.empty(), 0, toSend, headers);
+        this.publisher.broadcastAll(exchange, Optional.ofNullable(queueName), Optional.empty(), Optional.empty(), 0,
+                                    toSend, headers);
 
         // if there is an issue with amqp then none of the message will be sent
         return Collections.emptySet();

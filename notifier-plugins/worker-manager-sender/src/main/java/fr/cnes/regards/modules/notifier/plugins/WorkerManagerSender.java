@@ -60,7 +60,8 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
 
     //@formatter:off
     @PluginParameter(
-            label = "When value is True, the recipient will send back an acknowledgment.",
+            label = "Recipient acknowledgment",
+            description = "When value is True, the recipient will send back an acknowledgment.",
             name = ACK_REQUIRED_PARAM_NAME,
             optional = true,
             defaultValue = "false")
@@ -71,10 +72,10 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
             name = WS_SESSION_NAME_PATTERN_NAME,
             description = "If the parameter is not filled, the session will be named with the metadata of "
                     + "the requests received. If a value is provided, the session will be named the following way "
-                    + "\"^\\{(<jsonPathToAccessProductType>)\\}-(#day)(.*)\""
+                    + "\"^\\{<jsonPathToAccessProductType>\\}-#day(.*)\""
                     + ", where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
-                    + "The RegExp could be for instance : \"^\\{(feature.properties.data.type)\\}-(#day)(.*)\". "
-                    + "The parameter feature.properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
+                    + "The RegExp could be for instance : \"^\\{properties.data.type\\}-#day-foo\". "
+                    + "The parameter properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
                     + "formatted current date. Note that any additional parameters can be provided after #day to help "
                     + "identifying the session names on the dashboard. If the pattern is not found, the "
                     + "session will be named with the pattern " + SESSION_NAME_PATTERN_ERROR + ". In that "
