@@ -90,6 +90,8 @@
                             <artifactSet>
                                 <includes>
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
+                                    <include>fr.cnes.regards.modules.workermanager:worker-manager-dto</include>
+                                    <include>com.jayway.jsonpath:json-path</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
