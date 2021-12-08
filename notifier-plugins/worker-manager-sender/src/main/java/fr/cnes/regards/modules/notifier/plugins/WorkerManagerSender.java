@@ -100,7 +100,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
 
-    public static final String PLUGIN_ID = "WorkerManagerSend";
+    public static final String PLUGIN_ID = "WorkerManagerSender";
 
     /**
      * Plugin parameters names
