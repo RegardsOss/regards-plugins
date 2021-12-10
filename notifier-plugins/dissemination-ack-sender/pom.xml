@@ -76,6 +76,8 @@
                             <artifactSet>
                                 <includes>
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
+                                    <include>fr.cnes.regards.modules.feature:feature-dto</include>
+                                    <include>fr.cnes.regards.framework:urn-regards</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
