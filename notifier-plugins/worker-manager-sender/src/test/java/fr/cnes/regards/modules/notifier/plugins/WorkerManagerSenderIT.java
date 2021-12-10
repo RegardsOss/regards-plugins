@@ -269,7 +269,7 @@ public class WorkerManagerSenderIT {
                         + WorkerManagerSender.SESSION_METADATA_PATH + "\":\"testSession\"}");
         for (JsonObject feature : featuresSamples) {
             notificationRequests.add(
-                    new NotificationRequest(feature, metadata, AbstractRequestEvent.generateRequestId(),
+                    new NotificationRequest(feature, metadata.getAsJsonObject(), AbstractRequestEvent.generateRequestId(),
                                             this.getClass().getSimpleName(), OffsetDateTime.now(),
                                             NotificationState.SCHEDULED, new HashSet<>()));
         }

@@ -164,6 +164,6 @@ public class DisseminationAckSenderTest {
         Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
         DisseminationAckEvent event = (DisseminationAckEvent) messagesCaptor.getValue().stream().findFirst().get();
         Assert.assertEquals("should get the correct recipient label (current tenant)", senderLabelName, event.getRecipientLabel());
-        Assert.assertEquals("should send a message", FeatureUniformResourceName.fromString(validURN), event.getUrn());
+        Assert.assertEquals("should send a message", validURN, event.getUrn());
     }
 }
