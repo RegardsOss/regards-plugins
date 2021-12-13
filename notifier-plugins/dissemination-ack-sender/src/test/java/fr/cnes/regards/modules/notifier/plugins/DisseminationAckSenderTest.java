@@ -117,11 +117,13 @@ public class DisseminationAckSenderTest {
         String queueName = "queueName";
         String recipientLabel = "recipientLabel";
         String recipientTenant = "recipientTenant";
+        String senderLabelName = "sender";
         // Plugin parameters
         Set<IPluginParam> parameters = IPluginParam.set(
                 IPluginParam.build(AbstractRabbitMQSender.EXCHANGE_PARAM_NAME, exchange),
                 IPluginParam.build(AbstractRabbitMQSender.QUEUE_PARAM_NAME, queueName),
                 IPluginParam.build(AbstractRabbitMQSender.RECIPIENT_LABEL_PARAM_NAME, recipientLabel),
+                IPluginParam.build(DisseminationAckSender.SENDER_LABEL_PARAM_NAME, senderLabelName),
                 IPluginParam.build(DisseminationAckSender.RECIPIENT_TENANT_PARAM_NAME, recipientTenant));
 
         // Instantiate plugin
@@ -161,7 +163,7 @@ public class DisseminationAckSenderTest {
 
         Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
         DisseminationAckEvent event = (DisseminationAckEvent) messagesCaptor.getValue().stream().findFirst().get();
-        Assert.assertEquals("should get the correct recipient label (current tenant)", TENANT, event.getRecipientLabel());
+        Assert.assertEquals("should get the correct recipient label (current tenant)", senderLabelName, event.getRecipientLabel());
         Assert.assertEquals("should send a message", FeatureUniformResourceName.fromString(validURN), event.getUrn());
     }
 }

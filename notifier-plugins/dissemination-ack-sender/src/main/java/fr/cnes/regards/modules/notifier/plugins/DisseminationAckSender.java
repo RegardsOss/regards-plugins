@@ -50,22 +50,27 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
 
     public static final String FEATURE_PATH_TO_URN = "urn";
 
+    public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
+
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
 
     @PluginParameter(label = "Recipient tenant", name = RECIPIENT_TENANT_PARAM_NAME)
     private String recipientTenant;
 
+    @PluginParameter(label = "Sender label", name = SENDER_LABEL_PARAM_NAME,
+            description="Acknowledge sender label. Used by destination system to identify the current system")
+    private String senderLabel;
+
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
-        String tenantName = runtimeTenantResolver.getTenant();
         List<NotificationRequest> errors = new ArrayList<>();
         List<DisseminationAckEvent> toSend = new ArrayList<>();
         for (NotificationRequest request : requestsToSend) {
             // Check we can retrieve the URN, and it's valid field
             String urnAsString = request.getPayload().getAsJsonPrimitive(FEATURE_PATH_TO_URN).getAsString();
             if (FeatureUniformResourceName.isValidUrn(urnAsString)) {
-                toSend.add(new DisseminationAckEvent(urnAsString, tenantName));
+                toSend.add(new DisseminationAckEvent(urnAsString, senderLabel));
             } else {
                 errors.add(request);
             }
