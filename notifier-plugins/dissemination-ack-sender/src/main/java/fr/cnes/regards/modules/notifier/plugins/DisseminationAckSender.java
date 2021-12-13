@@ -65,7 +65,7 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
             // Check we can retrieve the URN, and it's valid field
             String urnAsString = request.getPayload().getAsJsonPrimitive(FEATURE_PATH_TO_URN).getAsString();
             if (FeatureUniformResourceName.isValidUrn(urnAsString)) {
-                toSend.add(new DisseminationAckEvent(FeatureUniformResourceName.fromString(urnAsString), tenantName));
+                toSend.add(new DisseminationAckEvent(urnAsString, tenantName));
             } else {
                 errors.add(request);
             }
