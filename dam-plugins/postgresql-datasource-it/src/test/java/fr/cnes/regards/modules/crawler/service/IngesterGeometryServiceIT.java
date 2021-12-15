@@ -28,8 +28,10 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -179,7 +181,7 @@ public class IngesterGeometryServiceIT {
     public void setUp() throws Exception {
 
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
-        gsonAttributeFactoryHandler.onApplicationEvent(null);
+        gsonAttributeFactoryHandler.onApplicationEvent(Mockito.mock(ApplicationStartedEvent.class));
 
         tenantResolver.forceTenant(TENANT);
 
@@ -221,7 +223,7 @@ public class IngesterGeometryServiceIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getBusinessId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf

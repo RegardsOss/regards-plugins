@@ -19,7 +19,6 @@
 package fr.cnes.regards.modules.notifier.plugins;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -100,13 +99,10 @@ public class WorkerManagerSenderIT {
     }
 
     @Autowired
-    private Gson gson;
-
-    @Autowired
     private IPublisher publisher;
 
     @Captor
-    private ArgumentCaptor<Collection<?>> messagesCaptor;
+    private ArgumentCaptor<Collection<Message>> messagesCaptor;
 
     private final List<NotificationRequest> notificationRequests = Lists.newArrayList();
 

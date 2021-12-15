@@ -44,7 +44,7 @@ public abstract class AbstractConfigurationAccessor {
 
     private final RegardsPropertyAccessorFactory regardsPropertyAccessorFactory;
 
-    public AbstractConfigurationAccessor(IPluginService pluginService,
+    protected AbstractConfigurationAccessor(IPluginService pluginService,
             RegardsPropertyAccessorFactory regardsPropertyAccessorFactory) {
         this.pluginService = pluginService;
         this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
@@ -71,14 +71,14 @@ public abstract class AbstractConfigurationAccessor {
     }
 
     /**
-     * Theses properties come from attributes of type JSON witch produce themselves virtual attributes
+     * These properties come from attributes of type JSON witch produce themselves virtual attributes
      *
      * @return aggregation of all virtual properties as {@link StacProperty} for reverse mapping
      */
     protected List<StacProperty> addVirtualStacProperties(List<StacProperty> stacProperties) {
         return stacProperties.appendAll(stacProperties.filter(p -> PropertyType.JSON
                 .equals(p.getRegardsPropertyAccessor().getAttributeModel().getType()))
-                                                .flatMap(p -> makeVirtualStacProperties(p)));
+                                                .flatMap(this::makeVirtualStacProperties));
     }
 
     private List<StacProperty> makeVirtualStacProperties(StacProperty jsonBasedProperty) {

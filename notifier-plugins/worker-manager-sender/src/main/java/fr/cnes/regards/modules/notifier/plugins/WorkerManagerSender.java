@@ -117,7 +117,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
      * RegExp to build the session name
      */
 
-    public static final String WS_SESSION_PATTERN = "^\\{(.+)\\}-(#day)(.*)$";
+    public static final String WS_SESSION_PATTERN = "^\\{(.+)}-(#day)(.*)$";
 
     public static final String DEFAULT_SESSION_OWNER_TOKEN = "REGARDS-";
 

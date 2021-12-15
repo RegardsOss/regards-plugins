@@ -18,8 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -77,16 +75,13 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
         final PluginConfiguration aPluginConfiguration = getPostGreSqlConnectionConfiguration();
         pluginService.savePluginConfiguration(aPluginConfiguration);
 
-        final List<PluginConfiguration> pluginConfs = new ArrayList<>();
-        pluginConfs.add(aPluginConfiguration);
-
         // Get the first Plugin
         final DefaultPostgreConnectionPlugin aa = pluginService.getFirstPluginByType(IDBConnectionPlugin.class);
 
         Assert.assertNotNull(aa);
         Assert.assertTrue(aa.testConnection());
 
-        // Get the first Plugin : the same than the previous
+        // Get the first Plugin : the same as the previous
         final DefaultPostgreConnectionPlugin bb = pluginService.getFirstPluginByType(IDBConnectionPlugin.class);
 
         Assert.assertNotNull(bb);
@@ -99,10 +94,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
         // Save a PluginConfiguration
         PluginConfiguration aPluginConfiguration = getPostGreSqlConnectionConfiguration();
         pluginService.savePluginConfiguration(aPluginConfiguration);
-        Long anId = aPluginConfiguration.getId();
-
-        final List<PluginConfiguration> pluginConfs = new ArrayList<>();
-        pluginConfs.add(aPluginConfiguration);
+        String anId = aPluginConfiguration.getBusinessId();
 
         // Get a Plugin for a specific configuration
         final DefaultPostgreConnectionPlugin aa = pluginService.getPlugin(anId);

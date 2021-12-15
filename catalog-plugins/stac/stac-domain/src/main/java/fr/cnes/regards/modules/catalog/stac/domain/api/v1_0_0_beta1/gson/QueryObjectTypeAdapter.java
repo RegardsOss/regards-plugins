@@ -32,8 +32,6 @@ import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Seq;
 import org.apache.commons.lang3.NotImplementedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -47,8 +45,6 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_
  */
 @GsonTypeAdapter(adapted = SearchBody.QueryObject.class)
 public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(QueryObjectTypeAdapter.class);
 
     @Override
     public void write(JsonWriter out, SearchBody.QueryObject value) throws IOException {
@@ -224,7 +220,7 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                             .in((List<String>) inProps.get("in").getOrNull())
                             .matchType((String) inProps.get("matchType").getOrNull()).build();
                 } else {
-                    throw new IOException("Unparsable QueryObject");
+                    throw new IOException("QueryObject not parsable");
                 }
             } catch (Exception e) {
                 throw new IOException(e);

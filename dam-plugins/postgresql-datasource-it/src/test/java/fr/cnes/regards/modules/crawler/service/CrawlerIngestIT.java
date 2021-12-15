@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -204,7 +205,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     public void setUp() throws Exception {
         LOGGER.info("********************* setUp CrawlerIngestIT ***********************************");
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
-        gsonAttributeFactoryHandler.onApplicationEvent(null);
+        gsonAttributeFactoryHandler.onApplicationEvent(Mockito.mock(ApplicationStartedEvent.class));
 
         tenantResolver.forceTenant(getDefaultTenant());
 
@@ -251,7 +252,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         dBConnectionConf = getPostgresConnectionConfiguration();
         pluginService.savePluginConfiguration(dBConnectionConf);
 
-        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getId());
+        final DefaultPostgreConnectionPlugin dbCtx = pluginService.getPlugin(dBConnectionConf.getBusinessId());
         Assume.assumeTrue(dbCtx.testConnection());
 
         // DataSource PluginConf
@@ -308,7 +309,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     }
 
     private void buildModelAttributes() {
-        modelAttrMapping = new ArrayList<AbstractAttributeMapping>();
+        modelAttrMapping = new ArrayList<>();
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
@@ -333,7 +334,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         // Ingest from scratch
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
-        IngestionResult summary = crawlerService.ingest(dsi.getId()).get();
+        IngestionResult summary = crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issue while ingesting test datasource"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         crawlerService.startWork();
@@ -380,7 +381,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService.ingest(dsi2.getId()).get();
+        summary = crawlerService.ingest(dsi2.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi2"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
@@ -404,14 +405,14 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
         try {
-            crawlerService.ingest(dsi.getId()).get();
+            crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi"));
             Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
         } catch (ExecutionException ee) {
             Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
             Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
         }
 
-        model.setId(15000l);
+        model.setId(15000L);
         List<ModelAttrAssoc> modelAttrAssocs = new ArrayList<>();
         AttributeModel attTutuToto = new AttributeModel();
         Fragment fragmentTutu = new Fragment();
@@ -423,7 +424,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
         modelAttrAssocs.add(attrAssocTutuToto);
         Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
-        IngestionResult summary = crawlerService.ingest(dsi.getId()).get();
+        IngestionResult summary = crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi"));
         // 2 validation errors so nothing saved
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }

@@ -38,7 +38,7 @@ public interface CriterionBuilder<T> {
                 : criteria.size() == 1 ? Option.of(criteria.get(0)) : Option.of(combinator.apply(criteria));
     }
 
-    default Option<ICriterion> andAllPresent(@SuppressWarnings("unchecked") Option<ICriterion>... criteria) {
+    default Option<ICriterion> andAllPresent(Option<ICriterion>... criteria) {
         return withAll(List.of(criteria).flatMap(opt -> opt), ICriterion::and);
     }
 }
