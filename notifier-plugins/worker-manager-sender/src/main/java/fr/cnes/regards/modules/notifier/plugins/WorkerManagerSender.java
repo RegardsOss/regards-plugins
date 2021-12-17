@@ -72,9 +72,9 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
             name = WS_SESSION_NAME_PATTERN_NAME,
             description = "If the parameter is not filled, the session will be named with the metadata of "
                     + "the requests received. If a value is provided, the session will be named the following way "
-                    + "\"^\\{<jsonPathToAccessProductType>\\}-#day(.*)\""
+                    + "\"{<jsonPathToAccessProductType>}-#day(.*)\""
                     + ", where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
-                    + "The RegExp could be for instance : \"^\\{properties.data.type\\}-#day-foo\". "
+                    + "The RegExp could be for instance : \"{properties.data.type}-#day-foo\". "
                     + "The parameter properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
                     + "formatted current date. Note that any additional parameters can be provided after #day to help "
                     + "identifying the session names on the dashboard. If the pattern is not found, the "
@@ -107,7 +107,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
      */
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    public static final String WS_SESSION_NAME_PATTERN_NAME = "sessionPattern";
+    public static final String WS_SESSION_NAME_PATTERN_NAME = "sessionNamePattern";
 
     public static final String WS_CONTENT_TYPE_NAME = "contentType";
 
@@ -188,10 +188,11 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
         if (featureType == null || !featureType.isJsonPrimitive()) {
             String defaultSessionName = SESSION_NAME_PATTERN_ERROR.replaceAll(WS_SESSION_PATTERN,
                                                                               String.format("$1-%s", currentDate));
-            LOGGER.warn("The pattern configured in {} \"{}\" has an invalid pattern. Check if : \n "
-                                + "- The RegExp is valid and follow the pattern \"{}\" \n - The JsonPath to access the "
-                                + "feature type is valid.\nThe session will be named by default: \"{}\".",
-                        sessionNamePattern, WS_SESSION_NAME_PATTERN_NAME, WS_SESSION_PATTERN, defaultSessionName);
+            LOGGER.warn("The pattern configured in {} \"{}\" has an invalid pattern.\nCheck if : "
+                                + "- The RegExp is valid and follow the pattern {<jsonPathToAccessProductType>}-#day(.*) \n"
+                                + "- The JsonPath to access the feature type is valid.\n"
+                                + "The session will be named by default: \"{}\".",
+                        WS_SESSION_NAME_PATTERN_NAME, sessionNamePattern, defaultSessionName);
             return defaultSessionName;
         } else {
             return sessionNamePattern.replaceAll(WS_SESSION_PATTERN,
