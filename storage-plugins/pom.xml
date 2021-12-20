@@ -23,7 +23,7 @@
 
     <groupId>fr.cnes.regards.modules.storage</groupId>
     <artifactId>storage-plugins</artifactId>
-    <version>1.7.0</version>
+    <version>1.7.1</version>
     <packaging>pom</packaging>
 
     <description>Plugins for storage module</description>
@@ -51,7 +51,7 @@
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-oss-backend</artifactId>
-        <version>1.7.0</version>
+        <version>1.7.1</version>
         <relativePath/>
     </parent>
     <modules>

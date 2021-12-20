@@ -40,7 +40,7 @@
 	<parent>
 		<groupId>fr.cnes.regards.modules.fem.plugins</groupId>
 		<artifactId>fem-plugins</artifactId>
-		<version>1.7.0</version>
+		<version>1.7.1</version>
 	</parent>
 
 	<dependencies>
