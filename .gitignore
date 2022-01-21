@@ -18,6 +18,7 @@
 # Intellij
 ######################
 .idea/**
+.history/**
 *.iml
 *.iws
 *.ipr
