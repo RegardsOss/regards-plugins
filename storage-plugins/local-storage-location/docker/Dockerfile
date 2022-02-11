@@ -8,7 +8,7 @@ ADD local-storage-location-*.jar ${REGARDS_HOME}/plugins/storage/
 
 # Testing purpose : CMD [ "/bin/bash" ]
 # first lets create the directory hierarchy if needed (mkdir -p) 
-CMD mkdir -p ${REGARDS_PLUGINS}/dam/ && \
+CMD mkdir -p ${REGARDS_PLUGINS}/storage/ && \
 	# Remove old plugin
 	rm -f ${REGARDS_PLUGINS}/storage/local-storage-location-*.jar && \
 	# Copy JAR
