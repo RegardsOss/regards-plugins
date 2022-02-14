@@ -76,7 +76,7 @@ public abstract class AbstractSearchService {
     }
 
     private Option<Link> extractNextPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
-        if (page.getTotalElements() - page.getNumber() * page.getSize() - page.getNumberOfElements() > 0) {
+        if (page.getTotalElements() - (long) page.getNumber() * page.getSize() - page.getNumberOfElements() > 0) {
             return searchPageLinkCreator.createNextPageLink()
                     .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON,
                                          "next search page"));

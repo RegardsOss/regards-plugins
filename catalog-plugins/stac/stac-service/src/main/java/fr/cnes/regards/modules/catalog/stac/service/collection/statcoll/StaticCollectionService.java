@@ -29,13 +29,13 @@ import io.vavr.control.Try;
 /**
  * Translate regards collection to stac standard
  */
-public interface IStaticCollectionService {
+public interface StaticCollectionService {
 
     /**
-     * Get stac collection from elsatic
+     * Get stac collection from elastic
      * @param urn uniform resource number of the collection
-     * @param linkCreator
-     * @param config
+     * @param linkCreator utility class to create links
+     * @param config {@link ConfigurationAccessor}
      * @return the stac collection
      */
     Try<Collection> convertRequest(String urn, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);

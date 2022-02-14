@@ -44,20 +44,15 @@ public class RegardsPropertyAccessor {
     /** The corresponding attribute model */
     AttributeModel attributeModel;
 
-    /** How to get the Regards property value from an entity */
+    /** How to get the REGARDS property value from an entity */
     Function<AbstractEntity<? extends EntityFeature> , Try<?>> extractValueFn;
 
-    /** Explicity giving the property type */
+    /** Explicitly giving the property type */
     Class<?> valueType;
 
     @SuppressWarnings("unchecked")
     public <T> Function<AbstractEntity<? extends EntityFeature>, Try<T>> getGenericExtractValueFn() {
         return t -> ((Try<T>)extractValueFn.apply(t));
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> Class<T> getGenericValueType() {
-        return (Class<T>) valueType;
     }
 
     /**

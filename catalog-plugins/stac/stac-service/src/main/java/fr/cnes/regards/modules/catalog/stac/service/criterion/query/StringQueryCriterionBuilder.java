@@ -46,7 +46,7 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
     public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
             StringQueryObject queryObject) {
         StringMatchType stringMatchType = IFeatureCriterion.parseStringMatchType(queryObject.getMatchType())
-                .orElseGet(() -> StringMatchType.FULL_TEXT_SEARCH);
+                .orElse(StringMatchType.FULL_TEXT_SEARCH);
         return andAllPresent(Option.of(adaptCase(queryObject.getEq(), stringMatchType)).map(eq -> eq(attr, eq, stringMatchType)),
                              Option.of(adaptCase(queryObject.getNeq(), stringMatchType)).map(neq -> not(eq(attr, neq, stringMatchType))),
                              Option.of(adaptCase(queryObject.getStartsWith(), stringMatchType))
@@ -73,7 +73,7 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
 
     private List<String> adaptCase(List<String> texts, StringMatchType stringMatchType) {
         if (texts != null && StringMatchType.FULL_TEXT_SEARCH.equals(stringMatchType)) {
-            return texts.map(t -> t.toLowerCase()).toList();
+            return texts.map(String::toLowerCase).toList();
         } else {
             return texts;
         }

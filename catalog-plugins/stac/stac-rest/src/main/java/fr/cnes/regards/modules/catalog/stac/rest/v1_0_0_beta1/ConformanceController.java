@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ConformanceResponse;
@@ -67,7 +66,7 @@ public class ConformanceController implements TryToResponseEntity {
             role = DefaultRole.PUBLIC
     )
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<ConformanceResponse> conformance() throws ModuleException {
+    public ResponseEntity<ConformanceResponse> conformance() {
         return toResponseEntity(trying(() -> new ConformanceResponse(CONFORMANCES))
             .mapFailure(
                 CONFORMANCERESPONSE_CONSTRUCTION,

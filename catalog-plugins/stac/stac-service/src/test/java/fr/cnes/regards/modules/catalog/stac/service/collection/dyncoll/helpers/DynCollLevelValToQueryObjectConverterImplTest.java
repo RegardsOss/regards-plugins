@@ -8,7 +8,6 @@ import java.time.ZoneOffset;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import org.junit.Test;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DatePartsLevelDef;
@@ -41,7 +40,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "YEAR", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
-        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"));
 
         // THEN
         assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
@@ -56,7 +55,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
-        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021-02"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021-02"));
 
         // THEN
         assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
@@ -71,7 +70,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "MONTH", StacPropertyType.DATETIME, null, Boolean.FALSE));
 
         // WHEN
-        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"), def);
+        SearchBody.QueryObject q = converter.datePartsQueryObject(def.parseValues("2021"));
 
         // THEN
         assertThat(q).isEqualTo(SearchBody.DatetimeQueryObject.builder()
@@ -86,7 +85,7 @@ public class DynCollLevelValToQueryObjectConverterImplTest {
                 .parse(new StacProperty(null, null, "prop", "", false, -1, "5;10;95", StacPropertyType.NUMBER, null, Boolean.FALSE));
 
         // WHEN
-        SearchBody.QueryObject q = converter.numberRangeQueryObject(def.parseValues("15;25"), def);
+        SearchBody.QueryObject q = converter.numberRangeQueryObject(def.parseValues("15;25"));
 
         // THEN
         assertThat(q).isEqualTo(SearchBody.NumberQueryObject.builder().gte(15d).lte(25d).build());

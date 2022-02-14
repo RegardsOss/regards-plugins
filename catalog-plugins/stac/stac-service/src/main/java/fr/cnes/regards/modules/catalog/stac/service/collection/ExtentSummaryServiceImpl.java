@@ -148,7 +148,7 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                     return Option.of(Tuple.of(SEPOINTLAT_PROP, agg));
 
                 default:
-                    return findPropertyForAggregagtionName(props, agg.getName()).map(p -> Tuple.of(p, agg));
+                    return findPropertyForAggregationName(props, agg.getName()).map(p -> Tuple.of(p, agg));
             }
         }).toMap(kv -> kv);
     }
@@ -243,7 +243,7 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
                 .filter(sp -> Number.class.isAssignableFrom(sp.getStacType().getValueType()));
     }
 
-    private Option<StacProperty> findPropertyForAggregagtionName(List<StacProperty> props, String key) {
+    private Option<StacProperty> findPropertyForAggregationName(List<StacProperty> props, String key) {
         return props.find(p -> key.equals(toAggregationName(p)));
     }
 

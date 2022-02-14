@@ -25,7 +25,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
-import org.checkerframework.checker.nullness.Opt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +45,10 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
      */
     Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody value);
 
-    default ICriterion toCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody) {
-        return buildCriterion(properties, collectionSearchBody)
-                .getOrElse(ICriterion::all);
-    }
-
     /**
      * Build criteria for collection level search
      */
     Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody);
-
-    default ICriterion toCriterion(List<StacProperty> properties, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
-        return buildCriterion(properties, collectionItemSearchBody)
-                .getOrElse(ICriterion::all);
-    }
 
     /**
      * Build criteria for item level search related to collection search

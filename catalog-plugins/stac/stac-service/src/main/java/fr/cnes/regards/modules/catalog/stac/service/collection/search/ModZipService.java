@@ -40,7 +40,7 @@ public interface ModZipService {
             DownloadLinkCreator downloadLinkCreator, boolean onlySample);
 
     /**
-     * Use a non blocking stream
+     * Use a non-blocking stream
      */
     Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
             DownloadLinkCreator downloadLinkCreator, boolean onlySample);

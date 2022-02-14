@@ -49,14 +49,14 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
- * TODO: EsAggregagtionHelperImpl description
+ * TODO: EsAggregationHelperImpl description
  *
  * @author gandrieu
  */
 @Component
-public class EsAggregagtionHelperImpl implements EsAggregationHelper {
+public class EsAggregationHelperImpl implements EsAggregationHelper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EsAggregagtionHelperImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EsAggregationHelperImpl.class);
 
     /**
      * Prefix to identify dataset tags
@@ -71,7 +71,7 @@ public class EsAggregagtionHelperImpl implements EsAggregationHelper {
 
     private final ProjectGeoSettings projectGeoSettings;
 
-    public EsAggregagtionHelperImpl(IEsRepository esRepository, IRuntimeTenantResolver tenantResolver,
+    public EsAggregationHelperImpl(IEsRepository esRepository, IRuntimeTenantResolver tenantResolver,
             ProjectGeoSettings projectGeoSettings) {
         this.esRepository = esRepository;
         this.tenantResolver = tenantResolver;
@@ -79,9 +79,9 @@ public class EsAggregagtionHelperImpl implements EsAggregationHelper {
     }
 
     @Override
-    public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs) {
+    public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefinitions) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
-        return esRepository.getAggregationsFor(searchKey, criterion, aggDefs.toJavaList());
+        return esRepository.getAggregationsFor(searchKey, criterion, aggDefinitions.toJavaList());
     }
 
     @Override

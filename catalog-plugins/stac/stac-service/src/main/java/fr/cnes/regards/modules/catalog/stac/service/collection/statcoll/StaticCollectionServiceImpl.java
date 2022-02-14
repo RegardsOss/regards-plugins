@@ -27,7 +27,6 @@ import io.vavr.Tuple2;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import io.vavr.collection.Set;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -47,7 +46,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
 @Component
-public class StaticCollectionServiceImpl implements IStaticCollectionService {
+public class StaticCollectionServiceImpl implements StaticCollectionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticCollectionServiceImpl.class);
 
@@ -89,9 +88,9 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
     }
 
     public List<AbstractEntity<?>> getRootCollectionsDatasets() throws SearchException, OpenSearchUnknownParameter {
-        ICriterion crit = ICriterion.not(ICriterion.startsWith("tags", "URN", StringMatchType.KEYWORD));
-        List<AbstractEntity<?>> collections = searchCriterion(crit, EntityType.COLLECTION);
-        List<AbstractEntity<?>> datasets = searchCriterion(crit, EntityType.DATASET);
+        ICriterion criterion = ICriterion.not(ICriterion.startsWith("tags", "URN", StringMatchType.KEYWORD));
+        List<AbstractEntity<?>> collections = searchCriterion(criterion, EntityType.COLLECTION);
+        List<AbstractEntity<?>> datasets = searchCriterion(criterion, EntityType.DATASET);
         return collections.appendAll(datasets);
     }
 
@@ -143,7 +142,7 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
 
             AbstractEntity<?> regardsCollection = collectionWithStats.getCollection();
 
-            Collection collection = new Collection(
+            return new Collection(
                     StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(),
                     regardsCollection.getLabel(),
                     regardsCollection.getIpId().toString(),
@@ -158,8 +157,6 @@ public class StaticCollectionServiceImpl implements IStaticCollectionService {
                     null,
                     null
             );
-
-            return collection;
         })
         .mapFailure(
             COLLECTION_CONSTRUCTION,

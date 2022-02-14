@@ -37,7 +37,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  * For now, we do not attend to properties represented as arrays,
  * because there are no such properties defined in the standard.
  * <p>
- * The standard recommends to avoid arrays because arrays are not easily queryable.
+ * The standard recommends avoiding arrays because arrays are not easily queryable.
  * See <a href="https://github.com/radiantearth/stac-spec/tree/v1.0.0-beta.2/extensions#use-of-arrays-and-objects">
  * this paragraph in the standard
  * </a>.
@@ -130,7 +130,7 @@ public enum StacPropertyType {
             case DATE_INTERVAL:
                 return StacPropertyType.DATETIME;
             default:
-                throw new InvalidParameterException(String.format("Property type % not supported!", type));
+                throw new InvalidParameterException(String.format("Property type %s not supported!", type));
         }
     }
 }

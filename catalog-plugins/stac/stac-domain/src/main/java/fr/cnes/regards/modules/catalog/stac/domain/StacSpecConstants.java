@@ -71,7 +71,6 @@ public class StacSpecConstants {
 
         String COLLECTION_LICENSE_PROPERTY_NAME = "license";
 
-        String COLLECTION_SUMMARIES_PROPERTY_NAME = "summaries";
     }
 
     public interface SourcePropertyName {

@@ -1,6 +1,6 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import static fr.cnes.regards.modules.catalog.stac.service.criterion.query.NumberQueryCriterionBuilder.DOUBLE_COMPARISON_PRECISION;
+import static fr.cnes.regards.modules.catalog.stac.service.criterion.query.DoubleQueryCriterionBuilder.DOUBLE_COMPARISON_PRECISION;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ComparisonOperator.GREATER;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ComparisonOperator.GREATER_OR_EQUAL;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ComparisonOperator.LESS;
@@ -34,7 +34,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
                 .of(new StacProperty(accessor("regardsAttr", StacPropertyType.PERCENTAGE, 15d), null, "stacProp", "", false,
                         0, null, StacPropertyType.PERCENTAGE, new IdentityPropertyConverter<>(StacPropertyType.PERCENTAGE), Boolean.FALSE));
         // WHEN
-        Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, null);
+        Option<ICriterion> criterion = new DoubleQueryCriterionBuilder("stacProp").buildCriterion(properties, null);
         // THEN
         assertThat(criterion).isEmpty();
     }
@@ -49,14 +49,14 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         double value = 12d;
         NumberQueryObject qo = NumberQueryObject.builder().eq(value).build();
         // WHEN
-        Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
+        Option<ICriterion> criterion = new DoubleQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(RangeCriterion.class);
 
         RangeCriterion<Double> doubleRangeCriterion = (RangeCriterion<Double>) criterion.get();
-        assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(), GREATER,
-                                  12d - DOUBLE_COMPARISON_PRECISION, LESS, 12d + DOUBLE_COMPARISON_PRECISION);
+        assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(), GREATER_OR_EQUAL,
+                                  12d - DOUBLE_COMPARISON_PRECISION, LESS_OR_EQUAL, 12d + DOUBLE_COMPARISON_PRECISION);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
         double value = 12d;
         NumberQueryObject qo = NumberQueryObject.builder().neq(value).build();
         // WHEN
-        Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
+        Option<ICriterion> criterion = new DoubleQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
         // THEN
         assertThat(criterion).isNotEmpty();
 
@@ -79,7 +79,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
                 .getCriterion();
         assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(),
 
-                                  GREATER, 12d - DOUBLE_COMPARISON_PRECISION, LESS, 12d + DOUBLE_COMPARISON_PRECISION);
+                                  GREATER_OR_EQUAL, 12d - DOUBLE_COMPARISON_PRECISION, LESS_OR_EQUAL, 12d + DOUBLE_COMPARISON_PRECISION);
     }
 
     @Test
@@ -91,15 +91,15 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
 
         @SuppressWarnings("unused")
         double value = 12d;
-        NumberQueryObject qo = NumberQueryObject.builder().gt(11d).lt(13d).gte(12d).lte(14d).build();
+        NumberQueryObject qo = NumberQueryObject.builder().lt(13d).gte(12d).build();
         // WHEN
-        Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
+        Option<ICriterion> criterion = new DoubleQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
         // THEN
         assertThat(criterion).isNotEmpty();
 
         RangeCriterion<Double> doubleRangeCriterion = (RangeCriterion<Double>) criterion.get();
         assertThatRangeGoesFromTo(doubleRangeCriterion, regardsAttr.getAttributeModel().getFullJsonPath(), GREATER_OR_EQUAL,
-                                  12d, LESS, 13d + DOUBLE_COMPARISON_PRECISION);
+                                  12d, LESS, 13d);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class NumberQueryCriterionBuilderTest implements RegardsPropertyAccessorA
 
         NumberQueryObject qo = NumberQueryObject.builder().in(List.of(12d, 13d)).build();
         // WHEN
-        Option<ICriterion> criterion = new NumberQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
+        Option<ICriterion> criterion = new DoubleQueryCriterionBuilder("stacProp").buildCriterion(properties, qo);
         // THEN
         assertThat(criterion).isNotEmpty();
 

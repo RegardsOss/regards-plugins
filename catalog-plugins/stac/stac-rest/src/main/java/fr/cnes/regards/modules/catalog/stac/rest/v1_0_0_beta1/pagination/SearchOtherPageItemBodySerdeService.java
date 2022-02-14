@@ -23,7 +23,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import io.vavr.control.Try;
 
 /**
- * Serialize and deserialize item serach bodies into string tokens,
+ * Serialize and deserialize item search bodies into string tokens,
  * use for next/prev page links.
  */
 public interface SearchOtherPageItemBodySerdeService {

@@ -35,7 +35,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 public interface ExtentSummaryService {
 
     /**
-     * Allows to generate {@link QueryableAttribute} instance for the current list of {@link StacProperty}.
+     * Allows generating {@link QueryableAttribute} instance for the current list of {@link StacProperty}.
      *
      * @param datetimeProp the date time property, mandatory for temporal extent
      * @param otherProps other properties for the summaries
@@ -54,8 +54,7 @@ public interface ExtentSummaryService {
     /**
      * Helper utility to transform the list of aggregations to a map associating the corresponding {@link StacProperty}.
      * @param props the list of all {@link StacProperty}
-     * @param collectionWithStats the
-     * @return
+     * @param collectionWithStats aggregate collection with stats
      */
     Map<StacProperty, Aggregation> toAggregationMap(List<StacProperty> props, List<Aggregation> collectionWithStats);
 

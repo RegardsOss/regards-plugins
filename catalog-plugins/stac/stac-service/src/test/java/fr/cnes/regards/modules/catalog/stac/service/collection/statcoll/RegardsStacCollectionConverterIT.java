@@ -62,7 +62,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     OffsetDateTime offsetDateTimeTo = OffsetDateTime.now();
 
     @Autowired
-    IStaticCollectionService converter;
+    StaticCollectionService converter;
     @Autowired
     EsRepository repository;
     @Autowired

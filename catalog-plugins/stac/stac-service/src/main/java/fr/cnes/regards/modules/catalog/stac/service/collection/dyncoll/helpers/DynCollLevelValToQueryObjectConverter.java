@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelVal;
 import io.vavr.Tuple2;

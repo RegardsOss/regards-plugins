@@ -101,7 +101,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
         })
         .mapFailure(
             PERCENTAGE_CONVERSION,
-            () -> format("Failed to convert %d from %s to %s", fromValue, fromBase, toBase)
+            () -> format("Failed to convert %f from %s to %s", fromValue, fromBase, toBase)
         );
     }
 

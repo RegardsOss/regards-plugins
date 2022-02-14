@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.configuration;
 
 /**
- * Provides access to values present in the STAC plugin configuration.
+ * Provides access to the values present in the STAC plugin configuration.
  */
 public interface ConfigurationAccessorFactory {
 

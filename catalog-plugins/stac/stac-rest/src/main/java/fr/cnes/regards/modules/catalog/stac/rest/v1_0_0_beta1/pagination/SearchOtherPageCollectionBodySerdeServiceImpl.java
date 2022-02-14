@@ -45,11 +45,6 @@ public class SearchOtherPageCollectionBodySerdeServiceImpl
     }
 
     @Override
-    public String serialize(CollectionSearchBody collectionSearchBody) {
-        return toBase64(gson.toJson(collectionSearchBody));
-    }
-
-    @Override
     public Try<CollectionSearchBody> deserialize(String repr) {
         return trying(() -> gson.fromJson(fromBase64(repr), CollectionSearchBody.class))
                 .mapFailure(COLLECTIONSEARCHBODY_PARSING,

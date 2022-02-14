@@ -90,7 +90,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
 
         return val.firstPartiallyValued()
-                .map(pLVal -> extractExistingSublevels(val, pLVal, config))
+                .map(pLVal -> extractExistingSublevels(val, pLVal))
                 .orElse(() -> val.firstMissingValue()
                     .map(missingLDef -> extractNonExistingLevel(val, missingLDef, config)))
                 .getOrElse(List::empty);
@@ -101,10 +101,10 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             return extractExactValueLevels(val, (ExactValueLevelDef)definition, config);
         }
         else if (definition instanceof NumberRangeLevelDef) {
-            return extractNumberRangeLevels(val, (NumberRangeLevelDef) definition, config);
+            return extractNumberRangeLevels(val, (NumberRangeLevelDef) definition);
         }
         else if (definition instanceof StringPrefixLevelDef) {
-            return extractStringPrefixFirstSublevel(val, (StringPrefixLevelDef)definition, config);
+            return extractStringPrefixFirstSublevel(val, (StringPrefixLevelDef)definition);
         }
         else if (definition instanceof DatePartsLevelDef) {
             return extractDatePartsFirstSublevel(val, (DatePartsLevelDef)definition, config);
@@ -149,7 +149,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             });
     }
 
-    private List<DynCollVal> extractNumberRangeLevels(DynCollVal val, NumberRangeLevelDef definition, ConfigurationAccessor config) {
+    private List<DynCollVal> extractNumberRangeLevels(DynCollVal val, NumberRangeLevelDef definition) {
         NumberRangeSublevelDef sublevel = definition.getSublevel();
         double step = sublevel.getStep();
         return List.rangeBy(sublevel.getMin(), sublevel.getMax() + (step / 100d), step)
@@ -193,7 +193,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
     }
 
-    private List<DynCollVal> extractStringPrefixFirstSublevel(DynCollVal val, StringPrefixLevelDef definition, ConfigurationAccessor config) {
+    private List<DynCollVal> extractStringPrefixFirstSublevel(DynCollVal val, StringPrefixLevelDef definition) {
         StacProperty prop = definition.getStacProperty();
         String propName = prop.getStacPropertyName();
         StringPrefixSublevelDef sublevelDef = definition.getSublevels().get(0);
@@ -203,7 +203,7 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
             .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
     }
 
-    private List<DynCollVal> extractExistingSublevels(DynCollVal val, DynCollLevelVal lval, ConfigurationAccessor config) {
+    private List<DynCollVal> extractExistingSublevels(DynCollVal val, DynCollLevelVal lval) {
         DynCollLevelDef<?> definition = lval.getDefinition();
         if (definition instanceof StringPrefixLevelDef) {
             return extractStringPrefixNextSublevels(val, lval, (StringPrefixLevelDef)definition);

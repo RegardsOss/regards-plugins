@@ -72,12 +72,11 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
 
     @Override
     protected void initPlugins() throws ModuleException {
-        SearchEngineConfiguration conf = loadFromJson(getConfigFolder().resolve("STAC-api-configuration-v2.json"),
-                                                      SearchEngineConfiguration.class);
+        SearchEngineConfiguration conf = loadFromJson(getConfigFolder().resolve("STAC-api-configuration-v2.json"), SearchEngineConfiguration.class);
         searchEngineService.createConf(conf);
 
-        SearchEngineConfiguration collectionConf = loadFromJson(
-                getConfigFolder().resolve("STAC-collection-configuration-v2.json"), SearchEngineConfiguration.class);
+        SearchEngineConfiguration collectionConf = loadFromJson(getConfigFolder().resolve("STAC-collection-configuration-v2.json"),
+                                                                SearchEngineConfiguration.class);
         searchEngineService.createConf(collectionConf);
     }
 
@@ -94,8 +93,7 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
     public void searchCollectionsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         CollectionSearchBody body = CollectionSearchBody.builder().build();
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
     }
 
     /**
@@ -116,10 +114,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectValue("$.context.matched", 1);
         customizer.expectValue("$.features[0].geometry", null);
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
-                                                            SearchBody.StringQueryObject.builder().eq("012").build(),
-                                                            "hydro:data_type", SearchBody.StringQueryObject.builder()
-                                                                    .eq("L2_HR_RASTER_100m").build());
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("version", SearchBody.StringQueryObject.builder().eq("012").build(), "hydro:data_type",
+                                                            SearchBody.StringQueryObject.builder().eq("L2_HR_RASTER_100m").build());
         ItemSearchBody body = ItemSearchBody.builder().query(iq).build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
@@ -130,18 +126,16 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         //        customizer.expectValue("$.context.matched", 1);
         //        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
         // Define item criteria
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("start_datetime", SearchBody.DatetimeQueryObject.builder()
-                                                                    .lte(OffsetDateTime.parse("2021-08-19T08:47:59.813Z")).build(), "end_datetime",
-                                                            SearchBody.DatetimeQueryObject.builder()
-                                                                    .gte(OffsetDateTime.parse(
-                                                                            "2021-07-19T08:47:59.813Z")).build());
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("start_datetime",
+                                                            SearchBody.DatetimeQueryObject.builder().lte(OffsetDateTime.parse("2021-08-19T08:47:59.813Z"))
+                                                                    .build(), "end_datetime",
+                                                            SearchBody.DatetimeQueryObject.builder().gte(OffsetDateTime.parse("2021-07-19T08:47:59.813Z"))
+                                                                    .build());
         BBox bbox = new BBox(1.1540490566502684, 43.498828738236014, 1.7531472622166748, 43.704683650908095);
-        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .bbox(bbox).query(iq).build();
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder().bbox(bbox).query(iq).build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
     }
 
     @Test
@@ -150,46 +144,77 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         //        customizer.expectValue("$.context.matched", 1);
         // Define item criteria
         Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
-                                                            SearchBody.StringQueryObject.builder()
-                                                                    .contains("https://w3id.org/hysope2/waterLevel")
+                                                            SearchBody.StringQueryObject.builder().contains("https://w3id.org/hysope2/waterLevel")
                                                                     .matchType("keyword").build());
-        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
+        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
     }
 
-    // FIXME https://odin.si.c-s.fr/plugins/tracker/?aid=131977
     @Test
     public void searchCollectionsWithItemVariablesAnd() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        //        customizer.expectValue("$.context.matched", 1);
-        // Define item criteria
-        // https://w3id.org/hysope2/waterLevel
-        // https://w3id.org/hysope2/landWaterMask
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
-                                                            SearchBody.StringQueryObject.builder().containsAll(
-                                                                            List.of("https://w3id.org/hysope2/waterLevel",
-                                                                                    "https://w3id.org/hysope2/landWaterMask"))
-                                                                    .matchType("keyword").build(), "total_items",
-                                                            SearchBody.NumberQueryObject.builder().gt(0D).build());
-        CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
-        //        CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
-        CollectionSearchBody body = CollectionSearchBody.builder().query(iq).build();
+        customizer.expectValue("$.context.matched", 1);
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("hydro:variables.uri", SearchBody.StringQueryObject.builder()
+                                                                    .containsAll(List.of("https://w3id.org/hysope2/waterLevel", "https://w3id.org/hysope2/landWaterMask")).matchType("keyword").build(),
+                                                            "total_items", SearchBody.NumberQueryObject.builder().gt(1D).build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                           "Cannot search STAC collections");
+    @Test
+    public void searchCollections_withLongRangeQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("total_items", SearchBody.NumberQueryObject.builder().gte(2D).lte(3D).build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollections_withStringQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("dcs:data_file_format", SearchBody.StringQueryObject.builder().eq("NetCDF5").build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollections_withBooleanQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.collections[0].summaries.resolution:spatial", "250m");
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("certified", SearchBody.BooleanQueryObject.builder().neq(true).build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollections_withDoubleRangeQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        customizer.expectValue("$.collections[0].summaries.resolution:spatial", "250m");
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("measures:double_measure", SearchBody.NumberQueryObject.builder().gte(18D).lte(19D).build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
+
+    @Test
+    public void searchCollections_withIntegerQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("measures:int_measure", SearchBody.NumberQueryObject.builder().eq(19D).build());
+        CollectionSearchBody body = CollectionSearchBody.builder().query(cq).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
     }
 
     @Test
     public void given_noCollection_when_prepareDownload_then_badRequest() {
         RequestBuilderCustomizer customizer = customizer().expectStatusBadRequest();
         DownloadPreparationBody body = DownloadPreparationBody.builder().build();
-        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                   + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
                            "Download preparation failed");
     }
 
@@ -201,10 +226,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody.builder()
                 .collectionId("unknown").build();
 
-        DownloadPreparationBody body = DownloadPreparationBody.builder()
-                .collections(List.of(downloadCollectionPreparationBody)).build();
-        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                   + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
+        DownloadPreparationBody body = DownloadPreparationBody.builder().collections(List.of(downloadCollectionPreparationBody)).build();
+        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
                            "Download preparation failed");
     }
 
@@ -216,10 +239,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody = DownloadPreparationBody.DownloadCollectionPreparationBody.builder()
                 .collectionId("URN:AIP:DATASET:swotv2:b32d9001-4c15-4c57-841a-000000000000:V1").build();
 
-        DownloadPreparationBody body = DownloadPreparationBody.builder()
-                .collections(List.of(downloadCollectionPreparationBody)).build();
-        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                   + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
+        DownloadPreparationBody body = DownloadPreparationBody.builder().collections(List.of(downloadCollectionPreparationBody)).build();
+        performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, body, customizer,
                            "Download preparation failed");
     }
 
@@ -230,10 +251,8 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
 
     @Test
     public void given_oneCollection_when_prepareDownloadWithFilter_then_successfulRequest() {
-        Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
-                                                            SearchBody.StringQueryObject.builder().eq("012").build());
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("version", SearchBody.StringQueryObject.builder().eq("012").build());
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
         prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 101000, 1, 2);
     }
 
@@ -248,8 +267,7 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
      */
     @Test
     public void given_TwoCollection_when_download_then_successfulRequest() throws Exception {
-        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null, "L2_HR_RASTER_250m", null),
-                                                      553000, 3, 5);
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null, "L2_HR_RASTER_250m", null), 553000, 3, 5);
 
         // Get tiny url to download all
         String json = payload(resultActions);
@@ -261,8 +279,7 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
-        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                  + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, downloadCustomizer,
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, downloadCustomizer,
                           "Cannot download all collections");
     }
 
@@ -276,31 +293,32 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
         String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
 
-
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
 
         // Get mod_zip file
-        ResultActions allItemsActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                  + StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
-                          "Cannot download all collections", "uselessCollectionId");
+        ResultActions allItemsActions = performDefaultGet(
+                StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
+                "Cannot download all collections", "uselessCollectionId");
         String modZip4Collection = payload(allItemsActions);
         String[] lines = modZip4Collection.split("\n");
         // Expected 3 files (all files with RAWDATA type of all collection items)
         Assert.assertEquals(3, lines.length);
 
-
         // Get sample mod_zip file
-        ResultActions sampleResultActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                  + StacApiConstants.STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
-                          "Cannot download all collections", "uselessCollectionId");
+        ResultActions sampleResultActions = performDefaultGet(
+                StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX, downloadCustomizer,
+                "Cannot download all collections", "uselessCollectionId");
         String sampleModZipFiles = payload(sampleResultActions);
         String[] sampleLines = sampleModZipFiles.split("\n");
         // Expected 1 or 2 files (first item files)
         Assert.assertTrue(3 > sampleLines.length);
     }
 
+    /**
+     * FIXME : pb de test en local ... renvoie 200 au lieu de 400!!!!! mais ok sous la PIC
+     */
     @Test
     public void given_unknownTinyUrl_when_download_then_badRequest() {
 
@@ -308,19 +326,17 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusBadRequest();
         downloadCustomizer.addParameter("tinyurl", "unknown-tiny-url");
         downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
-        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                  + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, downloadCustomizer,
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, downloadCustomizer,
                           "Cannot download all collections");
     }
 
-    private ResultActions prepareDownload(Map<String, CollectionSearchBody.CollectionItemSearchBody> itemSearchBodies,
-            long totalSize, long totalItems, long totalFiles) {
+    private ResultActions prepareDownload(Map<String, CollectionSearchBody.CollectionItemSearchBody> itemSearchBodies, long totalSize, long totalItems,
+            long totalFiles) {
 
         // Search all collections
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         CollectionSearchBody body = CollectionSearchBody.builder().build();
-        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
-                                                         "Cannot search STAC collections");
+        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
 
         // Get urn from catalog
         String json = payload(resultActions);
@@ -333,18 +349,16 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
                 // Get collection urn
                 String collectionId = JsonPath.read(json, "$.collections[" + i + "].id");
                 // Build prepare body
-                CollectionSearchBody.CollectionItemSearchBody itemBody = itemSearchBodies.get(collectionDataType)
-                        .isDefined() ?
+                CollectionSearchBody.CollectionItemSearchBody itemBody = itemSearchBodies.get(collectionDataType).isDefined() ?
                         itemSearchBodies.get(collectionDataType).get() :
                         CollectionSearchBody.CollectionItemSearchBody.builder().build();
                 downloadCollectionPreparationBodies.add(
-                        DownloadPreparationBody.DownloadCollectionPreparationBody.builder().collectionId(collectionId)
-                                .filters(itemBody).build());
+                        DownloadPreparationBody.DownloadCollectionPreparationBody.builder().collectionId(collectionId).filters(itemBody).build());
             }
         }
 
-        DownloadPreparationBody downloadPreparationBody = DownloadPreparationBody.builder()
-                .collections(List.ofAll(downloadCollectionPreparationBodies)).build();
+        DownloadPreparationBody downloadPreparationBody = DownloadPreparationBody.builder().collections(List.ofAll(downloadCollectionPreparationBodies))
+                .build();
 
         // Assertions
         customizer = customizer().expectStatusOk();
@@ -353,8 +367,7 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
         customizer.expectValue("totalFiles", totalFiles);
         customizer.expectToHaveSize("collections", downloadPreparationBody.getCollections().size());
 
-        return performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                          + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+        return performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
                                   downloadPreparationBody, customizer, "Download preparation failed");
     }
 }

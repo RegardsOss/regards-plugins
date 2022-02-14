@@ -35,7 +35,7 @@ import io.vavr.control.Try;
 public interface DynamicCollectionService {
 
     /**
-     * Provide an optional dynamic collections definition from the configured
+     * Provide an optional dynamic collection definition from the configured
      * STAC properties.
      *
      * @param properties the stac properties defined by the user

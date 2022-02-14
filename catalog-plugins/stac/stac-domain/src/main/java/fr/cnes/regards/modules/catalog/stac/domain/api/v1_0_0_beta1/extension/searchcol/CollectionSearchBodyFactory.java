@@ -19,11 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Defines methods to create {@link CollectionSearchBody} from simpler components

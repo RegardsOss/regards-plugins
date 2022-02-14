@@ -56,9 +56,6 @@ public class DateInterval {
         return from.equals(to);
     }
 
-    public static DateInterval largest() {
-        return new DateInterval(MIN, MAX);
-    }
     public static DateInterval single(OffsetDateTime d) {
         return new DateInterval(d, d);
     }

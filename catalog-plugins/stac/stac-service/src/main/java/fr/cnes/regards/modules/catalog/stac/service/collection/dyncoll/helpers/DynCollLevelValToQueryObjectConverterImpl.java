@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
@@ -55,10 +54,10 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
                 return Tuple.of(stacPropertyName, exactQueryObject(levelVal));
             }
             else if (definition instanceof NumberRangeLevelDef) {
-                return Tuple.of(stacPropertyName, numberRangeQueryObject(levelVal, (NumberRangeLevelDef)definition));
+                return Tuple.of(stacPropertyName, numberRangeQueryObject(levelVal));
             }
             else if (definition instanceof DatePartsLevelDef) {
-                return Tuple.of(stacPropertyName, datePartsQueryObject(levelVal, (DatePartsLevelDef)definition));
+                return Tuple.of(stacPropertyName, datePartsQueryObject(levelVal));
             }
             else if (definition instanceof StringPrefixLevelDef){
                 return Tuple.of(stacPropertyName, stringPrefixQueryObject(levelVal, (StringPrefixLevelDef)definition));
@@ -80,10 +79,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         return SearchBody.StringQueryObject.builder().startsWith(startsWith).build();
     }
 
-    protected SearchBody.QueryObject datePartsQueryObject(
-            DynCollLevelVal levelVal,
-            DatePartsLevelDef definition
-    ) {
+    protected SearchBody.QueryObject datePartsQueryObject(DynCollLevelVal levelVal) {
         DynCollSublevelType.DatetimeBased lastLevel = ((DatePartSublevelDef)levelVal.getSublevels().last().getSublevelDefinition()).getType();
         String rendered = levelVal.renderValue();
 
@@ -128,10 +124,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         }
     }
 
-    protected SearchBody.QueryObject numberRangeQueryObject(
-            DynCollLevelVal levelVal,
-            NumberRangeLevelDef definition
-    ) {
+    protected SearchBody.QueryObject numberRangeQueryObject(DynCollLevelVal levelVal) {
         String value = levelVal.getSublevels().get(0).getSublevelValue();
         if (value.startsWith("<")) {
             double lt = Double.parseDouble(value.replace("<", ""));
@@ -147,7 +140,7 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
             return SearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
         }
         else {
-            throw new NotImplementedException("Unparsable number range level format");
+            throw new NotImplementedException("Un-parsable number range level format");
         }
     }
 

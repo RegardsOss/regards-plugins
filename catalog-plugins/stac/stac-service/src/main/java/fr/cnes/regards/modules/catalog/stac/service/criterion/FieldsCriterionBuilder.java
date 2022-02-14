@@ -21,10 +21,8 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.Fields;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
@@ -37,26 +35,13 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, Fields fields) {
-        if (fields == null) { return Option.none(); }
-        Option<ICriterion> includes = fields.getIncludes()
-                .flatMap(inc -> propertyNameFor(properties, inc))
-                .map(IFeatureCriterion::attributeExists)
+        if (fields == null) {
+            return Option.none();
+        }
+        Option<ICriterion> includes = fields.getIncludes().flatMap(inc -> propertyNameFor(properties, inc)).map(IFeatureCriterion::attributeExists)
                 .reduceLeftOption(ICriterion::and);
-        Option<ICriterion> excludes = fields.getExcludes()
-                .flatMap(inc -> propertyNameFor(properties, inc))
-                .map(IFeatureCriterion::attributeExists)
-                .map(ICriterion::not)
-                .reduceLeftOption(ICriterion::and);
-        return withAll(
-                List.of(includes, excludes).flatMap(opt -> opt),
-                ICriterion::and
-        );
+        Option<ICriterion> excludes = fields.getExcludes().flatMap(inc -> propertyNameFor(properties, inc)).map(IFeatureCriterion::attributeExists)
+                .map(ICriterion::not).reduceLeftOption(ICriterion::and);
+        return withAll(List.of(includes, excludes).flatMap(opt -> opt), ICriterion::and);
     }
-
-    private Option<AttributeModel> propertyNameFor(List<StacProperty> properties, String attrName) {
-        return properties.find(p -> attrName.equals(p.getStacPropertyName()))
-                .map(StacProperty::getRegardsPropertyAccessor)
-                .map(RegardsPropertyAccessor::getAttributeModel);
-    }
-
 }

@@ -35,7 +35,7 @@ import io.vavr.control.Try;
 import java.util.function.Function;
 
 /**
- * Allows to make decisions on how to route collections on the first level.
+ * Allows making decisions on how to route collections on the first level.
  */
 public interface CollectionService {
 

@@ -48,15 +48,14 @@ public class AbstractSearchBodyFactoryImpl {
 
     public Try<List<SearchBody.SortBy>> parseSortBy(String repr) {
         return trying(() -> {
-            List<SearchBody.SortBy> objects = Stream.of(Option.of(repr).getOrElse("").split(",")).map(String::trim)
-                    .filter(StringUtils::isNotBlank).foldLeft(List.empty(), (acc, str) -> {
+            return Stream.of(Option.of(repr).getOrElse("").split(",")).map(String::trim)
+                    .filter(StringUtils::isNotBlank).<List<SearchBody.SortBy>>foldLeft(List.empty(), (acc, str) -> {
                         if (str.startsWith("-")) {
                             return acc.append(new SearchBody.SortBy(str.substring(1), DESC));
                         } else {
                             return acc.append(new SearchBody.SortBy(str.replaceFirst("^\\+", ""), ASC));
                         }
                     });
-            return objects;
         }).mapFailure(SORTBY_PARSING, () -> format("Failed to parse sort by: '%s'", repr));
     }
 

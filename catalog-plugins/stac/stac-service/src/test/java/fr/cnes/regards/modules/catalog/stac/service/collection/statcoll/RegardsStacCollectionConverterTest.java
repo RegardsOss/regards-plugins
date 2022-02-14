@@ -71,13 +71,13 @@ import static org.mockito.Mockito.*;
 public class RegardsStacCollectionConverterTest {
 
     @Configuration
-    @ComponentScan(basePackageClasses = { IStaticCollectionService.class })
+    @ComponentScan(basePackageClasses = { StaticCollectionService.class })
     public static class ScanningConfiguration {
 
     }
 
     @Autowired
-    IStaticCollectionService converter;
+    StaticCollectionService converter;
 
     @MockBean
     private CatalogSearchService catalogSearchService;

@@ -85,9 +85,9 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
                 return parseExactLevelDef(prop);
             }
             else if ((matcher = NUMBER_FORMAT_PATTERN.matcher(format)).matches()) {
-                Double min = Double.parseDouble(matcher.group("min"));
-                Double step = Double.parseDouble(matcher.group("step"));
-                Double max = Double.parseDouble(matcher.group("max"));
+                double min = Double.parseDouble(matcher.group("min"));
+                double step = Double.parseDouble(matcher.group("step"));
+                double max = Double.parseDouble(matcher.group("max"));
 
                 NumberRangeSublevelDef rangeSublevel = new NumberRangeSublevelDef(min, step, max);
 

@@ -45,7 +45,6 @@ public class CollectionSearchBody {
 
     IGeometry intersects;
 
-    // FIXME pertinent ou non? on rechercherait dans les jeux liés à ces collections?
     List<String> collections;
 
     List<String> ids;

@@ -44,7 +44,6 @@ import fr.cnes.regards.modules.catalog.stac.service.criterion.IdentitiesCriterio
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
-import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -161,7 +160,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             // No dataset matches!
             if (!idCriterion.isDefined()) {
                 return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
-                                         collectionStacProperties, null, searchCollectionPageLinkCreator,
+                                         collectionStacProperties, searchCollectionPageLinkCreator,
                                          searchItemPageLinkCreator, HashMap.empty(), collectionConfigurationAccessor);
             }
         } else {
@@ -182,8 +181,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return trying(() -> catalogSearchService.<Dataset>search(collectionCriteria, SearchType.DATASETS, null,
                                                                  pageable)).mapFailure(SEARCH, () -> String.format(
                 "Collection search failure for page %d of %s", page, collectionSearchBody)).flatMap(
-                facetPage -> extractCollection(facetPage, collectionStacProperties, null,
-                                               searchCollectionPageLinkCreator, searchItemPageLinkCreator,
+                facetPage -> extractCollection(facetPage, collectionStacProperties, searchCollectionPageLinkCreator, searchItemPageLinkCreator,
                                                finalDatasetCount, collectionConfigurationAccessor));
     }
 
@@ -196,9 +194,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 .toMap(kv -> kv);
     }
 
-    private Try<SearchCollectionsResponse> extractCollection(FacetPage<Dataset> facetPage,
-            List<StacProperty> stacProperties, OGCFeatLinkCreator featLinkCreator,
-            SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator,
+    private Try<SearchCollectionsResponse> extractCollection(FacetPage<Dataset> facetPage, List<StacProperty> stacProperties, SearchPageLinkCreator searchCollectionPageLinkCreator, SearchPageLinkCreator searchItemPageLinkCreator,
             Map<String, Long> datasetCount, CollectionConfigurationAccessor collectionConfigurationAccessor) {
         return trying(() -> {
             Context context = new Context(facetPage.getNumberOfElements(), facetPage.getPageable().getPageSize(),
@@ -449,10 +445,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     }
 
     private Try<DocFilesSummary> computeSummary(ICriterion itemCriteria, UniformResourceName datasetUrn) {
-        return trying(() -> {
-            return catalogSearchService.computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS,
-                                                               datasetUrn, Lists.newArrayList(DataType.RAWDATA));
-        }).mapFailure(DOWNLOAD_COLLECTION_SUMMARY, () -> "Cannot compute collection summary");
+        return trying(() -> catalogSearchService.computeDatasetsSummary(itemCriteria, SearchType.DATAOBJECTS,
+                                                                    datasetUrn, Lists.newArrayList(DataType.RAWDATA))).mapFailure(DOWNLOAD_COLLECTION_SUMMARY, () -> "Cannot compute collection summary");
     }
 
     /**

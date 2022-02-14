@@ -39,5 +39,4 @@ public class IdentitiesCriterionBuilder implements CriterionBuilder<List<String>
         if (ids == null || ids.isEmpty()) { return Option.none(); }
         return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id, StringMatchType.KEYWORD)), ICriterion::or);
     }
-
 }

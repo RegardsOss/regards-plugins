@@ -19,14 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
-
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.NumberQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.service.criterion.query.number.DoubleInterval;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
@@ -35,39 +32,80 @@ import io.vavr.control.Option;
 /**
  * Criterion builder for a {@link NumberQueryObject}
  */
-public class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<NumberQueryObject> {
-
-    public static final double DOUBLE_COMPARISON_PRECISION = 1e-6;
+public abstract class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<NumberQueryObject> {
 
     public NumberQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
-            NumberQueryObject queryObject) {
-        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName)
-                .map(StacProperty::getConverter).getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, NumberQueryObject queryObject) {
 
-        return andAllPresent(combineIntervals(attr, List
-                .of(extractConvertedValue(converter, queryObject.getEq()).map(DoubleInterval::eq),
-                    extractConvertedValue(converter, queryObject.getLt()).map(DoubleInterval::lt),
-                    extractConvertedValue(converter, queryObject.getLte()).map(DoubleInterval::lte),
-                    extractConvertedValue(converter, queryObject.getGt()).map(DoubleInterval::gt),
-                    extractConvertedValue(converter, queryObject.getGte()).map(DoubleInterval::gte))),
-                             combineIntervals(attr, List.of(Option.of(queryObject.getNeq()).map(DoubleInterval::eq)))
-                                     .map(ICriterion::not),
-                             Option.of(queryObject.getIn()).flatMap(in -> in
-                                     .map(d -> eq(attr, d, DOUBLE_COMPARISON_PRECISION)).reduceLeftOption(ICriterion::or)));
+        // Get converter
+        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName).map(StacProperty::getConverter)
+                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+
+        if (queryObject.getEq() != null) {
+            return extractConvertedValue(converter, queryObject.getEq()).map(v -> eq(attr, v));
+        } else if (queryObject.getNeq() != null) {
+            return extractConvertedValue(converter, queryObject.getNeq()).map(v -> neq(attr, v));
+        } else if (queryObject.getIn() != null && !queryObject.getIn().isEmpty()) {
+            return extractConvertedValue(converter, queryObject.getIn()).map(in -> in(attr, in));
+        } else {
+            // Combine operators
+            Option<Double> lower = Option.none(), upper = Option.none();
+            boolean lowerInclusive = false, upperInclusive = false;
+            if (queryObject.getGt() != null) {
+                lower = extractConvertedValue(converter, queryObject.getGt());
+            }
+            if (queryObject.getGte() != null) {
+                lower = extractConvertedValue(converter, queryObject.getGte());
+                lowerInclusive = true;
+            }
+            if (queryObject.getLt() != null) {
+                upper = extractConvertedValue(converter, queryObject.getLt());
+            }
+            if (queryObject.getLte() != null) {
+                upper = extractConvertedValue(converter, queryObject.getLte());
+                upperInclusive = true;
+            }
+            return Option.of(redispatchBetween(attr, lower, lowerInclusive, upper, upperInclusive));
+        }
     }
 
-    public Option<Double> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, Double lt) {
+    private ICriterion redispatchBetween(AttributeModel attr, Option<Double> lower, boolean lowerInclusive, Option<Double> upper, boolean upperInclusive) {
+        if (lower.isDefined() && upper.isDefined()) {
+            return between(attr, lower.get(), lowerInclusive, upper.get(), upperInclusive);
+        } else if (lower.isDefined()) {
+            return lowerInclusive ? gte(attr, lower.get()) : gt(attr, lower.get());
+        } else if (upper.isDefined()) {
+            return upperInclusive ? lte(attr, upper.get()) : lt(attr, upper.get());
+        } else {
+            throw new IllegalArgumentException(String.format("At least one criterion must be set for property %s", stacPropName));
+        }
+    }
+
+    protected abstract ICriterion eq(AttributeModel attr, Double value);
+
+    protected abstract ICriterion neq(AttributeModel attr, Double value);
+
+    protected abstract ICriterion in(AttributeModel attr, List<Double> in);
+
+    protected abstract ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive);
+
+    protected abstract ICriterion gt(AttributeModel attr, Double value);
+
+    protected abstract ICriterion gte(AttributeModel attr, Double value);
+
+    protected abstract ICriterion lt(AttributeModel attr, Double value);
+
+    protected abstract ICriterion lte(AttributeModel attr, Double value);
+
+    private Option<Double> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, Double lt) {
         return Option.of(lt).toTry().flatMap(converter::convertStacToRegards).toOption();
     }
 
-    private Option<ICriterion> combineIntervals(AttributeModel attr, List<Option<DoubleInterval>> intervals) {
-        return intervals.flatMap(opt -> opt).reduceLeftOption(DoubleInterval::combine)
-                .map(i -> i.toCriterion(attr.getFullJsonPath()));
+    private Option<List<Double>> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, List<Double> lt) {
+        return Option.of(lt.flatMap(v -> extractConvertedValue(converter, v)).toList());
     }
 }

@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.QueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilder;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -46,15 +45,5 @@ public abstract class AbstractQueryObjectCriterionBuilder<T extends QueryObject>
         if (queryObject == null) { return Option.none(); }
         return propertyNameFor(properties, stacPropName)
                 .flatMap(attr -> buildCriterion(attr, properties, queryObject));
-    }
-
-    protected Option<AttributeModel> propertyNameFor(List<StacProperty> properties, String attrName) {
-        return getStacProperty(properties, attrName)
-                .map(StacProperty::getRegardsPropertyAccessor)
-                .map(RegardsPropertyAccessor::getAttributeModel);
-    }
-
-    protected Option<StacProperty> getStacProperty(List<StacProperty> properties, String attrName) {
-        return properties.find(p -> attrName.equals(p.getStacPropertyName()));
     }
 }

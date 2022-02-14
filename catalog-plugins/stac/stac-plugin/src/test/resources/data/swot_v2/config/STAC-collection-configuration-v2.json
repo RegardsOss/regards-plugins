@@ -72,6 +72,11 @@
             "stacPropertyExtension": "version"
           },
           {
+            "sourcePropertyPath": "properties.certified",
+            "stacPropertyName": "certified",
+            "stacPropertyExtension": "version"
+          },
+          {
             "sourcePropertyPath": "last",
             "stacPropertyName": "latest",
             "stacPropertyExtension": "version"
@@ -144,6 +149,21 @@
             "sourcePropertyPath": "hydro.variables",
             "stacPropertyName": "hydro:variables",
             "stacPropertyExtension": "hydro"
+          },
+          {
+            "sourcePropertyPath": "measures.int_measure",
+            "stacPropertyName": "measures:int_measure",
+            "stacPropertyExtension": "measures"
+          },
+          {
+            "sourcePropertyPath": "measures.long_measure",
+            "stacPropertyName": "measures:long_measure",
+            "stacPropertyExtension": "measures"
+          },
+          {
+            "sourcePropertyPath": "measures.double_measure",
+            "stacPropertyName": "measures:double_measure",
+            "stacPropertyExtension": "measures"
           }
         ]
       }

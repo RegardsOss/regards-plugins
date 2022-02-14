@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 
 /**
- * Allows to build criteria for geometries.
+ * Allows building criteria for geometries.
  *
  * <p>
  *   <strong>Notes:</strong>

@@ -121,7 +121,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                     .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid())))
                     .getOrElse(() -> Tuple.of(null, null, null));
         } else {
-            return new Tuple3<IGeometry, BBox, Centroid>(IGeometry.unlocated(), null, null);
+            return new Tuple3<>(IGeometry.unlocated(), null, null);
         }
     }
 

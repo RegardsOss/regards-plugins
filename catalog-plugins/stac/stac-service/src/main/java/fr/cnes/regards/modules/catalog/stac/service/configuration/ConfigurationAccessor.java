@@ -25,20 +25,13 @@ import io.vavr.collection.List;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 
 /**
- * Provides access to values present in the STAC plugin configuration.
+ * Provides access to the values present in the STAC plugin configuration.
  */
 public interface ConfigurationAccessor {
 
     /**
-     * Tells if the STAC search engine is configured for the current project
-     * @return true if a PluginCOnfiguration is found for StacSearchEngine
-     */
-    boolean hasStacConfiguration();
-
-    /**
      * Get the list of {@link StacProperty} defined in the current project
      * StacSearchEngine configuration
-     * @return
      */
     List<StacProperty> getStacProperties();
 

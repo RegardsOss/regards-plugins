@@ -19,17 +19,15 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.pagination;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import io.vavr.control.Try;
 
 /**
- * Serialize and deserialize item serach bodies into string tokens,
+ * Serialize and deserialize item search bodies into string tokens,
  * use for next/prev page links.
  */
 public interface SearchOtherPageCollectionBodySerdeService {
 
-    String serialize(CollectionSearchBody collectionSearchBody);
     Try<CollectionSearchBody> deserialize(String repr);
 
 }

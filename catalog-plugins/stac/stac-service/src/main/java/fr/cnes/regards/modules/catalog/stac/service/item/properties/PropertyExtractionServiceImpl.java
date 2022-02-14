@@ -45,6 +45,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
@@ -69,14 +70,14 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
             List<StacProperty> stacProperties) {
         // Group by namespace (without virtual properties only used for criterion mapping, not for response)
         Map<String, List<StacProperty>> groupedProperties = stacProperties.filter(p -> !p.getVirtual())
-                .groupBy(s -> s.getStacPropertyNamespace());
+                .groupBy(StacProperty::getStacPropertyNamespace);
         // Get base map
         Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
                                                                        groupedProperties.get(null)
                                                                                .getOrElse(List.empty()));
 
-        // Add namespaced properties
-        return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(k -> k != null)
+        // Add properties with namespaces
+        return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(Objects::nonNull)
                                                   .map(ppt -> extractStacPropertiesByNamespace(feature,
                                                                                                Option.of(ppt._1),
                                                                                                ppt._2))
@@ -88,7 +89,7 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         Map<String, Object> result;
         if (namespace.isDefined()) {
             Map<String, Object> wrapped = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv)
-                    .filterValues(v -> v != null);
+                    .filterValues(Objects::nonNull);
             result = wrapped.isEmpty() ? HashMap.empty() : HashMap.of(namespace.get(), wrapped);
         } else {
             result = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv);
@@ -98,12 +99,11 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
 
     private Tuple2<String, Object> extractStacProperty(AbstractEntity<? extends EntityFeature> feature,
             StacProperty stacProperty) {
-        Tuple2<String, Object> tuple2 = Tuple.of(stacProperty.getStacPropertyName(),
-                                                 stacProperty.getRegardsPropertyAccessor().getGenericExtractValueFn()
+        return Tuple.of(stacProperty.getStacPropertyName(),
+                        stacProperty.getRegardsPropertyAccessor().getGenericExtractValueFn()
                                                          .apply(feature)
                                                          .map(val -> convertStacProperty(val, stacProperty))
                                                          .getOrNull());
-        return tuple2;
     }
 
     @SuppressWarnings("unchecked")
@@ -144,7 +144,7 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         return Try.of(() -> {
             Object object = stacAssetsProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
                     .getOrNull();
-            return HashMap.ofAll(extractStaticAssetsFromJson(object));
+            return HashMap.ofAll(Objects.requireNonNull(extractStaticAssetsFromJson(object)));
         }).getOrElse(HashMap.empty());
     }
 
@@ -185,7 +185,7 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
         return Try.of(() -> {
             Object object = stacLinksProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
                     .getOrNull();
-            return List.ofAll(extractStaticLinksFromJson(object));
+            return List.ofAll(Objects.requireNonNull(extractStaticLinksFromJson(object)));
         }).getOrElse(List.empty());
     }
 
@@ -200,7 +200,7 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
 
     @Override
     public Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties) {
-        return Try.of(() -> stacProperties.map(p -> p.getExtension()).filter(e -> e != null && !e.isEmpty()).toSet())
+        return Try.of(() -> stacProperties.map(StacProperty::getExtension).filter(e -> e != null && !e.isEmpty()).toSet())
                 .getOrElse(HashSet.empty());
     }
 

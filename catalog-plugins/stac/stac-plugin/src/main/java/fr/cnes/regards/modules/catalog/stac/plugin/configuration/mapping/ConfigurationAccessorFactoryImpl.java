@@ -102,11 +102,6 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
             }
 
             @Override
-            public boolean hasStacConfiguration() {
-                return plugin.isSuccess();
-            }
-
-            @Override
             public List<StacProperty> getStacProperties() {
                 return plugin.map(ConfigurationAccessorFactoryImpl.this::getConfiguredProperties)
                         .getOrElse(List.empty());

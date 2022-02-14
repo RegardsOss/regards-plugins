@@ -34,8 +34,9 @@
       }
     ],
     "min_start_datetime": "2020-04-02T11:21:39Z",
-    "items": 0,
+    "items": 1,
     "version": "1",
+    "certified": "false",
     "release": "DT",
     "processing": {
       "level": "L2",
@@ -51,7 +52,7 @@
       "acquisition_type": "satellite",
       "datasource": "SWOT mission center",
       "data_format": "Raster",
-      "data_file_format": "NetCDF4",
+      "data_file_format": "NetCDF5",
       "item_type": "tile"
     },
     "hydro": {
@@ -85,6 +86,11 @@
           "long_name": "Water area"
         }
       ]
+    },
+    "measures" : {
+      "int_measure": 19,
+      "long_measure": 25000,
+      "double_measure": 18.56789
     }
   },
   "tags": []

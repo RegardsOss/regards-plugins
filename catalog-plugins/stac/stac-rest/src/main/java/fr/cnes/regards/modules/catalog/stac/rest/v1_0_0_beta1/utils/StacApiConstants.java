@@ -20,8 +20,6 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
 
 /**
- * TODO: Path description
- *
  * @author gandrieu
  */
 public interface StacApiConstants {

@@ -57,7 +57,7 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 import static io.vavr.control.Option.none;
 
 /**
- * Allows to generate link creators.
+ * Allows generating link creators.
  */
 @Service
 public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {

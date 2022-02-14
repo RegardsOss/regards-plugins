@@ -75,7 +75,7 @@ public class ModZipServiceImpl implements ModZipService {
     private static final String STORAGE_DOWNLOAD_FILE_PATH = "/%s/resources/%s/download?token=%s";
 
     /**
-     * Only use to split URI for {@link DownloadSource#CATALOG}
+     * Only used to split URI for {@link DownloadSource#CATALOG}
      */
     @Value("${spring.application.name}")
     private String microserviceName;
@@ -113,20 +113,16 @@ public class ModZipServiceImpl implements ModZipService {
     @Override
     public Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
             DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
-        return trying(() -> {
-            StreamingResponseBody stream = outputStream -> {
-                try (PrintWriter writer = new PrintWriter(outputStream)) {
-                    if (onlySample) {
-                        addSampleFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
-                    } else {
-                        addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
-                    }
+        return trying(() -> (StreamingResponseBody) outputStream -> {
+            try (PrintWriter writer = new PrintWriter(outputStream)) {
+                if (onlySample) {
+                    addSampleFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
+                } else {
+                    addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
                 }
-            };
-            return stream;
+            }
         }).mapFailure(StacFailureType.MOD_ZIP_DESC_BUILD, () -> String.format("Download preparation failure for %s",
-                                                                              collectionId.orElseGet(
-                                                                                      () -> "all collections")));
+                                                                                  collectionId.orElse("all collections")));
     }
 
     private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
@@ -154,7 +150,7 @@ public class ModZipServiceImpl implements ModZipService {
 
         } catch (SearchException | OpenSearchUnknownParameter e) {
             throw new StacException(String.format("Cannot retrieve sample files to download for collection %s",
-                                                  collectionId.orElseGet(() -> "unknown collection")), e,
+                                                  collectionId.orElse("unknown collection")), e,
                                     StacFailureType.DOWNLOAD_RETRIEVE_SAMPLE_FILES);
         }
     }
@@ -246,8 +242,8 @@ public class ModZipServiceImpl implements ModZipService {
      */
     private void printFileReference(PrintWriter writer, Optional<String> crc32, Long size, String location,
             Optional<Path> dir, String filename) {
-        String targetFilename = dir.isPresent() ? dir.get().resolve(filename).toString() : filename;
-        String line = String.format(MOD_ZIP_LINE_FORMAT, crc32.orElseGet(() -> UNKNOWN_CRC32), size, location,
+        String targetFilename = dir.map(path -> path.resolve(filename).toString()).orElse(filename);
+        String line = String.format(MOD_ZIP_LINE_FORMAT, crc32.orElse(UNKNOWN_CRC32), size, location,
                                     targetFilename);
         LOGGER.debug("Mod_zip line : {}", line);
         writer.println(line);
@@ -281,7 +277,7 @@ public class ModZipServiceImpl implements ModZipService {
         return String.format(STORAGE_DOWNLOAD_FILE_PATH, nginxPrefix, checksum, downloadLinkCreator.getSystemToken());
     }
 
-    static enum DownloadSource {
-        CATALOG, STORAGE;
+    enum DownloadSource {
+        CATALOG, STORAGE
     }
 }

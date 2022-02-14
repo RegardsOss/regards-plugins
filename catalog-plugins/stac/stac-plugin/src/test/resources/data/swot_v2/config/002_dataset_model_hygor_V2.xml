@@ -215,6 +215,11 @@
 		<type>STRING</type>
 	</attribute>
 	<attribute>
+		<label>Certified</label>
+		<name>certified</name>
+		<type>BOOLEAN</type>
+	</attribute>
+	<attribute>
 		<label>Release</label>
 		<name>release</name>
 		<type>STRING</type>
@@ -376,6 +381,24 @@
 					}]]>
 				</json_schema>
 			</restriction>
+		</attribute>
+	</fragment>
+	<fragment>
+		<name>measures</name>
+		<attribute>
+			<label>SINGLE INT</label>
+			<name>int_measure</name>
+			<type>INTEGER</type>
+		</attribute>
+		<attribute>
+			<label>SINGLE LONG</label>
+			<name>long_measure</name>
+			<type>LONG</type>
+		</attribute>
+		<attribute>
+			<label>SINGLE DOUBLE</label>
+			<name>double_measure</name>
+			<type>DOUBLE</type>
 		</attribute>
 	</fragment>
 </model>

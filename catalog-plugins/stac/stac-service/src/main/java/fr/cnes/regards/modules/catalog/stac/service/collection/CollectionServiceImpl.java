@@ -33,7 +33,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.DynamicCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollValNextSublevelHelper;
-import fr.cnes.regards.modules.catalog.stac.service.collection.statcoll.IStaticCollectionService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.statcoll.StaticCollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
@@ -69,22 +69,22 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private final DynamicCollectionService dynCollService;
 
-    private final DynCollValNextSublevelHelper sublevelHelper;
+    private final DynCollValNextSublevelHelper subLevelHelper;
 
     private final ItemSearchBodyFactory itemSearchBodyFactory;
 
     private final ItemSearchService itemSearchService;
 
-    private final IStaticCollectionService staticCollectionService;
+    private final StaticCollectionService staticCollectionService;
 
     @Autowired
     public CollectionServiceImpl(ConfigurationAccessorFactory configurationAccessorFactory,
-            DynamicCollectionService dynCollService, DynCollValNextSublevelHelper sublevelHelper,
+            DynamicCollectionService dynCollService, DynCollValNextSublevelHelper subLevelHelper,
             ItemSearchBodyFactory itemSearchBodyFactory, ItemSearchService itemSearchService,
-            IStaticCollectionService staticCollectionService) {
+            StaticCollectionService staticCollectionService) {
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
-        this.sublevelHelper = sublevelHelper;
+        this.subLevelHelper = subLevelHelper;
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
         this.staticCollectionService = staticCollectionService;
@@ -100,27 +100,27 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         String name = config.getRootDynamicCollectionName();
         DynCollDef def = dynCollService.dynamicCollectionsDefinition(config.getStacProperties());
         return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(), name, DEFAULT_DYNAMIC_ID, name,
-                              dynamicCollectionLinks(linkCreator, DEFAULT_DYNAMIC_ID, name,
+                              dynamicCollectionLinks(linkCreator, name,
                                                      new DynCollVal(def, List.empty())), List.empty(), "", List.empty(),
                               Extent.maximalExtent(), // no extent at this level
                               HashMap.empty(), // no summaries at this level
                               null, null);
     }
 
-    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfId, String selfTitle,
+    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfTitle,
             DynCollVal currentVal) {
 
         List<Link> baseLinks = List
-                .of(linkCreator.createRootLink(), linkCreator.createCollectionLinkWithRel(selfId, selfTitle, SELF))
+                .of(linkCreator.createRootLink(), linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, selfTitle, SELF))
                 .flatMap(l -> l);
 
         if (!currentVal.isFullyValued()) {
-            List<Link> sublevelsLinks = sublevelHelper.nextSublevels(currentVal).map(val -> {
+            List<Link> subLevelsLinks = subLevelHelper.nextSublevels(currentVal).map(val -> {
                 String urn = dynCollService.representDynamicCollectionsValueAsURN(val);
                 String label = val.getLowestLevelLabel();
                 return linkCreator.createCollectionLinkWithRel(urn, label, CHILD);
             }).flatMap(t -> t);
-            return baseLinks.appendAll(sublevelsLinks);
+            return baseLinks.appendAll(subLevelsLinks);
         } else {
             return baseLinks;
         }
