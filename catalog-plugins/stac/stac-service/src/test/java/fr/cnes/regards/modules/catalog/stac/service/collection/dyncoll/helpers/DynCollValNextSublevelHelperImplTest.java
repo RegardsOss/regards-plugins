@@ -16,7 +16,7 @@ import java.util.Collection;
 
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.metrics.stats.ParsedStats;
+import org.elasticsearch.search.aggregations.metrics.ParsedStats;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
