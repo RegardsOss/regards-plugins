@@ -18,33 +18,9 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.legacy;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.map.HashedMap;
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.MimeType;
-import org.springframework.web.bind.annotation.RequestMethod;
-
 import com.google.common.collect.Sets;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -68,7 +44,6 @@ import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
-import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
@@ -86,6 +61,21 @@ import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.Parameter
 import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.geo.GeoTimeExtension;
 import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.media.MediaExtension;
 import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.regards.RegardsExtension;
+import org.apache.commons.collections4.map.HashedMap;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.MimeType;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Engine common methods
@@ -220,7 +210,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         // Manage project
         Project project = new Project(1L, "Solar system project", "http://plop/icon.png", true, "SolarSystem");
         project.setHost("http://regards/solarsystem");
-        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(new EntityModel<>(project));
+        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(EntityModel.of(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);
 
         // Bypass method access rights
@@ -289,7 +279,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(Mockito.any())).thenAnswer(invocation -> {
             String modelName = invocation.getArgument(0);
             return ResponseEntity.ok(modelService.getModelAttrAssocs(modelName).stream()
-                    .map(a -> new EntityModel<ModelAttrAssoc>(a)).collect(Collectors.toList()));
+                    .map(EntityModel::of).collect(Collectors.toList()));
         });
 
         // - Refresh attribute factory
@@ -298,7 +288,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
         // - Manage attribute cache
         List<EntityModel<AttributeModel>> resAtts = new ArrayList<>();
-        atts.forEach(att -> resAtts.add(new EntityModel<AttributeModel>(att)));
+        atts.forEach(att -> resAtts.add(EntityModel.of(att)));
         Mockito.when(attributeModelClientMock.getAttributes(null, null)).thenReturn(ResponseEntity.ok(resAtts));
         finder.refresh(getDefaultTenant());
 

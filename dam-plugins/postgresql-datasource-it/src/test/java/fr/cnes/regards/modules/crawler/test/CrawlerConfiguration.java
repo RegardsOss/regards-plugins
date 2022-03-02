@@ -72,7 +72,7 @@ public class CrawlerConfiguration {
             project.setName(tenant);
             project.setCrs("WGS_84");
             project.setPoleToBeManaged(Boolean.FALSE);
-            return ResponseEntity.ok(new EntityModel<Project>(project));
+            return ResponseEntity.ok(EntityModel.of(project));
         });
         return projectClient;
     }

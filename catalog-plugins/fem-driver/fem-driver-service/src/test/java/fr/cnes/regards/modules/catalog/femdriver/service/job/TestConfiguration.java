@@ -51,7 +51,7 @@ public class TestConfiguration {
         @SuppressWarnings("deprecation")
         Project project = new Project(1L, "Solar system project", "http://plop/icon.png", true, "SolarSystem");
         project.setHost("http://regards/solarsystem");
-        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(new EntityModel<>(project));
+        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(EntityModel.of(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);
         return projectsClientMock;
     }

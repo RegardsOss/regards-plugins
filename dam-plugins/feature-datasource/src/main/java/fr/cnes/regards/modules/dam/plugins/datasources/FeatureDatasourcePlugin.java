@@ -94,7 +94,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @Autowired(required = false)
     private IProjectsClient projectClient;
 
-    @Value("${zuul.prefix}")
+    @Value("${prefix.path}")
     private String urlPrefix;
 
     /**

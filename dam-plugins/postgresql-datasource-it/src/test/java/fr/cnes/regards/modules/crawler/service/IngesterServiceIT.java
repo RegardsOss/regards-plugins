@@ -18,28 +18,7 @@
  */
 package fr.cnes.regards.modules.crawler.service;
 
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -53,12 +32,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalData2;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalData2Repository;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalData3;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalData3Repository;
-import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
+import fr.cnes.regards.modules.crawler.service.ds.*;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -78,6 +52,21 @@ import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFa
 import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
+import org.assertj.core.util.Lists;
+import org.junit.*;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @ActiveProfiles({ "noschedule", "IngesterTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
@@ -347,7 +336,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     public void test() throws InterruptedException {
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
-                .thenReturn(ResponseEntity.ok(new EntityModel<>(project)));
+                .thenReturn(ResponseEntity.ok(EntityModel.of(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 

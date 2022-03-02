@@ -1,25 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeTypeUtils;
-
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -41,6 +22,23 @@ import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfigurat
 import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class AipDataSourcePluginTestConfiguration {
@@ -65,7 +63,7 @@ public class AipDataSourcePluginTestConfiguration {
         IProjectsClient client = Mockito.mock(IProjectsClient.class);
         Project project = new Project("desc", null, true, "test-project");
         project.setHost("http://test.com");
-        EntityModel<Project> resource = new EntityModel<Project>(project);
+        EntityModel<Project> resource = EntityModel.of(project);
         ResponseEntity<EntityModel<Project>> response = new ResponseEntity<EntityModel<Project>>(resource,
                 HttpStatus.OK);
         Mockito.when(client.retrieveProject(Mockito.anyString())).thenReturn(response);
@@ -112,10 +110,8 @@ public class AipDataSourcePluginTestConfiguration {
 
             }
 
-            List<EntityModel<AIPEntity>> list = aipEntities.stream().map(n -> {
-                return new EntityModel<AIPEntity>(n);
-            }).collect(Collectors.toList());
-            return ResponseEntity.ok(new PagedModel<EntityModel<AIPEntity>>(list,
+            List<EntityModel<AIPEntity>> list = aipEntities.stream().map(EntityModel::of).collect(Collectors.toList());
+            return ResponseEntity.ok(PagedModel.of(list,
                     new PagedModel.PageMetadata(aipEntities.size(), 0, aipEntities.size(), 1)));
         }
 
@@ -129,7 +125,7 @@ public class AipDataSourcePluginTestConfiguration {
         StorageLocationDTO dto = new StorageLocationDTO("AWS", 1L, 1L, 1L, 1L, false, false, false,
                                                           storageLocationConfiguration, false);
         List<EntityModel<StorageLocationDTO>> list = new LinkedList<>();
-        list.add(new EntityModel<>(dto));
+        list.add(EntityModel.of(dto));
         ResponseEntity<List<EntityModel<StorageLocationDTO>>> result = ResponseEntity.ok(list);
         Mockito.when(mock.retrieve()).thenReturn(result);
         return mock;

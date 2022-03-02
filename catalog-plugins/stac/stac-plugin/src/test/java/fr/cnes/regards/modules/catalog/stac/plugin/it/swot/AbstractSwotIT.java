@@ -29,7 +29,6 @@ import fr.cnes.regards.framework.modules.tinyurl.dao.TinyUrlRepository;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
@@ -47,13 +46,7 @@ import fr.cnes.regards.modules.model.dao.IAttributeModelRepository;
 import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
-import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
-import fr.cnes.regards.modules.model.domain.attributes.AttributeProperty;
-import fr.cnes.regards.modules.model.domain.attributes.restriction.JsonSchemaRestriction;
-import fr.cnes.regards.modules.model.domain.attributes.restriction.RestrictionType;
-import fr.cnes.regards.modules.model.dto.properties.PropertyType;
-import fr.cnes.regards.modules.model.gson.AbstractAttributeHelper;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
@@ -196,7 +189,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         // Manage project
         Project project = new Project(1L, "SWOT project", "http://plop/icon.png", true, "SWOT");
         project.setHost("http://regards/swot");
-        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(new EntityModel<>(project));
+        ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(EntityModel.of(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);
 
         // Bypass method access rights
@@ -262,7 +255,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(Mockito.any())).thenAnswer(invocation -> {
             String modelName = invocation.getArgument(0);
             return ResponseEntity
-                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(EntityModel::new)
+                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(EntityModel::of)
                                 .collect(Collectors.toList()));
         });
 
@@ -273,7 +266,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
         // - Manage attribute cache
         List<EntityModel<AttributeModel>> resAtts = new ArrayList<>();
-        atts.forEach(att -> resAtts.add(new EntityModel<>(att)));
+        atts.forEach(att -> resAtts.add(EntityModel.of(att)));
         Mockito.when(attributeModelClientMock.getAttributes(null, null)).thenReturn(ResponseEntity.ok(resAtts));
         finder.refresh(getDefaultTenant());
 

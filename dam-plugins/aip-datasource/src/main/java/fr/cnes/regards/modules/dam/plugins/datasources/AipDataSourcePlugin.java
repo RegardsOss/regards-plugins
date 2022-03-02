@@ -178,7 +178,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     @Autowired
     private IInstanceSubscriber subscriber;
 
-    @Value("${zuul.prefix}")
+    @Value("${prefix.path}")
     private String urlPrefix;
 
     private Model model;

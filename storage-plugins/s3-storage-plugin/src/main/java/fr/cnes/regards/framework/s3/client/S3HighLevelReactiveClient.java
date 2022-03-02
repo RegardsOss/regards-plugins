@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Scheduler;
 import reactor.util.function.Tuple2;
+import reactor.util.retry.Retry;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -95,7 +96,7 @@ public class S3HighLevelReactiveClient {
         String bucket = config.getBucket();
         String entryKey = readCmd.getEntryKey();
         return getClient(config).readContentFlux(bucket, entryKey, true)
-            .retryBackoff(5, Duration.ofSeconds(5), Duration.ofMinutes(5), 0.2d)
+            .retryWhen(Retry.backoff(5, Duration.ofSeconds(5)).jitter(0.2d).maxBackoff(Duration.ofMinutes(5)))
             .map(ras -> {
                 Long size = ras.getResponse().contentLength();
                 String etag = ras.getResponse().eTag();
@@ -218,7 +219,7 @@ public class S3HighLevelReactiveClient {
 
     private Function<Mono<DeleteResult>, Publisher<DeleteResult>> deleteErrorManagement(Delete deleteCmd, AtomicBoolean hasDeleted) {
         return mdr -> mdr
-                .retryBackoff(5, Duration.ofSeconds(5), Duration.ofMinutes(5), 0.2d)
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(5)).jitter(0.2d).maxBackoff(Duration.ofMinutes(5)))
                 .onErrorResume(t -> Mono.just(new DeleteFailure(deleteCmd)));
     }
 

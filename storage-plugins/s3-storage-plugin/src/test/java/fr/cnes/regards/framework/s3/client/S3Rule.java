@@ -6,7 +6,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;

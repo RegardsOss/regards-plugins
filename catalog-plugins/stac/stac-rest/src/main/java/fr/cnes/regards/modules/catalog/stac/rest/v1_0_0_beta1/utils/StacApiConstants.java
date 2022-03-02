@@ -52,13 +52,15 @@ public interface StacApiConstants {
 
     String STAC_PATH = "/stac";
 
+    String ITEM_PATH = "/items";
+
     String STAC_CONFORMANCE_PATH = STAC_PATH + "/conformance";
 
     String STAC_COLLECTIONS_PATH = STAC_PATH + "/collections";
     // Extension to get collection from both item and collection searches
     String STAC_COLLECTION_SEARCH_PATH = STAC_COLLECTIONS_PATH + "/search";
     String STAC_COLLECTION_PATH_SUFFIX = "/{" + COLLECTION_ID_PARAM + "}";
-    String STAC_ITEMS_PATH_SUFFIX = STAC_COLLECTION_PATH_SUFFIX + "/items";
+    String STAC_ITEMS_PATH_SUFFIX = STAC_COLLECTION_PATH_SUFFIX + ITEM_PATH;
     String STAC_ITEM_PATH_SUFFIX = STAC_ITEMS_PATH_SUFFIX + "/{" + ITEM_ID_PARAM + "}";
     String STAC_SEARCH_PATH = STAC_PATH + "/search";
     // Extension to get download information for a set of collections

@@ -154,12 +154,12 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
         SearchPageLinkCreator searchPageLinkCreator = linkCreator
                 .makeSearchPageLinkCreator(auth, 0, ItemSearchBody.builder().limit(100).build());
         Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
-        return io.vavr.collection.List.of(collectionsLink.map(href -> new Link(href, "search-collections")),
-                                          collectionsLink.map(href -> new Link(href, "search-datasets")),
+        return io.vavr.collection.List.of(collectionsLink.map(href -> Link.of(href, "search-collections")),
+                                          collectionsLink.map(href -> Link.of(href, "search-datasets")),
                                           searchPageLinkCreator.searchAll().map(URI::toString)
-                                                  .map(href -> new Link(href, "search-objects")),
+                                                  .map(href -> Link.of(href, "search-objects")),
                                           ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString())
-                                                  .map(href -> new Link(href, "search"))).flatMap(vl -> vl)
+                                                  .map(href -> Link.of(href, "search"))).flatMap(vl -> vl)
                 .toJavaList();
     }
 }
