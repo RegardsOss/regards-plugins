@@ -48,6 +48,8 @@
         <easy-random-core.version>4.2.0</easy-random-core.version>
         <easy-random-vavr-extension.version>1.0.0</easy-random-vavr-extension.version>
         <noggit.version>0.5</noggit.version>
+        <!-- Test dependency versions -->
+        <org.assertj.version>3.22.0</org.assertj.version>
     </properties>
 
     <description>REGARDS official plugins repository</description>

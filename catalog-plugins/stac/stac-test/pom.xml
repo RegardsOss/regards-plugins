@@ -18,6 +18,12 @@
             <artifactId>regards-test</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- Forces compile scope for assertJ in test project -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>geojson-regards</artifactId>
