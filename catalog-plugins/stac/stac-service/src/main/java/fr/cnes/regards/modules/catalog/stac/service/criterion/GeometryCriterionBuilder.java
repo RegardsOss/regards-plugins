@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import fr.cnes.regards.framework.geojson.GeoJsonType;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.MultiPolygon;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
@@ -53,9 +54,9 @@ public class GeometryCriterionBuilder implements CriterionBuilder<IGeometry> {
         return Option.of(geometry)
             .flatMap(g -> {
                 switch (geometry.getType()) {
-                    case POLYGON:
+                    case GeoJsonType.POLYGON:
                         return Option.of(ICriterion.intersectsPolygon(((Polygon)geometry).toArray()));
-                    case MULTIPOLYGON:
+                    case GeoJsonType.MULTIPOLYGON:
                         return Option.of(ICriterion.or(Stream.of(((MultiPolygon)geometry).toArray()).map(ICriterion::intersectsPolygon)));
                     default:
                         warn(LOGGER, "Unsupported geometry type for STAC search criterion: {}", geometry.getType());

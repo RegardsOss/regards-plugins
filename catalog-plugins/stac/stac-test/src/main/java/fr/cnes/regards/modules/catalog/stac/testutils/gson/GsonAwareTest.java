@@ -22,12 +22,8 @@ package fr.cnes.regards.modules.catalog.stac.testutils.gson;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.cnes.regards.framework.geojson.GeoJsonType;
-import fr.cnes.regards.framework.geojson.coordinates.Position;
 import fr.cnes.regards.framework.geojson.gson.FeatureTypeAdapterFactory;
-import fr.cnes.regards.framework.geojson.gson.GeoJsonTypeAdapter;
 import fr.cnes.regards.framework.geojson.gson.GeometryTypeAdapterFactory;
-import fr.cnes.regards.framework.geojson.gson.PositionTypeAdapter;
 import fr.cnes.regards.framework.gson.adapters.*;
 import fr.cnes.regards.framework.gson.adapters.actuator.ApplicationMappingsAdapter;
 import fr.cnes.regards.framework.gson.adapters.actuator.BeanDescriptorAdapter;
@@ -52,7 +48,7 @@ public interface GsonAwareTest {
 
     /**
      * Override this to add specific type adapters.
-     * @param builder
+     * @param builder the builder for GSON
      * @return the updated builder
      */
     default GsonBuilder updateGsonBuilder(GsonBuilder builder) {
@@ -65,8 +61,6 @@ public interface GsonAwareTest {
         builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe());
 
         builder.registerTypeAdapterFactory(new FeatureTypeAdapterFactory());
-        builder.registerTypeAdapter(Position.class, new PositionTypeAdapter());
-        builder.registerTypeAdapter(GeoJsonType.class, new GeoJsonTypeAdapter());
         builder.registerTypeAdapterFactory(new GeometryTypeAdapterFactory());
 
         builder.registerTypeAdapter(MimeType.class, new MimeTypeAdapter().nullSafe());
