@@ -1,6 +1,5 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
-
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Point;
@@ -47,11 +46,9 @@ import static org.mockito.Mockito.when;
 
 @ActiveProfiles({"test", "feign"})
 @TestPropertySource(locations = {"classpath:test.properties"},
-    properties = {
-        "spring.jpa.properties.hibernate.default_schema=public",
-        "regards.elasticsearch.http.port=9200",
-        "regards.elasticsearch.host=172.26.47.52"
-})
+        properties = {
+                "spring.jpa.properties.hibernate.default_schema=public",
+        })
 public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
