@@ -25,22 +25,27 @@ import io.vavr.collection.List;
 
 import java.util.function.Function;
 
-public class LongQueryCriterionBuilder extends NumberQueryCriterionBuilder {
+public class LongQueryCriterionBuilder extends NumberQueryCriterionBuilder<Long> {
 
-    private final Function<Double, Long> getValueFn = Double::longValue;
+    private static final Function<Double, Long> getValueFn = Double::longValue;
 
     public LongQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
     }
 
     @Override
+    protected Long convert(Double value) {
+        return getValueFn.apply(value);
+    }
+
+    @Override
     protected ICriterion eq(AttributeModel attr, Double value) {
-        return IFeatureCriterion.eq(attr, getValueFn.apply(value));
+        return IFeatureCriterion.eq(attr, convert(value));
     }
 
     @Override
     protected ICriterion neq(AttributeModel attr, Double value) {
-        return IFeatureCriterion.ne(attr, getValueFn.apply(value));
+        return IFeatureCriterion.ne(attr, convert(value));
     }
 
     @Override
@@ -50,26 +55,26 @@ public class LongQueryCriterionBuilder extends NumberQueryCriterionBuilder {
 
     @Override
     protected ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive) {
-        return IFeatureCriterion.between(attr, getValueFn.apply(lower), lowerInclusive, getValueFn.apply(upper), upperInclusive);
+        return IFeatureCriterion.between(attr, convert(lower), lowerInclusive, convert(upper), upperInclusive);
     }
 
     @Override
     protected ICriterion gt(AttributeModel attr, Double value) {
-        return IFeatureCriterion.gt(attr, getValueFn.apply(value));
+        return IFeatureCriterion.gt(attr, convert(value));
     }
 
     @Override
     protected ICriterion gte(AttributeModel attr, Double value) {
-        return IFeatureCriterion.ge(attr, getValueFn.apply(value));
+        return IFeatureCriterion.ge(attr, convert(value));
     }
 
     @Override
     protected ICriterion lt(AttributeModel attr, Double value) {
-        return IFeatureCriterion.lt(attr, getValueFn.apply(value));
+        return IFeatureCriterion.lt(attr, convert(value));
     }
 
     @Override
     protected ICriterion lte(AttributeModel attr, Double value) {
-        return IFeatureCriterion.le(attr, getValueFn.apply(value));
+        return IFeatureCriterion.le(attr, convert(value));
     }
 }

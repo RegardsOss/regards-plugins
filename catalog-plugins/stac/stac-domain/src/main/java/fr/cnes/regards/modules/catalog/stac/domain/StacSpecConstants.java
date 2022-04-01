@@ -57,6 +57,12 @@ public class StacSpecConstants {
 
         String DATETIME_PROPERTY_NAME = "datetime";
 
+        // Common metadata
+        String START_DATETIME_PROPERTY_NAME = "start_datetime";
+
+        // Common metadata
+        String END_DATETIME_PROPERTY_NAME = "end_datetime";
+
         String TAGS_PROPERTY_NAME = "tags";
 
         String ID_PROPERTY_NAME = "ipId";

@@ -29,7 +29,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.search.ModZipService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionDownloadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -67,7 +67,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
     private CollectionSearchService collectionSearchService;
 
     @Autowired
-    private ModZipService modZipService;
+    private CollectionDownloadService collectionDownloadService;
 
     @Autowired
     private LinkCreatorService linkCreatorService;
@@ -119,6 +119,15 @@ public class CollectionDownloadController implements TryToResponseEntity {
         delegateDownloadToNginx(response, Optional.empty(), tinyurl, filename);
     }
 
+    @Operation(summary = "Download script for downloading all collection items")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Script file stream") })
+    @ResourceAccess(description = "Download all script", role = DefaultRole.PUBLIC)
+    @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, method = RequestMethod.GET)
+    public void getDownloadAllScript(final HttpServletResponse response, @RequestParam(name = "tinyurl") String tinyurl,
+            @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
+        generateAndStreamDownloadScript(response, Optional.empty(), tinyurl, filename);
+    }
+
     @Operation(summary = "Download a single collection as zip",
             description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of a single collection")
     @ApiResponses(value = {
@@ -161,6 +170,17 @@ public class CollectionDownloadController implements TryToResponseEntity {
         delegateDownloadToNginx(response, Optional.of(collectionId), tinyurl, filename);
     }
 
+    @Operation(summary = "Download script for downloading all items of a single collection")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Script file stream") })
+    @ResourceAccess(description = "Download script for a single collection", role = DefaultRole.PUBLIC)
+    @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_SCRIPT_SUFFIX, method = RequestMethod.GET)
+    public void getDownloadScript(final HttpServletResponse response,
+            @PathVariable(name = "collectionId") String collectionId, @RequestParam(name = "tinyurl") String tinyurl,
+            @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
+        generateAndStreamDownloadScript(response, Optional.of(collectionId), tinyurl, filename);
+    }
+
     @Operation(summary = "Download a collection sample as zip",
             description = "Prepare NGINX mod_zip descriptor file to download first item of the collection")
     @ApiResponses(value = {
@@ -189,10 +209,10 @@ public class CollectionDownloadController implements TryToResponseEntity {
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
         // Prepare mod_zip descriptor file
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return modZipService.prepareDescriptorAsStream(collectionId, tinyurl,
-                                                       linkCreatorService.makeDownloadLinkCreator(auth,
+        return collectionDownloadService.prepareDescriptorAsStream(collectionId, tinyurl,
+                                              linkCreatorService.makeDownloadLinkCreator(auth,
                                                                                                   feignSecurityManager),
-                                                       onlySample);
+                                              onlySample);
     }
 
     private void delegateDownloadToNginx(final HttpServletResponse response, final Optional<String> collectionId,
@@ -210,9 +230,21 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Prepare mod_zip descriptor file
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         try {
-            modZipService.prepareDescriptor(response.getOutputStream(), collectionId, tinyurl,
-                                            linkCreatorService.makeDownloadLinkCreator(auth, feignSecurityManager),
-                                            onlySample);
+            collectionDownloadService.prepareDescriptor(response.getOutputStream(), collectionId, tinyurl,
+                                   linkCreatorService.makeDownloadLinkCreator(auth, feignSecurityManager),
+                                   onlySample);
+            response.getOutputStream().flush();
+        } catch (IOException e) {
+            throw new StacException("Cannot open output stream", e, StacFailureType.DOWNLOAD_IO_EXCEPTION);
+        }
+    }
+
+    private void generateAndStreamDownloadScript(final HttpServletResponse response, final Optional<String> collectionId, final String tinyurl,
+            final String filename) {
+        LOGGER.debug("Generating download script...");
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
+        try {
+            collectionDownloadService.generateEOdagScript(response.getOutputStream(), collectionId, tinyurl);
             response.getOutputStream().flush();
         } catch (IOException e) {
             throw new StacException("Cannot open output stream", e, StacFailureType.DOWNLOAD_IO_EXCEPTION);

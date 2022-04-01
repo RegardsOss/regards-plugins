@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import io.vavr.collection.List;
@@ -38,5 +39,10 @@ public class IdentitiesCriterionBuilder implements CriterionBuilder<List<String>
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> ids) {
         if (ids == null || ids.isEmpty()) { return Option.none(); }
         return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id, StringMatchType.KEYWORD)), ICriterion::or);
+    }
+
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, List<String> value) {
+        // Nothing to do : no id selection with EODag at the moment
     }
 }

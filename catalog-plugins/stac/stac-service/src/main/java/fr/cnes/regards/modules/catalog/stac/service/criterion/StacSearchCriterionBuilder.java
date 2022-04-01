@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -54,4 +55,14 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
      * Build criteria for item level search related to collection search
      */
     Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
+
+    /**
+     * Build EODag parameters according to incoming STAC request on items
+     * @param properties STAC properties
+     * @param collectionId target collection id
+     * @param collectionItemSearchBody search parameters
+     * @return ready to apply {@link EODagParameters}
+     */
+    Option<EODagParameters> buildEODagParameters(List<StacProperty> properties,
+            String collectionId, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
 }

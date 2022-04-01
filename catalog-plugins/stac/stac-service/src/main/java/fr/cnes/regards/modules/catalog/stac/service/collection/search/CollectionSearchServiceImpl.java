@@ -36,6 +36,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.CollectionConfigurationAccessor;
@@ -352,11 +353,13 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         return trying(() -> {
             // Store all tiny url ids to build global download link
             java.util.List<TinyUrl> tinyUrls = new ArrayList<>();
+            // Store all tiny url ids to build global download link for script
+            java.util.List<TinyUrl> scriptTinyUrls = new ArrayList<>();
 
             // Prepare response by collection
             List<DownloadPreparationResponse.DownloadCollectionPreparationResponse> collections = downloadPreparationBody.getCollections()
                     .flatMap(downloadCollectionPreparationBody -> prepareDownloadCollectionResponse(
-                            downloadCollectionPreparationBody, downloadLinkCreator, tinyUrls)).toList();
+                            downloadCollectionPreparationBody, downloadLinkCreator, tinyUrls, scriptTinyUrls)).toList();
 
             // Compute total
             Long totalSize = 0L, totalItems = 0L, totalFiles = 0L;
@@ -367,16 +370,17 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     totalFiles += c.getFiles();
                 }
             }
-
+            
             return new DownloadPreparationResponse(totalSize, totalItems, totalFiles,
                                                    buildAllCollectionsDownloadLink(downloadLinkCreator, tinyUrls),
+                                                   buildAllCollectionsScriptDownloadLink(downloadLinkCreator, scriptTinyUrls),
                                                    collections);
         }).mapFailure(DOWNLOAD_PREPARATION, () -> "Download preparation failure");
     }
 
     private Try<DownloadPreparationResponse.DownloadCollectionPreparationResponse> prepareDownloadCollectionResponse(
             DownloadPreparationBody.DownloadCollectionPreparationBody downloadCollectionPreparationBody,
-            DownloadLinkCreator downloadLinkCreator, java.util.List<TinyUrl> tinyUrls) {
+            DownloadLinkCreator downloadLinkCreator, java.util.List<TinyUrl> tinyUrls, java.util.List<TinyUrl> scriptTinyUrls) {
 
         return Try.of(() -> {
 
@@ -393,11 +397,16 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     downloadCollectionPreparationBody.getFilters() == null ?
                             CollectionSearchBody.CollectionItemSearchBody.builder().build() :
                             downloadCollectionPreparationBody.getFilters();
+            // Build item criteria
             ICriterion itemCriteria = ICriterion.and(
                     ICriterion.eq(StaticProperties.FEATURE_TAGS, downloadCollectionPreparationBody.getCollectionId(),
                                   StringMatchType.KEYWORD),
                     searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
                             .getOrElse(ICriterion.all()));
+            // Transform and store request as EODagParameters
+            Option<EODagParameters> eoDagParameters = searchCriterionBuilder.buildEODagParameters(itemStacProperties,
+                                                                                                  downloadCollectionPreparationBody.getCollectionId(),
+                                                                                                  collectionItemSearchBody);
 
             // Compute summary and getting first hit
             DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();
@@ -412,12 +421,13 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                     downloadCollectionPreparationBody.getCollectionId(), docFilesSummary.getFilesSize(),
                     docFilesSummary.getDocumentsCount(), docFilesSummary.getFilesCount(),
                     docFilesSummary.getDocumentsCount() == 0 ? null : tinyUrlURIPair.getSecond(),
+                    buildScriptDownloadLink(downloadCollectionPreparationBody.getCollectionId(), eoDagParameters.get(), downloadLinkCreator, scriptTinyUrls),
                     buildCollectionSample(downloadCollectionPreparationBody.getCollectionId(),
                                           tinyUrlURIPair.getFirst(), downloadLinkCreator,
                                           sampleDocFilesSummary.getFilesSize(), sampleDocFilesSummary.getFilesCount()),
                     docFilesSummary.getDocumentsCount() == 0 ? List.of("No item found") : List.empty());
         }).recover(throwable -> new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
-                downloadCollectionPreparationBody.getCollectionId(), null, null, null, null, null,
+                downloadCollectionPreparationBody.getCollectionId(), null, null, null, null, null, null,
                 List.of(throwable.getMessage())));
     }
 
@@ -469,6 +479,16 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                        downloadLinkCreator.createSingleCollectionDownloadLink(collectionId, tinyUrl.getUuid()).get());
     }
 
+    private URI buildScriptDownloadLink(String collectionId, EODagParameters parameters, DownloadLinkCreator downloadLinkCreator,
+            java.util.List<TinyUrl> tinyUrls) {
+        // Store context
+        TinyUrl tinyUrl = tinyUrlService.create(parameters);
+        // Mutate set of tiny URLs
+        tinyUrls.add(tinyUrl);
+        // Build URI
+        return downloadLinkCreator.createSingleCollectionScriptLink(collectionId, tinyUrl.getUuid()).get();
+    }
+
     /**
      * @param collectionId        collection urn
      * @param tinyUrl             tiny url taken from collection download link
@@ -510,5 +530,34 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
         }
         // Build URI
         return downloadLinkCreator.createAllCollectionsDownloadLink(tinyUrl.getUuid()).get();
+    }
+
+    /**
+     * Build script download link for a set of collections
+     *
+     * @param downloadLinkCreator build proper link
+     * @param tinyUrls            set of tiny URL
+     * @return script download link
+     */
+    private URI buildAllCollectionsScriptDownloadLink(DownloadLinkCreator downloadLinkCreator,
+            java.util.List<TinyUrl> tinyUrls) {
+        TinyUrl tinyUrl;
+        switch (tinyUrls.size()) {
+            case 0:
+                // Return directly
+                return null;
+            case 1:
+                // Reuse existing one
+                tinyUrl = tinyUrls.get(0);
+                break;
+            default:
+                // Store a new context
+                java.util.Set<String> tinyUrlUuids = tinyUrls.stream().map(TinyUrl::getUuid)
+                        .collect(Collectors.toSet());
+                tinyUrl = tinyUrlService.create(tinyUrlUuids);
+                break;
+        }
+        // Build URI
+        return downloadLinkCreator.createAllCollectionsScriptLink(tinyUrl.getUuid()).get();
     }
 }

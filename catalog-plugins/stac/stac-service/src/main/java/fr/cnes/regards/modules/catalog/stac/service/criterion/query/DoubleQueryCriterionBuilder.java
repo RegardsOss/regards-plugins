@@ -18,17 +18,25 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 
-public class DoubleQueryCriterionBuilder extends NumberQueryCriterionBuilder {
+public class DoubleQueryCriterionBuilder extends NumberQueryCriterionBuilder<Double> {
 
     public static final double DOUBLE_COMPARISON_PRECISION = 1e-6;
 
     public DoubleQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
+    }
+
+    @Override
+    protected Double convert(Double value) {
+        return value;
     }
 
     @Override

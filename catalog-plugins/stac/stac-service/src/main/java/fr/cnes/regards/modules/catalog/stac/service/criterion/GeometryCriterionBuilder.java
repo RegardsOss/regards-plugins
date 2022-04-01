@@ -24,6 +24,8 @@ import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.MultiPolygon;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.WKTGeometryVisitor;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
@@ -49,6 +51,8 @@ public class GeometryCriterionBuilder implements CriterionBuilder<IGeometry> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GeometryCriterionBuilder.class);
 
+    private static final WKTGeometryVisitor WKT_GEOMETRY_VISITOR = new WKTGeometryVisitor();
+
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, IGeometry geometry) {
         return Option.of(geometry)
@@ -63,5 +67,12 @@ public class GeometryCriterionBuilder implements CriterionBuilder<IGeometry> {
                         return Option.none();
                 }
             });
+    }
+
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, IGeometry geometry) {
+        if (geometry != null) {
+            parameters.setGeom(geometry.accept(WKT_GEOMETRY_VISITOR));
+        }
     }
 }

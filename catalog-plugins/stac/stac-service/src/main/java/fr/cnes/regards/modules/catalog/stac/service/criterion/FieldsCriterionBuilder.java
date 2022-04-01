@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.Fields;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
@@ -43,5 +44,10 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
         Option<ICriterion> excludes = fields.getExcludes().flatMap(inc -> propertyNameFor(properties, inc)).map(IFeatureCriterion::attributeExists)
                 .map(ICriterion::not).reduceLeftOption(ICriterion::and);
         return withAll(List.of(includes, excludes).flatMap(opt -> opt), ICriterion::and);
+    }
+
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, Fields value) {
+        // Nothing to do here
     }
 }

@@ -23,15 +23,20 @@ import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCrit
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.BooleanQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Criterion builder for a {@link BooleanQueryObject}
  */
 public class BooleanQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<BooleanQueryObject> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BooleanQueryCriterionBuilder.class);
 
     public BooleanQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
@@ -44,4 +49,12 @@ public class BooleanQueryCriterionBuilder extends AbstractQueryObjectCriterionBu
                              Option.of(value.getNeq()).map(neq -> eq(attr, !neq)));
     }
 
+    @Override
+    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, BooleanQueryObject queryObject) {
+        if (queryObject.getEq() != null) {
+            parameters.addExtras(stacPropName, attr.getType(), queryObject.getEq());
+        } else {
+            LOGGER.warn(EODAG_RESTRICTION_MESSAGE, stacPropName);
+        }
+    }
 }

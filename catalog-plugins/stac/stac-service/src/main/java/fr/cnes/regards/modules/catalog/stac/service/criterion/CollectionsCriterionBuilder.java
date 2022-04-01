@@ -20,6 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import io.vavr.collection.List;
@@ -41,4 +42,10 @@ public class CollectionsCriterionBuilder implements CriterionBuilder<List<String
             : collections.size() == 1 ? Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD))
             : Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME, c, StringMatchType.KEYWORD))));
     }
+
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, List<String> collections) {
+        // Nothing to do : EODag search is already done in a collection so this parameter should not be useful
+    }
+
 }

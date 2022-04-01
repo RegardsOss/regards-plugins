@@ -23,10 +23,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.query.*;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
@@ -66,6 +68,15 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
         return withAll(criteria, ICriterion::and);
     }
 
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, Map<String, SearchBody.QueryObject> queryObjects) {
+        if (queryObjects != null && !queryObjects.isEmpty()) {
+            for (Tuple2<String, SearchBody.QueryObject> kv : queryObjects.iterator()) {
+                routeQueryObjectCriterion(parameters, properties, kv._1(), kv._2());
+            }
+        }
+    }
+
     private Option<ICriterion> routeQueryObjectCriterion(List<StacProperty> properties, String stacPropName, SearchBody.QueryObject queryObject) {
 
         // Retrieve target attribute
@@ -103,6 +114,45 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
         } else {
             warn(LOGGER, String.format("Unknown type for query object: %s, ignoring query field %s", queryObject.getClass(), stacPropName));
             return Option.none();
+        }
+    }
+
+    private void routeQueryObjectCriterion(EODagParameters parameters, List<StacProperty> properties, String stacPropName, SearchBody.QueryObject queryObject) {
+
+        // Retrieve target attribute
+        Option<AttributeModel> attr = propertyNameFor(properties, stacPropName);
+
+        if (queryObject instanceof SearchBody.BooleanQueryObject) {
+            if (isBooleanQueryAcceptable(attr)) {
+                new BooleanQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.BooleanQueryObject) queryObject);
+            } else {
+                ignoreQueryField(attr, stacPropName);
+            }
+        } else if (queryObject instanceof SearchBody.NumberQueryObject) {
+            // Dispatch by number type
+            if (isIntegerQueryAcceptable(attr)) {
+                new IntegerQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+            } else if (isLongQueryAcceptable(attr)) {
+                new LongQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+            } else if (isDoubleQueryAcceptable(attr)) {
+                new DoubleQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+            } else {
+                ignoreQueryField(attr, stacPropName);
+            }
+        } else if (queryObject instanceof SearchBody.DatetimeQueryObject) {
+            if (isDateQueryAcceptable(attr)) {
+                new DatetimeQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.DatetimeQueryObject) queryObject);
+            } else {
+                ignoreQueryField(attr, stacPropName);
+            }
+        } else if (queryObject instanceof SearchBody.StringQueryObject) {
+            if (isStringQueryAcceptable(attr)) {
+                new StringQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.StringQueryObject) queryObject);
+            } else {
+                ignoreQueryField(attr, stacPropName);
+            }
+        } else {
+            warn(LOGGER, String.format("Unknown type for query object: %s, ignoring query field %s", queryObject.getClass(), stacPropName));
         }
     }
 

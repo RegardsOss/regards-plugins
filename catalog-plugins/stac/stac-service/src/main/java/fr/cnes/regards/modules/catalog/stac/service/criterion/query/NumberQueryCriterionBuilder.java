@@ -24,15 +24,20 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Criterion builder for a {@link NumberQueryObject}
  */
-public abstract class NumberQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<NumberQueryObject> {
+public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObjectCriterionBuilder<NumberQueryObject> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NumberQueryCriterionBuilder.class);
 
     public NumberQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
@@ -85,6 +90,8 @@ public abstract class NumberQueryCriterionBuilder extends AbstractQueryObjectCri
         }
     }
 
+    protected abstract T convert(Double value);
+
     protected abstract ICriterion eq(AttributeModel attr, Double value);
 
     protected abstract ICriterion neq(AttributeModel attr, Double value);
@@ -107,5 +114,19 @@ public abstract class NumberQueryCriterionBuilder extends AbstractQueryObjectCri
 
     private Option<List<Double>> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, List<Double> lt) {
         return Option.of(lt.flatMap(v -> extractConvertedValue(converter, v)).toList());
+    }
+
+    @Override
+    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, NumberQueryObject queryObject) {
+
+        // Get converter
+        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName).map(StacProperty::getConverter)
+                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+
+        if (queryObject.getEq() != null) {
+            parameters.addExtras(stacPropName, attr.getType(), convert(queryObject.getEq()));
+        } else {
+            LOGGER.warn(EODAG_RESTRICTION_MESSAGE, stacPropName);
+        }
     }
 }

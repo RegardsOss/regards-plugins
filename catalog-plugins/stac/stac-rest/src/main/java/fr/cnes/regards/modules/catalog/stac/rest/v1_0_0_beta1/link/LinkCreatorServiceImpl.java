@@ -303,6 +303,15 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             }
 
             @Override
+            public Option<URI> createAllCollectionsScriptLink(String tinyUrlId) {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).slash(STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX)
+                        .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create all collections script download link", t)).toOption();
+
+            }
+
+            @Override
             public Option<URI> createSingleCollectionDownloadLink(String collectionId, String tinyUrlId) {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
                                                      .slash(collectionId)
@@ -320,6 +329,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                         .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
                         .flatMapTry(uriParamAdder.appendAuthParams(auth))
                         .onFailure(t -> warn(LOGGER, "Failed to create single collection sample download link", t)).toOption();
+            }
+
+            @Override
+            public Option<URI> createSingleCollectionScriptLink(String collectionId, String tinyUrlId) {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).slash(collectionId).slash(STAC_DOWNLOAD_SCRIPT_SUFFIX).toUri())
+                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                        .onFailure(t -> warn(LOGGER, "Failed to create single collection script download link", t)).toOption();
             }
 
             @Override

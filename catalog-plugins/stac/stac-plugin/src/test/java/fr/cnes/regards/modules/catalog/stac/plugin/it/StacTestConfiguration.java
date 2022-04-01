@@ -22,6 +22,7 @@ import fr.cnes.regards.framework.hateoas.HateoasUtils;
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.accessrights.client.IRolesClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
 import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
@@ -138,5 +139,10 @@ public class StacTestConfiguration {
     @Bean
     public IAttachmentClient attachmentClient() {
         return Mockito.mock(IAttachmentClient.class);
+    }
+
+    @Bean
+    public IRolesClient rolesClient() {
+        return Mockito.mock(IRolesClient.class);
     }
 }

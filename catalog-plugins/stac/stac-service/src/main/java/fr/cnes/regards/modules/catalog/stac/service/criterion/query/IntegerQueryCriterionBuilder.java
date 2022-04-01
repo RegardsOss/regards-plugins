@@ -18,29 +18,38 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.function.Function;
 
-public class IntegerQueryCriterionBuilder extends NumberQueryCriterionBuilder {
+public class IntegerQueryCriterionBuilder extends NumberQueryCriterionBuilder<Integer> {
 
-    private final Function<Double, Integer> getValueFn = Double::intValue;
+    private static final Function<Double, Integer> getValueFn = Double::intValue;
 
     public IntegerQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
     }
 
     @Override
+    protected Integer convert(Double value) {
+        return getValueFn.apply(value);
+    }
+
+    @Override
     protected ICriterion eq(AttributeModel attr, Double value) {
-        return IFeatureCriterion.eq(attr, getValueFn.apply(value));
+        return IFeatureCriterion.eq(attr, convert(value));
     }
 
     @Override
     protected ICriterion neq(AttributeModel attr, Double value) {
-        return IFeatureCriterion.ne(attr, getValueFn.apply(value));
+        return IFeatureCriterion.ne(attr, convert(value));
     }
 
     @Override
@@ -50,26 +59,26 @@ public class IntegerQueryCriterionBuilder extends NumberQueryCriterionBuilder {
 
     @Override
     protected ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive) {
-        return IFeatureCriterion.between(attr, getValueFn.apply(lower), lowerInclusive, getValueFn.apply(upper), upperInclusive);
+        return IFeatureCriterion.between(attr, convert(lower), lowerInclusive, convert(upper), upperInclusive);
     }
 
     @Override
     protected ICriterion gt(AttributeModel attr, Double value) {
-        return IFeatureCriterion.gt(attr, getValueFn.apply(value));
+        return IFeatureCriterion.gt(attr, convert(value));
     }
 
     @Override
     protected ICriterion gte(AttributeModel attr, Double value) {
-        return IFeatureCriterion.ge(attr, getValueFn.apply(value));
+        return IFeatureCriterion.ge(attr, convert(value));
     }
 
     @Override
     protected ICriterion lt(AttributeModel attr, Double value) {
-        return IFeatureCriterion.lt(attr, getValueFn.apply(value));
+        return IFeatureCriterion.lt(attr, convert(value));
     }
 
     @Override
     protected ICriterion lte(AttributeModel attr, Double value) {
-        return IFeatureCriterion.le(attr, getValueFn.apply(value));
+        return IFeatureCriterion.le(attr, convert(value));
     }
 }

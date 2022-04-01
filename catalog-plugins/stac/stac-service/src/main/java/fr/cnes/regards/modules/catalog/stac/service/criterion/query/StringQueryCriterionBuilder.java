@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
@@ -28,6 +29,8 @@ import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 import io.vavr.control.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
@@ -36,6 +39,8 @@ import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
  * Criterion builder for a {@link StringQueryObject}
  */
 public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<StringQueryObject> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StringQueryCriterionBuilder.class);
 
     public StringQueryCriterionBuilder(String stacPropName) {
         super(stacPropName);
@@ -61,6 +66,15 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
                              Option.of(adaptCase(queryObject.getIn(), stringMatchType)).flatMap(
                                      in -> in.map(d -> eq(attr, d, stringMatchType))
                                              .reduceLeftOption(ICriterion::or)));
+    }
+
+    @Override
+    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, StringQueryObject queryObject) {
+        if (queryObject.getEq() != null) {
+            parameters.addExtras(stacPropName, attr.getType(), queryObject.getEq());
+        } else {
+            LOGGER.warn(EODAG_RESTRICTION_MESSAGE, stacPropName);
+        }
     }
 
     private String adaptCase(String text, StringMatchType stringMatchType) {

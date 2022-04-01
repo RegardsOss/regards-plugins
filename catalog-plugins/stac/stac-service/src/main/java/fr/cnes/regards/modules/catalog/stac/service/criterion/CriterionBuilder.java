@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
@@ -34,6 +35,8 @@ import java.util.function.Function;
 public interface CriterionBuilder<T> {
 
     Option<ICriterion> buildCriterion(List<StacProperty> properties, T value);
+
+    void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, T value);
 
     default Option<ICriterion> withAll(List<ICriterion> criteria, Function<Iterable<ICriterion>, ICriterion> combinator) {
         return criteria.isEmpty() ? Option.none() : criteria.size() == 1 ? Option.of(criteria.get(0)) : Option.of(combinator.apply(criteria));

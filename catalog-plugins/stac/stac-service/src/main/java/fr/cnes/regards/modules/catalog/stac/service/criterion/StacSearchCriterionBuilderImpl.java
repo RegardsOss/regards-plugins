@@ -25,6 +25,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import java.util.function.Function;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,4 +120,22 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                 .onFailure(t -> error(LOGGER, "Failed to add access rights to search: {}", t.getMessage(), t)).toOption();
     }
 
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, ItemSearchBody itemSearchBody) {
+        // Nothing to do
+    }
+
+    @Override
+    public Option<EODagParameters> buildEODagParameters(List<StacProperty> properties, String collectionId,
+            CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
+        EODagParameters parameters = new EODagParameters(collectionId);
+        computeEODagParameters(parameters, properties, ItemSearchBody.builder().build());
+        bBoxCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getBbox());
+        collectionsCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getCollections());
+        dateIntervalCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getDatetime());
+        identitiesCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getIds());
+        geometryCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getIntersects());
+        queryObjectCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getQuery());
+        return Option.of(parameters);
+    }
 }

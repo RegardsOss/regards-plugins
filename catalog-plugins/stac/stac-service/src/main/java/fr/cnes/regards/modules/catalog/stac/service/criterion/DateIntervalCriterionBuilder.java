@@ -19,13 +19,17 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
 
@@ -53,4 +57,15 @@ public class DateIntervalCriterionBuilder implements CriterionBuilder<DateInterv
         return properties.find(p -> DATETIME_PROPERTY_NAME.equals(p.getStacPropertyName()));
     }
 
+    @Override
+    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, DateInterval datetime) {
+        if (datetime != null) {
+            if (datetime.getFrom() != null) {
+                parameters.setStart(OffsetDateTimeAdapter.format(datetime.getFrom()));
+            }
+            if (datetime.getTo() != null) {
+                parameters.setEnd(OffsetDateTimeAdapter.format(datetime.getTo()));
+            }
+        }
+    }
 }

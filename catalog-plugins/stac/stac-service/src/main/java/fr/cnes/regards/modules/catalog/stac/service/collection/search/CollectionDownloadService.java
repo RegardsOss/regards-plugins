@@ -31,7 +31,7 @@ import java.util.Optional;
  * @author Marc SORDI
  * @see <a href="https://www.nginx.com/resources/wiki/modules/zip/">Zip NGINX</a>
  */
-public interface ModZipService {
+public interface CollectionDownloadService {
 
     /**
      * Use standard response output stream
@@ -44,4 +44,12 @@ public interface ModZipService {
      */
     Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
             DownloadLinkCreator downloadLinkCreator, boolean onlySample);
+
+    /**
+     * Generate a script according to the given context through tinyurl
+     * @param outputStream current output stream for sending file content
+     * @param collectionId optional collection id
+     * @param tinyurl context (store all criteria)
+     */
+    void generateEOdagScript(OutputStream outputStream, Optional<String> collectionId, final String tinyurl);
 }

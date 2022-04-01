@@ -51,6 +51,11 @@ public class DownloadPreparationResponse {
      */
     URI downloadAll;
 
+    /**
+     * URI for downloading script to download all collection items
+     */
+    URI downloadAllScript;
+
     List<DownloadCollectionPreparationResponse> collections;
 
     @Value
@@ -75,6 +80,11 @@ public class DownloadPreparationResponse {
         Long files;
 
         URI download;
+
+        /**
+         * URI for downloading script to download this collection items
+         */
+        URI downloadScript;
 
         DownloadSamplePreparationResponse sample;
 

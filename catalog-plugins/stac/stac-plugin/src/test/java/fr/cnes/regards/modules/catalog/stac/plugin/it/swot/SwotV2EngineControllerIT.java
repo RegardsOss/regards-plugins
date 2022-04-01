@@ -1,16 +1,21 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.cnes.regards.framework.geojson.coordinates.Position;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.utils.HttpConstants;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
+import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
-import fr.cnes.regards.modules.catalog.stac.service.collection.search.ModZipService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionDownloadService;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
@@ -46,7 +51,7 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotV2EngineControllerIT.class);
 
     @Autowired
-    private ModZipService modZipService;
+    private CollectionDownloadService modZipService;
 
     @Before
     @Override
@@ -247,6 +252,195 @@ public class SwotV2EngineControllerIT extends AbstractSwotIT {
     @Test
     public void given_oneCollection_when_prepareDownloadWithoutFilter_then_successfulRequest() {
         prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3);
+    }
+
+    /**
+     * Test without criterion
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithoutFilter_then_successfulRequest_And_DownloadScript() {
+        ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test without criterion but 2 collections
+     */
+    @Test
+    public void given_twoCollection_when_prepareDownloadWithoutFilter_then_successfulRequest_And_DownloadScript() {
+        ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", null, "L2_HR_RASTER_250m", null), 553000, 3, 5);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with datetime criterion
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter1_then_successfulRequest_And_DownloadScript() {
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
+                CollectionSearchBody.CollectionItemSearchBody.builder().datetime(DateInterval.from(OffsetDateTimeAdapter.parse("2010-06-15T00:00:00Z"))).build();
+        ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 351000, 2, 3);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with intersect criterion
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter2_then_successfulRequest_And_DownloadScript() {
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().intersects(
+                        IGeometry.polygon(
+                                IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[] {
+                                        IGeometry.position(1D, 43D),
+                                        IGeometry.position(2D, 43D),
+                                        IGeometry.position(2D, 44D),
+                                        IGeometry.position(1D, 44D),
+                                        IGeometry.position(1D, 43D)
+                                }))))
+                .build();
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 250000, 1, 1);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with BBOX criterion
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter3_then_successfulRequest_And_DownloadScript() {
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().bbox(
+                new BBox(1D, 43D, 2D, 44D))
+                .build();
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 250000, 1, 1);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with query criterion : integer query parameter
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter4_then_successfulRequest_And_DownloadScript() {
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("spatial:pass_id",
+                                                                    SearchBody.NumberQueryObject.builder().eq(43D).build());
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
+                CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
+        ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 250000, 1, 1);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with query criterion : string query parameter
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter5_then_successfulRequest_And_DownloadScript() {
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("dcs:item_type",
+                                                            SearchBody.StringQueryObject.builder().eq("tile").build());
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
+                CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
+        ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 351000, 2, 3);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
+    }
+
+    /**
+     * Test with query criterion : start_datetime & end_datetime query parameter
+     */
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithFilter6_then_successfulRequest_And_DownloadScript() {
+        Map<String, SearchBody.QueryObject> iq = HashMap.of(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
+                                                            SearchBody.DatetimeQueryObject.builder().lte(OffsetDateTimeAdapter.parse("2020-04-02T23:59:59Z"))
+                                                                    .build(), StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME,
+                                                            SearchBody.DatetimeQueryObject.builder().gte(OffsetDateTimeAdapter.parse("2020-04-02T00:00:00Z"))
+                                                                    .build());
+
+        //        Map<String, SearchBody.QueryObject> iq = HashMap.of(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
+        //                                                            SearchBody.DatetimeQueryObject.builder().gte(OffsetDateTimeAdapter.parse("2020-04-02T00:00:00Z")).build());
+
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 101000, 1, 2);
+        //ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody),351000, 2, 3);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAllScript");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+
+        RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
+        downloadCustomizer.addParameter("tinyurl", tinyurl);
+        //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
+        performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX, downloadCustomizer,
+                          "Cannot download all collections");
     }
 
     @Test

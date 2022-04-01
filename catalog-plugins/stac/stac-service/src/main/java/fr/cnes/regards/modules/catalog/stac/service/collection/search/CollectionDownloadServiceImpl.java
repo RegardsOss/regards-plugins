@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
+import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.modules.tinyurl.domain.TinyUrl;
@@ -25,6 +26,8 @@ import fr.cnes.regards.framework.modules.tinyurl.service.TinyUrlService;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagGenerator;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
@@ -49,22 +52,20 @@ import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
- * Implementation of {@link ModZipService}
+ * Implementation of {@link CollectionDownloadService}
  *
  * @author Marc SORDI
  */
 @Service
 @MultitenantTransactional
-public class ModZipServiceImpl implements ModZipService {
+public class CollectionDownloadServiceImpl implements CollectionDownloadService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ModZipServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CollectionDownloadServiceImpl.class);
 
     private static final String MOD_ZIP_LINE_FORMAT = "%s %d %s %s";
 
@@ -125,6 +126,56 @@ public class ModZipServiceImpl implements ModZipService {
                                                                                   collectionId.orElse("all collections")));
     }
 
+    @Override
+    public void generateEOdagScript(OutputStream outputStream, Optional<String> collectionId, String tinyurl) {
+        // Retrieve context from tinyurl
+        TinyUrl tiny = getTinyUrl(tinyurl);
+
+        // Route according to multi or single collection
+        try {
+            if (EODagParameters.class.isAssignableFrom(Class.forName(tiny.getClassOfContext()))) {
+                EODagParameters parameters = tinyUrlService.loadContext(tiny, EODagParameters.class);
+                // Single collection
+                try (PrintWriter writer = new PrintWriter(outputStream)) {
+                    if (parameters.hasExtras()) {
+                        // If extras ... use multi script with JSON parameters as parameter name is not compatible with Python format use in the first script
+                        EODagGenerator.generateMultiCollectionScript(writer, Lists.newArrayList(parameters));
+                    } else {
+                        EODagGenerator.generateSingleCollectionScript(writer, parameters);
+                    }
+                }
+            } else {
+                // Retrieve list of tiny url id
+                Type type = new TypeToken<Set<String>>() {
+
+                }.getType();
+                java.util.Set<String> tinyUrlUuids = tinyUrlService.loadContext(tiny, type);
+                // Multi collection
+                List<EODagParameters> parameterList = new ArrayList<>();
+                tinyUrlUuids.forEach(t -> {
+                    TinyUrl tu = getTinyUrl(t);
+                    try {
+                        if (EODagParameters.class.isAssignableFrom(Class.forName(tu.getClassOfContext()))) {
+                            parameterList.add(tinyUrlService.loadContext(tu, EODagParameters.class));
+                        } else {
+                            throw new StacException(String.format("Unexpected class %s", tu.getClassOfContext()), null,
+                                                    StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
+                        }
+                    } catch (ClassNotFoundException e) {
+                        throw new StacException(String.format("Unknown class %s", tu.getClassOfContext()), e,
+                                                StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
+                    }
+                });
+                try (PrintWriter writer = new PrintWriter(outputStream)) {
+                    EODagGenerator.generateMultiCollectionScript(writer, parameterList);
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()), e,
+                                    StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
+        }
+    }
+
     private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
             Optional<String> collectionId, final String tinyurl) {
 
@@ -167,7 +218,7 @@ public class ModZipServiceImpl implements ModZipService {
         // Retrieve context from tinyurl
         TinyUrl tiny = getTinyUrl(tinyurl);
 
-        // Criterion of list of tiny url id
+        // Criterion or list of tiny url id
         try {
             if (ICriterion.class.isAssignableFrom(Class.forName(tiny.getClassOfContext()))) {
                 ICriterion itemCriteria = tinyUrlService.loadContext(tiny, ICriterion.class);
