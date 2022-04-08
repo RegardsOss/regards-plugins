@@ -53,5 +53,6 @@
 
 	<modules>
     <module>custom-command-file-validation</module>
+    <module>radical-product-name</module>
   </modules>
 </project>
