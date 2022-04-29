@@ -28,7 +28,10 @@
  * @author Marc SORDI
  * @see https://jenkins.io/doc/book/pipeline/jenkinsfile/
  */
-@Library('regards/standardPipeline') _
-standardPipeline {
+@Library('regards/pluginPipeline') _
+pluginPipeline {
 	upstreamProjects = 'regards-oss-backend'
+	COTS = 'rs-elasticsearch:9300 rs-rabbitmq:5672 rs-postgres:5432'
+	TULEAP_REPO_ID = '868'
+	TULEAP_CREDENTIALS='tuleap-ci-oss-plugins'
 }
