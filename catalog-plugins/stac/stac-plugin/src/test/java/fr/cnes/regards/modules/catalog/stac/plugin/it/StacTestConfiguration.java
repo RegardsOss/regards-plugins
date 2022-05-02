@@ -32,7 +32,6 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -97,24 +96,11 @@ public class StacTestConfiguration {
         return accessGroupClient;
     }
 
-    //
-    //    @Bean
-    //    public IAccessRightClient accessClient() {
-    //        IAccessRightClient accessGroupClient = Mockito.mock(IAccessRightClient.class);
-    //        return accessGroupClient;
-    //    }
-    //
     @Bean
     public IProjectUsersClient projectUsersClient() {
         return Mockito.mock(IProjectUsersClient.class);
     }
 
-    //
-    //    @Bean
-    //    public IPoller poller() {
-    //        return Mockito.mock(IPoller.class);
-    //    }
-    //
     @Bean
     public IModelAttrAssocClient modelAttrAssocClient() {
         return Mockito.mock(IModelAttrAssocClient.class);
@@ -128,11 +114,6 @@ public class StacTestConfiguration {
     @Bean
     public IComputationPluginService computationPluginService() {
         return Mockito.mock(IComputationPluginService.class);
-    }
-
-    @Bean
-    public IStorageRestClient storageRestClient() {
-        return Mockito.mock(IStorageRestClient.class);
     }
 
     @Bean

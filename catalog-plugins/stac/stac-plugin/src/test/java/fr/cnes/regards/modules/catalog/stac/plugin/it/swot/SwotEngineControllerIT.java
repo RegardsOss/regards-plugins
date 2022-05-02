@@ -328,15 +328,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
                            "Cannot search STAC collections");
     }
 
-    @Test
-    public void searchDatasetPropertyValues() {
-        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        customizer.addParameter("maxCount", "10");
-        addFullTextSearchQuery(customizer,"swot");
-        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATASETS_PROPERTY_VALUES,
-                          customizer, "Search all error", "legacy",
-                          StaticProperties.FEATURE_PROPERTIES + "." + "title");
-    }
 
     @Test
     public void searchCollectionsAsPostWithDescription() {
@@ -455,32 +446,6 @@ public class SwotEngineControllerIT extends AbstractSwotIT {
         // Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
 
         performDefaultGet(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, customizer, "Cannot search STAC collections");
-    }
-
-    @Test
-    public void searchDataobjectsReturningDatasets() {
-
-        // Search dataset
-        String engine_type = "legacy";
-        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        addSearchTermQuery(customizer, "datetime", "[2020-01-01T00:00:00 TO 2020-06-01T00:00:00]");
-        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATAOBJECTS_DATASETS_MAPPING,
-                          customizer, "Search all error", engine_type);
-
-        //        addCommontMatchers(customizer);
-        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.content.length()", Matchers.equalTo(1)));
-        //        addSearchTermQuery(customizer, STAR_SYSTEM, protect(SOLAR_SYSTEM));
-        //        ResultActions result = performDefaultGet(SearchEngineMappings.TYPE_MAPPING
-        //                + SearchEngineMappings.SEARCH_DATASETS_MAPPING, customizer, "Search all error", ENGINE_TYPE);
-        //
-        //        String datasetUrn = JsonPath.read(payload(result), "$.content[0].content.id");
-        //
-        //        customizer = customizer().expectStatusOk();
-        //        addCommontMatchers(customizer);
-        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.links.length()", Matchers.equalTo(1)));
-        //        customizer.expect(MockMvcResultMatchers.jsonPath("$.content[0].links.length()", Matchers.equalTo(1)));
-        //        performDefaultGet(SearchEngineMappings.TYPE_MAPPING + SearchEngineMappings.SEARCH_DATASET_DATAOBJECTS_MAPPING,
-        //                          customizer, "Search all error", ENGINE_TYPE, datasetUrn);
     }
 
     @Test
