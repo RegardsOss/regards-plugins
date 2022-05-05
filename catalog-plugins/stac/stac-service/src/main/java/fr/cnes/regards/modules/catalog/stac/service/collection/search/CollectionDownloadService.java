@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -47,9 +48,10 @@ public interface CollectionDownloadService {
 
     /**
      * Generate a script according to the given context through tinyurl
+     * @param searchPageLinkCreator help class to generate links
      * @param outputStream current output stream for sending file content
      * @param collectionId optional collection id
      * @param tinyurl context (store all criteria)
      */
-    void generateEOdagScript(OutputStream outputStream, Optional<String> collectionId, final String tinyurl);
+    void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator, OutputStream outputStream, Optional<String> collectionId, final String tinyurl);
 }

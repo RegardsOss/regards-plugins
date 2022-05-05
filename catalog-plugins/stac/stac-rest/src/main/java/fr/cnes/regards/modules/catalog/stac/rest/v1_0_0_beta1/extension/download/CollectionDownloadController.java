@@ -22,6 +22,7 @@ import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
@@ -30,6 +31,7 @@ import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorSe
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionDownloadService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -131,7 +133,14 @@ public class CollectionDownloadController implements TryToResponseEntity {
     public void getDownloadAllScript(final HttpServletResponse response,
                                      @RequestParam(name = "tinyurl") String tinyurl,
                                      @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
-        generateAndStreamDownloadScript(response, Optional.empty(), tinyurl, filename);
+        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(auth,
+                                                                                     1,
+                                                                                     ItemSearchBody.builder().build()),
+                                        response,
+                                        Optional.empty(),
+                                        tinyurl,
+                                        filename);
     }
 
     @Operation(summary = "Download a single collection as zip",
@@ -203,7 +212,14 @@ public class CollectionDownloadController implements TryToResponseEntity {
                                   @PathVariable(name = "collectionId") String collectionId,
                                   @RequestParam(name = "tinyurl") String tinyurl,
                                   @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
-        generateAndStreamDownloadScript(response, Optional.of(collectionId), tinyurl, filename);
+        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(auth,
+                                                                                     1,
+                                                                                     ItemSearchBody.builder().build()),
+                                        response,
+                                        Optional.of(collectionId),
+                                        tinyurl,
+                                        filename);
     }
 
     @Operation(summary = "Download a collection sample as zip",
@@ -279,14 +295,18 @@ public class CollectionDownloadController implements TryToResponseEntity {
         }
     }
 
-    private void generateAndStreamDownloadScript(final HttpServletResponse response,
+    private void generateAndStreamDownloadScript(final SearchPageLinkCreator searchPageLinkCreator,
+                                                 final HttpServletResponse response,
                                                  final Optional<String> collectionId,
                                                  final String tinyurl,
                                                  final String filename) {
         LOGGER.debug("Generating download script...");
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
         try {
-            collectionDownloadService.generateEOdagScript(response.getOutputStream(), collectionId, tinyurl);
+            collectionDownloadService.generateEOdagScript(searchPageLinkCreator,
+                                                          response.getOutputStream(),
+                                                          collectionId,
+                                                          tinyurl);
             response.getOutputStream().flush();
         } catch (IOException e) {
             throw new StacException("Cannot open output stream", e, StacFailureType.DOWNLOAD_IO_EXCEPTION);

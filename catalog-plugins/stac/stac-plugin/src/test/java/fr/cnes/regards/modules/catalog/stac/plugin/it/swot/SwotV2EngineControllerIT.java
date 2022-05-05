@@ -146,8 +146,6 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     @Test
     public void searchCollectionsWithSpatioTemporalParameters() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        //        customizer.expectValue("$.context.matched", 1);
-        //        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
         // Define item criteria
         Map<String, SearchBody.QueryObject> iq = HashMap.of("start_datetime",
                                                             SearchBody.DatetimeQueryObject.builder()
@@ -175,7 +173,6 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     @Test
     public void searchCollectionsWithItemVariables() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        //        customizer.expectValue("$.context.matched", 1);
         // Define item criteria
         Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:variables.uri",
                                                             SearchBody.StringQueryObject.builder()
@@ -584,18 +581,8 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                                                                               "2020-04-02T00:00:00Z"))
                                                                                           .build());
 
-        //        Map<String, SearchBody.QueryObject> iq = HashMap.of(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
-        //                                                            SearchBody.DatetimeQueryObject.builder().gte(OffsetDateTimeAdapter.parse("2020-04-02T00:00:00Z")).build());
-
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                                                                                                                              .query(
-                                                                                                                                  iq)
-                                                                                                                              .build();
-        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody),
-                                                      101000,
-                                                      1,
-                                                      2);
-        //ResultActions resultActions =  prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody),351000, 2, 3);
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 101000, 1, 2);
 
         // Get tiny url to download all
         String json = payload(resultActions);

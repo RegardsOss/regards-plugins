@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagGenerator;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagInformation;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import org.junit.Test;
@@ -34,6 +35,16 @@ public class TemplateTests {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TemplateTests.class);
 
+    private static EODagInformation info() {
+        EODagInformation information = new EODagInformation();
+        information.setProjectName("project_name");
+        information.setProvider("test_provider");
+        information.setStacSearchApi("http://search.api/api/stac/...");
+        information.setBaseUri("http://search.api");
+        information.setPortalName("portal name");
+        return information;
+    }
+
     private static EODagParameters parameters0() {
         EODagParameters parameters = new EODagParameters("productType0");
         parameters.setStart("2020-05-01");
@@ -47,6 +58,9 @@ public class TemplateTests {
         parameters.setStart("2020-05-01");
         parameters.setEnd("2020-05-10");
         parameters.addExtras("foo", PropertyType.STRING, "bar");
+        parameters.addExtras("integer", PropertyType.INTEGER, 1);
+        parameters.addExtras("long", PropertyType.LONG, 1L);
+        parameters.addExtras("double", PropertyType.DOUBLE, 1D);
         return parameters;
     }
 
@@ -67,7 +81,16 @@ public class TemplateTests {
     public void generateSingle() {
         StringWriter sw = new StringWriter();
         try (PrintWriter writer = new PrintWriter(sw)) {
-            EODagGenerator.generateSingleCollectionScript(writer, parameters0());
+            EODagGenerator.generateFromTemplate(writer, info(), parameters0());
+        }
+        LOGGER.info("JAVA generated : {}", sw);
+    }
+
+    @Test
+    public void generateSingleFromTemplate() {
+        StringWriter sw = new StringWriter();
+        try (PrintWriter writer = new PrintWriter(sw)) {
+            EODagGenerator.generateFromTemplate(writer, info(), parameters1());
         }
         LOGGER.info("JAVA generated : {}", sw);
     }
@@ -81,7 +104,7 @@ public class TemplateTests {
 
         StringWriter sw = new StringWriter();
         try (PrintWriter writer = new PrintWriter(sw)) {
-            EODagGenerator.generateMultiCollectionScript(writer, collectionParameters);
+            EODagGenerator.generateFromTemplate(writer, info(), collectionParameters);
         }
         LOGGER.info("JAVA generated : {}", sw);
     }

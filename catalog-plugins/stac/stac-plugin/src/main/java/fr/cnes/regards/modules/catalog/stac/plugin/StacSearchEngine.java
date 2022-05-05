@@ -25,10 +25,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacDatetimePropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.*;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.ConfigurationAccessorFactoryImpl;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -97,6 +94,10 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(name = "stac-collection-dataset-properties", label = "STAC dataset properties",
             description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
+
+    @PluginParameter(name = "eodag-properties", label = "EODGA properties for STAC script generation",
+            description = "EODAG configuration to be injected in python script template", optional = true)
+    private EODAGConfiguration eodagConfiguration;
 
     // TODO WIP
     //    @PluginParameter(

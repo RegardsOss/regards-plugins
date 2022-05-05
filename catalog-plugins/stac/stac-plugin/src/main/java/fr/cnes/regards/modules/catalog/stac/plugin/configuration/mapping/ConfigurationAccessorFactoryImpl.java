@@ -29,10 +29,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.Propert
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider.ProviderRole;
 import fr.cnes.regards.modules.catalog.stac.plugin.StacSearchEngine;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.ProviderConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
-import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacSourcePropertyConfiguration;
+import fr.cnes.regards.modules.catalog.stac.plugin.configuration.*;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
@@ -167,6 +164,16 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
             @Override
             public String getRootStaticCollectionName() {
                 return plugin.map(StacSearchEngine::getRootStaticCollectionTitle).getOrElse("static");
+            }
+
+            @Override
+            public String getEODAGPortalName() {
+                return plugin.map(StacSearchEngine::getEodagConfiguration).map(EODAGConfiguration::getPortalName).getOrElse(() -> getTitle());
+            }
+
+            @Override
+            public String getEODAGProvider() {
+                return plugin.map(StacSearchEngine::getEodagConfiguration).map(EODAGConfiguration::getProvider).getOrElse("provider");
             }
         };
     }

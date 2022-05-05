@@ -103,6 +103,10 @@
                                     <include>fr.cnes.regards.modules.feature:*</include>
                                     <include>fr.cnes.regards.framework.modules:tinyurl</include>
                                     <include>org.apache.commons:commons-collections4</include>
+                                    <include> com.hubspot.jinjava:jinjava</include>
+                                    <include>org.jsoup:jsoup</include>
+                                    <include>com.google.re2j:re2j</include>
+                                    <include>ch.obermuhlner:big-math</include>
                                     <include>org.noggit:*</include>
                                 </includes>
                             </artifactSet>

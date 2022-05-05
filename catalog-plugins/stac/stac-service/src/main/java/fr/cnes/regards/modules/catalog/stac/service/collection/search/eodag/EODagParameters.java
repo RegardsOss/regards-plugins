@@ -18,16 +18,21 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import org.springframework.data.util.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * EODag parameter for a single collection (i.e. product type)
  */
+@JsonPropertyOrder({ "productType", "start", "end", "geom" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EODagParameters {
 
     /**
@@ -38,7 +43,7 @@ public class EODagParameters {
     /**
      * Extra query parameters
      */
-    Map<String, Pair<PropertyType, Object>> extras;
+    private Map<String, Object> extras;
 
     /**
      * Start period : ISO8601 date
@@ -63,24 +68,24 @@ public class EODagParameters {
         return productType;
     }
 
-    public Optional<String> getStart() {
-        return Optional.ofNullable(start);
+    public String getStart() {
+        return start;
     }
 
     public void setStart(String start) {
         this.start = start;
     }
 
-    public Optional<String> getEnd() {
-        return Optional.ofNullable(end);
+    public String getEnd() {
+        return end;
     }
 
     public void setEnd(String end) {
         this.end = end;
     }
 
-    public Optional<String> getGeom() {
-        return Optional.ofNullable(geom);
+    public String getGeom() {
+        return geom;
     }
 
     public void setGeom(String geom) {
@@ -91,14 +96,21 @@ public class EODagParameters {
         if (extras == null) {
             extras = new HashMap<>();
         }
-        extras.put(param, Pair.of(type, value));
+        switch (type) {
+            case BOOLEAN:
+                extras.put(param, (Boolean) value ? "True" : "False");
+                break;
+            default:
+                extras.put(param, value);
+        }
     }
 
     public boolean hasExtras() {
         return extras != null && !extras.isEmpty();
     }
 
-    public Map<String, Pair<PropertyType, Object>> getExtras() {
+    @JsonAnyGetter
+    public Map<String, Object> getExtras() {
         return extras;
     }
 }

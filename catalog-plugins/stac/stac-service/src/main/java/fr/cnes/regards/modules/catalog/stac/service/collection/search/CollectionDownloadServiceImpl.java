@@ -18,17 +18,21 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
-import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.modules.tinyurl.domain.TinyUrl;
 import fr.cnes.regards.framework.modules.tinyurl.service.TinyUrlService;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagGenerator;
+import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagInformation;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
@@ -50,6 +54,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -99,6 +104,12 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     @Autowired
     private IBusinessSearchService businessSearchService;
 
+    @Autowired
+    private IRuntimeTenantResolver runtimeTenantResolver;
+
+    @Autowired
+    private ConfigurationAccessorFactory configFactory;
+
     @Override
     public void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, String tinyurl,
             DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
@@ -127,9 +138,19 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     }
 
     @Override
-    public void generateEOdagScript(OutputStream outputStream, Optional<String> collectionId, String tinyurl) {
+    public void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator, OutputStream outputStream, Optional<String> collectionId, String tinyurl) {
+        ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
+
         // Retrieve context from tinyurl
         TinyUrl tiny = getTinyUrl(tinyurl);
+
+        // Prepare information context
+        EODagInformation information = new EODagInformation();
+        information.setProjectName(runtimeTenantResolver.getTenant());
+        information.setPortalName(config.getEODAGPortalName());
+        information.setProvider(config.getEODAGProvider());
+        information.setStacSearchApi(searchPageLinkCreator.searchAll().map(uri -> uri.toString()).getOrElse("Unknown STAC API URI"));
+        information.setBaseUri(searchPageLinkCreator.searchAll().map(uri -> getBaseUri(uri)).getOrElse("Unknown host URI"));
 
         // Route according to multi or single collection
         try {
@@ -137,12 +158,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 EODagParameters parameters = tinyUrlService.loadContext(tiny, EODagParameters.class);
                 // Single collection
                 try (PrintWriter writer = new PrintWriter(outputStream)) {
-                    if (parameters.hasExtras()) {
-                        // If extras ... use multi script with JSON parameters as parameter name is not compatible with Python format use in the first script
-                        EODagGenerator.generateMultiCollectionScript(writer, Lists.newArrayList(parameters));
-                    } else {
-                        EODagGenerator.generateSingleCollectionScript(writer, parameters);
-                    }
+                        EODagGenerator.generateFromTemplate(writer, information, parameters);
                 }
             } else {
                 // Retrieve list of tiny url id
@@ -167,13 +183,27 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                     }
                 });
                 try (PrintWriter writer = new PrintWriter(outputStream)) {
-                    EODagGenerator.generateMultiCollectionScript(writer, parameterList);
+                    EODagGenerator.generateFromTemplate(writer, information, parameterList);
                 }
             }
         } catch (ClassNotFoundException e) {
             throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()), e,
                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
         }
+    }
+
+    private String getBaseUri(URI uri) {
+        StringBuilder sb = new StringBuilder();
+        if (uri.getScheme() != null) {
+            sb.append(uri.getScheme());
+            sb.append("://");
+        }
+        sb.append(uri.getHost());
+        if (uri.getPort() != -1) {
+            sb.append(':');
+            sb.append(uri.getPort());
+        }
+        return sb.toString();
     }
 
     private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,

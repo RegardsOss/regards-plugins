@@ -18,133 +18,96 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag;
 
+import com.google.common.base.Charsets;
+import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
+import com.hubspot.jinjava.Jinjava;
+import com.hubspot.jinjava.JinjavaConfig;
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import org.springframework.data.util.Pair;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Helper class for generating EODag scripts
  */
 public class EODagGenerator {
 
-    /**
-     * Collection identifier : URN
-     */
-    private static final String EODAG_PRODUCT_TYPE_PARAM = "productType";
+    // JINJA templates
+
+    private static final JinjavaConfig config = JinjavaConfig.newBuilder().withTrimBlocks(true).withLstripBlocks(true).build();
+
+    private static final Jinjava jinjava = new Jinjava(config);
+
+    private static final String BASE_TEMPLATE = "fr/cnes/regards/modules/catalog/stac/service/collection/search/eodag/base_script.py";
+
+    private static final String SINGLE_TEMPLATE = "fr/cnes/regards/modules/catalog/stac/service/collection/search/eodag/single_collection_script.py";
+
+    private static final String MULTI_TEMPLATE = "fr/cnes/regards/modules/catalog/stac/service/collection/search/eodag/multi_collections_script.py";
 
     /**
-     * Start period : ISO8601 date
+     * Single collection script generation
      */
-    private static final String EODAG_START_PARAM = "start";
-
-    /**
-     * End period : ISO8601 date
-     */
-    private static final String EODAG_END_PARAM = "end";
-
-    /**
-     * Geometry as WKT
-     */
-    private static final String EODAG_GEOM_PARAM = "geom";
-
-    // TODO query extension
-
-    private static final String TAB_AS_SPACES = "    ";
-
-    private static final String SINGLE_PARAMETER_FORMAT = TAB_AS_SPACES + "%s=\"%s\",\n";
-
-    private static final String FIRST_DICT_PARAMETER_FORMAT = "\"%s\": \"%s\"";
-
-    private static final String DICT_PARAMETER_FORMAT = ", " + FIRST_DICT_PARAMETER_FORMAT;
-
-    private static final String INTEGER_DICT_PARAMETER_FORMAT = ", " + "\"%s\": %d";
-
-    private static final String DOUBLE_DICT_PARAMETER_FORMAT = ", " + "\"%s\": %f";
-
-    private static final String BOOlEAN_DICT_PARAMETER_FORMAT = ", " + "\"%s\": %s";
-
-    public static void generateSingleCollectionScript(PrintWriter writer, EODagParameters parameters) {
-        writer.println("from eodag import EODataAccessGateway");
-        writer.println();
-        writer.println("dag = EODataAccessGateway()");
-        writer.println("search_results = dag.search_all(");
-        writer.printf(SINGLE_PARAMETER_FORMAT, EODAG_PRODUCT_TYPE_PARAM, parameters.getProductType());
-        if (parameters.getStart().isPresent()) {
-            writer.printf(SINGLE_PARAMETER_FORMAT, EODAG_START_PARAM, parameters.getStart().get());
-        }
-        if (parameters.getEnd().isPresent()) {
-            writer.printf(SINGLE_PARAMETER_FORMAT, EODAG_END_PARAM, parameters.getEnd().get());
-        }
-        if (parameters.getGeom().isPresent()) {
-            writer.printf(SINGLE_PARAMETER_FORMAT, EODAG_GEOM_PARAM, parameters.getGeom().get());
-        }
-        // Disable extras : incompatible parameter name
-        //        if (parameters.hasExtras()) {
-        //            for (Map.Entry<String, Object> kvp : parameters.getExtras().entrySet()) {
-        //                writer.printf(SINGLE_PARAMETER_FORMAT, kvp.getKey(), kvp.getValue());
-        //            }
-        //        }
-        writer.println(")");
-        writer.println("downloaded_paths = dag.download_all(search_results)");
+    public static void generateFromTemplate(PrintWriter writer, EODagInformation information, EODagParameters parameters) throws StacException {
+        Map<String, Object> context = prepareContext(information, parameters);
+        writer.println(jinjava.render(getBaseTemplate(), context));
+        writer.println(jinjava.render(getSingleTemplate(), context));
     }
 
-    public static void generateMultiCollectionScript(PrintWriter writer, List<EODagParameters> collectionParameters) {
-        writer.println("from eodag import EODataAccessGateway, SearchResult");
-        writer.println();
-        writer.println("dag = EODataAccessGateway()");
-        writer.println();
-        writer.println("project_query_args = [");
-        for (EODagParameters parameters : collectionParameters) {
-            writer.printf("%s{", TAB_AS_SPACES);
-            writer.printf(FIRST_DICT_PARAMETER_FORMAT, EODAG_PRODUCT_TYPE_PARAM, parameters.getProductType());
-            if (parameters.getStart().isPresent()) {
-                writer.printf(DICT_PARAMETER_FORMAT, EODAG_START_PARAM, parameters.getStart().get());
-            }
-            if (parameters.getEnd().isPresent()) {
-                writer.printf(DICT_PARAMETER_FORMAT, EODAG_END_PARAM, parameters.getEnd().get());
-            }
-            if (parameters.getGeom().isPresent()) {
-                writer.printf(DICT_PARAMETER_FORMAT, EODAG_GEOM_PARAM, parameters.getGeom().get());
-            }
-            if (parameters.hasExtras()) {
-                for (Map.Entry<String, Pair<PropertyType, Object>> kvp : parameters.getExtras().entrySet()) {
-                    switch (kvp.getValue().getFirst()) {
-                        case INTEGER:
-                        case INTEGER_ARRAY:
-                        case INTEGER_INTERVAL:
-                            writer.printf(INTEGER_DICT_PARAMETER_FORMAT, kvp.getKey(), ((Double) kvp.getValue().getSecond()).intValue());
-                            break;
-                        case LONG:
-                        case LONG_ARRAY:
-                        case LONG_INTERVAL:
-                            writer.printf(INTEGER_DICT_PARAMETER_FORMAT, kvp.getKey(), ((Double) kvp.getValue().getSecond()).longValue());
-                            break;
-                        case DOUBLE:
-                        case DOUBLE_ARRAY:
-                        case DATE_INTERVAL:
-                            writer.printf(DOUBLE_DICT_PARAMETER_FORMAT, kvp.getKey(), kvp.getValue().getSecond());
-                            break;
-                        case BOOLEAN:
-                            writer.printf(BOOlEAN_DICT_PARAMETER_FORMAT, kvp.getKey(), (Boolean) kvp.getValue().getSecond() ? "True" : "False");
-                            break;
-                        default:
-                            writer.printf(DICT_PARAMETER_FORMAT, kvp.getKey(), kvp.getValue().getSecond());
-                    }
-                }
-            }
-            writer.println("},");
-        }
-        writer.println("]");
-        writer.println("project_search_results = SearchResult([])");
-        writer.println();
-        writer.println("for query_args in project_query_args:");
-        writer.printf("%sproject_search_results.extend(\n", TAB_AS_SPACES);
-        writer.printf("%s%sdag.search_all(**query_args)\n", TAB_AS_SPACES, TAB_AS_SPACES);
-        writer.printf("%s)\n", TAB_AS_SPACES);
-        writer.println();
-        writer.println("downloaded_paths = dag.download_all(project_search_results)");
+    /**
+     * Multi collections script generation
+     */
+    public static void generateFromTemplate(PrintWriter writer, EODagInformation information, List<EODagParameters> collectionParameters) throws StacException {
+        Map<String, Object> context = prepareContext(information, collectionParameters);
+        writer.println(jinjava.render(getBaseTemplate(), context));
+        writer.println(jinjava.render(getMultiTemplate(), context));
     }
+
+    private static Map<String, Object> prepareContext(EODagInformation information, EODagParameters parameters) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("info", information);
+        context.put("parameters", parameters);
+        if (parameters.hasExtras()) {
+            context.put("query_parameters", parameters.getExtras());
+        }
+        return context;
+    }
+
+    private static Map<String, Object> prepareContext(EODagInformation information, List<EODagParameters> collectionParameters) {
+        Map<String, Object> context = Maps.newHashMap();
+        context.put("info", information);
+        context.put("parameters", collectionParameters);
+        return context;
+    }
+
+    private static String getBaseTemplate() throws StacException {
+        try {
+            return Resources.toString(Resources.getResource(BASE_TEMPLATE), Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new StacException("Unable to load base template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+        }
+    }
+
+    private static String getSingleTemplate() throws StacException {
+        try {
+            return Resources.toString(Resources.getResource(SINGLE_TEMPLATE), Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new StacException("Unable to load single template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+        }
+    }
+
+    private static String getMultiTemplate() throws StacException {
+        try {
+            return Resources.toString(Resources.getResource(MULTI_TEMPLATE), Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new StacException("Unable to load multi template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+        }
+    }
+
 }
