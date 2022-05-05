@@ -18,20 +18,38 @@
  */
 package fr.cnes.regards.modules.catalog.stac.plugin.it.legacy;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.junit.Before;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.MimeType;
+import org.springframework.web.bind.annotation.RequestMethod;
+
 import com.google.common.collect.Sets;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
@@ -52,26 +70,8 @@ import fr.cnes.regards.modules.model.service.ModelService;
 import fr.cnes.regards.modules.opensearch.service.cache.attributemodel.IAttributeFinder;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.EngineConfiguration;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.OpenSearchEngine;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.ParameterConfiguration;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.geo.GeoTimeExtension;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.media.MediaExtension;
-import fr.cnes.regards.modules.search.service.engine.plugin.opensearch.extension.regards.RegardsExtension;
-import org.apache.commons.collections4.map.HashedMap;
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.MimeType;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -185,10 +185,6 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     protected Map<String, AbstractEntity<?>> astroObjects = new HashedMap<>();
 
-    protected SearchEngineConfiguration openSearchEngineConf;
-
-    protected PluginConfiguration openSearchPluginConf;
-
     protected Dataset solarSystem;
 
     GsonBuilder builder = new GsonBuilder();
@@ -248,7 +244,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
     }
 
     @Before
-    public void prepareData() throws ModuleException, InterruptedException {
+    public void prepareData() throws ModuleException {
 
         prepareProject();
 
@@ -310,73 +306,6 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
         // Refresh index to be sure data is available for requesting
         indexerService.refresh(getDefaultTenant());
-
-        initPlugins();
-    }
-
-    protected void initPlugins() throws ModuleException {
-
-        GeoTimeExtension geoTime = new GeoTimeExtension();
-        geoTime.setActivated(true);
-        RegardsExtension regardsExt = new RegardsExtension();
-        regardsExt.setActivated(true);
-        MediaExtension mediaExt = new MediaExtension();
-        mediaExt.setActivated(true);
-
-        List<ParameterConfiguration> paramConfigurations = Lists.newArrayList();
-        ParameterConfiguration planetParameter = new ParameterConfiguration();
-        planetParameter.setAttributeModelJsonPath("properties.planet");
-        planetParameter.setName("planet");
-        planetParameter.setOptionsEnabled(true);
-        planetParameter.setOptionsCardinality(10);
-        paramConfigurations.add(planetParameter);
-
-        ParameterConfiguration startTimeParameter = new ParameterConfiguration();
-        startTimeParameter.setAttributeModelJsonPath("properties.TimePeriod.startDate");
-        startTimeParameter.setAllias("debut");
-        startTimeParameter.setName("start");
-        startTimeParameter.setNamespace("time");
-        paramConfigurations.add(startTimeParameter);
-        ParameterConfiguration endTimeParameter = new ParameterConfiguration();
-        endTimeParameter.setAttributeModelJsonPath("properties.TimePeriod.stopDate");
-        endTimeParameter.setAllias("fin");
-        endTimeParameter.setName("end");
-        endTimeParameter.setNamespace("time");
-        paramConfigurations.add(endTimeParameter);
-
-        EngineConfiguration engineConfiguration = new EngineConfiguration();
-        engineConfiguration.setAttribution("Plop");
-        engineConfiguration.setSearchDescription("desc");
-        engineConfiguration.setSearchTitle("search");
-        engineConfiguration.setContact("regards@c-s.fr");
-        engineConfiguration.setImage("http://plop/image.png");
-        engineConfiguration.setEntityLastUpdateDatePropertyPath("TimePeriod.startDate");
-
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(OpenSearchEngine.TIME_EXTENSION_PARAMETER,
-                                        PluginParameterTransformer.toJson(geoTime)),
-                     IPluginParam.build(OpenSearchEngine.REGARDS_EXTENSION_PARAMETER,
-                                        PluginParameterTransformer.toJson(regardsExt)),
-                     IPluginParam.build(OpenSearchEngine.MEDIA_EXTENSION_PARAMETER,
-                                        PluginParameterTransformer.toJson(mediaExt)),
-                     IPluginParam.build(OpenSearchEngine.PARAMETERS_CONFIGURATION,
-                                        PluginParameterTransformer.toJson(paramConfigurations)),
-                     IPluginParam.build(OpenSearchEngine.ENGINE_PARAMETERS,
-                                        PluginParameterTransformer.toJson(engineConfiguration)));
-
-        PluginConfiguration opensearchConf = PluginConfiguration.build(OpenSearchEngine.class, null, parameters);
-        openSearchPluginConf = pluginService.savePluginConfiguration(opensearchConf);
-        SearchEngineConfiguration seConfOS = new SearchEngineConfiguration();
-        seConfOS.setConfiguration(openSearchPluginConf);
-        seConfOS.setLabel("Opensearch conf for all datasets");
-        openSearchEngineConf = searchEngineService.createConf(seConfOS);
-
-        SearchEngineConfiguration seConfOSdataset = new SearchEngineConfiguration();
-        seConfOSdataset.setConfiguration(openSearchPluginConf);
-        seConfOSdataset.setLabel("Opensearch conf for one dataset");
-        seConfOSdataset
-                .setDatasetUrn("URN:AIP:" + EntityType.DATASET.toString() + ":PROJECT:" + UUID.randomUUID() + ":V1");
-        searchEngineService.createConf(seConfOSdataset);
     }
 
     /**
@@ -563,24 +492,5 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         }
         astroObjects.put(label, entity);
         return (T) entity;
-    }
-
-    /**
-     * Retrieve an astronomical object by its label
-     */
-    @SuppressWarnings("unchecked")
-    protected <T> T getAstroObject(String label) {
-        return (T) astroObjects.get(label);
-    }
-
-    /**
-     * Enclose string in quotes
-     */
-    protected String protect(String value) {
-        String protect = "\"";
-        if (value.startsWith(protect)) {
-            return value;
-        }
-        return String.format("%s%s%s", protect, value, protect);
     }
 }
