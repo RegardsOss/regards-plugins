@@ -36,6 +36,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
@@ -247,8 +248,8 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals(17.1381517,result.get().getExtent().getSpatial().getBbox().get(0).getMaxX(), 0.0000001);
         Assert.assertEquals(42.9500934,result.get().getExtent().getSpatial().getBbox().get(0).getMinY(), 0.0000001);
 
-        Assert.assertEquals(offsetDateTimeFrom.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._1.toInstant());
-        Assert.assertEquals(offsetDateTimeTo.toInstant(), result.get().getExtent().getTemporal().getInterval().get()._2.toInstant());
+        Assert.assertEquals(offsetDateTimeFrom.toInstant().truncatedTo(ChronoUnit.MILLIS), result.get().getExtent().getTemporal().getInterval().get()._1.toInstant());
+        Assert.assertEquals(offsetDateTimeTo.toInstant().truncatedTo(ChronoUnit.MILLIS), result.get().getExtent().getTemporal().getInterval().get()._2.toInstant());
 
         Assert.assertEquals("toto", result.get().getTitle());
         Assert.assertEquals(urn, result.get().getId());

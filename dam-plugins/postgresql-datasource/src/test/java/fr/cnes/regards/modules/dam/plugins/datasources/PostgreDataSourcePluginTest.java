@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.encryption.exception.EncryptionException;
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.EntityInvalidException;
 import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -166,7 +167,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                                              OffsetDateTime.now()
                                                            .withOffsetSameInstant(ZoneOffset.UTC)
                                                            .minusMinutes(33),
-                                             OffsetDateTime.now().minusMinutes(12132125).toString(),
+                                             OffsetDateTimeAdapter.format(OffsetDateTime.now().minusMinutes(12132125)),
                                              true,
                                              new URL("file", "localhost", ""),
                                              "monday"));
@@ -180,7 +181,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                                              OffsetDateTime.now()
                                                            .withOffsetSameInstant(ZoneOffset.UTC)
                                                            .minusSeconds(22),
-                                             OffsetDateTime.now().minusSeconds(4464654).toString(),
+                                             OffsetDateTimeAdapter.format(OffsetDateTime.now().minusSeconds(4464654)),
                                              true,
                                              new URL("https", "regardsv2", "html/polder/ADEOS1_POLDER1_L0.html"),
                                              "saturday"));
@@ -192,7 +193,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                                              LocalTime.now().minusHours(9),
                                              LocalDateTime.now().minusMonths(2),
                                              OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusHours(7),
-                                             OffsetDateTime.now().minusHours(4545).toString(),
+                                             OffsetDateTimeAdapter.format(OffsetDateTime.now().minusHours(4545)),
                                              false,
                                              new URL("ftp", "localhost", ""),
                                              "sunday"));

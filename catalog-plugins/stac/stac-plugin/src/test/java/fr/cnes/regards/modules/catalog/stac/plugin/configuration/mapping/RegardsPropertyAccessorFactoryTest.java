@@ -2,6 +2,7 @@ package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacPropertyConfiguration;
@@ -49,7 +50,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
                 " \"someURL\": \"http://xkcd.com/1\", " +
                 " \"someDouble\": 15, " +
                 " \"someBoolean\": false, " +
-                " \"someDate\": " + gson.toJson(now) + " " +
+                " \"someDate\": " + gson.toJson(OffsetDateTimeAdapter.format(now)) + " " +
                 " } } }";
 
         info(LOGGER, "JSON is: {}", jsonObjectStr);
@@ -195,7 +196,7 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         assertThat(accessor.getRegardsAttributeName()).isEqualTo("someJsonObjectProp");
         assertThat(accessor.getValueType()).isEqualTo(OffsetDateTime.class);
         assertThat(accessor.getAttributeModel().getFullJsonPath()).isEqualTo("feature.properties.someJsonObjectProp");
-        assertThat(accessor.<OffsetDateTime>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(now);
+        assertThat(accessor.<OffsetDateTime>getGenericExtractValueFn().apply(dataObject).get()).isEqualTo(OffsetDateTimeAdapter.format(now));
     }
 
     @Test
