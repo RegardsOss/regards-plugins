@@ -3,7 +3,7 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.geojson.geometry.Point;
-import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
+import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceIT;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
         properties = {
                 "spring.jpa.properties.hibernate.default_schema=public",
         })
-public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceTest {
+public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
 

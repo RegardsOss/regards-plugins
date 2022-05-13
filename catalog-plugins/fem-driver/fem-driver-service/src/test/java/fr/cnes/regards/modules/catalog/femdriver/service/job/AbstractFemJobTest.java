@@ -34,7 +34,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
-import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceTest;
+import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceIT;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.dao.IJobInfoRepository;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -57,7 +57,7 @@ import fr.cnes.regards.modules.model.service.ModelService;
  *
  */
 @SuppressWarnings("deprecation")
-public abstract class AbstractFemJobTest extends AbstractMultitenantServiceTest {
+public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFemJobTest.class);
 
