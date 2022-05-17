@@ -18,17 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.rest;
 
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.util.LinkedMultiValueMap;
-
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
@@ -36,13 +26,20 @@ import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.util.LinkedMultiValueMap;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author sbinda
- *
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=femdriver_rest_it" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=femdriver_rest_it" })
 public class FemDriverControllerIT extends AbstractFemTest {
 
     @Before

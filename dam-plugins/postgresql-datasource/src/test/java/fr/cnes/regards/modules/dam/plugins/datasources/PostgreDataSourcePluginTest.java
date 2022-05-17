@@ -18,37 +18,7 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.encryption.exception.EncryptionException;
 import fr.cnes.regards.framework.module.rest.exception.EntityInvalidException;
 import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
@@ -80,6 +50,26 @@ import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceReposito
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.assertj.core.util.Lists;
+import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.sql.SQLException;
+import java.time.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Christophe Mertz
@@ -166,21 +156,46 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
          * Add data to the data source
          */
         repository.deleteAll();
-        repository.save(new DataSourceEntity("azertyuiop", 12345, 1.10203045607080901234568790123456789, 45.5444544454,
-                LocalDate.now().minusDays(10), LocalTime.now().minusHours(9), LocalDateTime.now(),
-                OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(33),
-                OffsetDateTime.now().minusMinutes(12132125).toString(), true, new URL("file", "localhost", ""),
-                "monday"));
-        repository.save(new DataSourceEntity("Toulouse", 110, 3.141592653589793238462643383279, -15.2323654654564654,
-                LocalDate.now().minusMonths(1), LocalTime.now().minusMinutes(10), LocalDateTime.now().plusHours(33),
-                OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusSeconds(22),
-                OffsetDateTime.now().minusSeconds(4464654).toString(), true,
-                new URL("https", "regardsv2", "html/polder/ADEOS1_POLDER1_L0.html"), "saturday"));
-        repository.save(new DataSourceEntity("Paris", 350, -3.141592653589793238462643383279502884197169399375105,
-                25.565465465454564654654654, LocalDate.now().minusDays(10), LocalTime.now().minusHours(9),
-                LocalDateTime.now().minusMonths(2),
-                OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusHours(7),
-                OffsetDateTime.now().minusHours(4545).toString(), false, new URL("ftp", "localhost", ""), "sunday"));
+        repository.save(new DataSourceEntity("azertyuiop",
+                                             12345,
+                                             1.10203045607080901234568790123456789,
+                                             45.5444544454,
+                                             LocalDate.now().minusDays(10),
+                                             LocalTime.now().minusHours(9),
+                                             LocalDateTime.now(),
+                                             OffsetDateTime.now()
+                                                           .withOffsetSameInstant(ZoneOffset.UTC)
+                                                           .minusMinutes(33),
+                                             OffsetDateTime.now().minusMinutes(12132125).toString(),
+                                             true,
+                                             new URL("file", "localhost", ""),
+                                             "monday"));
+        repository.save(new DataSourceEntity("Toulouse",
+                                             110,
+                                             3.141592653589793238462643383279,
+                                             -15.2323654654564654,
+                                             LocalDate.now().minusMonths(1),
+                                             LocalTime.now().minusMinutes(10),
+                                             LocalDateTime.now().plusHours(33),
+                                             OffsetDateTime.now()
+                                                           .withOffsetSameInstant(ZoneOffset.UTC)
+                                                           .minusSeconds(22),
+                                             OffsetDateTime.now().minusSeconds(4464654).toString(),
+                                             true,
+                                             new URL("https", "regardsv2", "html/polder/ADEOS1_POLDER1_L0.html"),
+                                             "saturday"));
+        repository.save(new DataSourceEntity("Paris",
+                                             350,
+                                             -3.141592653589793238462643383279502884197169399375105,
+                                             25.565465465454564654654654,
+                                             LocalDate.now().minusDays(10),
+                                             LocalTime.now().minusHours(9),
+                                             LocalDateTime.now().minusMonths(2),
+                                             OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusHours(7),
+                                             OffsetDateTime.now().minusHours(4545).toString(),
+                                             false,
+                                             new URL("ftp", "localhost", ""),
+                                             "sunday"));
         nbElements = 3;
 
         /*
