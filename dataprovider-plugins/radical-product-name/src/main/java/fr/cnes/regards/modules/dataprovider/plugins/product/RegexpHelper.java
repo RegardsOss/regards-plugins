@@ -85,17 +85,15 @@ public final class RegexpHelper {
         }
         // Sort groups to replace them starting by the last one in order to use char indexes in original string without
         // recalculation after each modification.
-        Map<Integer, List<Integer>> groupIndexes = new LinkedHashMap<>();
         Collections.sort(groups);
         Collections.reverse(groups);
-        // For each group calculate char index start and end to replace in string
-        groups.forEach(g -> groupIndexes.put(g, Arrays.asList(m.start(g), m.end(g))));
-        Iterator<Map.Entry<Integer, List<Integer>>> it = groupIndexes.entrySet().iterator();
+
         String result = source;
-        // For each couple start/end char index replace from original string
-        while (it.hasNext()) {
-            Map.Entry<Integer, List<Integer>> entry = it.next();
-            result = new StringBuilder(result).replace(entry.getValue().get(0), entry.getValue().get(1), replacement).toString();
+        // For each group calculate char index start and end to replace in string
+        for (Integer group: groups) {
+            int start = m.start(group);
+            int end = m.end(group);
+            result = new StringBuilder(result).replace(start,end, replacement).toString();
         }
         return result;
     }
