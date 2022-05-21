@@ -18,12 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
@@ -34,12 +28,16 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Test configuration class
  *
  * @author Sébastien Binda
- *
  */
 @Configuration
 public class TestConfiguration {
@@ -48,8 +46,11 @@ public class TestConfiguration {
     public IProjectsClient projectsClient() {
         IProjectsClient projectsClientMock = Mockito.mock(IProjectsClient.class);
         // Manage project
-        @SuppressWarnings("deprecation")
-        Project project = new Project(1L, "Solar system project", "http://plop/icon.png", true, "SolarSystem");
+        @SuppressWarnings("deprecation") Project project = new Project(1L,
+                                                                       "Solar system project",
+                                                                       "http://plop/icon.png",
+                                                                       true,
+                                                                       "SolarSystem");
         project.setHost("http://regards/solarsystem");
         ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(EntityModel.of(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);

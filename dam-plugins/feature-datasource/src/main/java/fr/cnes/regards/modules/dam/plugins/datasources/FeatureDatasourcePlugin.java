@@ -61,22 +61,22 @@ import java.util.stream.Collectors;
  * @author Marc SORDI
  */
 @Plugin(id = "feature-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
-        author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-        url = "https://github.com/RegardsOss")
+    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
+    url = "https://github.com/RegardsOss")
 public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     private static final String URN_PLACEHOLDER = "{urn}";
 
     private static final String CHECKSUM_PLACEHOLDER = "{checksum}";
 
-    private static final String CATALOG_DOWNLOAD_PATH = "/downloads/" + URN_PLACEHOLDER + "/files/"
-            + CHECKSUM_PLACEHOLDER;
+    private static final String CATALOG_DOWNLOAD_PATH =
+        "/downloads/" + URN_PLACEHOLDER + "/files/" + CHECKSUM_PLACEHOLDER;
 
     @Value("${regards.feature.datasource.plugin.refreshRate:1000}")
     private int refreshRate;
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
-            description = "Associated data source model name")
+        description = "Associated data source model name")
     protected String modelName;
 
     @Autowired
@@ -114,7 +114,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
-            throws DataSourceException {
+        throws DataSourceException {
 
         ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response;
         try {
@@ -128,7 +128,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         // Manage request error
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new DataSourceException(
-                    "Error while calling FEATURE MANAGER client (HTTP STATUS : " + response.getStatusCode());
+                "Error while calling FEATURE MANAGER client (HTTP STATUS : " + response.getStatusCode());
         }
 
         // Process current page
@@ -140,20 +140,24 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
             result.add(initDataObjectFeature(tenant, em));
         }
         return new PageImpl<DataObjectFeature>(result,
-                PageRequest.of(Long.valueOf(page.getMetadata().getNumber()).intValue(),
-                               Long.valueOf(page.getMetadata().getSize()).intValue()),
-                page.getMetadata().getTotalElements());
+                                               PageRequest.of(Long.valueOf(page.getMetadata().getNumber()).intValue(),
+                                                              Long.valueOf(page.getMetadata().getSize()).intValue()),
+                                               page.getMetadata().getTotalElements());
     }
 
     private DataObjectFeature initDataObjectFeature(String tenant, EntityModel<FeatureEntityDto> entity)
-            throws DataSourceException {
+        throws DataSourceException {
 
         FeatureEntityDto featureDto = entity.getContent();
         Feature feature = featureDto.getFeature();
 
         // Initialize catalog feature
-        DataObjectFeature dataObject = new DataObjectFeature(feature.getUrn(), feature.getId(), feature.getId(),
-                featureDto.getSource(), featureDto.getSession(), feature.getModel());
+        DataObjectFeature dataObject = new DataObjectFeature(feature.getUrn(),
+                                                             feature.getId(),
+                                                             feature.getId(),
+                                                             featureDto.getSource(),
+                                                             featureDto.getSession(),
+                                                             feature.getModel());
         dataObject.setLast(feature.isLast());
         // Propagate geometry
         dataObject.setGeometry(feature.getGeometry());
@@ -171,8 +175,12 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                     referenceUrl = checkReference(locations, getStorages());
                 }
                 String downloadUrl = referenceUrl.orElse(getDownloadUrl(feature.getUrn(), atts.getChecksum(), tenant));
-                DataFile dataFile = DataFile.build(atts.getDataType(), atts.getFilename(), downloadUrl,
-                                                   atts.getMimeType(), online, referenceUrl.isPresent());
+                DataFile dataFile = DataFile.build(atts.getDataType(),
+                                                   atts.getFilename(),
+                                                   downloadUrl,
+                                                   atts.getMimeType(),
+                                                   online,
+                                                   referenceUrl.isPresent());
                 dataFile.setFilesize(atts.getFilesize());
                 dataFile.setDigestAlgorithm(atts.getAlgorithm());
                 dataFile.setChecksum(atts.getChecksum());
@@ -191,8 +199,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     private Optional<String> checkReference(Set<FeatureFileLocation> locations, Storages storages) {
         Optional<String> referenceUrl = Optional.empty();
         for (FeatureFileLocation location : locations) {
-            Boolean isOffline = storages.getOfflines().contains(location.getStorage())
-                    || !storages.getAll().contains(location.getStorage());
+            Boolean isOffline = storages.getOfflines().contains(location.getStorage()) || !storages.getAll()
+                                                                                                   .contains(location.getStorage());
             if (isOffline && location.getUrl().startsWith("http")) {
                 referenceUrl = Optional.of(location.getUrl());
                 break;
@@ -222,11 +230,13 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new DataSourceException(
-                            "Error while calling STORAGE client (HTTP STATUS : " + response.getStatusCode());
+                        "Error while calling STORAGE client (HTTP STATUS : " + response.getStatusCode());
                 }
 
-                List<StorageLocationDTO> storageLocationDTOList = response.getBody().stream().map(n -> n.getContent())
-                        .collect(Collectors.toList());
+                List<StorageLocationDTO> storageLocationDTOList = response.getBody()
+                                                                          .stream()
+                                                                          .map(n -> n.getContent())
+                                                                          .collect(Collectors.toList());
                 storages = Storages.build(storageLocationDTOList);
             } catch (HttpClientErrorException | HttpServerErrorException e) {
                 throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
@@ -249,13 +259,15 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
             Storages storages = new Storages();
             storages.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
             storages.onlines = storageLocationDTOList.stream()
-                    .filter(s -> (s.getConfiguration() != null)
-                            && (s.getConfiguration().getStorageType() == StorageType.ONLINE))
-                    .map(n -> n.getName()).collect(Collectors.toList());
+                                                     .filter(s -> (s.getConfiguration() != null) && (
+                                                         s.getConfiguration().getStorageType() == StorageType.ONLINE))
+                                                     .map(n -> n.getName())
+                                                     .collect(Collectors.toList());
             storages.offlines = storageLocationDTOList.stream()
-                    .filter(s -> (s.getConfiguration() == null)
-                            || (s.getConfiguration().getStorageType() == StorageType.OFFLINE))
-                    .map(n -> n.getName()).collect(Collectors.toList());
+                                                      .filter(s -> (s.getConfiguration() == null) || (
+                                                          s.getConfiguration().getStorageType() == StorageType.OFFLINE))
+                                                      .map(n -> n.getName())
+                                                      .collect(Collectors.toList());
             return storages;
         }
 
@@ -273,7 +285,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     }
 
     private String getDownloadUrl(FeatureUniformResourceName urn, String checksum, String tenant)
-            throws DataSourceException {
+        throws DataSourceException {
         Project project = projects.get(tenant);
         if (project == null) {
             try {
@@ -283,7 +295,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     throw new DataSourceException(
-                            "Error while calling PROJECT client (HTTP STATUS : " + response.getStatusCode());
+                        "Error while calling PROJECT client (HTTP STATUS : " + response.getStatusCode());
                 }
 
                 project = response.getBody().getContent();
@@ -292,8 +304,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                 FeignSecurityManager.reset();
             }
         }
-        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH
-                .replace(URN_PLACEHOLDER, urn.toString()).replace(CHECKSUM_PLACEHOLDER, checksum);
+        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH.replace(
+            URN_PLACEHOLDER,
+            urn.toString()).replace(CHECKSUM_PLACEHOLDER, checksum);
     }
 
     private static String encode4Uri(String str) {

@@ -56,13 +56,15 @@ import java.util.*;
 @ContextConfiguration(classes = { RabbitMQSenderTest.ScanningConfiguration.class })
 @EnableAutoConfiguration(exclude = { JpaRepositoriesAutoConfiguration.class, FlywayAutoConfiguration.class })
 @PropertySource({ "classpath:amqp.properties", "classpath:cloud.properties" })
-@TestPropertySource(properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test",
-        "regards.cipher.iv=1234567812345678", "regards.cipher.keyLocation=src/test/resources/testKey" })
+@TestPropertySource(
+    properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test", "regards.cipher.iv=1234567812345678",
+        "regards.cipher.keyLocation=src/test/resources/testKey" })
 public class RabbitMQSenderTest {
 
     @Configuration
     @ComponentScan(basePackages = { "fr.cnes.regards.modules" })
     public static class ScanningConfiguration {
+
         @Bean
         public IPublisher getPublisher() {
             return Mockito.spy(IPublisher.class);
@@ -103,16 +105,19 @@ public class RabbitMQSenderTest {
         String recipientLabel = "recipientLabel";
         boolean ackRequired = true;
         // Plugin parameters
-        Set<IPluginParam> parameters = IPluginParam.set(
-                IPluginParam.build(AbstractRabbitMQSender.EXCHANGE_PARAM_NAME, exchange),
-                IPluginParam.build(AbstractRabbitMQSender.QUEUE_PARAM_NAME, queueName),
-                IPluginParam.build(AbstractRabbitMQSender.RECIPIENT_LABEL_PARAM_NAME, recipientLabel),
-                IPluginParam.build(RabbitMQSender.ACK_REQUIRED_PARAM_NAME, ackRequired));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(AbstractRabbitMQSender.EXCHANGE_PARAM_NAME,
+                                                                           exchange),
+                                                        IPluginParam.build(AbstractRabbitMQSender.QUEUE_PARAM_NAME,
+                                                                           queueName),
+                                                        IPluginParam.build(AbstractRabbitMQSender.RECIPIENT_LABEL_PARAM_NAME,
+                                                                           recipientLabel),
+                                                        IPluginParam.build(RabbitMQSender.ACK_REQUIRED_PARAM_NAME,
+                                                                           ackRequired));
 
         // Instantiate plugin
-        IRecipientNotifier plugin = PluginUtils.getPlugin(
-                PluginConfiguration.build(RabbitMQSender.class, UUID.randomUUID().toString(), parameters),
-                new HashMap<>());
+        IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(RabbitMQSender.class,
+                                                                                    UUID.randomUUID().toString(),
+                                                                                    parameters), new HashMap<>());
         Assert.assertNotNull(plugin);
 
         // Run plugin
@@ -121,8 +126,13 @@ public class RabbitMQSenderTest {
 
         Assert.assertEquals("should retrieve ack", ackRequired, plugin.isAckRequired());
         Mockito.verify(publisher, Mockito.times(1))
-                .broadcastAll(exchangeNameCaptor.capture(), queueNameCaptor.capture(), routingKeyCaptor.capture(), dlkCaptor.capture(),
-                              priorityCaptor.capture(), messagesCaptor.capture(), headersCaptor.capture());
+               .broadcastAll(exchangeNameCaptor.capture(),
+                             queueNameCaptor.capture(),
+                             routingKeyCaptor.capture(),
+                             dlkCaptor.capture(),
+                             priorityCaptor.capture(),
+                             messagesCaptor.capture(),
+                             headersCaptor.capture());
         Assert.assertEquals("should retrieve good exchange", exchange, exchangeNameCaptor.getValue());
         Assert.assertEquals("should retrieve good queue name", Optional.of(queueName), queueNameCaptor.getValue());
         Assert.assertFalse("should not override routing key", routingKeyCaptor.getValue().isPresent());

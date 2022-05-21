@@ -18,58 +18,55 @@
  */
 package fr.cnes.regards.modules.dataprovider.plugins.validation;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.collect.Lists;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.workspace.service.IWorkspaceService;
 import fr.cnes.regards.modules.acquisition.plugins.IValidationPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Acquisition plugin to validate files to acquire by executing a custom system command.
+ *
  * @author sbinda
  */
 @Plugin(id = "CustomCommandFileValidationPlugin", version = "0.4.0",
-        description = "Plugin to validate file to acquire by running a custom command", author = "REGARDS Team",
-        contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+    description = "Plugin to validate file to acquire by running a custom command", author = "REGARDS Team",
+    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class CustomCommandFileValidation implements IValidationPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomCommandFileValidation.class);
 
     @PluginParameter(label = "Initialization command",
-            description = "An optional command to execute before files validation process.", name = "initCommand",
-            optional = true)
+        description = "An optional command to execute before files validation process.", name = "initCommand",
+        optional = true)
     private String initCommand;
 
-    @PluginParameter(label = "File validation command",
-            description = "Custom command to execute to valid each file. "
-                    + "Use token ${file} in your command to add the absolute file path to validate. "
-                    + "Due to implementation limitation, you need to create your own shell script if you need shell processing "
-                    + "features like variable substitution, or chaining multiple commands together",
-            name = "customCommand", optional = false)
+    @PluginParameter(label = "File validation command", description = "Custom command to execute to valid each file. "
+        + "Use token ${file} in your command to add the absolute file path to validate. "
+        + "Due to implementation limitation, you need to create your own shell script if you need shell processing "
+        + "features like variable substitution, or chaining multiple commands together", name = "customCommand",
+        optional = false)
     private String customCommand;
 
     @PluginParameter(label = "Command valid expected result value",
-            description = "Expected result value from the command for valid files", name = "expectedCommandResult",
-            optional = false)
+        description = "Expected result value from the command for valid files", name = "expectedCommandResult",
+        optional = false)
     private final List<Integer> expectedCommandResults = Lists.newArrayList();
 
     @PluginParameter(label = "Command timeout in ms", description = "Maximum number of ms to wait for command ends",
-            name = "commandTimeout", optional = true, defaultValue = "10000")
+        name = "commandTimeout", optional = true, defaultValue = "10000")
     private long commandTimeout;
 
     @Autowired

@@ -1,20 +1,21 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 /**
  * Allows to add String Array value to generated AIPs.
+ *
  * @author Sylvain VISSIERE-GUERINET
  */
 @Plugin(author = "REGARDS Team", description = "Add string array value to generated AIP",
-        id = "StringArrayEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr",
-        license = "GPLv3", owner = "CNES", url = "https://regardsoss.github.io/")
+    id = "StringArrayEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr",
+    license = "GPLv3", owner = "CNES", url = "https://regardsoss.github.io/")
 public class StringArrayEnhancedDescriptiveAipGeneration extends AbstractEnhancedDescriptiveAipGeneration {
 
     @PluginParameter(label = "Values of the descriptive information to add")

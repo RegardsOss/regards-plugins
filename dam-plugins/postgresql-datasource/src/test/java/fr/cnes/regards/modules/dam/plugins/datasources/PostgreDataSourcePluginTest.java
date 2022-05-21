@@ -76,7 +76,7 @@ import java.util.Set;
  * @author Christophe Mertz
  */
 @TestPropertySource(locations = { "classpath:datasource-test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePluginTest.class);
@@ -139,7 +139,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      */
     @Before
     public void setUp()
-            throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
+        throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
 
         PluginUtils.setup(Lists.newArrayList(), gson);
         tenantResolver.forceTenant(getDefaultTenant());
@@ -207,16 +207,20 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         /*
          * Instantiate the data source plugin
          */
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
-                                         getPostgreConnectionConfiguration().getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(attributesMapping)),
-                     IPluginParam.build(DataSourcePluginConstants.FROM_CLAUSE, "from\n\n\nT_TEST_PLUGIN_DATA_SOURCE"));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            getPostgreConnectionConfiguration().getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           MODEL_NAME_TEST),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               attributesMapping)),
+                                                        IPluginParam.build(DataSourcePluginConstants.FROM_CLAUSE,
+                                                                           "from\n\n\nT_TEST_PLUGIN_DATA_SOURCE"));
 
-        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourcePlugin", parameters,
-                PostgreDataSourcePlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourcePlugin",
+                                                                       parameters,
+                                                                       PostgreDataSourcePlugin.class.getAnnotation(
+                                                                           Plugin.class).id());
 
         dbDataSourceConf = pluginService.savePluginConfiguration(dbDataSourceConf);
 
@@ -231,7 +235,8 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     @Requirement("REGARDS_DSL_DAM_SRC_110")
     @Requirement("REGARDS_DSL_DAM_SRC_140")
     @Requirement("REGARDS_DSL_DAM_PLG_200")
-    @Purpose("The system has a plugin that enables to define a datasource to a PostreSql database by setting a SQL request")
+    @Purpose(
+        "The system has a plugin that enables to define a datasource to a PostreSql database by setting a SQL request")
     public void getDataSourceIntrospection() throws SQLException, DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
@@ -307,18 +312,23 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      * @throws InvalidKeyException
      */
     private PluginConfiguration getPostgreConnectionConfiguration()
-            throws EncryptionException, EntityNotFoundException, EntityInvalidException {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        throws EncryptionException, EntityNotFoundException, EntityInvalidException {
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters,
-                DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin",
+                                                              parameters,
+                                                              DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class)
+                                                                                                  .id());
 
         pluginService.savePluginConfiguration(plgConf);
         return plgConf;
@@ -327,24 +337,34 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     private void buildModelAttributes() {
         attributesMapping = new ArrayList<AbstractAttributeMapping>();
 
-        attributesMapping.add(new DynamicAttributeMapping(NAME_ATTR, PropertyType.STRING,
-                "'" + HELLO + "--> '||label as label"));
-        attributesMapping
-                .add(new DynamicAttributeMapping("alt", "geometry", PropertyType.INTEGER, "altitude AS altitude"));
+        attributesMapping.add(new DynamicAttributeMapping(NAME_ATTR,
+                                                          PropertyType.STRING,
+                                                          "'" + HELLO + "--> '||label as label"));
+        attributesMapping.add(new DynamicAttributeMapping("alt",
+                                                          "geometry",
+                                                          PropertyType.INTEGER,
+                                                          "altitude AS altitude"));
         attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", PropertyType.DOUBLE, "latitude"));
         attributesMapping.add(new DynamicAttributeMapping("long", "geometry", PropertyType.DOUBLE, "longitude"));
-        attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", PropertyType.DATE_ISO8601,
-                "timeStampWithoutTimeZone"));
-        attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", PropertyType.DATE_ISO8601,
-                "timeStampWithoutTimeZone"));
+        attributesMapping.add(new DynamicAttributeMapping("creationDate1",
+                                                          "hello",
+                                                          PropertyType.DATE_ISO8601,
+                                                          "timeStampWithoutTimeZone"));
+        attributesMapping.add(new DynamicAttributeMapping("creationDate2",
+                                                          "hello",
+                                                          PropertyType.DATE_ISO8601,
+                                                          "timeStampWithoutTimeZone"));
         attributesMapping.add(new DynamicAttributeMapping("date", "hello", PropertyType.DATE_ISO8601, "date"));
         attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                PropertyType.DATE_ISO8601, "timeStampWithTimeZone"));
+                                                         PropertyType.DATE_ISO8601,
+                                                         "timeStampWithTimeZone"));
         attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", PropertyType.BOOLEAN, "update"));
-        attributesMapping.add(new DynamicAttributeMapping("date_string", PropertyType.DATE_ISO8601,
-                "to_timestamp(dateStr, 'YYYY-MM-DD HH24:MI:SS:US')"));
-        attributesMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
+        attributesMapping.add(new DynamicAttributeMapping("date_string",
+                                                          PropertyType.DATE_ISO8601,
+                                                          "to_timestamp(dateStr, 'YYYY-MM-DD HH24:MI:SS:US')"));
+        attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY,
+                                                         PropertyType.LONG,
+                                                         "id"));
         attributesMapping.add(new DynamicAttributeMapping("select", PropertyType.STRING, "descr"));
         attributesMapping.add(new DynamicAttributeMapping("link", PropertyType.URL, "url"));
     }

@@ -1,14 +1,13 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class TestConfiguration {
@@ -34,5 +33,7 @@ public class TestConfiguration {
     }
 
     @Bean
-    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
+    public IStorageRestClient storageRestClient() {
+        return Mockito.mock(IStorageRestClient.class);
+    }
 }

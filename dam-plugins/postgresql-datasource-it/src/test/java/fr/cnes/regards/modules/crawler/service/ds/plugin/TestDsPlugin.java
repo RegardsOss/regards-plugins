@@ -18,14 +18,6 @@
  */
 package fr.cnes.regards.modules.crawler.service.ds.plugin;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDataSourcePlugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
@@ -35,13 +27,20 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author oroussel
  */
 @Plugin(id = "test-datasource", version = "1.0-SNAPSHOT", description = "Allows invalid data extraction from nothing",
-        author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-        url = "https://github.com/RegardsOss")
+    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
+    url = "https://github.com/RegardsOss")
 public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourcePlugin {
 
     @Override
@@ -51,15 +50,18 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
 
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
-            throws DataSourceException {
+        throws DataSourceException {
         List<DataObjectFeature> list = new ArrayList<>();
-        DataObjectFeature o = new DataObjectFeature(
-                OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP, EntityType.DATA, tenant, 1), "DO1", "");
+        DataObjectFeature o = new DataObjectFeature(OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP,
+                                                                                            EntityType.DATA,
+                                                                                            tenant,
+                                                                                            1), "DO1", "");
         // toto isn't expected by the model
         o.addProperty(IProperty.buildString("toto", "texte"));
         // tutu.titi isn't expected by the model
         // tutu.toto is expected as mandatory
-        o.addProperty(IProperty.buildObject("tutu", IProperty.buildString("titi", "texte"),
+        o.addProperty(IProperty.buildObject("tutu",
+                                            IProperty.buildString("titi", "texte"),
                                             IProperty.buildString("toto", "texte")));
         list.add(o);
         return new PageImpl<>(list);

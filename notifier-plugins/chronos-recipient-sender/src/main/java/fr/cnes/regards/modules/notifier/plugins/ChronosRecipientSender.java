@@ -36,8 +36,8 @@ import java.util.*;
  * @author Sébastien Binda
  */
 @Plugin(author = "REGARDS Team", description = "Sender to send CHRONOS formatted feature notification",
-        id = ChronosRecipientSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
-        owner = "CNES", url = "https://regardsoss.github.io/")
+    id = ChronosRecipientSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
+    owner = "CNES", url = "https://regardsoss.github.io/")
 public class ChronosRecipientSender extends AbstractRabbitMQSender {
 
     public static final String PLUGIN_ID = "ChronosRecipientSender";
@@ -63,24 +63,24 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
     @PluginParameter(label = "Ack required", name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
     private boolean ackRequired;
 
-    @PluginParameter(label = "Feature created_by property path", name = CREATED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
-            defaultValue = "history.createdBy")
+    @PluginParameter(label = "Feature created_by property path", name = CREATED_BY_PROPERTY_PATH_PARAM_NAME,
+        optional = true, defaultValue = "history.createdBy")
     private String createdByPropertyPath;
 
-    @PluginParameter(label = "Feature updated_by property path", name = UPDATED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
-            defaultValue = "history.updatedBy")
+    @PluginParameter(label = "Feature updated_by property path", name = UPDATED_BY_PROPERTY_PATH_PARAM_NAME,
+        optional = true, defaultValue = "history.updatedBy")
     private String updatedByPropertyPath;
 
-    @PluginParameter(label = "Feature deleted_by property path", name = DELETED_BY_PROPERTY_PATH_PARAM_NAME, optional = true,
-            defaultValue = "history.deletedBy")
+    @PluginParameter(label = "Feature deleted_by property path", name = DELETED_BY_PROPERTY_PATH_PARAM_NAME,
+        optional = true, defaultValue = "history.deletedBy")
     private String deletedByPropertyPath;
 
-    @PluginParameter(label = "Feature gpfs_url property path", name = GPFS_URL_PROPERTY_PATH_PARAM_NAME, optional = true,
-            defaultValue = "properties.system.gpfs_url")
+    @PluginParameter(label = "Feature gpfs_url property path", name = GPFS_URL_PROPERTY_PATH_PARAM_NAME,
+        optional = true, defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
 
-    @PluginParameter(label = "Feature filename property path", name = FILENAME_PROPERTY_PATH_PARAM_NAME, optional = true,
-            defaultValue = "properties.system.filename")
+    @PluginParameter(label = "Feature filename property path", name = FILENAME_PROPERTY_PATH_PARAM_NAME,
+        optional = true, defaultValue = "properties.system.filename")
     private String filenamePropertyPath;
 
     public Optional<String> getValue(JsonElement element, String key) {
@@ -115,9 +115,13 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
             String filename = getValue(element, filenamePropertyPath).orElse(null);
             if ((metadata == null) || !createdBy.isPresent() || (filename == null)) {
                 LOGGER.error(
-                        "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
-                        metadata == null ? null : metadata.toString(), createdByPropertyPath, createdBy,
-                        gpfsUrlPropertyPath, uri, element == null ? null : element.toString());
+                    "Unable to send chronos notification as mandatory parameters [action={}, {}={}, {}={}] are not valid from message={}.",
+                    metadata == null ? null : metadata.toString(),
+                    createdByPropertyPath,
+                    createdBy,
+                    gpfsUrlPropertyPath,
+                    uri,
+                    element == null ? null : element.toString());
                 errors.add(request);
             } else {
                 Map<String, Object> headers = new HashMap<>();

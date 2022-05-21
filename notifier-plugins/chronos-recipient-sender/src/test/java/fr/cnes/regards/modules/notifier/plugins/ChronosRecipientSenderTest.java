@@ -18,17 +18,18 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.*;
-
+import com.google.common.collect.Sets;
+import com.google.common.io.CharStreams;
+import com.google.gson.Gson;
+import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
+import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
+import fr.cnes.regards.modules.notifier.dto.in.NotificationRequestEvent;
+import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -51,26 +51,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.google.common.collect.Sets;
-import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
-import fr.cnes.regards.framework.amqp.IPublisher;
-import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
-import fr.cnes.regards.modules.notifier.dto.in.NotificationRequestEvent;
-import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.*;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "test", "noscheduler" })
 @ContextConfiguration(classes = { ChronosRecipientSenderTest.ScanningConfiguration.class })
 @EnableAutoConfiguration(exclude = { JpaRepositoriesAutoConfiguration.class, FlywayAutoConfiguration.class })
 @PropertySource({ "classpath:amqp.properties", "classpath:cloud.properties" })
-@TestPropertySource(properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test",
-        "regards.cipher.iv=1234567812345678", "regards.cipher.keyLocation=src/test/resources/testKey" })
+@TestPropertySource(
+    properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test", "regards.cipher.iv=1234567812345678",
+        "regards.cipher.keyLocation=src/test/resources/testKey" })
 public class ChronosRecipientSenderTest {
 
     @Configuration
     @ComponentScan(basePackages = { "fr.cnes.regards.modules" })
     public static class ScanningConfiguration {
+
         @Bean
         public IPublisher getPublisher() {
             return Mockito.spy(IPublisher.class);
@@ -123,21 +123,29 @@ public class ChronosRecipientSenderTest {
         boolean ackRequired = true;
         // Plugin parameters
 
-        Set<IPluginParam> parameters = IPluginParam.set(
-                IPluginParam.build(ChronosRecipientSender.EXCHANGE_PARAM_NAME, exchange),
-                IPluginParam.build(ChronosRecipientSender.QUEUE_PARAM_NAME, queueName),
-                IPluginParam.build(ChronosRecipientSender.RECIPIENT_LABEL_PARAM_NAME, recipientLabel),
-                IPluginParam.build(ChronosRecipientSender.ACK_REQUIRED_PARAM_NAME, ackRequired),
-                IPluginParam.build(ChronosRecipientSender.CREATED_BY_PROPERTY_PATH_PARAM_NAME, createdBy),
-                IPluginParam.build(ChronosRecipientSender.UPDATED_BY_PROPERTY_PATH_PARAM_NAME, updatedBy),
-                IPluginParam.build(ChronosRecipientSender.DELETED_BY_PROPERTY_PATH_PARAM_NAME, deletedBy),
-                IPluginParam.build(ChronosRecipientSender.GPFS_URL_PROPERTY_PATH_PARAM_NAME, gpfsUrl),
-                IPluginParam.build(ChronosRecipientSender.FILENAME_PROPERTY_PATH_PARAM_NAME, filename));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(ChronosRecipientSender.EXCHANGE_PARAM_NAME,
+                                                                           exchange),
+                                                        IPluginParam.build(ChronosRecipientSender.QUEUE_PARAM_NAME,
+                                                                           queueName),
+                                                        IPluginParam.build(ChronosRecipientSender.RECIPIENT_LABEL_PARAM_NAME,
+                                                                           recipientLabel),
+                                                        IPluginParam.build(ChronosRecipientSender.ACK_REQUIRED_PARAM_NAME,
+                                                                           ackRequired),
+                                                        IPluginParam.build(ChronosRecipientSender.CREATED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           createdBy),
+                                                        IPluginParam.build(ChronosRecipientSender.UPDATED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           updatedBy),
+                                                        IPluginParam.build(ChronosRecipientSender.DELETED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           deletedBy),
+                                                        IPluginParam.build(ChronosRecipientSender.GPFS_URL_PROPERTY_PATH_PARAM_NAME,
+                                                                           gpfsUrl),
+                                                        IPluginParam.build(ChronosRecipientSender.FILENAME_PROPERTY_PATH_PARAM_NAME,
+                                                                           filename));
 
         // Instantiate plugin
-        IRecipientNotifier sender = PluginUtils.getPlugin(
-                PluginConfiguration.build(ChronosRecipientSender.class, UUID.randomUUID().toString(), parameters),
-                new HashMap<>());
+        IRecipientNotifier sender = PluginUtils.getPlugin(PluginConfiguration.build(ChronosRecipientSender.class,
+                                                                                    UUID.randomUUID().toString(),
+                                                                                    parameters), new HashMap<>());
         Assert.assertNotNull(sender);
 
         // Run plugin
@@ -157,8 +165,13 @@ public class ChronosRecipientSenderTest {
         headers.put("action", action);
 
         Mockito.verify(publisher, Mockito.times(1))
-                .broadcastAll(exchangeNameCaptor.capture(), queueNameCaptor.capture(), routingKeyCaptor.capture(), dlkCaptor.capture(),
-                              priorityCaptor.capture(), messagesCaptor.capture(), headersCaptor.capture());
+               .broadcastAll(exchangeNameCaptor.capture(),
+                             queueNameCaptor.capture(),
+                             routingKeyCaptor.capture(),
+                             dlkCaptor.capture(),
+                             priorityCaptor.capture(),
+                             messagesCaptor.capture(),
+                             headersCaptor.capture());
         Assert.assertEquals("should retrieve good exchange", exchange, exchangeNameCaptor.getValue());
         Assert.assertEquals("should retrieve good queue name", Optional.of(queueName), queueNameCaptor.getValue());
         Assert.assertFalse("should not override routing key", routingKeyCaptor.getValue().isPresent());
@@ -167,16 +180,20 @@ public class ChronosRecipientSenderTest {
         Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
         Assert.assertEquals("should set action(s) headers", headers, headersCaptor.getValue());
         Assert.assertTrue("Message send as notification to chronos is not valid",
-                          messagesCaptor.getValue().contains(new ChronosNotificationEvent(action,
-                                                                                        actionOwner,
-                                                                                        "file://home/geode/test.tar", "test.tar")));
-        Assert.assertEquals("Message send as notification to chronos is not valid", 1, messagesCaptor.getValue().size());
+                          messagesCaptor.getValue()
+                                        .contains(new ChronosNotificationEvent(action,
+                                                                               actionOwner,
+                                                                               "file://home/geode/test.tar",
+                                                                               "test.tar")));
+        Assert.assertEquals("Message send as notification to chronos is not valid",
+                            1,
+                            messagesCaptor.getValue().size());
 
     }
 
     protected NotificationRequestEvent getEvent(String name) {
         try (InputStream input = this.getClass().getResourceAsStream(name);
-                Reader reader = new InputStreamReader(input)) {
+            Reader reader = new InputStreamReader(input)) {
             return gson.fromJson(CharStreams.toString(reader), NotificationRequestEvent.class);
         } catch (IOException e) {
             String errorMessage = "Cannot import event";

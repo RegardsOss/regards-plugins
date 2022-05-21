@@ -18,10 +18,16 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
+import com.google.common.collect.Sets;
+import fr.cnes.regards.framework.amqp.event.ISubscribable;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
+import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
+import fr.cnes.regards.modules.feature.dto.event.in.FeatureDeletionRequestEvent;
+import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -32,27 +38,18 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.google.common.collect.Sets;
-
-import fr.cnes.regards.framework.amqp.event.ISubscribable;
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
-import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.feature.dto.event.in.FeatureDeletionRequestEvent;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
-import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Test class
  *
  * @author Sébastien Binda
- *
  */
 @Ignore // FIXME refactor this test according to new implementation
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemDeleteJobTest extends AbstractFemJobTest {
 
     @Autowired
@@ -74,8 +71,12 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                null, null, null);
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        null,
+                                                        null,
+                                                        null);
         femDriverService.scheduleDeletion(searchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
@@ -83,8 +84,10 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(v -> v instanceof List)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1000, events.get().size());
 
@@ -101,8 +104,12 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                Sets.newHashSet(datas.get(0).getIpId().toString()), null, null);
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        Sets.newHashSet(datas.get(0).getIpId().toString()),
+                                                        null,
+                                                        null);
 
         femDriverService.scheduleDeletion(searchRequest);
         int loop = 0;
@@ -111,8 +118,10 @@ public class FemDeleteJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(v -> v instanceof List)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1, events.get().size());
 

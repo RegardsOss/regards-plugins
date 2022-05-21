@@ -18,19 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -41,15 +28,26 @@ import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
 import fr.cnes.regards.modules.feature.dto.event.in.FeatureNotificationRequestEvent;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Test class
  *
  * @author Sébastien Binda
- *
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemNotifierJobTest extends AbstractFemJobTest {
 
     @Autowired
@@ -84,8 +82,10 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(Objects::nonNull)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(Objects::nonNull)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1000, events.get().size());
 
@@ -116,8 +116,10 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(Objects::nonNull)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(Objects::nonNull)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1, events.get().size());
 

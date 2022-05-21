@@ -34,15 +34,6 @@ import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 import fr.cnes.regards.modules.workermanager.dto.events.EventHeadersHelper;
 import fr.cnes.regards.modules.workermanager.dto.events.RawMessageBuilder;
-import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import org.assertj.core.util.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,6 +58,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
 /**
  * Test class for {@link WorkerManagerSender}
  *
@@ -77,8 +73,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = { WorkerManagerSenderIT.ScanningConfiguration.class })
 @EnableAutoConfiguration(exclude = { JpaRepositoriesAutoConfiguration.class, FlywayAutoConfiguration.class })
 @PropertySource({ "classpath:amqp.properties", "classpath:cloud.properties" })
-@TestPropertySource(properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test",
-        "regards.cipher.iv=1234567812345678", "regards.cipher.keyLocation=src/test/resources/testKey" })
+@TestPropertySource(
+    properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test", "regards.cipher.iv=1234567812345678",
+        "regards.cipher.keyLocation=src/test/resources/testKey" })
 public class WorkerManagerSenderIT {
 
     @Configuration
@@ -134,21 +131,26 @@ public class WorkerManagerSenderIT {
         // GIVEN
         // Init worker manager sender plugin
         IRecipientNotifier workerMngPlugin = initWorkerSenderPluginWithSessionPattern(
-                "{" + CONTENT_TYPE_JSON_PATH + "}-#day-swot");
+            "{" + CONTENT_TYPE_JSON_PATH + "}-#day-swot");
 
         // WHEN
         // run plugin
         workerMngPlugin.send(notificationRequests);
         Mockito.verify(publisher, Mockito.times(1))
-                .broadcastAll(Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(),
-                              messagesCaptor.capture(), Mockito.any());
+               .broadcastAll(Mockito.anyString(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.anyInt(),
+                             messagesCaptor.capture(),
+                             Mockito.any());
         // THEN
         checkNotificationsSent(true, false);
     }
 
     @Test
     public void testWorkerManagerSender_withSessionNameOverriddenError()
-            throws NotAvailablePluginConfigurationException {
+        throws NotAvailablePluginConfigurationException {
         // GIVEN
         // Init worker manager sender plugin
         IRecipientNotifier workerMngPlugin = initWorkerSenderPluginWithSessionPattern("{path.not.existing}-#day");
@@ -157,8 +159,13 @@ public class WorkerManagerSenderIT {
         // run plugin
         workerMngPlugin.send(notificationRequests);
         Mockito.verify(publisher, Mockito.times(1))
-                .broadcastAll(Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(),
-                              messagesCaptor.capture(), Mockito.any());
+               .broadcastAll(Mockito.anyString(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.anyInt(),
+                             messagesCaptor.capture(),
+                             Mockito.any());
 
         // the sessionName pattern is invalid, check that the default session name is set in that case
         checkNotificationsSent(true, true);
@@ -174,8 +181,13 @@ public class WorkerManagerSenderIT {
         // run plugin
         workerMngPlugin.send(notificationRequests);
         Mockito.verify(publisher, Mockito.times(1))
-                .broadcastAll(Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(),
-                              messagesCaptor.capture(), Mockito.any());
+               .broadcastAll(Mockito.anyString(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.any(),
+                             Mockito.anyInt(),
+                             messagesCaptor.capture(),
+                             Mockito.any());
 
         // the sessionName pattern is invalid, check that the default session name is set in that case
         checkNotificationsSent(false, false);
@@ -188,7 +200,8 @@ public class WorkerManagerSenderIT {
         // check that X events were sent corresponding to X notification request events
         List<Message> messagesSent = (List<Message>) messagesCaptor.getValue();
         Assert.assertEquals(String.format("%d messages should have been published", notificationRequests.size()),
-                            notificationRequests.size(), messagesSent.size());
+                            notificationRequests.size(),
+                            messagesSent.size());
         // check messages content match, especially sessionName, which should follow sessionNamePattern
         List<Message> expectedMessages = Lists.newArrayList();
         int count = 0;
@@ -200,15 +213,19 @@ public class WorkerManagerSenderIT {
             if (overriddenSessionName) {
                 sourceName = WorkerManagerSender.DEFAULT_SESSION_OWNER_TOKEN + TENANT;
                 sessionName = errorSessionName ?
-                        String.format("sessionNamePatternError-%s", currentDate) :
-                        String.format("L0A_LR_Packet-%s-swot", currentDate);
+                    String.format("sessionNamePatternError-%s", currentDate) :
+                    String.format("L0A_LR_Packet-%s-swot", currentDate);
             } else {
                 sourceName = "testSessionOwner";
                 sessionName = "testSession";
             }
-            expectedMessages.add(RawMessageBuilder.build(TENANT, CONTENT_TYPE, sourceName, sessionName,
-                                                         messagesSent.get(count).getMessageProperties()
-                                                                 .getHeader(EventHeadersHelper.REQUEST_ID_HEADER),
+            expectedMessages.add(RawMessageBuilder.build(TENANT,
+                                                         CONTENT_TYPE,
+                                                         sourceName,
+                                                         sessionName,
+                                                         messagesSent.get(count)
+                                                                     .getMessageProperties()
+                                                                     .getHeader(EventHeadersHelper.REQUEST_ID_HEADER),
                                                          reqPayloadStr.getBytes(StandardCharsets.UTF_8)));
             count++;
         }
@@ -217,22 +234,26 @@ public class WorkerManagerSenderIT {
     }
 
     private IRecipientNotifier initWorkerSenderPluginWithSessionPattern(String sessionNamePattern)
-            throws NotAvailablePluginConfigurationException {
+        throws NotAvailablePluginConfigurationException {
         Set<IPluginParam> parameters = initCommonPluginParams();
         parameters.add(IPluginParam.build(WorkerManagerSender.WS_SESSION_NAME_PATTERN_NAME, sessionNamePattern));
-        IRecipientNotifier workerMngPlugin = PluginUtils.getPlugin(
-                PluginConfiguration.build(WorkerManagerSender.class, UUID.randomUUID().toString(), parameters),
-                new HashMap<>());
+        IRecipientNotifier workerMngPlugin = PluginUtils.getPlugin(PluginConfiguration.build(WorkerManagerSender.class,
+                                                                                             UUID.randomUUID()
+                                                                                                 .toString(),
+                                                                                             parameters),
+                                                                   new HashMap<>());
         Assert.assertNotNull(workerMngPlugin);
         return workerMngPlugin;
     }
 
     private IRecipientNotifier initWorkerSenderPluginWithoutSessionPattern()
-            throws NotAvailablePluginConfigurationException {
+        throws NotAvailablePluginConfigurationException {
         Set<IPluginParam> parameters = initCommonPluginParams();
-        IRecipientNotifier workerMngPlugin = PluginUtils.getPlugin(
-                PluginConfiguration.build(WorkerManagerSender.class, UUID.randomUUID().toString(), parameters),
-                new HashMap<>());
+        IRecipientNotifier workerMngPlugin = PluginUtils.getPlugin(PluginConfiguration.build(WorkerManagerSender.class,
+                                                                                             UUID.randomUUID()
+                                                                                                 .toString(),
+                                                                                             parameters),
+                                                                   new HashMap<>());
         Assert.assertNotNull(workerMngPlugin);
         return workerMngPlugin;
     }
@@ -251,23 +272,26 @@ public class WorkerManagerSenderIT {
         JsonParser jsonParser = new JsonParser();
         Set<JsonObject> featuresSamples = Sets.newHashSet();
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2020\", \"type\": \"Feature\","
-                                                     + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                     + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2021\", \"type\": \"Feature\","
-                                                     + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                     + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2022\", \"type\": \"Feature\","
-                                                     + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                     + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
 
         JsonElement metadata = jsonParser.parse(
-                "{\"" + WorkerManagerSender.SESSION_OWNER_METADATA_PATH + "\":\"testSessionOwner" + "\",\""
-                        + WorkerManagerSender.SESSION_METADATA_PATH + "\":\"testSession\"}");
+            "{\"" + WorkerManagerSender.SESSION_OWNER_METADATA_PATH + "\":\"testSessionOwner" + "\",\""
+                + WorkerManagerSender.SESSION_METADATA_PATH + "\":\"testSession\"}");
         for (JsonObject feature : featuresSamples) {
-            notificationRequests.add(
-                    new NotificationRequest(feature, metadata.getAsJsonObject(), AbstractRequestEvent.generateRequestId(),
-                                            this.getClass().getSimpleName(), OffsetDateTime.now(),
-                                            NotificationState.SCHEDULED, new HashSet<>()));
+            notificationRequests.add(new NotificationRequest(feature,
+                                                             metadata.getAsJsonObject(),
+                                                             AbstractRequestEvent.generateRequestId(),
+                                                             this.getClass().getSimpleName(),
+                                                             OffsetDateTime.now(),
+                                                             NotificationState.SCHEDULED,
+                                                             new HashSet<>()));
         }
     }
 }

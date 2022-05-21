@@ -18,15 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.compress.utils.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
@@ -39,10 +30,17 @@ import fr.cnes.regards.modules.feature.client.FeatureClient;
 import fr.cnes.regards.modules.feature.dto.PriorityLevel;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+import org.apache.commons.compress.utils.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author sbinda
- *
  */
 public class FemNotifierJob extends AbstractJob<Void> {
 
@@ -63,7 +61,7 @@ public class FemNotifierJob extends AbstractJob<Void> {
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
-            throws JobParameterMissingException, JobParameterInvalidException {
+        throws JobParameterMissingException, JobParameterInvalidException {
         request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
         jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
     }
@@ -80,8 +78,10 @@ public class FemNotifierJob extends AbstractJob<Void> {
                     try {
                         features.add(FeatureUniformResourceName.fromString(dobj.getIpId().toString()));
                     } catch (IllegalArgumentException e) {
-                        logger.error("Error trying to notify feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
-                                     dobj.getIpId().toString(), e.getMessage());
+                        logger.error(
+                            "Error trying to notify feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                            dobj.getIpId().toString(),
+                            e.getMessage());
                     }
                 }
                 logger.info("[FEM DRIVER] Sending {} features notify requests.", features.size());

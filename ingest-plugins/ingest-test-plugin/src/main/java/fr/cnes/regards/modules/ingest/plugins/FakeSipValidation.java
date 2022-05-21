@@ -18,28 +18,27 @@
  */
 package fr.cnes.regards.modules.ingest.plugins;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.validation.Errors;
-
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.ingest.domain.plugin.ISipValidation;
 import fr.cnes.regards.modules.ingest.dto.sip.SIP;
+import org.springframework.validation.Errors;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Fake SIP validation for testing purpose. Do not use in production!
- * @author Marc Sordi
  *
+ * @author Marc Sordi
  */
 @Plugin(author = "REGARDS Team", description = "Fake no effect SIP validation plugin (do not use in production)",
-        id = "FakeSipValidation", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-        url = "https://regardsoss.github.io/")
+    id = "FakeSipValidation", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
+    url = "https://regardsoss.github.io/")
 public class FakeSipValidation implements ISipValidation {
 
     @PluginParameter(label = "Simple string", description = "Simple string description",
-            defaultValue = "default simple string !")
+        defaultValue = "default simple string !")
     private String pString;
 
     @PluginParameter(label = "Simple byte", description = "Simple byte description", defaultValue = "1")
@@ -67,7 +66,7 @@ public class FakeSipValidation implements ISipValidation {
     private List<String> sList;
 
     @PluginParameter(keylabel = "Map string to string key", label = "Map string to string value",
-            description = "Map string to string description")
+        description = "Map string to string description")
     private Map<String, String> ssMap;
 
     @PluginParameter(label = "Pojo containing string")
@@ -124,7 +123,7 @@ public class FakeSipValidation implements ISipValidation {
         private String pattern;
 
         @PluginParameter(label = "Enabled", description = "Contraint may be enabled/disabled", optional = true,
-                defaultValue = "true")
+            defaultValue = "true")
         private boolean enabled;
 
         @SuppressWarnings("unused")

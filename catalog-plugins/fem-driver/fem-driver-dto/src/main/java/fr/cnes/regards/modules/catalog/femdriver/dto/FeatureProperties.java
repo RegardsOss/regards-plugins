@@ -18,13 +18,12 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.dto;
 
-import java.util.Set;
-
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+
+import java.util.Set;
 
 /**
  * @author sbinda
- *
  */
 public class FeatureProperties {
 

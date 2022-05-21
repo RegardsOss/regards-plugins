@@ -14,14 +14,17 @@ public class FeatureErrors {
      * Feature index
      */
     private final int index;
+
     /**
      * Feature label if found
      */
     private final String label;
+
     /**
      * Feature  provider Id if found
      */
     private final String providerId;
+
     /**
      * Feature errors
      */

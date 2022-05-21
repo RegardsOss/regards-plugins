@@ -18,36 +18,10 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.security.NoSuchAlgorithmException;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipFile;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -57,21 +31,33 @@ import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IOnlineStorageLocation;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.PreparationResponse;
+import fr.cnes.regards.modules.storage.domain.plugin.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.*;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipFile;
 
 /**
  * @author Sylvain Vissiere-Guerinet
- *
  */
 @Plugin(author = "REGARDS Team", description = "Plugin handling the storage on local file system", id = "Local",
-        version = "1.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-        url = "https://regardsoss.github.io/")
+    version = "1.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
+    url = "https://regardsoss.github.io/")
 public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataStorage.class);
@@ -118,22 +104,22 @@ public class LocalDataStorage implements IOnlineStorageLocation {
      * Base storage location url
      */
     @PluginParameter(name = BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME,
-            description = "Root directory where to store new files on this location", label = "Root directory")
+        description = "Root directory where to store new files on this location", label = "Root directory")
     private String baseStorageLocationAsString;
 
     @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "false",
-            label = "Enable physical deletion of files",
-            description = "If deletion is allowed, files are physically deleted else files are only removed from references")
+        label = "Enable physical deletion of files",
+        description = "If deletion is allowed, files are physically deleted else files are only removed from references")
     private Boolean allowPhysicalDeletion;
 
     @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP, label = "Files maximum size for zips (octets)",
-            description = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \\\"small files\\\" in a zip archive. The size is in octets.",
-            defaultValue = "1000")
+        description = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \\\"small files\\\" in a zip archive. The size is in octets.",
+        defaultValue = "1000")
     private Long maxFileSizeForZip;
 
     @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size (octets)",
-            description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
-            defaultValue = "500000000")
+        description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
+        defaultValue = "500000000")
     private Long maxZipSize;
 
     @Override
@@ -142,24 +128,21 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(
-            Collection<FileStorageRequest> fileReferenceRequests) {
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
         Collection<FileStorageWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileStorageWorkingSubset(fileReferenceRequests));
         return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
     @Override
-    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(
-            Collection<FileDeletionRequest> fileDeletionRequests) {
+    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
         Collection<FileDeletionWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileDeletionWorkingSubset(Sets.newHashSet(fileDeletionRequests)));
         return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
     @Override
-    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(
-            Collection<FileCacheRequest> requests) {
+    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> requests) {
         Collection<FileRestorationWorkingSubset> workingSubSets = Lists.newArrayList();
         workingSubSets.add(new FileRestorationWorkingSubset(Sets.newHashSet(requests)));
         return PreparationResponse.build(workingSubSets, Maps.newHashMap());
@@ -175,9 +158,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         try {
             fullPathToFile = getStorageLocation(request);
         } catch (IOException ioe) {
-            String failureCause = String
-                    .format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                            request.getMetaInfo().getChecksum(), ioe.toString());
+            String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
+                                                request.getMetaInfo().getChecksum(),
+                                                ioe.toString());
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, ioe.getMessage());
             return;
@@ -200,13 +183,14 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             URL sourceUrl = new URL(request.getOriginUrl());
             boolean downloadOk = false;
             try {
-                downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, fullPathToFile,
+                downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
+                                                                    fullPathToFile,
                                                                     request.getMetaInfo().getAlgorithm(),
                                                                     request.getMetaInfo().getChecksum());
             } catch (IOException e) {
-                throw new ModuleException(
-                        String.format("Download error for file %s. Cause : %s", request.getOriginUrl(), e.getMessage()),
-                        e);
+                throw new ModuleException(String.format("Download error for file %s. Cause : %s",
+                                                        request.getOriginUrl(),
+                                                        e.getMessage()), e);
             }
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
@@ -225,14 +209,14 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             }
         } catch (NoSuchAlgorithmException e) {
             LOGGER.error(e.getMessage(), e);
-            String failureCause = String
-                    .format("Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
-                            request.getMetaInfo().getChecksum());
+            String failureCause = String.format(
+                "Invalid checksum algorithm %s. Unable to determine if the file is well formed.",
+                request.getMetaInfo().getChecksum());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-            String failureCause = String
-                    .format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                            request.getMetaInfo().getChecksum(), ioe.toString());
+            String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
+                                                request.getMetaInfo().getChecksum(),
+                                                ioe.toString());
             LOGGER.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, failureCause);
@@ -244,7 +228,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file)
-            throws IOException {
+        throws IOException {
         long start = System.currentTimeMillis();
         Path zipDirPath = getStorageLocationForZip(request);
         try {
@@ -258,8 +242,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             boolean downloadOk = false;
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                 FileLock zipLock = zipFC.lock();
-                try (FileSystem zipFs = FileSystems
-                        .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
+                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
+                    ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
                     Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
                     if (Files.exists(pathInZip)) {
                         //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
@@ -272,15 +256,18 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     } else {
                         // add the file into the zip
                         URL sourceUrl = new URL("file", null, file.getPath());
-                        downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl, pathInZip,
+                        downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
+                                                                            pathInZip,
                                                                             request.getMetaInfo().getAlgorithm(),
                                                                             checksum);
                         // download issues are handled right here
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
                         if (!downloadOk) {
-                            String failureCause = String.format("Checksum does not match expected one", checksum,
-                                                                pathInZip, zipPath);
+                            String failureCause = String.format("Checksum does not match expected one",
+                                                                checksum,
+                                                                pathInZip,
+                                                                zipPath);
                             Files.deleteIfExists(pathInZip);
                             progressManager.storageFailed(request, failureCause);
                         }
@@ -303,9 +290,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             String failureCause = String.format("Invalid URL creation for file. %s", e.getMessage());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-            String failureCause = String
-                    .format("Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                            request.getMetaInfo().getChecksum(), ioe.toString());
+            String failureCause = String.format(
+                "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
+                request.getMetaInfo().getChecksum(),
+                ioe.toString());
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
         } finally {
@@ -368,10 +356,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // Lets create the first one
             Map<String, String> env = new HashMap<>(1);
             env.put(CREATE_ENV_FS, "true");
-            Path zipPath = storageLocation.resolve("regards_"
-                    + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
-            try (FileSystem zipFs = FileSystems
-                    .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
+            Path zipPath = storageLocation.resolve(
+                "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
+            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
+                ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
                 // now that zip has been created, lets create the link.
                 Files.createSymbolicLink(linkPath, zipPath);
             }
@@ -384,18 +372,19 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             try (ZipFile zip = new ZipFile(targetPath.toFile())) {
                 if ((targetPath.toFile().length() >= maxZipSize) || (zip.size() >= MAX_FILE_IN_ZIP)) {
                     // we have to create a new one
-                    try (FileChannel targetFC = FileChannel.open(targetPath, StandardOpenOption.WRITE,
+                    try (FileChannel targetFC = FileChannel.open(targetPath,
+                                                                 StandardOpenOption.WRITE,
                                                                  StandardOpenOption.READ)) {
                         FileLock targetLock = targetFC.lock();
                         try {
                             // create a new zip and make the link points to the new zip
                             Map<String, String> env = new HashMap<>(1);
                             env.put(CREATE_ENV_FS, "true");
-                            Path newZipPath = storageLocation.resolve("regards_"
-                                    + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
-                            try (FileSystem zipFs = FileSystems
-                                    .newFileSystem(URI.create(ZIP_PROTOCOL + newZipPath.toAbsolutePath().toString()),
-                                                   env)) {
+                            Path newZipPath = storageLocation.resolve(
+                                "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
+                                    + ".zip");
+                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
+                                ZIP_PROTOCOL + newZipPath.toAbsolutePath().toString()), env)) {
                                 // now that zip has been created, lets create the link.
                                 Files.deleteIfExists(linkPath);
                                 Files.createSymbolicLink(linkPath, newZipPath);
@@ -411,7 +400,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             }
         }
         throw new IOException(
-                "A file should have been put into a zip but we could not create nor retrieve the zip in which it should have been added");
+            "A file should have been put into a zip but we could not create nor retrieve the zip in which it should have been added");
     }
 
     @Override
@@ -431,9 +420,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     }
                     progressManager.deletionSucceed(request);
                 } catch (IOException ioe) {
-                    String failureCause = String
-                            .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s %s",
-                                    ioe.getClass().getSimpleName(), request.getFileReference().getMetaInfo().getChecksum(), ioe.getMessage());
+                    String failureCause = String.format(
+                        "Deletion of StorageDataFile(%s) failed due to the following IOException: %s %s",
+                        ioe.getClass().getSimpleName(),
+                        request.getFileReference().getMetaInfo().getChecksum(),
+                        ioe.getMessage());
                     LOGGER.error(failureCause, ioe);
                     progressManager.deletionFailed(request, failureCause);
                 }
@@ -453,9 +444,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     try {
                         FileLock zipLock = zipFC.lock();
                         try {
-                            try (FileSystem zipFs = FileSystems
-                                    .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()),
-                                                   env)) {
+                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
+                                ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
                                 Path pathInZip = zipFs.getPath(checksum);
                                 Files.deleteIfExists(pathInZip);
                                 progressManager.deletionSucceed(request);
@@ -465,7 +455,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                     Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
                                     // Check if it is the current zip file. If it is, delete the symlink
                                     if (Files.isSymbolicLink(linkPath)
-                                            && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                        && zipPath.equals(Files.readSymbolicLink(linkPath))) {
                                         Files.delete(linkPath);
                                     }
                                     Files.deleteIfExists(zipPath);
@@ -480,8 +470,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    LOGGER.error("[LOCAL STORAGE PLUGIN] Deletion from zip has been interrupted while acquiring semaphore.",
-                                 e);
+                    LOGGER.error(
+                        "[LOCAL STORAGE PLUGIN] Deletion from zip has been interrupted while acquiring semaphore.",
+                        e);
                 }
             } else {
                 LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file {} but zip file does not exists.",
@@ -489,9 +480,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 progressManager.deletionSucceed(request);
             }
         } catch (IOException e) {
-            String failureCause = String
-                    .format("Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
-                            request.getFileReference().getMetaInfo().getChecksum(), e.getMessage());
+            String failureCause = String.format(
+                "Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
+                request.getFileReference().getMetaInfo().getChecksum(),
+                e.getMessage());
             LOGGER.error(failureCause, e);
             progressManager.deletionFailed(request, failureCause);
         }
@@ -521,6 +513,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     /**
      * Retrieve a stream of the given file from a ZIP file.<br/>
      * <b>NOTE</b> : The stream and the ZIP access are released when the stream is closed. Callers must call the stream after usage.
+     *
      * @param fileRef {@link FileReference} to retrieve
      * @return {@link InputStream}
      * @throws ModuleException if an error occurs while accessing ZIP file or file himself
@@ -538,34 +531,43 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
                 // Instead, they are closed thanks to RegardsIS
                 // Moreover semaphore and lock are released by RegardsIS too
-                FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
+                FileChannel zipFC = FileChannel.open(zipPath,
+                                                     StandardOpenOption.WRITE,
+                                                     StandardOpenOption.READ); // NOSONAR
                 FileLock zipLock = zipFC.lock();
-                FileSystem zipFs = FileSystems
-                        .newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
-                                       env); // NOSONAR
+                FileSystem zipFs = FileSystems.newFileSystem(URI.create(
+                                                                 ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
+                                                             env); // NOSONAR
                 Path pathInZip = zipFs.getPath(checksum);
                 return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
             } else {
-                String errorMessage = String
-                        .format("[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : timeout accessing zip file. Zip file is already locked.",
-                                checksum, fileRef.getMetaInfo().getFileName(), fileRef.getLocation().getUrl());
+                String errorMessage = String.format(
+                    "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : timeout accessing zip file. Zip file is already locked.",
+                    checksum,
+                    fileRef.getMetaInfo().getFileName(),
+                    fileRef.getLocation().getUrl());
                 LOGGER.error(errorMessage);
                 throw new ModuleException(errorMessage);
             }
         } catch (InterruptedException e) {
             releaseSemaphore = true;
             Thread.currentThread().interrupt();
-            String errorMessage = String
-                    .format("[LOCAL STORAGE PLUGIN] Retrieve file %s (%s) from zip %s has been interrupted while acquiring semaphore. Cause : %s.",
-                            checksum, fileRef.getMetaInfo().getFileName(), fileRef.getLocation().getUrl(),
-                            e.getMessage());
+            String errorMessage = String.format(
+                "[LOCAL STORAGE PLUGIN] Retrieve file %s (%s) from zip %s has been interrupted while acquiring semaphore. Cause : %s.",
+                checksum,
+                fileRef.getMetaInfo().getFileName(),
+                fileRef.getLocation().getUrl(),
+                e.getMessage());
             LOGGER.error(errorMessage, e);
             throw new ModuleException(errorMessage);
         } catch (IOException e) {
             releaseSemaphore = true;
-            String errorMessage = String
-                    .format("[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s", checksum,
-                            fileRef.getMetaInfo().getFileName(), fileRef.getLocation().getUrl(), e.getMessage());
+            String errorMessage = String.format(
+                "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s",
+                checksum,
+                fileRef.getMetaInfo().getFileName(),
+                fileRef.getLocation().getUrl(),
+                e.getMessage());
             LOGGER.error(errorMessage, e);
             throw new ModuleException(errorMessage);
         } finally {
@@ -609,8 +611,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
         private FileSystem fs;
 
-        public static RegardsIS build(InputStream source, FileSystem fs, FileLock lock, FileChannel fc,
-                Semaphore semaphore) {
+        public static RegardsIS build(InputStream source,
+                                      FileSystem fs,
+                                      FileLock lock,
+                                      FileChannel fc,
+                                      Semaphore semaphore) {
             RegardsIS is = new RegardsIS();
             is.source = source;
             is.fs = fs;
@@ -634,6 +639,5 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fc.close();
         }
     }
-
 
 }

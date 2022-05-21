@@ -18,20 +18,7 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.common.collect.Maps;
-
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
@@ -44,12 +31,23 @@ import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Christophe Mertz
  */
 @TestPropertySource(locations = { "classpath:datasource-test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreConnectionPluginIntrospectionTest.class);
@@ -75,18 +73,21 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
     @Before
     public void setUp() throws NotAvailablePluginConfigurationException {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        postgreDBConn = PluginUtils
-                .getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters),
-                           Maps.newHashMap());
+        postgreDBConn = PluginUtils.getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class,
+                                                                        null,
+                                                                        parameters), Maps.newHashMap());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(postgreDBConn.testConnection());
@@ -105,7 +106,8 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
     @Test
     @Requirement("REGARDS_DSL_DAM_SRC_155")
-    @Purpose("The system has a plugin that enables for a SGBD to get the list of tables and for a table, the list of columns and their types")
+    @Purpose(
+        "The system has a plugin that enables for a SGBD to get the list of tables and for a table, the list of columns and their types")
     public void getTablesAndColumns() {
         Assert.assertTrue(postgreDBConn.testConnection());
 
@@ -115,8 +117,13 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
         tables.forEach((k, t) -> {
             Assert.assertNotNull(t.getName());
-            LOG.info("table={}-{}-{}-{}-{}-{}", t.toString(), t.getPKey(), t.getName(), t.getTableDefinition(),
-                     t.getCatalog(), t.getSchema());
+            LOG.info("table={}-{}-{}-{}-{}-{}",
+                     t.toString(),
+                     t.getPKey(),
+                     t.getName(),
+                     t.getTableDefinition(),
+                     t.getCatalog(),
+                     t.getSchema());
 
         });
 

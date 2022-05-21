@@ -18,22 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
@@ -45,15 +30,27 @@ import fr.cnes.regards.modules.feature.dto.event.in.FeatureUpdateRequestEvent;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Test class
  *
  * @author Sébastien Binda
- *
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemUpdateJobTest extends AbstractFemJobTest {
 
     @Autowired
@@ -75,8 +72,12 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                null, null, null);
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        null,
+                                                        null,
+                                                        null);
         Set<IProperty<?>> propertyMap = Sets.newHashSet();
         propertyMap.add(IProperty.buildString("name", "plop"));
         femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
@@ -86,8 +87,10 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(v -> v instanceof List)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1000, events.get().size());
         events.get().forEach(e -> {
@@ -105,8 +108,12 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-                Sets.newHashSet(datas.get(0).getIpId().toString()), null, null);
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        Sets.newHashSet(datas.get(0).getIpId().toString()),
+                                                        null,
+                                                        null);
         Set<IProperty<?>> propertyMap = Sets.newHashSet();
         propertyMap.add(IProperty.buildString("name", "plop"));
         femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
@@ -116,8 +123,10 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Thread.sleep(100);
         }
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
-        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues().stream().filter(v -> v instanceof List)
-                .findFirst();
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(v -> v instanceof List)
+                                                            .findFirst();
         Assert.assertTrue(events.isPresent());
         Assert.assertEquals(1, events.get().size());
         events.get().forEach(e -> {

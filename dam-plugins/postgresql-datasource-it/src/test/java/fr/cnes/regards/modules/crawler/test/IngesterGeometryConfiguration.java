@@ -18,16 +18,6 @@
  */
 package fr.cnes.regards.modules.crawler.test;
 
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
-
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.framework.security.autoconfigure.MethodAuthorizationServiceAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfiguration;
@@ -37,18 +27,22 @@ import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.*;
 
 @Profile("IngesterGeometryTest")
 @Configuration
 @ComponentScan(basePackages = { "fr.cnes.regards.modules.crawler.service", "fr.cnes.regards.modules.indexer",
-        "fr.cnes.regards.modules.dam", "fr.cnes.regards.modules.dam.plugins.datasources",
-        "fr.cnes.regards.modules.search", "fr.cnes.regards.framework.modules.plugins.service" })
+    "fr.cnes.regards.modules.dam", "fr.cnes.regards.modules.dam.plugins.datasources", "fr.cnes.regards.modules.search",
+    "fr.cnes.regards.framework.modules.plugins.service" })
 @EnableAutoConfiguration(
-        exclude = { MethodAuthorizationServiceAutoConfiguration.class, MethodSecurityAutoConfiguration.class,
-                SecurityVoterAutoConfiguration.class, WebSecurityAutoConfiguration.class })
+    exclude = { MethodAuthorizationServiceAutoConfiguration.class, MethodSecurityAutoConfiguration.class,
+        SecurityVoterAutoConfiguration.class, WebSecurityAutoConfiguration.class })
 @PropertySource(value = { "classpath:test3.properties", "classpath:test3_${user.name}.properties" },
-        ignoreResourceNotFound = true)
+    ignoreResourceNotFound = true)
 public class IngesterGeometryConfiguration {
 
     @Bean
@@ -83,5 +77,7 @@ public class IngesterGeometryConfiguration {
     }
 
     @Bean
-    public IStorageRestClient storageRestClient () { return Mockito.mock ( IStorageRestClient.class); }
+    public IStorageRestClient storageRestClient() {
+        return Mockito.mock(IStorageRestClient.class);
+    }
 }

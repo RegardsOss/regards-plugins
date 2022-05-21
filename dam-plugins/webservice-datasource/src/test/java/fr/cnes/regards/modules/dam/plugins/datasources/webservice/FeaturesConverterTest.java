@@ -1,28 +1,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.SortedMap;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
 import fr.cnes.regards.framework.jpa.utils.RegardsTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -41,12 +20,23 @@ import fr.cnes.regards.modules.model.domain.attributes.Fragment;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Tests features conversion with results files
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 @RegardsTransactional
 public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT {
 
@@ -90,11 +80,18 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrMap.put(StaticProperties.FEATURE_PROVIDER_ID, "myProviderId");
         attrMap.put("fragment1.attr1", "myAttr1");
         attrMap.put("fragment1.attr2", "myAttr2");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap, null, null,
-                null, "totalResultsNotFound", "myPageSize");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "totalResultsNotFound",
+                                                                                      "myPageSize");
         // provide corresponding model with only attr2
         new FeaturesConverter(conversionConfiguration,
-                Collections.singletonList(mockModelAttrAssoc("fragment1.attr2", PropertyType.BOOLEAN, false)));
+                              Collections.singletonList(mockModelAttrAssoc("fragment1.attr2",
+                                                                           PropertyType.BOOLEAN,
+                                                                           false)));
     }
 
     /**
@@ -107,12 +104,17 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrMap.put(StaticProperties.FEATURE_PROVIDER_ID, "myProviderId");
         attrMap.put("fragment1.attr1", "myAttr1");
         attrMap.put("fragment1.attr2", "myAttr2");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap, null, null,
-                null, "totalResultsNotFound", "myPageSize");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "totalResultsNotFound",
+                                                                                      "myPageSize");
         // provide all attributes models assoc
         new FeaturesConverter(conversionConfiguration,
-                Arrays.asList(mockModelAttrAssoc("fragment1.attr1", PropertyType.INTEGER_ARRAY, false),
-                              mockModelAttrAssoc("fragment1.attr2", PropertyType.BOOLEAN, true)));
+                              Arrays.asList(mockModelAttrAssoc("fragment1.attr1", PropertyType.INTEGER_ARRAY, false),
+                                            mockModelAttrAssoc("fragment1.attr2", PropertyType.BOOLEAN, true)));
     }
 
     /**
@@ -120,8 +122,13 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
      */
     @Test(expected = DataSourceException.class)
     public void testFailsWithoutTotalCount() throws IOException, ModuleException, DataSourceException {
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", new HashMap<>(),
-                null, null, null, "totalResultsNotFound", "myPageSize");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      new HashMap<>(),
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "totalResultsNotFound",
+                                                                                      "myPageSize");
 
         // Conversion should throw error as page will not be found
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration, new ArrayList<>());
@@ -133,8 +140,13 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
      */
     @Test(expected = DataSourceException.class)
     public void testFailsWithoutPageSize() throws IOException, ModuleException, DataSourceException {
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", new HashMap<>(),
-                null, null, null, "myTotalResults", "pageSizeNotFound");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      new HashMap<>(),
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "myTotalResults",
+                                                                                      "pageSizeNotFound");
 
         // Conversion should throw error as page will not be found
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration, new ArrayList<>());
@@ -147,9 +159,14 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
      */
     @Test
     public void testRetrievesMetadataUpdatingTotalCountSuccessfully()
-            throws IOException, ModuleException, DataSourceException {
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", new HashMap<>(),
-                null, null, null, "myTotalResults", "myPageSize");
+        throws IOException, ModuleException, DataSourceException {
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      new HashMap<>(),
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "myTotalResults",
+                                                                                      "myPageSize");
 
         // Conversion should throw no error as page and total can be found
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration, new ArrayList<>());
@@ -157,8 +174,10 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
 
         Page<DataObjectFeature> convertedPage = converter.getConvertedPage();
         Assert.assertTrue("No element should have been converted", convertedPage.getContent().isEmpty());
-        Assert.assertEquals("Total results should have been correctly retrieved and cut down to 0 as there were no feature",
-                            0, convertedPage.getTotalElements());
+        Assert.assertEquals(
+            "Total results should have been correctly retrieved and cut down to 0 as there were no feature",
+            0,
+            convertedPage.getTotalElements());
         Assert.assertEquals("Page size should have been correctly retrieved", 45, convertedPage.getSize());
     }
 
@@ -170,8 +189,13 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Map<String, String> attrMap = new HashMap<>();
         attrMap.put(StaticProperties.FEATURE_LABEL, "label");
         attrMap.put(StaticProperties.FEATURE_PROVIDER_ID, "productIdentifier");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap, null, null,
-                null, "totalResults", "itemsPerPage");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "totalResults",
+                                                                                      "itemsPerPage");
 
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration, new ArrayList<>());
         converter.convert("any", PageRequest.of(0, 20), getFeatureCollection("dumps/test-2-features-conversion.json"));
@@ -220,17 +244,37 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrMap.put("invalidPathValueOptionalAttr", "someIntValue.y");
 
         attrMap.put("workingAttr", "someIntValue");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap,
-                "files.invalid.thumbnail", "files.invalid.rawdata", "files.invalid.quicklook", "totalResults",
-                "itemsPerPage");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      "files.invalid.thumbnail",
+                                                                                      "files.invalid.rawdata",
+                                                                                      "files.invalid.quicklook",
+                                                                                      "totalResults",
+                                                                                      "itemsPerPage");
 
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration,
-                Arrays.asList(mockModelAttrAssoc("notFoundMandatoryAttr", PropertyType.STRING, false),
-                              mockModelAttrAssoc("notConvertibleMandatoryAttr", PropertyType.STRING_ARRAY, false),
-                              mockModelAttrAssoc("invalidPathValueMandatoryAttr", PropertyType.DATE_ISO8601, false),
-                              mockModelAttrAssoc("notConvertibleOptionalAttr", PropertyType.BOOLEAN, true),
-                              mockModelAttrAssoc("invalidPathValueOptionalAttr", PropertyType.INTEGER_ARRAY, true),
-                              mockModelAttrAssoc("workingAttr", PropertyType.INTEGER, false)));
+                                                            Arrays.asList(mockModelAttrAssoc("notFoundMandatoryAttr",
+                                                                                             PropertyType.STRING,
+                                                                                             false),
+                                                                          mockModelAttrAssoc(
+                                                                              "notConvertibleMandatoryAttr",
+                                                                              PropertyType.STRING_ARRAY,
+                                                                              false),
+                                                                          mockModelAttrAssoc(
+                                                                              "invalidPathValueMandatoryAttr",
+                                                                              PropertyType.DATE_ISO8601,
+                                                                              false),
+                                                                          mockModelAttrAssoc(
+                                                                              "notConvertibleOptionalAttr",
+                                                                              PropertyType.BOOLEAN,
+                                                                              true),
+                                                                          mockModelAttrAssoc(
+                                                                              "invalidPathValueOptionalAttr",
+                                                                              PropertyType.INTEGER_ARRAY,
+                                                                              true),
+                                                                          mockModelAttrAssoc("workingAttr",
+                                                                                             PropertyType.INTEGER,
+                                                                                             false)));
         converter.convert("any", PageRequest.of(0, 20), getFeatureCollection("dumps/test-2-features-conversion.json"));
         // Check no feature could be converted
         Assert.assertTrue("No feature should have been converted", converter.getConvertedPage().getContent().isEmpty());
@@ -243,48 +287,89 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         for (FeatureErrors f : blockingErrors.values()) {
             Assert.assertEquals("There should be 5 blocking errors for the feature", 5, f.getErrors().size());
             // Test each error is present (using parts of the error message)
-            Assert.assertEquals("There should be error for label", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("mandatory attribute 'label' value was not found"))
-                    .count());
-            Assert.assertEquals("There should be error for providerId", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("mandatory attribute 'providerId' value was not found"))
-                    .count());
-            Assert.assertEquals("There should be error for invalidPathValueMandatoryAttr", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage()
-                            .contains("mandatory attribute 'invalidPathValueMandatoryAttr' value could not be retrieved"))
-                    .count());
-            Assert.assertEquals("There should be error for notFoundMandatoryAttr", 1,
-                                f.getErrors().stream().filter(err -> err.getMessage()
-                                        .contains("mandatory attribute 'notFoundMandatoryAttr' value was not found"))
-                                        .count());
-            Assert.assertEquals("There should be error for notConvertibleMandatoryAttr", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("mandatory attribute 'notConvertibleMandatoryAttr' value"))
-                    .count());
+            Assert.assertEquals("There should be error for label",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains("mandatory attribute 'label' value was not found"))
+                                 .count());
+            Assert.assertEquals("There should be error for providerId",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains("mandatory attribute 'providerId' value was not found"))
+                                 .count());
+            Assert.assertEquals("There should be error for invalidPathValueMandatoryAttr",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains(
+                                                       "mandatory attribute 'invalidPathValueMandatoryAttr' value could not be retrieved"))
+                                 .count());
+            Assert.assertEquals("There should be error for notFoundMandatoryAttr",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains(
+                                                       "mandatory attribute 'notFoundMandatoryAttr' value was not found"))
+                                 .count());
+            Assert.assertEquals("There should be error for notConvertibleMandatoryAttr",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains("mandatory attribute 'notConvertibleMandatoryAttr' value"))
+                                 .count());
         }
 
         // check non blocking errors
         SortedMap<Integer, FeatureErrors> nonBlockingErrors = report.getNonBlockingErrors();
-        Assert.assertEquals("There should be 2 features non blocking errors groups in report", 2,
+        Assert.assertEquals("There should be 2 features non blocking errors groups in report",
+                            2,
                             nonBlockingErrors.size());
         for (FeatureErrors f : nonBlockingErrors.values()) {
             Assert.assertEquals("There should be 5 non blocking errors for the feature", 5, f.getErrors().size());
             // Test each error is present (using parts of the error message)
-            Assert.assertEquals("There should be error for invalidPathValueOptionalAttr", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage()
-                            .contains("optional attribute 'invalidPathValueOptionalAttr' value could not be retrieved"))
-                    .count());
-            Assert.assertEquals("There should be error for notConvertibleOptionalAttr", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("optional attribute 'notConvertibleOptionalAttr' value"))
-                    .count());
-            Assert.assertEquals("There should be error for QUICKLOOK_SD", 1,
-                                f.getErrors().stream().filter(err -> err.getMessage()
-                                        .contains("QUICKLOOK_SD file MIME type, 'application/pdf', is not a supported"))
-                                        .count());
-            Assert.assertEquals("There should be error for RAWDATA", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("RAWDATA file URL,")).count());
-            Assert.assertEquals("There should be error for THUMBNAIL", 1, f.getErrors().stream()
-                    .filter(err -> err.getMessage().contains("THUMBNAIL file MIME type could not be inferred"))
-                    .count());
+            Assert.assertEquals("There should be error for invalidPathValueOptionalAttr",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains(
+                                                       "optional attribute 'invalidPathValueOptionalAttr' value could not be retrieved"))
+                                 .count());
+            Assert.assertEquals("There should be error for notConvertibleOptionalAttr",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains("optional attribute 'notConvertibleOptionalAttr' value"))
+                                 .count());
+            Assert.assertEquals("There should be error for QUICKLOOK_SD",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains(
+                                                       "QUICKLOOK_SD file MIME type, 'application/pdf', is not a supported"))
+                                 .count());
+            Assert.assertEquals("There should be error for RAWDATA",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage().contains("RAWDATA file URL,"))
+                                 .count());
+            Assert.assertEquals("There should be error for THUMBNAIL",
+                                1,
+                                f.getErrors()
+                                 .stream()
+                                 .filter(err -> err.getMessage()
+                                                   .contains("THUMBNAIL file MIME type could not be inferred"))
+                                 .count());
         }
     }
 
@@ -309,15 +394,27 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrMap.put("f1.attrA", "frag.val1");
         attrMap.put("f1.attrB", "frag.val2");
         attrMap.put("attrC", "frag.subfrag.val3");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap,
-                "files.valid.thumbnail", "files.valid.rawdata", "files.valid.quicklook", "totalResults",
-                "itemsPerPage");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      "files.valid.thumbnail",
+                                                                                      "files.valid.rawdata",
+                                                                                      "files.valid.quicklook",
+                                                                                      "totalResults",
+                                                                                      "itemsPerPage");
 
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration,
-                Arrays.asList(mockModelAttrAssoc("intAttr", PropertyType.INTEGER, false),
-                              mockModelAttrAssoc("f1.attrA", PropertyType.BOOLEAN, false),
-                              mockModelAttrAssoc("f1.attrB", PropertyType.STRING, false),
-                              mockModelAttrAssoc("attrC", PropertyType.INTEGER_ARRAY, true)));
+                                                            Arrays.asList(mockModelAttrAssoc("intAttr",
+                                                                                             PropertyType.INTEGER,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("f1.attrA",
+                                                                                             PropertyType.BOOLEAN,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("f1.attrB",
+                                                                                             PropertyType.STRING,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("attrC",
+                                                                                             PropertyType.INTEGER_ARRAY,
+                                                                                             true)));
 
         converter.convert("any", PageRequest.of(0, 20), getFeatureCollection("dumps/test-2-features-conversion.json"));
         // Check no error occurred
@@ -337,7 +434,8 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Assert.assertEquals("Feat1: provider ID should be correctly converted", "ProviderId1", feat1.getProviderId());
 
         Assert.assertNotNull("Feat1: intAttr should be present", feat1.getProperty("intAttr"));
-        Assert.assertEquals("Feat1: intAttr should be correctly converted (constant)", 255,
+        Assert.assertEquals("Feat1: intAttr should be correctly converted (constant)",
+                            255,
                             feat1.getProperty("intAttr").getValue());
 
         ObjectProperty f1 = (ObjectProperty) feat1.getProperty("f1");
@@ -355,20 +453,24 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Object attrCValue = feat1.getProperty("attrC").getValue();
         Assert.assertNotNull("Feat1: attrC value should be present", attrCValue);
         Assert.assertTrue("Feat1: attrC value should be an array", attrCValue.getClass().isArray());
-        Assert.assertEquals("Feat1: attrC value should be correctly converted", Arrays.asList(1, 2, 3),
+        Assert.assertEquals("Feat1: attrC value should be correctly converted",
+                            Arrays.asList(1, 2, 3),
                             Arrays.asList((Object[]) attrCValue));
 
         Collection<DataFile> files = feat1.getFiles().get(DataType.RAWDATA);
         Assert.assertEquals("Feat1: 1 raw data file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat1: Raw data file path should have been correctly set", 1,
+        Assert.assertEquals("Feat1: Raw data file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/rawdata.pdf".equals(f.getUri())).count());
         files = feat1.getFiles().get(DataType.QUICKLOOK_SD);
         Assert.assertEquals("Feat1: 1 quicklook file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat1: Quicklook file path should have been correctly set", 1,
+        Assert.assertEquals("Feat1: Quicklook file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/quicklook.jpg".equals(f.getUri())).count());
         files = feat1.getFiles().get(DataType.THUMBNAIL);
         Assert.assertEquals("Feat1: 1 thumbnail file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat1: Thumnail file path should have been correctly set", 1,
+        Assert.assertEquals("Feat1: Thumnail file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/thumbnail.png".equals(f.getUri())).count());
 
         // Second feature
@@ -377,7 +479,8 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         Assert.assertEquals("Feat2: provider ID should be correctly converted", "ProviderId2", feat2.getProviderId());
 
         Assert.assertNotNull("Feat2: intAttr should be present", feat2.getProperty("intAttr"));
-        Assert.assertEquals("Feat2: intAttr should be correctly converted (constant)", 255,
+        Assert.assertEquals("Feat2: intAttr should be correctly converted (constant)",
+                            255,
                             feat2.getProperty("intAttr").getValue());
 
         f1 = (ObjectProperty) feat2.getProperty("f1");
@@ -396,20 +499,24 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrCValue = attrC.getValue();
         Assert.assertNotNull("Feat2: attrC value should be present", attrCValue);
         Assert.assertTrue("Feat2: attrC value should be an array", attrCValue.getClass().isArray());
-        Assert.assertEquals("Feat2: attrC value should be empty", Collections.emptyList(),
+        Assert.assertEquals("Feat2: attrC value should be empty",
+                            Collections.emptyList(),
                             Arrays.asList((Object[]) attrCValue));
 
         files = feat2.getFiles().get(DataType.RAWDATA);
         Assert.assertEquals("Feat2: 1 raw data file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat2: Raw data file path should have been correctly set", 1,
+        Assert.assertEquals("Feat2: Raw data file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/rawdata2.xls".equals(f.getUri())).count());
         files = feat2.getFiles().get(DataType.QUICKLOOK_SD);
         Assert.assertEquals("Feat2: 1 quicklook file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat2: Quicklook file path should have been correctly set", 1,
+        Assert.assertEquals("Feat2: Quicklook file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/quicklook2.jpg".equals(f.getUri())).count());
         files = feat2.getFiles().get(DataType.THUMBNAIL);
         Assert.assertEquals("Feat2: 1 thumbnail file should have been retrieved", 1, files.size());
-        Assert.assertEquals("Feat2: Thumnail file path should have been correctly set", 1,
+        Assert.assertEquals("Feat2: Thumnail file path should have been correctly set",
+                            1,
                             files.stream().filter(f -> "http://valid.com/thumbnail2.gif".equals(f.getUri())).count());
     }
 
@@ -435,14 +542,27 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         attrMap.put("period.endDate", "completionDate");
         attrMap.put("column", "nb_cols");
         attrMap.put("rows", "nb_rows");
-        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model", attrMap,
-                "thumbnail", "services.download.url", "quicklook", "totalResults", "itemsPerPage");
+        ConversionConfiguration conversionConfiguration = new ConversionConfiguration("some-model",
+                                                                                      attrMap,
+                                                                                      "thumbnail",
+                                                                                      "services.download.url",
+                                                                                      "quicklook",
+                                                                                      "totalResults",
+                                                                                      "itemsPerPage");
 
         FeaturesConverter converter = new FeaturesConverter(conversionConfiguration,
-                Arrays.asList(mockModelAttrAssoc("period.startDate", PropertyType.DATE_ISO8601, false),
-                              mockModelAttrAssoc("period.endDate", PropertyType.DATE_ISO8601, false),
-                              mockModelAttrAssoc("column", PropertyType.LONG, false),
-                              mockModelAttrAssoc("rows", PropertyType.LONG, false)));
+                                                            Arrays.asList(mockModelAttrAssoc("period.startDate",
+                                                                                             PropertyType.DATE_ISO8601,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("period.endDate",
+                                                                                             PropertyType.DATE_ISO8601,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("column",
+                                                                                             PropertyType.LONG,
+                                                                                             false),
+                                                                          mockModelAttrAssoc("rows",
+                                                                                             PropertyType.LONG,
+                                                                                             false)));
 
         converter.convert("any", PageRequest.of(0, 20), getFeatureCollection("dumps/theia-dump.json"));
         // Check no error occurred
@@ -452,7 +572,8 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
         // Check page was correctly parsed (total count should not be reduced as page is complete)
         Page<DataObjectFeature> convertedPage = converter.getConvertedPage();
         Assert.assertEquals("Page size should be correctly converted", 20, convertedPage.getSize());
-        Assert.assertEquals("Total size should be correctly converted and not reduced", 5884,
+        Assert.assertEquals("Total size should be correctly converted and not reduced",
+                            5884,
                             convertedPage.getTotalElements());
         List<DataObjectFeature> features = convertedPage.getContent();
         Assert.assertEquals("All elements should have been converted", 20, features.size());
@@ -475,21 +596,26 @@ public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT
                         // check attribute in fragment
                         String fragmentName = pathElements.get(0);
                         ObjectProperty fragment = (ObjectProperty) feat.getProperty(fragmentName);
-                        Assert.assertNotNull("There should be fragment " + fragmentName + " in feature "
-                                + feat.getLabel(), fragment);
-                        Optional<IProperty<?>> optAttr = fragment.getValue().stream()
-                                .filter(attr -> attr.getName().equals(name)).findFirst();
-                        Assert.assertTrue("There should be attr " + name + " in fragment " + fragmentName + "("
-                                + feat.getLabel() + ")", optAttr.isPresent());
-                        Assert.assertNotNull("Attr " + name + " should not be null in fragment " + fragmentName + "("
-                                + feat.getLabel() + ")", optAttr.get().getValue());
+                        Assert.assertNotNull(
+                            "There should be fragment " + fragmentName + " in feature " + feat.getLabel(), fragment);
+                        Optional<IProperty<?>> optAttr = fragment.getValue()
+                                                                 .stream()
+                                                                 .filter(attr -> attr.getName().equals(name))
+                                                                 .findFirst();
+                        Assert.assertTrue(
+                            "There should be attr " + name + " in fragment " + fragmentName + "(" + feat.getLabel()
+                                + ")", optAttr.isPresent());
+                        Assert.assertNotNull(
+                            "Attr " + name + " should not be null in fragment " + fragmentName + "(" + feat.getLabel()
+                                + ")", optAttr.get().getValue());
                     } else {
                         // check root attribute
                         IProperty<?> attribute = feat.getProperty(name);
                         Assert.assertNotNull("There should be attribute " + name + " in feature " + feat.getLabel(),
                                              attribute);
-                        Assert.assertNotNull("Attribute " + name + " value should not be null in feature "
-                                + feat.getLabel(), attribute.getValue());
+                        Assert.assertNotNull(
+                            "Attribute " + name + " value should not be null in feature " + feat.getLabel(),
+                            attribute.getValue());
                     }
                 }
             }

@@ -19,15 +19,12 @@
 
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
+import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
-
 /**
- *
  * @author Christophe Mertz
- *
  */
 public class PostgreSqlGenerator extends SqlGenerator {
 

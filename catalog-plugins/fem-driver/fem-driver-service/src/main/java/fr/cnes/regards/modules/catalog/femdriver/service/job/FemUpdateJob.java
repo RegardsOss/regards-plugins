@@ -18,15 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.compress.utils.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
@@ -44,13 +35,20 @@ import fr.cnes.regards.modules.feature.dto.event.in.FeatureUpdateRequestEvent;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+import org.apache.commons.compress.utils.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Job used to send  {@link FeatureUpdateRequestEvent} to FEM for each {@link DataObject}
  * found in index catalog thanks to the given {@link SearchRequest}.
  *
  * @author Sébastien Binda
- *
  */
 public class FemUpdateJob extends AbstractJob<Void> {
 
@@ -73,7 +71,7 @@ public class FemUpdateJob extends AbstractJob<Void> {
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
-            throws JobParameterMissingException, JobParameterInvalidException {
+        throws JobParameterMissingException, JobParameterInvalidException {
         request = getValue(parameters, REQUEST_PARAMETER, FeatureUpdateRequest.class);
         jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
     }
@@ -84,7 +82,8 @@ public class FemUpdateJob extends AbstractJob<Void> {
         Page<DataObject> results = null;
         do {
             try {
-                results = serviceHelper.getDataObjects(request.getSearchRequest(), page.getPageNumber(),
+                results = serviceHelper.getDataObjects(request.getSearchRequest(),
+                                                       page.getPageNumber(),
                                                        page.getPageSize());
                 if ((page.getPageNumber() == 0) && (results.getTotalPages() > 0)) {
                     completionCount = results.getTotalPages();
@@ -92,17 +91,22 @@ public class FemUpdateJob extends AbstractJob<Void> {
                 List<Feature> features = Lists.newArrayList();
                 for (DataObject dobj : results.getContent()) {
                     try {
-                        Feature feature = Feature.build(dobj.getProviderId(), null,
-                                                        FeatureUniformResourceName
-                                                                .fromString(dobj.getIpId().toString()),
-                                                        null, EntityType.DATA, dobj.getModel().getName());
+                        Feature feature = Feature.build(dobj.getProviderId(),
+                                                        null,
+                                                        FeatureUniformResourceName.fromString(dobj.getIpId()
+                                                                                                  .toString()),
+                                                        null,
+                                                        EntityType.DATA,
+                                                        dobj.getModel().getName());
                         for (IProperty<?> prop : request.getFeature().getProperties()) {
                             feature.addProperty(prop);
                         }
                         features.add(feature);
                     } catch (IllegalArgumentException e) {
-                        logger.error("Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
-                                     dobj.getIpId().toString(), e.getMessage());
+                        logger.error(
+                            "Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                            dobj.getIpId().toString(),
+                            e.getMessage());
                     }
                 }
                 logger.info("[FEM DRIVER] Sending {} features update requests.", features.size());

@@ -18,34 +18,7 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.encryption.exception.EncryptionException;
 import fr.cnes.regards.framework.module.rest.exception.EntityInvalidException;
 import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
@@ -77,12 +50,29 @@ import fr.cnes.regards.modules.dam.plugins.datasources.utils.IDataSourceReposito
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.assertj.core.util.Lists;
+import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.time.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Christophe Mertz
  */
 @TestPropertySource(locations = { "classpath:datasource-test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourceFromSingleTablePluginTest.class);
@@ -147,7 +137,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
      */
     @Before
     public void setUp()
-            throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
+        throws SQLException, ModuleException, MalformedURLException, NotAvailablePluginConfigurationException {
 
         PluginUtils.setup(Lists.newArrayList(), gson);
         tenantResolver.forceTenant(getDefaultTenant());
@@ -165,19 +155,42 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
          * Add data to the data source
          */
         repository.deleteAll();
-        repository.save(new DataSourceEntity("azertyuiop", 12345, 1.10203045607080901234568790123456789, 45.5444544454,
-                LocalDate.now().minusDays(10), LocalTime.now().minusHours(9), LocalDateTime.now(),
-                OffsetDateTime.now().minusMinutes(33), OffsetDateTime.now().minusDays(5).toString(), true,
-                new URL("file", "localhost", ""), "one"));
-        repository.save(new DataSourceEntity("Toulouse", 110, 3.141592653589793238462643383279, -15.2323654654564654,
-                LocalDate.now().minusMonths(1), LocalTime.now().minusMinutes(10), LocalDateTime.now().plusHours(33),
-                OffsetDateTime.now().minusSeconds(22), OffsetDateTime.now().minusMinutes(56565).toString(), true,
-                new URL("http", "localhost", ""), "two"));
-        repository.save(new DataSourceEntity("Paris", 350, -3.141592653589793238462643383279502884197169399375105,
-                25.565465465454564654654654, LocalDate.now().minusDays(10), LocalTime.now().minusHours(9),
-                LocalDateTime.now().minusMonths(2), OffsetDateTime.now().minusHours(7),
-                OffsetDateTime.now().minusMinutes(12132125).toString(), false, new URL("ftp", "localhost", ""),
-                "three"));
+        repository.save(new DataSourceEntity("azertyuiop",
+                                             12345,
+                                             1.10203045607080901234568790123456789,
+                                             45.5444544454,
+                                             LocalDate.now().minusDays(10),
+                                             LocalTime.now().minusHours(9),
+                                             LocalDateTime.now(),
+                                             OffsetDateTime.now().minusMinutes(33),
+                                             OffsetDateTime.now().minusDays(5).toString(),
+                                             true,
+                                             new URL("file", "localhost", ""),
+                                             "one"));
+        repository.save(new DataSourceEntity("Toulouse",
+                                             110,
+                                             3.141592653589793238462643383279,
+                                             -15.2323654654564654,
+                                             LocalDate.now().minusMonths(1),
+                                             LocalTime.now().minusMinutes(10),
+                                             LocalDateTime.now().plusHours(33),
+                                             OffsetDateTime.now().minusSeconds(22),
+                                             OffsetDateTime.now().minusMinutes(56565).toString(),
+                                             true,
+                                             new URL("http", "localhost", ""),
+                                             "two"));
+        repository.save(new DataSourceEntity("Paris",
+                                             350,
+                                             -3.141592653589793238462643383279502884197169399375105,
+                                             25.565465465454564654654654,
+                                             LocalDate.now().minusDays(10),
+                                             LocalTime.now().minusHours(9),
+                                             LocalDateTime.now().minusMonths(2),
+                                             OffsetDateTime.now().minusHours(7),
+                                             OffsetDateTime.now().minusMinutes(12132125).toString(),
+                                             false,
+                                             new URL("ftp", "localhost", ""),
+                                             "three"));
         nbElements = 3;
 
         /*
@@ -191,18 +204,24 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
         List<String> tags = new ArrayList<String>();
         tags.add("TOTO");
         tags.add("TITI");
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
-                                         getPostgreConnectionConfiguration().getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME_TEST),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(attributesMapping)),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
-                     IPluginParam.build(DataSourcePluginConstants.TAGS, PluginParameterTransformer.toJson(tags)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            getPostgreConnectionConfiguration().getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           TABLE_NAME_TEST),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           MODEL_NAME_TEST),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               attributesMapping)),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE,
+                                                                           1800),
+                                                        IPluginParam.build(DataSourcePluginConstants.TAGS,
+                                                                           PluginParameterTransformer.toJson(tags)));
 
         PluginConfiguration dbDataSourceConf = new PluginConfiguration("TEST_PostgreDataSourceFromSingleTablePlugin",
-                parameters, PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(Plugin.class).id());
+                                                                       parameters,
+                                                                       PostgreDataSourceFromSingleTablePlugin.class.getAnnotation(
+                                                                           Plugin.class).id());
 
         dbDataSourceConf = pluginService.savePluginConfiguration(dbDataSourceConf);
 
@@ -308,18 +327,23 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
      * @return the {@link PluginConfiguration} @
      */
     private PluginConfiguration getPostgreConnectionConfiguration()
-            throws EncryptionException, EntityNotFoundException, EntityInvalidException {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        throws EncryptionException, EntityNotFoundException, EntityInvalidException {
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);
 
-        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin", parameters,
-                DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class).id());
+        PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin",
+                                                              parameters,
+                                                              DefaultPostgreConnectionPlugin.class.getAnnotation(Plugin.class)
+                                                                                                  .id());
 
         pluginService.savePluginConfiguration(plgConf);
 
@@ -329,22 +353,30 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
     private void buildAttributesMapping() {
         this.attributesMapping = new ArrayList<>();
 
-        this.attributesMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
+        this.attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY,
+                                                              PropertyType.LONG,
+                                                              "id"));
 
-        this.attributesMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.LABEL, "'" + HELLO + "- 'as label"));
-        this.attributesMapping
-                .add(new DynamicAttributeMapping("alt", "geometry", PropertyType.INTEGER, "altitude AS altitude"));
+        this.attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LABEL,
+                                                              "'" + HELLO + "- 'as label"));
+        this.attributesMapping.add(new DynamicAttributeMapping("alt",
+                                                               "geometry",
+                                                               PropertyType.INTEGER,
+                                                               "altitude AS altitude"));
         this.attributesMapping.add(new DynamicAttributeMapping("lat", "geometry", PropertyType.DOUBLE, "latitude"));
         this.attributesMapping.add(new DynamicAttributeMapping("long", "geometry", PropertyType.DOUBLE, "longitude"));
-        this.attributesMapping.add(new DynamicAttributeMapping("creationDate1", "hello", PropertyType.DATE_ISO8601,
-                "timestampwithouttimezone"));
-        this.attributesMapping.add(new DynamicAttributeMapping("creationDate2", "hello", PropertyType.DATE_ISO8601,
-                "timestampwithouttimezone"));
+        this.attributesMapping.add(new DynamicAttributeMapping("creationDate1",
+                                                               "hello",
+                                                               PropertyType.DATE_ISO8601,
+                                                               "timestampwithouttimezone"));
+        this.attributesMapping.add(new DynamicAttributeMapping("creationDate2",
+                                                               "hello",
+                                                               PropertyType.DATE_ISO8601,
+                                                               "timestampwithouttimezone"));
         this.attributesMapping.add(new DynamicAttributeMapping("date", "hello", PropertyType.DATE_ISO8601, "date"));
         this.attributesMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
-                PropertyType.DATE_ISO8601, "timestampwithtimezone"));
+                                                              PropertyType.DATE_ISO8601,
+                                                              "timestampwithtimezone"));
         this.attributesMapping.add(new DynamicAttributeMapping("isUpdate", "hello", PropertyType.BOOLEAN, "update"));
         this.attributesMapping.add(new DynamicAttributeMapping("url", "", PropertyType.URL, "url"));
     }

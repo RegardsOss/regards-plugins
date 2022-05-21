@@ -1,19 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-
-import org.apache.http.client.HttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeTypeUtils;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.geojson.FeatureWithPropertiesCollection;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -32,6 +19,17 @@ import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.Conver
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.templates.service.TemplateService;
+import org.apache.http.client.HttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
+
+import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Plugin to use an OpenSearch compliant webservice as a REGARDS datasource. Fetches data then converts it into REGARDS data to be be indexed.
@@ -39,26 +37,26 @@ import fr.cnes.regards.modules.templates.service.TemplateService;
  * @author Raphaël Mechali
  */
 @Plugin(id = "webservice-datasource", version = "0.4.0",
-        description = "Extracts data objects from an OpenSearch webservice", author = "REGARDS Team",
-        contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+    description = "Extracts data objects from an OpenSearch webservice", author = "REGARDS Team",
+    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebserviceDatasourcePlugin.class);
 
     @PluginParameter(name = "webserviceConfiguration", label = "Webservice configuration",
-            description = "Information about webservice used as data source")
+        description = "Information about webservice used as data source")
     private WebserviceConfiguration webserviceConfiguration;
 
     @PluginParameter(name = "conversionConfiguration", label = "Conversion configuration",
-            description = "Information to convert retrieved json results into REGARDS data objects")
+        description = "Information to convert retrieved json results into REGARDS data objects")
     private ConversionConfiguration conversionConfiguration;
 
     /**
      * Indexation refresh rate in seconds
      */
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-            label = "refresh rate",
-            description = "Ingestion refresh rate in seconds (minimum delay between two consecutive indexations)")
+        label = "refresh rate",
+        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive indexations)")
     private Integer refreshRate;
 
     /**
@@ -119,9 +117,12 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      * @param gson                    -
      */
     WebserviceDatasourcePlugin(WebserviceConfiguration webserviceConfiguration,
-            ConversionConfiguration conversionConfiguration, Integer refreshRate,
-            IModelAttrAssocService modelAttrAssocService, INotificationClient notificationClient, HttpClient httpClient,
-            Gson gson) {
+                               ConversionConfiguration conversionConfiguration,
+                               Integer refreshRate,
+                               IModelAttrAssocService modelAttrAssocService,
+                               INotificationClient notificationClient,
+                               HttpClient httpClient,
+                               Gson gson) {
         this.webserviceConfiguration = webserviceConfiguration;
         this.conversionConfiguration = conversionConfiguration;
         this.refreshRate = refreshRate;
@@ -155,10 +156,9 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
             modelAttrAssocs = modelAttrAssocService.getModelAttrAssocs(conversionConfiguration.getModelName());
         } catch (Exception e) {
             // we catch all exceptions here just to add some context in logs
-            throw new ModuleException(String
-                    .format("Webservice data source plugin: cannot retrieve attributes for model %s. Was it deleted?",
-                            conversionConfiguration.getModelName()),
-                    e);
+            throw new ModuleException(String.format(
+                "Webservice data source plugin: cannot retrieve attributes for model %s. Was it deleted?",
+                conversionConfiguration.getModelName()), e);
         }
         this.converter = new FeaturesConverter(conversionConfiguration, modelAttrAssocs);
         this.fetcher = new OpenSearchFetcher(webserviceConfiguration, httpClient, gson);
@@ -176,6 +176,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
 
     /**
      * Converter delegate getter, opened for tests
+     *
      * @return -
      */
     public FeaturesConverter getConverter() {
@@ -184,6 +185,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
 
     /**
      * Fetcher delegate getter, opened for tests
+     *
      * @return -
      */
     public OpenSearchFetcher getFetcher() {
@@ -201,20 +203,25 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      */
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable page, OffsetDateTime date)
-            throws DataSourceException {
+        throws DataSourceException {
         // A - pull web service resulting features for page (ignore date if not provided)
         /// ResponseEntity<FeatureWithPropertiesCollection> codeFeatures = this.getWebserviceFeatures(page, date);
-        LOGGER.info(String
-                .format("Webservice data source plugin: starting OpenSearch webservice source conversion at URL '%s', for page #%d (size %d)",
-                        webserviceConfiguration.getWebserviceURL(), page.getPageNumber(), page.getPageSize()));
+        LOGGER.info(String.format(
+            "Webservice data source plugin: starting OpenSearch webservice source conversion at URL '%s', for page #%d (size %d)",
+            webserviceConfiguration.getWebserviceURL(),
+            page.getPageNumber(),
+            page.getPageSize()));
 
         ResponseEntity<FeatureWithPropertiesCollection> retrievedFeatures;
         try {
             retrievedFeatures = fetcher.fetchFeatures(page, date);
         } catch (DataSourceException e) {
             // catch exception to notify administrator, then let it through
-            notificationClient.notify(e.getMessage(), "Webservice data source plugin", NotificationLevel.ERROR,
-                                      MimeTypeUtils.TEXT_PLAIN, DefaultRole.ADMIN);
+            notificationClient.notify(e.getMessage(),
+                                      "Webservice data source plugin",
+                                      NotificationLevel.ERROR,
+                                      MimeTypeUtils.TEXT_PLAIN,
+                                      DefaultRole.ADMIN);
             throw e;
         }
 
@@ -230,8 +237,11 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
             if (notificationReport == null) {
                 notificationReport = "No error report could be produced (inner plugin error)";
             }
-            notificationClient.notify(notificationReport, "Webservice data source plugin", notificationLevel,
-                                      MimeTypeUtils.TEXT_HTML, DefaultRole.ADMIN);
+            notificationClient.notify(notificationReport,
+                                      "Webservice data source plugin",
+                                      notificationLevel,
+                                      MimeTypeUtils.TEXT_HTML,
+                                      DefaultRole.ADMIN);
         }
 
         return converter.getConvertedPage();

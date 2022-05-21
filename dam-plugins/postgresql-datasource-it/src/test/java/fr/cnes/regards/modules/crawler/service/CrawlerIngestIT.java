@@ -18,35 +18,7 @@
  */
 package fr.cnes.regards.modules.crawler.service;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-
-import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.data.domain.Page;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
@@ -88,6 +60,7 @@ import fr.cnes.regards.modules.dam.service.entities.IDatasetService;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.indexer.service.ISearchService;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
@@ -100,11 +73,32 @@ import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.junit.*;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Crawler ingestion tests
  */
-@ActiveProfiles({ "noschedule", "CrawlerTest", "test", "testAmqp" }) // Disable scheduling, this will activate IngesterService during all tests
+@ActiveProfiles({ "noschedule", "CrawlerTest", "test", "testAmqp" })
+// Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class CrawlerIngestIT extends AbstractRegardsIT {
 
@@ -279,22 +273,29 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, TABLE_NAME_TEST),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(modelAttrMapping)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            pluginConf.getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           TABLE_NAME_TEST),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE,
+                                                                           1800),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               modelAttrMapping)));
         return PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null, parameters);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
@@ -303,8 +304,8 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getTestDsPluginDatasource() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()));
         return PluginConfiguration.build(TestDsPlugin.class, null, parameters);
     }
 
@@ -313,17 +314,19 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, "id"));
 
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, PropertyType.DATE_ISO8601,
-                "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
+                                                        PropertyType.DATE_ISO8601,
+                                                        "date"));
     }
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
     @Purpose("Le système doit permettre d’ajouter un AIP de données dans un jeu de données à partir de son IP_ID "
-            + "(ajout d'un tag sur l'AIP de données).")
+        + "(ajout d'un tag sur l'AIP de données).")
     @Test
     @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
-    public void test() throws ModuleException, IOException, InterruptedException, ExecutionException,
-            DataSourceException, NotFinishedException {
+    public void test()
+        throws ModuleException, IOException, InterruptedException, ExecutionException, DataSourceException,
+        NotFinishedException {
         LOGGER.info("********************* test CrawlerIngestIT ***********************************");
         final String tenant = tenantResolver.getTenant();
         // First delete index if it already exists
@@ -334,7 +337,9 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         // Ingest from scratch
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
-        IngestionResult summary = crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issue while ingesting test datasource"));
+        IngestionResult summary = crawlerService.ingest(dsi.getId())
+                                                .orElseThrow(() -> new RuntimeException(
+                                                    "There was some issue while ingesting test datasource"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         crawlerService.startWork();
@@ -371,8 +376,11 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("dataset : " + dataset);
         LOGGER.info("dataset.getIpId() : " + dataset.getIpId());
 
-        Page<DataObject> objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
-                                                            ICriterion.eq("tags", dataset.getIpId().toString(), StringMatchType.KEYWORD));
+        Page<DataObject> objectsPage = searchService.search(objectSearchKey,
+                                                            crawlerConf.getMaxBulkSize(),
+                                                            ICriterion.eq("tags",
+                                                                          dataset.getIpId().toString(),
+                                                                          StringMatchType.KEYWORD));
         Assert.assertEquals(1L, objectsPage.getTotalElements());
 
         // Fill the Db with an object dated 2001/01/01
@@ -381,17 +389,27 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService.ingest(dsi2.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi2"));
+        summary = crawlerService.ingest(dsi2.getId())
+                                .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi2"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
-        objectsPage = searchService.search(objectSearchKey, crawlerConf.getMaxBulkSize(),
-                                           ICriterion.eq("tags", dataset.getIpId().toString(), StringMatchType.KEYWORD));
+        objectsPage = searchService.search(objectSearchKey,
+                                           crawlerConf.getMaxBulkSize(),
+                                           ICriterion.eq("tags",
+                                                         dataset.getIpId().toString(),
+                                                         StringMatchType.KEYWORD));
         Assert.assertEquals(2L, objectsPage.getTotalElements());
-        Assert.assertEquals(1, objectsPage.getContent().stream()
-                .filter(data -> data.getLastUpdate().equals(data.getCreationDate())).count());
-        Assert.assertEquals(1, objectsPage.getContent().stream()
-                .filter(data -> data.getLastUpdate().isAfter(data.getCreationDate())).count());
+        Assert.assertEquals(1,
+                            objectsPage.getContent()
+                                       .stream()
+                                       .filter(data -> data.getLastUpdate().equals(data.getCreationDate()))
+                                       .count());
+        Assert.assertEquals(1,
+                            objectsPage.getContent()
+                                       .stream()
+                                       .filter(data -> data.getLastUpdate().isAfter(data.getCreationDate()))
+                                       .count());
         LOGGER.info("***************************************************************************");
     }
 
@@ -399,13 +417,14 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
     @Ignore
     @Test
-    public void testDsIngestionWithValidation() throws InterruptedException, ExecutionException, DataSourceException,
-            ModuleException, NotFinishedException {
+    public void testDsIngestionWithValidation()
+        throws InterruptedException, ExecutionException, DataSourceException, ModuleException, NotFinishedException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getBusinessId());
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
         try {
-            crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi"));
+            crawlerService.ingest(dsi.getId())
+                          .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi"));
             Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
         } catch (ExecutionException ee) {
             Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
@@ -424,7 +443,9 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
         modelAttrAssocs.add(attrAssocTutuToto);
         Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
-        IngestionResult summary = crawlerService.ingest(dsi.getId()).orElseThrow(()-> new RuntimeException("There was some issues while ingesting dsi"));
+        IngestionResult summary = crawlerService.ingest(dsi.getId())
+                                                .orElseThrow(() -> new RuntimeException(
+                                                    "There was some issues while ingesting dsi"));
         // 2 validation errors so nothing saved
         Assert.assertEquals(0, summary.getSavedObjectsCount());
     }

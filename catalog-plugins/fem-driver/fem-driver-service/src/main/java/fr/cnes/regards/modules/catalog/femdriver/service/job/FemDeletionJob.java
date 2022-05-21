@@ -18,10 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import fr.cnes.regards.framework.modules.jobs.domain.AbstractJob;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterInvalidException;
@@ -29,10 +25,12 @@ import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterMissi
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Map;
 
 /**
  * @author sbinda
- *
  */
 public class FemDeletionJob extends AbstractJob<Void> {
 
@@ -50,7 +48,7 @@ public class FemDeletionJob extends AbstractJob<Void> {
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
-            throws JobParameterMissingException, JobParameterInvalidException {
+        throws JobParameterMissingException, JobParameterInvalidException {
         request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
         jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
     }

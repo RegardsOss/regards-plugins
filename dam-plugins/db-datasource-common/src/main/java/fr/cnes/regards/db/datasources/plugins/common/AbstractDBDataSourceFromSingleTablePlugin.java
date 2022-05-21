@@ -19,19 +19,8 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.OffsetDateTime;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.nurkiewicz.jdbcrepository.TableDescription;
 import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
-
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
@@ -39,16 +28,26 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.util.Map;
 
 /**
  * A {@link Plugin} to discover the tables and columns of a SQL Database and to retrieve the data elements of a specific
  * table.<br>
  * This {@link Plugin} used a {@link IDBConnectionPlugin} to define the connection to the Database.
+ *
  * @author Christophe Mertz
  * @since 1.0-SNAPSHOT
  */
 public abstract class AbstractDBDataSourceFromSingleTablePlugin extends AbstractDataObjectMapping
-        implements IDBDataSourceFromSingleTablePlugin {
+    implements IDBDataSourceFromSingleTablePlugin {
 
     /**
      * Class logger
@@ -83,6 +82,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
 
     /**
      * This method initialize the {@link SqlGenerator} used to request the database.<br>
+     *
      * @param table the table used to requests the database
      */
     @Override
@@ -119,8 +119,11 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             if (extractColumnName != null) {
                 Column col = columnTypeMap.get(extractColumnName);
                 if (col != null) {
-                    LOG.debug("Column name {} mapped to {} / JAVA {} / SQL {}", extractColumnName, col.getName(),
-                              col.getJavaSqlType(), col.getSqlType());
+                    LOG.debug("Column name {} mapped to {} / JAVA {} / SQL {}",
+                              extractColumnName,
+                              col.getName(),
+                              col.getJavaSqlType(),
+                              col.getSqlType());
                 } else {
                     LOG.debug("No column mapped to {}", extractColumnName);
                 }
@@ -151,6 +154,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     /**
      * Build the SELECT request.</br>
      * Add the key word "%last_modification_date%" in the WHERE clause.
+     *
      * @return the SELECT request
      */
     protected String getSelectRequest(Pageable pageable, OffsetDateTime date) {
@@ -161,21 +165,21 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             if (selectRequest.contains(WHERE)) {
                 // Add at the beginning of the where clause
                 int pos = selectRequest.indexOf(WHERE);
-                selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + AND
-                        + selectRequest.substring(pos + WHERE.length(), selectRequest.length());
+                selectRequest =
+                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                        + AND + selectRequest.substring(pos + WHERE.length(), selectRequest.length());
             } else if (selectRequest.contains(ORDER_BY)) {
                 // Add before the order by clause
                 int pos = selectRequest.indexOf(ORDER_BY);
-                selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE
-                        + selectRequest.substring(pos, selectRequest.length());
+                selectRequest =
+                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                        + SPACE + selectRequest.substring(pos, selectRequest.length());
             } else if (selectRequest.contains(LIMIT)) {
                 // Add before the limit clause
                 int pos = selectRequest.indexOf(LIMIT);
-                selectRequest = selectRequest.substring(0, pos) + WHERE
-                        + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + SPACE
-                        + selectRequest.substring(pos, selectRequest.length());
+                selectRequest =
+                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                        + SPACE + selectRequest.substring(pos, selectRequest.length());
             } else {
                 // Add at the end of the request
                 StringBuilder buf = new StringBuilder(selectRequest);
@@ -192,13 +196,13 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             return sqlGenerator.count(tableDescription);
         } else {
             return sqlGenerator.count(tableDescription) + WHERE
-                    + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
+                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
         }
     }
 
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
-            throws DataSourceException {
+        throws DataSourceException {
         if (sqlGenerator == null) {
             throw new DataSourceException("sqlGenerator is null");
         }

@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Raphaël Mechali
  */
 @RestClient(name = "oauth2", contextId = "test-oauth2")
-@RequestMapping(value = "/", consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public interface GEOJsonWebservice {
 
     @GetMapping

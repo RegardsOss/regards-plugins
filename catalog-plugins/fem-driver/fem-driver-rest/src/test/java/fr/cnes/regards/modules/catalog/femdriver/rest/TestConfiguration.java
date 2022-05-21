@@ -18,17 +18,10 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.rest;
 
-import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.client.dataaccess.IAccessGroupClient;
+import fr.cnes.regards.modules.dam.client.entities.IAttachmentClient;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
@@ -36,10 +29,15 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 
 /**
  * @author sbinda
- *
  */
 @Configuration
 public class TestConfiguration {

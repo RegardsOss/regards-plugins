@@ -18,27 +18,25 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.ModelMappingAdapterFactory;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
-
-import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
-import fr.cnes.regards.modules.dam.domain.datasources.ModelMappingAdapterFactory;
-
 /**
  * Test mapping deserialization
- * @author Marc Sordi
  *
+ * @author Marc Sordi
  */
 @Ignore
 public class MappingTest {
@@ -51,10 +49,12 @@ public class MappingTest {
         Gson gson = builder.create();
 
         Type type = new com.google.gson.reflect.TypeToken<List<AbstractAttributeMapping>>() {
+
         }.getType();
 
-        try (JsonReader reader = new JsonReader(
-                new InputStreamReader(this.getClass().getResourceAsStream("mapping.json"), "UTF-8"))) {
+        try (JsonReader reader = new JsonReader(new InputStreamReader(this.getClass()
+                                                                          .getResourceAsStream("mapping.json"),
+                                                                      "UTF-8"))) {
             List<AbstractAttributeMapping> aam = gson.fromJson(reader, type);
             Assert.assertNotNull(aam);
         }

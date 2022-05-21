@@ -23,7 +23,6 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
 import fr.cnes.regards.modules.ingest.domain.exception.AIPGenerationException;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
@@ -39,26 +38,35 @@ import java.util.Optional;
  * @author Sébastien Binda
  */
 @Plugin(author = "REGARDS Team", description = "Simple plugin to generate AIP with or without simulated errors",
-        id = "AIPGenerationTest", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
-        owner = "CNES", url = "https://regardsoss.github.io/")
-public class AIPGenerationTest implements IAipGeneration  {
+    id = "AIPGenerationTest", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
+    url = "https://regardsoss.github.io/")
+public class AIPGenerationTest implements IAipGeneration {
 
-    @PluginParameter(label = "Simulate errors", description = "If true, simulate AIP generation errors for test purpose", defaultValue = "false")
+    @PluginParameter(label = "Simulate errors",
+        description = "If true, simulate AIP generation errors for test purpose", defaultValue = "false")
     private Boolean simulateErrors;
 
     @Override
     public List<AIP> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
         if (simulateErrors) {
-            throw new AIPGenerationException(String.format("Simulated AIP generation error for sip %s",sip.getProviderId()));
+            throw new AIPGenerationException(String.format("Simulated AIP generation error for sip %s",
+                                                           sip.getProviderId()));
         } else {
             List<AIP> aips = new ArrayList<>();
             // in this case we just use SIP providerId as there is only one AIP generated, no need to tweak it
             Integer version = sip.getVersion();
             OaisUniformResourceName sipIdUrn = sip.getSipIdUrn();
             aips.add(AIP.build(sip.getSip(),
-                               new OaisUniformResourceName(OAISIdentifier.AIP, entityType, tenant, sipIdUrn.getEntityId(),
-                                                           version, null, null),
-                               Optional.of(sipIdUrn), sip.getProviderId(), version));
+                               new OaisUniformResourceName(OAISIdentifier.AIP,
+                                                           entityType,
+                                                           tenant,
+                                                           sipIdUrn.getEntityId(),
+                                                           version,
+                                                           null,
+                                                           null),
+                               Optional.of(sipIdUrn),
+                               sip.getProviderId(),
+                               version));
             return aips;
         }
     }

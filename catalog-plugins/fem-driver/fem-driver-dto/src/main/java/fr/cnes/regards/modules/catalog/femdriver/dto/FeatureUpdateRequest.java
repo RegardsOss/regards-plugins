@@ -18,16 +18,15 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.dto;
 
-import java.util.Set;
-
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+
+import java.util.Set;
 
 /**
  * DTO for update request parameters.
  *
  * @author Sébastien Binda
- *
  */
 public class FeatureUpdateRequest {
 

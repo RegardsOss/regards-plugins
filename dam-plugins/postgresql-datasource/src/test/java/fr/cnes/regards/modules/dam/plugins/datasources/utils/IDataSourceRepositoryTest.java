@@ -21,8 +21,6 @@ package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * 
- *
  * @author Christophe Mertz
  */
 public interface IDataSourceRepositoryTest extends JpaRepository<DataSourceEntity, Long> {

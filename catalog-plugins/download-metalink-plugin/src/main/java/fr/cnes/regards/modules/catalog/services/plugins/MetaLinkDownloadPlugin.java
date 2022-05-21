@@ -18,29 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.services.plugins;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.client.utils.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeType;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -58,17 +35,36 @@ import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeType;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 
 /**
- *
  * Plugin to allow download metalink for all selected entities
  *
  * @author Sébastien Binda
- *
  */
 @Plugin(description = "Plugin to allow download on multiple data selection by creating a metalink file.",
-        id = "MetaLinkPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr",
-        license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss", markdown = "metalink-download.md")
+    id = "MetaLinkPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3",
+    owner = "CSSI", url = "https://github.com/RegardsOss", markdown = "metalink-download.md")
 @CatalogServicePlugin(applicationModes = { ServiceScope.MANY }, entityTypes = { EntityType.DATA })
 public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin implements IEntitiesServicePlugin {
 
@@ -84,35 +80,40 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     private JWTService jwtService;
 
     @PluginParameter(label = "Download only image files.",
-            description = "If activated, metalink file will only contains image files of the selected products.",
-            defaultValue = "false")
+        description = "If activated, metalink file will only contains image files of the selected products.",
+        defaultValue = "false")
     private final Boolean onlyImages = Boolean.FALSE;
 
     private static final String METALINK_FILE_NAME = "regards-download.metalink";
 
     @Override
     public ResponseEntity<StreamingResponseBody> apply(ServicePluginParameters parameters,
-            HttpServletResponse response) {
+                                                       HttpServletResponse response) {
         Page<DataObject> results;
         try {
             results = serviceHelper.getDataObjects(parameters.getSearchRequest(), 0, 1);
             if (results.getTotalElements() > 10_000) {
-                return CatalogPluginResponseFactory
-                        .createSuccessResponse(response, CatalogPluginResponseType.JSON, String
-                                .format("Number of files to download %d exceed maximum allowed of %d",
-                                        results.getTotalElements(), 10_000));
+                return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                          CatalogPluginResponseType.JSON,
+                                                                          String.format(
+                                                                              "Number of files to download %d exceed maximum allowed of %d",
+                                                                              results.getTotalElements(),
+                                                                              10_000));
             }
         } catch (ModuleException e) {
             String message = String.format("Error applying service. OpenSearchQuery is not a valid query. %s",
                                            e.getMessage());
             LOGGER.error(message, e);
-            return CatalogPluginResponseFactory.createSuccessResponse(response, CatalogPluginResponseType.JSON,
+            return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                      CatalogPluginResponseType.JSON,
                                                                       message);
         }
 
-        return CatalogPluginResponseFactory
-                .createStreamSuccessResponse(response, streamMetalinkXml(parameters.getSearchRequest()),
-                                             METALINK_FILE_NAME, MediaType.APPLICATION_OCTET_STREAM, Optional.empty());
+        return CatalogPluginResponseFactory.createStreamSuccessResponse(response,
+                                                                        streamMetalinkXml(parameters.getSearchRequest()),
+                                                                        METALINK_FILE_NAME,
+                                                                        MediaType.APPLICATION_OCTET_STREAM,
+                                                                        Optional.empty());
     }
 
     private StreamingResponseBody streamMetalinkXml(SearchRequest searchRequest) {
@@ -158,7 +159,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
      * @throws MalformedURLException
      */
     private void downloadOrderMetalink(List<DataObject> dataObjects, XMLStreamWriter xtw)
-            throws XMLStreamException, MalformedURLException {
+        throws XMLStreamException, MalformedURLException {
         // For all data files
         for (DataObject dataObject : dataObjects) {
             for (DataFile file : dataObject.getFiles().values()) {
@@ -198,19 +199,21 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     /**
      * File name for download is : <dataobjectName/dataFileName>. The dataFile name is the name of {@link DataFile} or
      * name of URI if name is null.
+     *
      * @param dataobject {@link DataObject}
-     * @param datafile {@link DataFile}
+     * @param datafile   {@link DataFile}
      * @return String fileName
      */
     private String getDataObjectFileNameForDownload(DataObject dataobject, DataFile datafile) {
-        String fileName = datafile.getFilename() != null ? datafile.getFilename()
-                : FilenameUtils.getName(datafile.asUri().getPath());
+        String fileName =
+            datafile.getFilename() != null ? datafile.getFilename() : FilenameUtils.getName(datafile.asUri().getPath());
         String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replaceAll(" ", "") : "files";
         return String.format("%s/%s", dataObjectName, fileName);
     }
 
     /**
      * Generate URL to download the given {@link DataFile}
+     *
      * @param file {@link DataFile} to download
      * @return {@link URL}
      */

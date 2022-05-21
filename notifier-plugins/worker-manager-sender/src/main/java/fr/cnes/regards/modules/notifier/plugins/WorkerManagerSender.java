@@ -32,20 +32,17 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.workermanager.dto.events.RawMessageBuilder;
-import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The purpose of this plugin is to send worker manager processing requests through rs-notifier microservice.
@@ -53,9 +50,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Iliana Ghazali
  **/
 @Plugin(author = "REGARDS Team",
-        description = "The purpose of this plugin is to send worker manager processing requests.",
-        id = WorkerManagerSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
-        owner = "CNES", url = "https://regardsoss.github.io/")
+    description = "The purpose of this plugin is to send worker manager processing requests.",
+    id = WorkerManagerSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
+    owner = "CNES", url = "https://regardsoss.github.io/")
 public class WorkerManagerSender extends AbstractRabbitMQSender {
 
     //@formatter:off
@@ -128,7 +125,9 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
     public static final String SESSION_METADATA_PATH = "session";
 
     private static final Configuration JSON_PATH_CONFIGURATION = Configuration.builder()
-            .jsonProvider(new GsonJsonProvider()).options(Option.SUPPRESS_EXCEPTIONS).build();
+                                                                              .jsonProvider(new GsonJsonProvider())
+                                                                              .options(Option.SUPPRESS_EXCEPTIONS)
+                                                                              .build();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerManagerSender.class);
 
@@ -157,14 +156,17 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
             // else use the pattern
             if (sessionNamePattern == null) {
                 DocumentContext metadataContext = JsonPath.using(JSON_PATH_CONFIGURATION)
-                        .parse(notificationRequest.getMetadata());
+                                                          .parse(notificationRequest.getMetadata());
                 sessionOwnerName = ((JsonPrimitive) metadataContext.read(SESSION_OWNER_METADATA_PATH)).getAsString();
                 sessionName = ((JsonPrimitive) metadataContext.read(SESSION_METADATA_PATH)).getAsString();
             } else {
                 sessionOwnerName = DEFAULT_SESSION_OWNER_TOKEN + tenantName;
                 sessionName = getSessionNameFromPattern(feature);
             }
-            messagesToSend.add(RawMessageBuilder.build(tenantName, contentType, sessionOwnerName, sessionName,
+            messagesToSend.add(RawMessageBuilder.build(tenantName,
+                                                       contentType,
+                                                       sessionOwnerName,
+                                                       sessionName,
                                                        UUID.randomUUID().toString(),
                                                        feature.toString().getBytes(StandardCharsets.UTF_8)));
         }
@@ -189,10 +191,12 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
             String defaultSessionName = SESSION_NAME_PATTERN_ERROR.replaceAll(WS_SESSION_PATTERN,
                                                                               String.format("$1-%s", currentDate));
             LOGGER.warn("The pattern configured in {} \"{}\" has an invalid pattern.\nCheck if : "
-                                + "- The RegExp is valid and follow the pattern {<jsonPathToAccessProductType>}-#day(.*) \n"
-                                + "- The JsonPath to access the feature type is valid.\n"
-                                + "The session will be named by default: \"{}\".",
-                        WS_SESSION_NAME_PATTERN_NAME, sessionNamePattern, defaultSessionName);
+                            + "- The RegExp is valid and follow the pattern {<jsonPathToAccessProductType>}-#day(.*) \n"
+                            + "- The JsonPath to access the feature type is valid.\n"
+                            + "The session will be named by default: \"{}\".",
+                        WS_SESSION_NAME_PATTERN_NAME,
+                        sessionNamePattern,
+                        defaultSessionName);
             return defaultSessionName;
         } else {
             return sessionNamePattern.replaceAll(WS_SESSION_PATTERN,

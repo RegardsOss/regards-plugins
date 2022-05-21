@@ -1,27 +1,6 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.http.client.HttpClient;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
@@ -41,9 +20,23 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
+import org.apache.http.client.HttpClient;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.TestPropertySource;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransactionalIT {
 
     @Autowired
@@ -85,15 +78,20 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         // 1 - Mock returned model
         IModelAttrAssocService modelAttrAssocService = Mockito.mock(IModelAttrAssocService.class);
         Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString()))
-                .thenReturn(Arrays
-                        .asList(buildAttributeAssoc("start_date", null, PropertyType.DATE_ISO8601, false),
-                                buildAttributeAssoc("end_date", null, PropertyType.DATE_ISO8601, false),
-                                buildAttributeAssoc("product", null, PropertyType.STRING, true),
-                                buildAttributeAssoc("coordinates", null, PropertyType.INTEGER_ARRAY, true),
-                                buildAttributeAssoc("mission", null, PropertyType.STRING, false),
-                                buildAttributeAssoc("meas_instr", "measurement", PropertyType.STRING, true),
-                                buildAttributeAssoc("meas_resolution", "measurement", PropertyType.STRING, true),
-                                buildAttributeAssoc("meas_sensor_mode", "measurement", PropertyType.STRING, true)));
+               .thenReturn(Arrays.asList(buildAttributeAssoc("start_date", null, PropertyType.DATE_ISO8601, false),
+                                         buildAttributeAssoc("end_date", null, PropertyType.DATE_ISO8601, false),
+                                         buildAttributeAssoc("product", null, PropertyType.STRING, true),
+                                         buildAttributeAssoc("coordinates", null, PropertyType.INTEGER_ARRAY, true),
+                                         buildAttributeAssoc("mission", null, PropertyType.STRING, false),
+                                         buildAttributeAssoc("meas_instr", "measurement", PropertyType.STRING, true),
+                                         buildAttributeAssoc("meas_resolution",
+                                                             "measurement",
+                                                             PropertyType.STRING,
+                                                             true),
+                                         buildAttributeAssoc("meas_sensor_mode",
+                                                             "measurement",
+                                                             PropertyType.STRING,
+                                                             true)));
 
         // 2 - Create plugin configuration
         HashMap<String, String> attributeToJSonField = new HashMap<>();
@@ -111,18 +109,33 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("cloudCover", 30);
-        WebserviceDatasourcePlugin pl = new WebserviceDatasourcePlugin(
-                new WebserviceConfiguration(
-                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json",
-                        "https://theia.cnes.fr/atdistrib/resto2/api/collections/describe.xml", "page", "maxRecords",
-                        "updated", 1, 500, parameters),
-                new ConversionConfiguration("PATATO", attributeToJSonField, "thumbnail", "services.download.url",
-                        "quicklook", "totalResults", "itemsPerPage"),
-                90000, modelAttrAssocService, notificationClient, httpClient, gson);
+        WebserviceDatasourcePlugin pl = new WebserviceDatasourcePlugin(new WebserviceConfiguration(
+            "https://theia.cnes.fr/atdistrib/resto2/api/collections/LANDSAT/search.json",
+            "https://theia.cnes.fr/atdistrib/resto2/api/collections/describe.xml",
+            "page",
+            "maxRecords",
+            "updated",
+            1,
+            500,
+            parameters),
+                                                                       new ConversionConfiguration("PATATO",
+                                                                                                   attributeToJSonField,
+                                                                                                   "thumbnail",
+                                                                                                   "services.download.url",
+                                                                                                   "quicklook",
+                                                                                                   "totalResults",
+                                                                                                   "itemsPerPage"),
+                                                                       90000,
+                                                                       modelAttrAssocService,
+                                                                       notificationClient,
+                                                                       httpClient,
+                                                                       gson);
         pl.initialize();
 
-        List<AttributeModel> expectedProps = modelAttrAssocService.getModelAttrAssocs("PATATO").stream()
-                .map(ModelAttrAssoc::getAttribute).collect(Collectors.toList());
+        List<AttributeModel> expectedProps = modelAttrAssocService.getModelAttrAssocs("PATATO")
+                                                                  .stream()
+                                                                  .map(ModelAttrAssoc::getAttribute)
+                                                                  .collect(Collectors.toList());
         DataType[] expectedFileTypes = new DataType[] { DataType.RAWDATA, DataType.QUICKLOOK_SD, DataType.THUMBNAIL };
 
         // Fetch all pages and check conversion is successful
@@ -143,12 +156,17 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
                         // in fragment prop
                         IProperty<?> fragment = f.getProperty(prop.getFragment().getName());
                         Assert.assertTrue("Fragment '" + prop.getFragment().getName()
-                                + "' should be present with the right type in feature " + f.getLabel(),
+                                              + "' should be present with the right type in feature " + f.getLabel(),
                                           fragment instanceof ObjectProperty);
-                        Optional<IProperty<?>> optionalAttr = ((ObjectProperty) fragment).getValue().stream()
-                                .filter(fragAttr -> fragAttr.getName().equals(prop.getName())).findFirst();
-                        Assert.assertTrue("Fragment '" + prop.getFragment().getName() + "' should contain property "
-                                + prop.getName() + " in feature " + f.getLabel(), optionalAttr.isPresent());
+                        Optional<IProperty<?>> optionalAttr = ((ObjectProperty) fragment).getValue()
+                                                                                         .stream()
+                                                                                         .filter(fragAttr -> fragAttr.getName()
+                                                                                                                     .equals(
+                                                                                                                         prop.getName()))
+                                                                                         .findFirst();
+                        Assert.assertTrue(
+                            "Fragment '" + prop.getFragment().getName() + "' should contain property " + prop.getName()
+                                + " in feature " + f.getLabel(), optionalAttr.isPresent());
                         attr = optionalAttr.get();
                     } else {
                         // root prop
@@ -161,10 +179,12 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
                 // Files
                 for (DataType type : expectedFileTypes) {
                     Collection<DataFile> dataFiles = f.getFiles().get(type);
-                    Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(), 1,
+                    Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(),
+                                        1,
                                         dataFiles.size());
-                    Assert.assertNotNull("Data file path for " + type + " in " + f.getProviderId()
-                            + " should not be null", dataFiles.iterator().next());
+                    Assert.assertNotNull(
+                        "Data file path for " + type + " in " + f.getProviderId() + " should not be null",
+                        dataFiles.iterator().next());
                 }
             }
 

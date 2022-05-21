@@ -19,18 +19,6 @@
 
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDBDataSourcePlugin;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -42,16 +30,27 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A {@link Plugin} to extract data from a PostgreSQL Database.<br>
  * This {@link Plugin} used a {@link IDBConnectionPlugin} to define to connection to the {@link DataSource}.
+ *
  * @author Christophe Mertz
  * @since 1.0-SNAPSHOT
  */
 @Plugin(id = "postgresql-datasource", version = "2.0-SNAPSHOT",
-        description = "Allows data extraction to a PostgreSql database", author = "REGARDS Team",
-        contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+    description = "Allows data extraction to a PostgreSql database", author = "REGARDS Team",
+    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
 public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePlugin.class);
@@ -63,20 +62,20 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
     private String sqlFromClause;
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-            description = "Associated data source model name")
+        description = "Associated data source model name")
     private String modelName;
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM, label = "model attributes mapping",
-            description = "Mapping between model and database table (in JSON format)")
+        description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;
 
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-            label = "refresh rate",
-            description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+        label = "refresh rate",
+        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
-            description = "Common tags to be put on all data objects created by the data source")
+        description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
 
     /**
@@ -85,7 +84,11 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
     @PluginInit
     private void initPlugin() throws ModuleException {
         LOG.info("Init method call : {}, connection = {}, model = {}, mapping = {}, request = {}",
-                 this.getClass().getName(), dbConnection.toString(), modelName, attributesMapping, sqlFromClause);
+                 this.getClass().getName(),
+                 dbConnection.toString(),
+                 modelName,
+                 attributesMapping,
+                 sqlFromClause);
         LOG.info("Init method call : {}",
                  dbConnection.testConnection() ? "CONNECTION_PARAM IS VALID" : "ERROR CONNECTION_PARAM");
 
@@ -109,7 +112,7 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
 
     @Override
     protected IProperty<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
-            throws SQLException {
+        throws SQLException {
         OffsetDateTime date = buildOffsetDateTime(rs, colName);
         return IProperty.buildDate(attrName, date);
     }

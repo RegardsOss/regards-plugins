@@ -18,26 +18,17 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.utils;
 
+import fr.cnes.regards.framework.jpa.IIdentifiable;
+import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
+import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourcePlugin;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-
-import fr.cnes.regards.framework.jpa.IIdentifiable;
-import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
-import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourcePlugin;
 
 /**
  * A domain used to test the {@link PostgreDataSourcePlugin}
@@ -46,7 +37,7 @@ import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourcePlugin;
  */
 @Entity
 @Table(name = "t_test_plugin_data_source",
-        indexes = { @Index(name = "index_test", columnList = "altitude", unique = true) })
+    indexes = { @Index(name = "index_test", columnList = "altitude", unique = true) })
 @SequenceGenerator(name = "testPlgDataSourceSequence", initialValue = 1, sequenceName = "seq_test_plugin")
 public class DataSourceEntity implements IIdentifiable<Long> {
 
@@ -80,7 +71,7 @@ public class DataSourceEntity implements IIdentifiable<Long> {
     private String dateStr;
 
     private URL url;
-    
+
     private String descr;
 
     @Convert(converter = OffsetDateTimeAttributeConverter.class)
@@ -91,9 +82,18 @@ public class DataSourceEntity implements IIdentifiable<Long> {
     public DataSourceEntity() {
     }
 
-    public DataSourceEntity(String label, int altitude, double latitude, double longitude, LocalDate date,
-            LocalTime timeWithoutTimeZone, LocalDateTime timeStampWithoutTimeZone, OffsetDateTime timeStampWithTimeZone,
-            String dateStr, Boolean update, URL url, String descr) {
+    public DataSourceEntity(String label,
+                            int altitude,
+                            double latitude,
+                            double longitude,
+                            LocalDate date,
+                            LocalTime timeWithoutTimeZone,
+                            LocalDateTime timeStampWithoutTimeZone,
+                            OffsetDateTime timeStampWithTimeZone,
+                            String dateStr,
+                            Boolean update,
+                            URL url,
+                            String descr) {
         super();
         this.label = label;
         this.altitude = altitude;

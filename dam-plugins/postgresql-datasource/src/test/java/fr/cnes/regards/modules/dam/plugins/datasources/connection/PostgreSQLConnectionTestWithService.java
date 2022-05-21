@@ -18,17 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -39,12 +28,22 @@ import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfi
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.Set;
 
 /**
  * @author Christophe Mertz
  */
 @TestPropertySource(locations = { "classpath:datasource-test.properties" },
-        properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
 
     @SuppressWarnings("unused")
@@ -70,7 +69,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
 
     @Test
     public void testPoolConnectionWithGetFirstPluginByType()
-            throws ModuleException, NotAvailablePluginConfigurationException {
+        throws ModuleException, NotAvailablePluginConfigurationException {
         // Save a PluginConfiguration
         final PluginConfiguration aPluginConfiguration = getPostGreSqlConnectionConfiguration();
         pluginService.savePluginConfiguration(aPluginConfiguration);
@@ -122,11 +121,14 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
      * @return the {@link PluginConfiguration}
      */
     private PluginConfiguration getPostGreSqlConnectionConfiguration() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
         passwordParam.setDecryptedValue(dbPassword);
         parameters.add(passwordParam);

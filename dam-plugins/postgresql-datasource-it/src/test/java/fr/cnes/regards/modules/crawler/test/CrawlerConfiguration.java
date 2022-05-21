@@ -18,16 +18,6 @@
  */
 package fr.cnes.regards.modules.crawler.test;
 
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.ResponseEntity;
-
 import fr.cnes.regards.framework.hateoas.IResourceService;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.dam.service.dataaccess.IAccessRightService;
@@ -36,12 +26,17 @@ import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.opensearch.service.IOpenSearchService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.*;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 
 @Profile("CrawlerTest")
 @Configuration
 @PropertySource(value = { "classpath:test.properties", "classpath:test_${user.name}.properties" },
-        ignoreResourceNotFound = true)
+    ignoreResourceNotFound = true)
 public class CrawlerConfiguration {
 
     @Bean
@@ -61,7 +56,9 @@ public class CrawlerConfiguration {
     }
 
     @Bean
-    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
+    public IStorageRestClient storageRestClient() {
+        return Mockito.mock(IStorageRestClient.class);
+    }
 
     @Bean
     public IProjectsClient projectsClient() {

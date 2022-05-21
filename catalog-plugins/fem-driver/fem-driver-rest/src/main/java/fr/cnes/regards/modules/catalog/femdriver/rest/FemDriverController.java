@@ -18,16 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.rest;
 
-import javax.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
@@ -38,12 +28,20 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
 
 /**
  * REST Controller for FEM Driver
  *
  * @author Sébastien Binda
- *
  */
 @RestController
 @RequestMapping(FemDriverController.FEM_DRIVER_PATH)
@@ -61,43 +59,43 @@ public class FemDriverController {
     private FemDriverService femDriverService;
 
     @Operation(summary = "Schedule FEM Feature updates",
-            description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
+        description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
-            description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request",
-            role = DefaultRole.EXPLOIT)
+        description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request",
+        role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_UPDATE_PATH, method = RequestMethod.POST)
-    public ResponseEntity<Void> updateFeatures(@Parameter(
-            description = "Contain feature seach request and feature properties to update") @Valid @RequestBody FeatureUpdateRequest request)
-            throws ModuleException {
+    public ResponseEntity<Void> updateFeatures(
+        @Parameter(description = "Contain feature seach request and feature properties to update") @Valid @RequestBody
+        FeatureUpdateRequest request) throws ModuleException {
         femDriverService.scheduleUpdate(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Operation(summary = "Schedule FEM Feature deletion",
-            description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
+        description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
-            description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request",
-            role = DefaultRole.EXPLOIT)
+        description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request",
+        role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_DELETE_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteFeatures(
-            @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
-            throws ModuleException {
+        @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
+        throws ModuleException {
         femDriverService.scheduleDeletion(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Operation(summary = "Schedule FEM Feature notification",
-            description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
+        description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
     @ResourceAccess(
-            description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request",
-            role = DefaultRole.EXPLOIT)
+        description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request",
+        role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> notifyFeatures(
-            @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
-            throws ModuleException {
+        @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
+        throws ModuleException {
         femDriverService.scheduleNotification(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

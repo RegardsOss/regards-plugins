@@ -18,8 +18,6 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -40,8 +38,8 @@ import java.util.*;
  * @author Jacques Chirac
  */
 @Plugin(author = "REGARDS Team", description = "Dissemination ACK sender", id = DisseminationAckSender.PLUGIN_ID,
-        version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-        url = "https://regardsoss.github.io/")
+    version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
+    url = "https://regardsoss.github.io/")
 public class DisseminationAckSender extends AbstractRabbitMQSender {
 
     public static final String RECIPIENT_TENANT_PARAM_NAME = "recipientTenant";
@@ -59,7 +57,7 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
     private String recipientTenant;
 
     @PluginParameter(label = "Sender label", name = SENDER_LABEL_PARAM_NAME,
-            description="Acknowledge sender label. Used by destination system to identify the current system")
+        description = "Acknowledge sender label. Used by destination system to identify the current system")
     private String senderLabel;
 
     @Override

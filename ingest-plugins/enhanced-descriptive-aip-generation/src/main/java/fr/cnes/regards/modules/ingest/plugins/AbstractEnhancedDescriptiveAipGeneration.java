@@ -1,10 +1,5 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
@@ -14,8 +9,12 @@ import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- *
  * Base for EnhancedDescriptiveAipGeneration plugins. Allows to add one descriptive information. Always or one out of two generated AIPs
  *
  * @author Sylvain VISSIERE-GUERINET
@@ -31,7 +30,7 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected String descriptiveInfoName;
 
     @PluginParameter(label = "Always",
-            description = "Is the information added all the time or only one AIP out of two?")
+        description = "Is the information added all the time or only one AIP out of two?")
     protected Boolean always;
 
     @Override
@@ -42,7 +41,9 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
                                                         entityType,
                                                         tenant,
                                                         sipIdUrn.getEntityId(),
-                                                        sip.getVersion(), null, null),
+                                                        sip.getVersion(),
+                                                        null,
+                                                        null),
                             Optional.of(sipIdUrn),
                             sip.getProviderId(),
                             sip.getVersion());

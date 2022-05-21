@@ -18,24 +18,6 @@
  */
 package fr.cnes.regards.modules.crawler.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.data.domain.Page;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-
 import fr.cnes.regards.framework.geojson.geometry.Polygon;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -67,9 +49,22 @@ import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.junit.*;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Ignore
-@ActiveProfiles({ "noschedule", "IngesterGeometryTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
+@ActiveProfiles({ "noschedule", "IngesterGeometryTest", "test" })
+// Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
 public class IngesterGeometryServiceIT {
 
@@ -145,23 +140,29 @@ public class IngesterGeometryServiceIT {
     private IEsRepository esRepository;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_VIEW),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(modelAttrMapping)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            pluginConf.getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           T_VIEW),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               modelAttrMapping)));
 
         return PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null, parameters);
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
@@ -171,10 +172,12 @@ public class IngesterGeometryServiceIT {
 
     private void buildModelAttributes() {
         modelAttrMapping = new ArrayList<>();
-        modelAttrMapping
-                .add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.INTEGER, "line_id"));
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.GEOMETRY, PropertyType.STRING,
-                "polygon_geojson"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY,
+                                                        PropertyType.INTEGER,
+                                                        "line_id"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.GEOMETRY,
+                                                        PropertyType.STRING,
+                                                        "polygon_geojson"));
     }
 
     @Before
@@ -260,7 +263,8 @@ public class IngesterGeometryServiceIT {
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 20_362));
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
 
-        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(EntityType.DATA), 10,
+        final Page<DataObject> page = esRepository.search(Searches.onSingleEntity(EntityType.DATA),
+                                                          10,
                                                           ICriterion.all());
         final List<DataObject> objects = page.getContent();
         Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() != null));

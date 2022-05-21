@@ -1,6 +1,5 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports;
 
-
 import fr.cnes.regards.framework.notification.NotificationLevel;
 import fr.cnes.regards.modules.templates.service.TemplateService;
 import freemarker.template.TemplateException;
@@ -30,6 +29,7 @@ public class ConversionReport {
      * Maps feature index to corresponding feature errors (bloking)
      */
     private final SortedMap<Integer, FeatureErrors> blockingErrors = new TreeMap<>();
+
     /**
      * Maps feature index to corresponding feature errors (non blocking)
      */
@@ -43,7 +43,10 @@ public class ConversionReport {
      * @param providerId   feature provider id when found
      * @param error        error to store in report
      */
-    public void addFeatureConversionError(int featureIndex, String featureLabel, String providerId, FeatureConversionError error) {
+    public void addFeatureConversionError(int featureIndex,
+                                          String featureLabel,
+                                          String providerId,
+                                          FeatureConversionError error) {
         // put the error in the right feature of the right map
         SortedMap<Integer, FeatureErrors> targetErrorsMap = error.isBlocking() ? blockingErrors : nonBlockingErrors;
         FeatureErrors targetFeature = targetErrorsMap.get(featureIndex);
@@ -69,7 +72,8 @@ public class ConversionReport {
      * @return true when there is a blocking error
      */
     public boolean hasBlockingErrors(int featureIndex) {
-        return this.blockingErrors.get(featureIndex) != null; // note: length necessary >= 1 since it could only be added with an initial error (addFeatureConversionError)
+        return this.blockingErrors.get(featureIndex)
+            != null; // note: length necessary >= 1 since it could only be added with an initial error (addFeatureConversionError)
     }
 
     /**

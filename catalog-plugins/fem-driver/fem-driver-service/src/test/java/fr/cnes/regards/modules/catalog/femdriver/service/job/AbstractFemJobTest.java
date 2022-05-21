@@ -137,10 +137,11 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
 
     protected DataObject createEntity(Model model, String providerId, String label) {
         return DataObject.wrap(model,
-                               new DataObjectFeature(
-                                       FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,
-                                                                        getDefaultTenant(), UUID.randomUUID(), 1),
-                                       providerId, label),
+                               new DataObjectFeature(FeatureUniformResourceName.build(FeatureIdentifier.FEATURE,
+                                                                                      EntityType.DATA,
+                                                                                      getDefaultTenant(),
+                                                                                      UUID.randomUUID(),
+                                                                                      1), providerId, label),
                                false);
     }
 

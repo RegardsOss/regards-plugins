@@ -18,19 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
 import com.google.common.collect.Sets;
-
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -46,12 +34,21 @@ import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.SearchRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Business service for FEM Driver
  *
  * @author Sébastien Binda
- *
  */
 @Service
 @MultitenantTransactional
@@ -74,6 +71,7 @@ public class FemDriverService {
      * <li> a {@link SearchRequest} containing the search request parameters to find features to update</li>
      * <li> a Map of {@link IProperty} of each property to update</li>
      * </ul>
+     *
      * @param request {@link FeatureUpdateRequest}
      * @return {@link JobInfo} of  scheduled job
      * @throws ModuleException
@@ -125,7 +123,8 @@ public class FemDriverService {
                 // Scheduling page deletion job
                 schedulePageDeletion(ids, owner);
 
-                LOGGER.info("Scheduling job for {} feature deletion requests (remaining {}).", ids.size(),
+                LOGGER.info("Scheduling job for {} feature deletion requests (remaining {}).",
+                            ids.size(),
                             totalElementCheck);
                 page = page.next();
             } catch (ModuleException e) {

@@ -73,42 +73,48 @@ import javax.sql.DataSource;
      * @return the {@link DataSource} created
      */
     @Bean
-    public DataSource dataSource () {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource ();
-        dataSource.setDriverClassName (POSTGRESQL_JDBC_DRIVER);
-        dataSource.setUrl (buildUrl ());
-        dataSource.setUsername (dbUser);
-        dataSource.setPassword (dbPassword);
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(POSTGRESQL_JDBC_DRIVER);
+        dataSource.setUrl(buildUrl());
+        dataSource.setUsername(dbUser);
+        dataSource.setPassword(dbPassword);
         return dataSource;
     }
 
-    private String buildUrl () {
+    private String buildUrl() {
         return "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName;
     }
 
     @Bean
-    public IAttributeModelClient attributeModelClient () { return Mockito.mock (IAttributeModelClient.class); }
-
-    @Bean
-    public IProjectUsersClient projectUsersClient () { return Mockito.mock (IProjectUsersClient.class); }
-
-    @Bean
-    public IToponymsClient toponymsClient () {
-        return Mockito.mock (IToponymsClient.class);
+    public IAttributeModelClient attributeModelClient() {
+        return Mockito.mock(IAttributeModelClient.class);
     }
 
     @Bean
-    public IStorageRestClient storageRestClient () { return Mockito.mock (IStorageRestClient.class); }
+    public IProjectUsersClient projectUsersClient() {
+        return Mockito.mock(IProjectUsersClient.class);
+    }
 
     @Bean
-    public IProjectsClient projectsClient () {
-        IProjectsClient projectClient = Mockito.mock (IProjectsClient.class);
-        Mockito.when (projectClient.retrieveProject (Mockito.anyString ())).thenAnswer (invocation -> {
-            String tenant = invocation.getArgument (0);
-            Project project = new Project ();
-            project.setName (tenant);
-            project.setCrs ("WGS_84");
-            project.setPoleToBeManaged (Boolean.FALSE);
+    public IToponymsClient toponymsClient() {
+        return Mockito.mock(IToponymsClient.class);
+    }
+
+    @Bean
+    public IStorageRestClient storageRestClient() {
+        return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IProjectsClient projectsClient() {
+        IProjectsClient projectClient = Mockito.mock(IProjectsClient.class);
+        Mockito.when(projectClient.retrieveProject(Mockito.anyString())).thenAnswer(invocation -> {
+            String tenant = invocation.getArgument(0);
+            Project project = new Project();
+            project.setName(tenant);
+            project.setCrs("WGS_84");
+            project.setPoleToBeManaged(Boolean.FALSE);
             return ResponseEntity.ok(EntityModel.of(project));
         });
         return projectClient;

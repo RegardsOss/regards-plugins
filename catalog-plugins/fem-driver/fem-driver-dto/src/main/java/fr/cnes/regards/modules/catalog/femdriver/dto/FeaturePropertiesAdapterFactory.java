@@ -18,25 +18,22 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.dto;
 
-import java.util.Iterator;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import fr.cnes.regards.framework.gson.adapters.PolymorphicTypeAdapterFactory;
 import fr.cnes.regards.framework.gson.annotation.GsonTypeAdapterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- *
  * Merge array of properties
- * @author Marc Sordi
  *
+ * @author Marc Sordi
  */
 @GsonTypeAdapterFactory
 public class FeaturePropertiesAdapterFactory extends PolymorphicTypeAdapterFactory<FeatureProperties> {
@@ -97,6 +94,7 @@ public class FeaturePropertiesAdapterFactory extends PolymorphicTypeAdapterFacto
 
     /**
      * Merge {@link JsonArray} flattening elements in a single {@link JsonObject}
+     *
      * @param jsonArray {@link JsonArray} to flatten
      * @return {@link JsonObject}
      */
@@ -119,6 +117,7 @@ public class FeaturePropertiesAdapterFactory extends PolymorphicTypeAdapterFacto
 
     /**
      * Restore {@link JsonArray} from flattened {@link JsonObject} elements (reverse merge)
+     *
      * @param jsonObject {@link JsonObject} to transform
      * @return {@link JsonArray}
      */

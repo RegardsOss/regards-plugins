@@ -53,14 +53,20 @@ public class FemDriverControllerIT extends AbstractFemTest {
         gsonAttributeFactory.refresh(getDefaultTenant(), atts);
         Set<IProperty<?>> properties = Sets.newHashSet();
         properties.add(IProperty.buildString("name", "plop"));
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null,
-                new LinkedMultiValueMap<String, String>(), null, null, null);
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        new LinkedMultiValueMap<String, String>(),
+                                                        null,
+                                                        null,
+                                                        null);
         FeatureUpdateRequest req = FeatureUpdateRequest.build(searchRequest, properties);
 
         RequestBuilderCustomizer customizer = customizer();
         customizer.expect(MockMvcResultMatchers.status().isNoContent());
-        performDefaultPost(FemDriverController.FEM_DRIVER_PATH + FemDriverController.FEM_DRIVER_UPDATE_PATH, req,
-                           customizer, "Failed to create a new dataset");
+        performDefaultPost(FemDriverController.FEM_DRIVER_PATH + FemDriverController.FEM_DRIVER_UPDATE_PATH,
+                           req,
+                           customizer,
+                           "Failed to create a new dataset");
 
     }
 

@@ -18,20 +18,6 @@ package fr.cnes.regards.modules.catalog.femdriver.rest;
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Assert;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -51,10 +37,22 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
+import org.junit.Assert;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author sbinda
- *
  */
 public abstract class AbstractFemTest extends AbstractRegardsIT {
 
@@ -128,10 +126,11 @@ public abstract class AbstractFemTest extends AbstractRegardsIT {
 
     protected DataObject createEntity(Model model, String providerId, String label) {
         return DataObject.wrap(model,
-                               new DataObjectFeature(
-                                       FeatureUniformResourceName.build(FeatureIdentifier.FEATURE, EntityType.DATA,
-                                                                        getDefaultTenant(), UUID.randomUUID(), 1),
-                                       providerId, label),
+                               new DataObjectFeature(FeatureUniformResourceName.build(FeatureIdentifier.FEATURE,
+                                                                                      EntityType.DATA,
+                                                                                      getDefaultTenant(),
+                                                                                      UUID.randomUUID(),
+                                                                                      1), providerId, label),
                                false);
     }
 

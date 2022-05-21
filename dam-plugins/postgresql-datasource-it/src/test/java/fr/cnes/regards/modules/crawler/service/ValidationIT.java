@@ -18,24 +18,6 @@
  */
 package fr.cnes.regards.modules.crawler.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -53,6 +35,23 @@ import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFa
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Pseudo IT test used for initialisation of Validation
@@ -197,28 +196,28 @@ public class ValidationIT {
     // }
 
     /**
-    private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
-                .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
-                .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
-                .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
-                .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
+     private PluginConfiguration getPostgresDataSource(final PluginConfiguration pluginConf) {
+     final Set<PluginParameter> parameters = PluginParametersFactory.build()
+     .addPluginConfiguration(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf)
+     .addParameter(DataSourcePluginConstants.TABLE_PARAM, T_VIEW)
+     .addParameter(DataSourcePluginConstants.REFRESH_RATE, "1")
+     .addParameter(DataSourcePluginConstants.MODEL_NAME_PARAM, "MODEL_VALIDATION_1")
+     .addParameter(DataSourcePluginConstants.MODEL_MAPPING_PARAM, modelAttrMapping).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
-    }
+     return PluginUtils.getPluginConfiguration(parameters, PostgreDataSourceFromSingleTablePlugin.class);
+     }
 
-    private PluginConfiguration getPostgresConnectionConfiguration() {
-        final Set<PluginParameter> parameters = PluginParametersFactory.build()
-                .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
-                .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
-                .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
-                .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
-                .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
+     private PluginConfiguration getPostgresConnectionConfiguration() {
+     final Set<PluginParameter> parameters = PluginParametersFactory.build()
+     .addParameter(DBConnectionPluginConstants.USER_PARAM, dbUser)
+     .addParameter(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword)
+     .addParameter(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost)
+     .addParameter(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort)
+     .addParameter(DBConnectionPluginConstants.DB_NAME_PARAM, dbName).getParameters();
 
-        return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
-    }
-    */
+     return PluginUtils.getPluginConfiguration(parameters, DefaultPostgreConnectionPlugin.class);
+     }
+     */
 
     // private void buildModelAttributes() {
     // List<AbstractAttributeMapping> attributes = new ArrayList<AbstractAttributeMapping>();
@@ -266,30 +265,49 @@ public class ValidationIT {
     // }
 
     /**
-     *
      * @throws IOException
      * @throws ModuleException
      */
     @Test
     public void validationInserts() throws IOException, ModuleException {
         this.initPluginConfForValidation();
-        InputStream input = Files.newInputStream(Paths.get("src", "test", "resources", "validation", "models",
+        InputStream input = Files.newInputStream(Paths.get("src",
+                                                           "test",
+                                                           "resources",
+                                                           "validation",
+                                                           "models",
                                                            "validationCollectionModel1.xml"));
         modelService.importModel(input);
 
-        input = Files.newInputStream(Paths.get("src", "test", "resources", "validation", "models",
+        input = Files.newInputStream(Paths.get("src",
+                                               "test",
+                                               "resources",
+                                               "validation",
+                                               "models",
                                                "validationDatasetModel1.xml"));
         modelService.importModel(input);
 
-        input = Files.newInputStream(Paths.get("src", "test", "resources", "validation", "models",
+        input = Files.newInputStream(Paths.get("src",
+                                               "test",
+                                               "resources",
+                                               "validation",
+                                               "models",
                                                "validationDataModel1.xml"));
         modelService.importModel(input);
 
-        input = Files.newInputStream(Paths.get("src", "test", "resources", "validation", "models",
+        input = Files.newInputStream(Paths.get("src",
+                                               "test",
+                                               "resources",
+                                               "validation",
+                                               "models",
                                                "validationDatasetModel2.xml"));
         modelService.importModel(input);
 
-        input = Files.newInputStream(Paths.get("src", "test", "resources", "validation", "models",
+        input = Files.newInputStream(Paths.get("src",
+                                               "test",
+                                               "resources",
+                                               "validation",
+                                               "models",
                                                "validationDataModel2.xml"));
         modelService.importModel(input);
 

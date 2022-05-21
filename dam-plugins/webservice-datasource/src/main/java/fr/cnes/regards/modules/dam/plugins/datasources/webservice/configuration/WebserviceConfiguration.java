@@ -1,11 +1,11 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration;
 
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
-
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 
 /**
  * Holds webservice configuration, that describes OpenSearch webservice access with pagination feature
@@ -26,29 +26,29 @@ public class WebserviceConfiguration {
     private String opensearchDescriptorURL;
 
     @PluginParameter(name = "webserviceParameters", label = "Webservice query parameters", optional = true,
-            description = "Webservice query parameters, restricting results set", keylabel = "parameter name")
+        description = "Webservice query parameters, restricting results set", keylabel = "parameter name")
     private Map<String, Object> webserviceParameters;
 
     @PluginParameter(name = "pageIndexParam", label = "Page index parameter",
-            description = "Name of the parameter to use in query in order to specify the page index")
+        description = "Name of the parameter to use in query in order to specify the page index")
     private String pageIndexParam;
 
     @PluginParameter(name = "pageSizeParam", label = "Page size parameter",
-            description = "Name of the parameter to use in query in order in order to specify the page size")
+        description = "Name of the parameter to use in query in order in order to specify the page size")
     private String pageSizeParam;
 
     /**
      * Data updated parameter name, optional as a customer request but omitting that parameter could be leading into performances issues
      */
     @PluginParameter(name = "lastUpdateParam", label = "Last update parameter", optional = true,
-            description = "Name of the parameter to use in query in order to specify the results last update lower date (others should not be returned)")
+        description = "Name of the parameter to use in query in order to specify the results last update lower date (others should not be returned)")
     private String lastUpdateParam;
 
     /**
      * Server start page index (1 when not provided)
      */
     @PluginParameter(name = "startPageIndex", label = "Start page index", optional = true, defaultValue = "1",
-            description = "Server start page index")
+        description = "Server start page index")
     private Integer startPageIndex;
 
     /**
@@ -56,7 +56,7 @@ public class WebserviceConfiguration {
      * that send errors when requesting a first page larger than where they expect (twisted behavior...)
      */
     @PluginParameter(name = "pagesSize", label = "Page sizes", optional = true,
-            description = "Server pages size (for servers sending errors when page size is too large)")
+        description = "Server pages size (for servers sending errors when page size is too large)")
     private Integer pagesSize;
 
     /**
@@ -68,9 +68,14 @@ public class WebserviceConfiguration {
     /**
      * Constructor for tests
      */
-    public WebserviceConfiguration(String webserviceURL, String opensearchDescriptorURL, String pageIndexParam,
-            String pageSizeParam, String lastUpdateParam, int startPageIndex, Integer pagesSize,
-            Map<String, Object> webserviceParameters) {
+    public WebserviceConfiguration(String webserviceURL,
+                                   String opensearchDescriptorURL,
+                                   String pageIndexParam,
+                                   String pageSizeParam,
+                                   String lastUpdateParam,
+                                   int startPageIndex,
+                                   Integer pagesSize,
+                                   Map<String, Object> webserviceParameters) {
         this.webserviceURL = webserviceURL;
         this.opensearchDescriptorURL = opensearchDescriptorURL;
         this.pageIndexParam = pageIndexParam;

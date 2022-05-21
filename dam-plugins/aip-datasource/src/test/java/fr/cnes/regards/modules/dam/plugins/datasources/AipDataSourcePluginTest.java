@@ -18,36 +18,7 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-
 import com.google.common.collect.Lists;
-
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -69,6 +40,24 @@ import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.LongProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
 
 /**
  * {@link AipDataSourcePlugin} test class
@@ -107,16 +96,22 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Map<String, Object> pluginCacheMap = new HashMap<>();
 
         // Instantiate the data source plugin
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
-                                        PluginParameterTransformer.toJson(createBindingMap())),
-                     IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
-                                        PluginParameterTransformer.toJson(Arrays.asList(MODEL_NAME))),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, MODEL_NAME),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1800),
-                     IPluginParam.build(DataSourcePluginConstants.TAGS,
-                                        PluginParameterTransformer.toJson(Lists.newArrayList("TOTO", "TITI"))),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, "ALTITUDE.SIZE"));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               createBindingMap())),
+                                                        IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
+                                                                           PluginParameterTransformer.toJson(Arrays.asList(
+                                                                               MODEL_NAME))),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           MODEL_NAME),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE,
+                                                                           1800),
+                                                        IPluginParam.build(DataSourcePluginConstants.TAGS,
+                                                                           PluginParameterTransformer.toJson(Lists.newArrayList(
+                                                                               "TOTO",
+                                                                               "TITI"))),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE,
+                                                                           "ALTITUDE.SIZE"));
 
         dsPlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
                                          pluginCacheMap);
@@ -125,6 +120,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     /**
      * Import model definition file from resources directory
+     *
      * @param filename filename
      * @throws ModuleException if error occurs
      */
@@ -141,8 +137,13 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     protected static List<AIP> createAIPs(int count, String... tags) {
         List<AIP> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP, EntityType.DATA, "TENANT",
-                    UUID.randomUUID(), 1, null, null);
+            OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP,
+                                                                     EntityType.DATA,
+                                                                     "TENANT",
+                                                                     UUID.randomUUID(),
+                                                                     1,
+                                                                     null,
+                                                                     null);
             AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
             aip.withContextTags(tags);
 
@@ -160,10 +161,14 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
             aip.withDescriptiveInformation("POUET", "POUET");
             aip.withDescriptiveInformation("LINKS", "https://sipad-serad.cnes.fr");
             Map<String, String> dateBounds = new HashMap<>();
-            dateBounds.put(DataSourcePluginConstants.LOWER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
-                    .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
-            dateBounds.put(DataSourcePluginConstants.UPPER_BOUND, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC)
-                    .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
+            dateBounds.put(DataSourcePluginConstants.LOWER_BOUND,
+                           OffsetDateTime.now()
+                                         .atZoneSameInstant(ZoneOffset.UTC)
+                                         .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
+            dateBounds.put(DataSourcePluginConstants.UPPER_BOUND,
+                           OffsetDateTime.now()
+                                         .atZoneSameInstant(ZoneOffset.UTC)
+                                         .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
             aip.withDescriptiveInformation("range", dateBounds);
 
             Map<String, Integer> intBounds = new HashMap<>();

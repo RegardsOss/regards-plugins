@@ -20,5 +20,4 @@ public class ReportTemplateConfiguration {
         return TemplateConfigUtil.readTemplate(CONVERSION_REPORT_KEY, "templates/notification-template.ftl");
     }
 
-
 }

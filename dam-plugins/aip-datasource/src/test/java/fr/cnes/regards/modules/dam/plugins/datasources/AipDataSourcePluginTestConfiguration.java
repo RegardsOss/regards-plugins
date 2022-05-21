@@ -65,7 +65,7 @@ public class AipDataSourcePluginTestConfiguration {
         project.setHost("http://test.com");
         EntityModel<Project> resource = EntityModel.of(project);
         ResponseEntity<EntityModel<Project>> response = new ResponseEntity<EntityModel<Project>>(resource,
-                HttpStatus.OK);
+                                                                                                 HttpStatus.OK);
         Mockito.when(client.retrieveProject(Mockito.anyString())).thenReturn(response);
         return client;
     }
@@ -82,29 +82,39 @@ public class AipDataSourcePluginTestConfiguration {
             return null;
         };
         return (IAIPRestClient) Proxy.newProxyInstance(IAIPRestClient.class.getClassLoader(),
-                                                       new Class<?>[] { IAIPRestClient.class }, handler);
+                                                       new Class<?>[] { IAIPRestClient.class },
+                                                       handler);
     }
 
     private class AipClientProxy {
 
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters, int page,
-                int size) {
+        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
+                                                                             int page,
+                                                                             int size) {
             List<AIPEntity> aipEntities = new ArrayList<>();
 
             for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
-                aip.withDataObject(DataType.RAWDATA, "Name", "SHA", "Checksum", 1000L,
+                aip.withDataObject(DataType.RAWDATA,
+                                   "Name",
+                                   "SHA",
+                                   "Checksum",
+                                   1000L,
                                    OAISDataObjectLocation.build("http://perdu.com", "AWS"));
                 aip.withSyntaxAndDimension(MimeTypeUtils.IMAGE_JPEG, 1000d, 1500d);
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
                                                     Sets.newHashSet("type1", "type2"));
                 aip.registerContentInformation();
                 SIP sip = SIP.build(EntityType.DATA, "sipId");
-                SIPEntity sipEntity = SIPEntity
-                        .build("PROJECT1",
-                               IngestMetadata.build("NASA", OffsetDateTime.now().toString(), "defaultChain",
-                                                    Sets.newHashSet("Cat!"), StorageMetadata.build("AWS")),
-                               sip, 1, SIPState.STORED);
+                SIPEntity sipEntity = SIPEntity.build("PROJECT1",
+                                                      IngestMetadata.build("NASA",
+                                                                           OffsetDateTime.now().toString(),
+                                                                           "defaultChain",
+                                                                           Sets.newHashSet("Cat!"),
+                                                                           StorageMetadata.build("AWS")),
+                                                      sip,
+                                                      1,
+                                                      SIPState.STORED);
 
                 aipEntities.add(AIPEntity.build(sipEntity, filters.getState(), aip));
 
@@ -112,7 +122,10 @@ public class AipDataSourcePluginTestConfiguration {
 
             List<EntityModel<AIPEntity>> list = aipEntities.stream().map(EntityModel::of).collect(Collectors.toList());
             return ResponseEntity.ok(PagedModel.of(list,
-                    new PagedModel.PageMetadata(aipEntities.size(), 0, aipEntities.size(), 1)));
+                                                   new PagedModel.PageMetadata(aipEntities.size(),
+                                                                               0,
+                                                                               aipEntities.size(),
+                                                                               1)));
         }
 
     }
@@ -122,8 +135,16 @@ public class AipDataSourcePluginTestConfiguration {
         IStorageRestClient mock = Mockito.mock(IStorageRestClient.class);
         StorageLocationConfiguration storageLocationConfiguration = new StorageLocationConfiguration("AWS", null, 1L);
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
-        StorageLocationDTO dto = new StorageLocationDTO("AWS", 1L, 1L, 1L, 1L, false, false, false,
-                                                          storageLocationConfiguration, false);
+        StorageLocationDTO dto = new StorageLocationDTO("AWS",
+                                                        1L,
+                                                        1L,
+                                                        1L,
+                                                        1L,
+                                                        false,
+                                                        false,
+                                                        false,
+                                                        storageLocationConfiguration,
+                                                        false);
         List<EntityModel<StorageLocationDTO>> list = new LinkedList<>();
         list.add(EntityModel.of(dto));
         ResponseEntity<List<EntityModel<StorageLocationDTO>>> result = ResponseEntity.ok(list);

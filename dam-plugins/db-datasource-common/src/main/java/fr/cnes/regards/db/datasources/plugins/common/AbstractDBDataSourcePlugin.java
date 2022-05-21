@@ -19,24 +19,24 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.OffsetDateTime;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
 
 /**
  * A {@link Plugin} to retrieve the data elements from a SQL Database.</br>
  * This {@link Plugin} used a {@link IDBConnectionPlugin} to define to connection to the Database.
+ *
  * @author Christophe Mertz
  */
 public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMapping implements IDBDataSourcePlugin {
@@ -64,10 +64,10 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     protected String getSelectRequest(Pageable pageable, OffsetDateTime sinceData) {
         if ((sinceData != null) && !getLastUpdateAttributeName().isEmpty()) {
             return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + WHERE
-                    + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + buildLimitPart(pageable);
+                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + buildLimitPart(pageable);
         } else {
-            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause()
-                    + buildLimitPart(pageable);
+            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + buildLimitPart(
+                pageable);
         }
     }
 
@@ -86,7 +86,7 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
      */
     @Override
     public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime sinceDate)
-            throws DataSourceException {
+        throws DataSourceException {
         final String selectRequest = getSelectRequest(pageable, sinceDate);
         final String countRequest = getCountRequest(sinceDate);
 
@@ -103,6 +103,7 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
 
     /**
      * Add to the SQL request the part to fetch only a portion of the results.
+     *
      * @param pageable the page of the element to fetch
      * @return the SQL request
      */

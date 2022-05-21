@@ -30,13 +30,13 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugi
 /**
  * A default {@link Plugin} of type {@link IDBConnectionPlugin}. For the test of the connection :
  *
- * @see 'http://stackoverflow.com/questions/3668506/efficient-sql-test-query-or-validation-query-that-will-work-across-all-or-most'
  * @author Christophe Mertz
+ * @see 'http://stackoverflow.com/questions/3668506/efficient-sql-test-query-or-validation-query-that-will-work-across-all-or-most'
  * @since 1.0-SNAPSHOT
  */
 @Plugin(id = "postgresql-db-connection", version = "1.0-SNAPSHOT", description = "Connection to a PostgreSql database",
-        author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-        url = "https://github.com/RegardsOss")
+    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
+    url = "https://github.com/RegardsOss")
 public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
 
     /**
@@ -54,7 +54,7 @@ public class DefaultPostgreConnectionPlugin extends AbstractDBConnection {
      * The user's password to used for the database connection
      */
     @PluginParameter(name = DBConnectionPluginConstants.PASSWORD_PARAM, label = "Database user password",
-            sensitive = true)
+        sensitive = true)
     private String dbPassword;
 
     /**

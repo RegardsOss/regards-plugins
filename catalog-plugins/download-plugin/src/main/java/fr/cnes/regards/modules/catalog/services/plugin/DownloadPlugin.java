@@ -18,45 +18,10 @@
  */
 package fr.cnes.regards.modules.catalog.services.plugin;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-
 import feign.Response;
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
@@ -79,10 +44,36 @@ import fr.cnes.regards.modules.catalog.services.plugins.AbstractCatalogServicePl
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Plugin(description = "Plugin to allow download on multiple data selection by creating an archive.",
-        id = "DownloadPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr",
-        license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+    id = "DownloadPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3",
+    owner = "CSSI", url = "https://github.com/RegardsOss")
 @CatalogServicePlugin(applicationModes = { ServiceScope.MANY }, entityTypes = { EntityType.DATA })
 public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEntitiesServicePlugin {
 
@@ -114,21 +105,22 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     private final Set<String> noProxyHosts = Sets.newHashSet();
 
     @PluginParameter(label = "Maximum number of files", name = "maxFilesToDownload", defaultValue = "1000",
-            description = "Maximum number of files that this plugin allow to download.")
+        description = "Maximum number of files that this plugin allow to download.")
     private int maxFilesToDownload;
 
     @PluginParameter(label = "Maximum total size for download (Mo)", name = "maxFilesSizeToDownload",
-            defaultValue = "100", description = "Maximum total size of selected files for one download.")
+        defaultValue = "100", description = "Maximum total size of selected files for one download.")
     private int maxFilesSizeToDownload;
 
     @PluginParameter(label = "Archive file name", name = "archiveFileName", defaultValue = "download.zip",
-            description = "Name of the archive containing all selected files for download.")
+        description = "Name of the archive containing all selected files for download.")
     private String archiveFileName;
 
     @PluginInit
     public void init() {
-        proxy = Strings.isNullOrEmpty(proxyHost) ? Proxy.NO_PROXY
-                : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+        proxy = Strings.isNullOrEmpty(proxyHost) ?
+            Proxy.NO_PROXY :
+            new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
         if (noProxyHostsString != null) {
             Collections.addAll(noProxyHosts, noProxyHostsString.split("\\s*,\\s*"));
         }
@@ -136,7 +128,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     @Override
     public ResponseEntity<StreamingResponseBody> apply(ServicePluginParameters parameters,
-            HttpServletResponse response) {
+                                                       HttpServletResponse response) {
         Page<DataObject> results;
         try {
             results = serviceHelper.getDataObjects(parameters.getSearchRequest(), 0, 10000);
@@ -144,7 +136,8 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         } catch (ModuleException e) {
             String message = String.format("Error applying service. Cause : %s", e.getMessage());
             LOGGER.error(message, e);
-            return CatalogPluginResponseFactory.createSuccessResponse(response, CatalogPluginResponseType.JSON,
+            return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                      CatalogPluginResponseType.JSON,
                                                                       message);
         }
 
@@ -167,38 +160,51 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         // If files number exceed maximum configured, return a JSON message with the error.
         LOGGER.debug(String.format("Number of files to download : %d", nbFiles));
         if (nbFiles > maxFilesToDownload) {
-            return CatalogPluginResponseFactory
-                    .createSuccessResponse(response, CatalogPluginResponseType.JSON,
-                                           String.format("Number of files to download %d exceed maximum allowed of %d",
-                                                         nbFiles, maxFilesToDownload));
+            return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                      CatalogPluginResponseType.JSON,
+                                                                      String.format(
+                                                                          "Number of files to download %d exceed maximum allowed of %d",
+                                                                          nbFiles,
+                                                                          maxFilesToDownload));
         }
 
         // Check for maximum file size limit
-        long filesSizeInBytes = toDownloadFilesMap.values().stream()
-                .mapToLong(list -> list.stream().mapToLong(d -> d.getFilesize() != null ? d.getFilesize() : 0).sum())
-                .sum();
+        long filesSizeInBytes = toDownloadFilesMap.values()
+                                                  .stream()
+                                                  .mapToLong(list -> list.stream()
+                                                                         .mapToLong(d -> d.getFilesize() != null ?
+                                                                             d.getFilesize() :
+                                                                             0)
+                                                                         .sum())
+                                                  .sum();
         LOGGER.debug(String.format("Total size of files to download : %d", filesSizeInBytes));
         // If size exceed maximum configured, return a JSON message with the error.
         if (filesSizeInBytes > (maxFilesSizeToDownload * 1024 * 1024)) {
-            return CatalogPluginResponseFactory.createSuccessResponse(response, CatalogPluginResponseType.JSON, String
-                    .format("Total size of selected files exceeded maximum allowed of %d (Mo)", maxFilesToDownload));
+            return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                      CatalogPluginResponseType.JSON,
+                                                                      String.format(
+                                                                          "Total size of selected files exceeded maximum allowed of %d (Mo)",
+                                                                          maxFilesToDownload));
         }
 
         // If there is no file downloadable, return a JSON message.
         if (nbFiles == 0) {
-            return CatalogPluginResponseFactory
-                    .createSuccessResponse(response, CatalogPluginResponseType.JSON,
-                                           "None of the selected files are available for download");
+            return CatalogPluginResponseFactory.createSuccessResponse(response,
+                                                                      CatalogPluginResponseType.JSON,
+                                                                      "None of the selected files are available for download");
         }
 
         // Create and stream the ZIP archive containing all downloadable files
-        return CatalogPluginResponseFactory.createStreamSuccessResponse(response, getFilesAsZip(toDownloadFilesMap),
+        return CatalogPluginResponseFactory.createStreamSuccessResponse(response,
+                                                                        getFilesAsZip(toDownloadFilesMap),
                                                                         getArchiveName(),
-                                                                        MediaType.APPLICATION_OCTET_STREAM, Optional.of(filesSizeInBytes));
+                                                                        MediaType.APPLICATION_OCTET_STREAM,
+                                                                        Optional.of(filesSizeInBytes));
     }
 
     /**
      * Get the archive name by reading plugin parameters configuration.
+     *
      * @return String archive name
      */
     private String getArchiveName() {
@@ -211,6 +217,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     /**
      * Get all the online {@link DataFile} of the given {@link DataObject}
+     *
      * @param dataObject {@link DataObject}
      * @return online {@link DataFile}s
      */
@@ -218,9 +225,8 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         Set<DataFile> files = Sets.newHashSet();
         if ((dataObject != null) && (dataObject.getFiles() != null)) {
             dataObject.getFiles().forEach((type, file) -> {
-                if (DataType.RAWDATA.equals(type)
-                        && (Boolean.TRUE.equals(file.isOnline()) || Boolean.TRUE.equals(file.isReference()))
-                        && (file.getUri() != null)) {
+                if (DataType.RAWDATA.equals(type) && (Boolean.TRUE.equals(file.isOnline())
+                    || Boolean.TRUE.equals(file.isReference())) && (file.getUri() != null)) {
                     files.add(file);
                 }
             });
@@ -230,6 +236,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     /**
      * Create a StreamingResponseBody by writting a ZIP containing all given {@link DataFile}
+     *
      * @param files {@link DataFile}s to write into the ZIP.
      * @return {@link StreamingResponseBody}
      */
@@ -239,8 +246,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     /**
      * Write a ZIP Archive with the given {@link DataFile}s into the given {@link OutputStream}
+     *
      * @param outputStream {@link OutputStream}
-     * @param dataFiles {@link DataFile}s
+     * @param dataFiles    {@link DataFile}s
      */
     private void createZipArchive(OutputStream outputStream, Map<DataObject, Set<DataFile>> dataFiles) {
         try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
@@ -256,7 +264,8 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                 zos.putNextEntry(new ZipEntry("NOTICE.txt"));
                 StringJoiner joiner = new StringJoiner("\n");
                 downloadErrorFiles.forEach(p -> joiner.add(String.format("Failed to download file (%s): %s.",
-                                                                         p.getLeft().getFilename(), p.getRight())));
+                                                                         p.getLeft().getFilename(),
+                                                                         p.getRight())));
                 ByteStreams.copy(IOUtils.toInputStream(joiner.toString(), StandardCharsets.UTF_8), zos);
                 zos.closeEntry();
             }
@@ -288,12 +297,15 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     /**
      * Add a new file in the streaming ZIP Archive by Writing a {@link DataFile} into the given {@link ZipOutputStream}
-     * @param file {@link DataFile}
+     *
+     * @param file       {@link DataFile}
      * @param dataobject {@link DataObject} of the given {@link DataFile}
-     * @param zos {@link ZipOutputStream} to write into
+     * @param zos        {@link ZipOutputStream} to write into
      */
-    private void writeDataFileIntoZip(DataFile file, DataObject dataobject, ZipOutputStream zos,
-            List<Pair<DataFile, String>> downloadErrorFiles) {
+    private void writeDataFileIntoZip(DataFile file,
+                                      DataObject dataobject,
+                                      ZipOutputStream zos,
+                                      List<Pair<DataFile, String>> downloadErrorFiles) {
         String fileName = getDataObjectFileNameForDownload(dataobject, file);
         try {
             LOGGER.debug(String.format("Adding file %s into ZIP archive", fileName));
@@ -338,19 +350,21 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     /**
      * File name for download is : <dataobjectName/dataFileName>. The dataFile name is the name of {@link DataFile} or
      * name of URI if name is null.
+     *
      * @param dataobject {@link DataObject}
-     * @param datafile {@link DataFile}
+     * @param datafile   {@link DataFile}
      * @return String fileName
      */
     private String getDataObjectFileNameForDownload(DataObject dataobject, DataFile datafile) {
-        String fileName = datafile.getFilename() != null ? datafile.getFilename()
-                : FilenameUtils.getName(datafile.asUri().getPath());
+        String fileName =
+            datafile.getFilename() != null ? datafile.getFilename() : FilenameUtils.getName(datafile.asUri().getPath());
         String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replaceAll(" ", "") : "files";
         return String.format("%s/%s", dataObjectName, fileName);
     }
 
     /**
      * Generate URL to download the given {@link DataFile}
+     *
      * @param file {@link DataFile} to download
      * @return {@link URL}
      */

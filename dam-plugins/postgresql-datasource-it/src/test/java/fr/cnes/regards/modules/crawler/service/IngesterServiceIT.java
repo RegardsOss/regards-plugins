@@ -68,7 +68,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@ActiveProfiles({ "noschedule", "IngesterTest", "test" }) // Disable scheduling, this will activate IngesterService during all tests
+@ActiveProfiles({ "noschedule", "IngesterTest", "test" })
+// Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
 public class IngesterServiceIT extends AbstractRegardsIT {
 
@@ -170,15 +171,19 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private Gson gson;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_1),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(modelAttrMapping)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            pluginConf.getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           T_DATA_1),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               modelAttrMapping)));
 
-        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
+                                                             null,
                                                              parameters);
         conf.setLabel("pluginConf1");
         conf.setBusinessId("pluginConf1");
@@ -186,15 +191,19 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getPostgresDataSource2(final PluginConfiguration pluginConf) {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_2),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(modelAttrMapping)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            pluginConf.getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           T_DATA_2),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 1),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               modelAttrMapping)));
 
-        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
+                                                             null,
                                                              parameters);
         conf.setLabel("pluginConf2");
         conf.setBusinessId("pluginConf2");
@@ -202,15 +211,19 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getPostgresDataSource3(final PluginConfiguration pluginConf) {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM, pluginConf.getBusinessId()),
-                     IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM, T_DATA_3),
-                     IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 10),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM, dataModel.getName()),
-                     IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
-                                        PluginParameterTransformer.toJson(modelAttrMapping)));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
+                                                                            pluginConf.getBusinessId()),
+                                                        IPluginParam.build(DataSourcePluginConstants.TABLE_PARAM,
+                                                                           T_DATA_3),
+                                                        IPluginParam.build(DataSourcePluginConstants.REFRESH_RATE, 10),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
+                                                                           dataModel.getName()),
+                                                        IPluginParam.build(DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                                                                           PluginParameterTransformer.toJson(
+                                                                               modelAttrMapping)));
 
-        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class, null,
+        PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
+                                                             null,
                                                              parameters);
         conf.setLabel("pluginConf3");
         conf.setBusinessId("pluginConf3");
@@ -218,11 +231,14 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     }
 
     private PluginConfiguration getPostgresConnectionConfiguration() {
-        Set<IPluginParam> parameters = IPluginParam
-                .set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM, dbUser),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM, dbHost),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM, dbPort),
-                     IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM, dbName));
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DBConnectionPluginConstants.USER_PARAM,
+                                                                           dbUser),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_HOST_PARAM,
+                                                                           dbHost),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_PORT_PARAM,
+                                                                           dbPort),
+                                                        IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
+                                                                           dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
         passwordParam.setDecryptedValue(dbPpassword);
         parameters.add(passwordParam);
@@ -233,8 +249,9 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private void buildModelAttributes() {
         modelAttrMapping = new ArrayList<>();
         modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.PRIMARY_KEY, PropertyType.LONG, "id"));
-        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE, PropertyType.DATE_ISO8601,
-                "date"));
+        modelAttrMapping.add(new StaticAttributeMapping(AbstractAttributeMapping.LAST_UPDATE,
+                                                        PropertyType.DATE_ISO8601,
+                                                        "date"));
     }
 
     @Before
@@ -336,7 +353,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     public void test() throws InterruptedException {
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
-                .thenReturn(ResponseEntity.ok(EntityModel.of(project)));
+               .thenReturn(ResponseEntity.ok(EntityModel.of(project)));
         // Initial Ingestion with no value from datasources
         ingesterService.manage();
 

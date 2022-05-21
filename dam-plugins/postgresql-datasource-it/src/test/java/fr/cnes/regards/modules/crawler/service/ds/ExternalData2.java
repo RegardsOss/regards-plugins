@@ -1,20 +1,15 @@
 package fr.cnes.regards.modules.crawler.service.ds;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.time.OffsetDateTime;
-
 import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
+
+import javax.persistence.*;
+import java.time.OffsetDateTime;
 
 /**
  * External Datasource data.<br/>
  * The aim of this entity is to create a table as if it is an external datasource. It contains a prilary key and a date
  * column to be used by CrawlerService ingestion mechanism.
+ *
  * @author oroussel
  */
 @Entity
