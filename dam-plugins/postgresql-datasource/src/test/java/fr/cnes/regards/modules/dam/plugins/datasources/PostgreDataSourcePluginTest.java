@@ -39,6 +39,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.DynamicAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
@@ -57,15 +58,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.sql.SQLException;
 import java.time.*;
 import java.util.ArrayList;
@@ -131,11 +127,6 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     /**
      * Populate the datasource as a legacy catalog
-     *
-     * @throws SQLException
-     * @throws ModuleException
-     * @throws MalformedURLException
-     * @throws NotAvailablePluginConfigurationException
      */
     @Before
     public void setUp()
@@ -237,14 +228,14 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     @Requirement("REGARDS_DSL_DAM_PLG_200")
     @Purpose(
         "The system has a plugin that enables to define a datasource to a PostreSql database by setting a SQL request")
-    public void getDataSourceIntrospection() throws SQLException, DataSourceException {
+    public void getDataSourceIntrospection() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10));
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), null);
         Assert.assertNotNull(ll);
-        Assert.assertEquals(nbElements, ll.getContent().size());
+        Assert.assertEquals(nbElements, ll.size());
 
-        ll.getContent().forEach(dataObj -> {
+        ll.forEach(dataObj -> {
             LOG.info("------------------->");
             dataObj.getProperties().forEach(attr -> {
                 LOG.info(attr.getName() + " : " + attr.getValue());
@@ -254,24 +245,24 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
             });
         });
 
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        ll.forEach(d -> Assert.assertNotNull(d.getId()));
+        ll.forEach(d -> Assert.assertNotNull(d.getProviderId()));
+        ll.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
 
     @Test
     @Requirement("REGARDS_DSL_DAM_ARC_120")
     @Requirement("REGARDS_DSL_DAM_ARC_130")
     @Purpose("The system allows to define a request to a data source to get a subset of the data")
-    public void getDataSourceIntrospectionFromPastDate() throws SQLException, DataSourceException {
+    public void getDataSourceIntrospectionFromPastDate() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), date);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), date);
         Assert.assertNotNull(ll);
-        Assert.assertEquals(1, ll.getContent().size());
+        Assert.assertEquals(1, ll.size());
 
-        ll.getContent().forEach(dataObj -> {
+        ll.forEach(dataObj -> {
             LOG.info("------------------->");
             dataObj.getProperties().forEach(attr -> {
                 LOG.info(attr.getName() + " : " + attr.getValue());
@@ -281,19 +272,19 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
             });
         });
 
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        ll.forEach(d -> Assert.assertNotNull(d.getId()));
+        ll.forEach(d -> Assert.assertNotNull(d.getProviderId()));
+        ll.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
 
     @Test
-    public void getDataSourceIntrospectionFromFutureDate() throws SQLException, DataSourceException {
+    public void getDataSourceIntrospectionFromFutureDate() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), ldt);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), ldt);
         Assert.assertNotNull(ll);
-        Assert.assertEquals(0, ll.getContent().size());
+        Assert.assertEquals(0, ll.size());
     }
 
     @After
@@ -305,11 +296,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
      * Define the {@link PluginConfiguration} for a {@link DefaultPostgreConnectionPlugin} to connect to the PostgreSql
      * database
      *
-     * @return the {@link PluginConfiguration} @
-     * @throws EncryptionException
-     * @throws IOException
-     * @throws InvalidAlgorithmParameterException
-     * @throws InvalidKeyException
+     * @return the {@link PluginConfiguration}
      */
     private PluginConfiguration getPostgreConnectionConfiguration()
         throws EncryptionException, EntityNotFoundException, EntityInvalidException {
@@ -335,7 +322,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     }
 
     private void buildModelAttributes() {
-        attributesMapping = new ArrayList<AbstractAttributeMapping>();
+        attributesMapping = new ArrayList<>();
 
         attributesMapping.add(new DynamicAttributeMapping(NAME_ATTR,
                                                           PropertyType.STRING,

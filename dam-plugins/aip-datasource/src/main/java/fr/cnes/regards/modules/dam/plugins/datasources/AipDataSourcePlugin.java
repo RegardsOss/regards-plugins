@@ -22,7 +22,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.amqp.IInstanceSubscriber;
 import fr.cnes.regards.framework.amqp.domain.IHandler;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
@@ -38,6 +37,7 @@ import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
 import fr.cnes.regards.framework.utils.plugins.PluginUtilsRuntimeException;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
@@ -68,20 +68,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -103,15 +98,53 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      * Property in AIP contentInformation.representationInformation.environmentDescription.softwareEnvironment to
      * add custom types on data files.
      */
-    public static final String AIP_PROPERTY_DATA_FILES_TYPES = "types";
+    static final String AIP_PROPERTY_DATA_FILES_TYPES = "types";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AipDataSourcePlugin.class);
 
     private static final String CATALOG_DOWNLOAD_PATH = "/downloads/{aip_id}/files/{checksum}";
 
+    // -------------------------
+    // --- PLUGIN PARAMETERS ---
+    // -------------------------
+
     @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
         description = "Common tags to be put on all data objects created by the data source")
-    private final Set<String> commonTags = Sets.newHashSet();
+    private Set<String> commonTags;
+
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
+        description = "Associated data source model name")
+    protected String modelName;
+
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
+        description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
+    private Set<String> subsettingTags;
+
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_CATEGORIES, label = "Subsetting categories",
+        optional = true,
+        description = "The plugin will fetch data storage to find AIPs with the given catories. If no category is specified, plugin will fetch all the available AIPs.")
+    private Set<String> categories;
+
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
+        label = "AIP property path",
+        description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
+    private Map<String, String> bindingMap;
+
+    /**
+     * Ingestion refresh rate in seconds
+     */
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
+        label = "refresh rate",
+        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    private Integer refreshRate;
+
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, optional = true,
+        label = "Attribute model for RAW DATA files size",
+        description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
+    private String modelAttrNameFileSize;
+
+    @Value("${prefix.path}")
+    String urlPrefix;
 
     /**
      * Association table between JSON path property and its type from model
@@ -137,37 +170,11 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
     private final Multimap<String, String> multimap = HashMultimap.create();
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-        description = "Associated data source model name")
-    protected String modelName;
+    private Model model;
 
-    @Autowired
-    private IAIPRestClient aipClient;
-
-    @Autowired
-    private IStorageRestClient storageRestClient;
-
-    @Autowired
-    private IProjectsClient projectClient;
-
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
-        description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
-    private Set<String> subsettingTags;
-
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_CATEGORIES, label = "Subsetting categories",
-        optional = true,
-        description = "The plugin will fetch data storage to find AIPs with the given catories. If no category is specified, plugin will fetch all the available AIPs.")
-    private Set<String> categories;
-
-    //    @PluginParameter(name = "overlap",
-    //            description = "Overlap so that AIP search starts from the specified date minus the overlap in second",
-    //            label = "Overlap in second")
-    //    private final Long overlap = 60L;
-
-    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
-        label = "AIP property path",
-        description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
-    private Map<String, String> bindingMap;
+    // -------------------------
+    // ------- SERVICES --------
+    // -------------------------
 
     @Autowired
     private IModelService modelService;
@@ -178,33 +185,17 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     @Autowired
     private IInstanceSubscriber subscriber;
 
-    @Value("${prefix.path}")
-    private String urlPrefix;
+    @Autowired
+    private IAIPRestClient aipClient;
 
-    private Model model;
+    @Autowired
+    private IStorageRestClient storageRestClient;
 
-    /**
-     * Ingestion refresh rate in seconds
-     */
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
-    private Integer refreshRate;
-
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, optional = true,
-        label = "Attribute model for RAW DATA files size",
-        description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
-    private String modelAttrNameFileSize;
+    @Autowired
+    private IProjectsClient projectClient;
 
     private static String encode4Uri(String str) {
         return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
-    }
-
-    @Override
-    public void handle(String tenant, ProjectUpdateEvent projectEvent) {
-        if (projects.get(projectEvent.getProject().getName()) != null) {
-            projects.put(projectEvent.getProject().getName(), projectEvent.getProject());
-        }
     }
 
     /**
@@ -220,7 +211,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         subscriber.subscribeTo(ProjectUpdateEvent.class, this);
 
         List<ModelAttrAssoc> modelAttrAssocs = modelAttrAssocService.getModelAttrAssocs(modelName);
-        // Fill map { "properties.titi.tutu", AttributeType.STRING }
+        // Fill map ["properties.titi.tutu", AttributeType.STRING]
         for (ModelAttrAssoc assoc : modelAttrAssocs) {
             modelMappingMap.put(assoc.getAttribute().getJsonPath(), assoc.getAttribute().getType());
         }
@@ -235,7 +226,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                     String modelKey = entry.getKey()
                                            .substring(0,
                                                       doPropertyPath.length()
-                                                          - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
+                                                      - DataSourcePluginConstants.LOWER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add lower bound value at index 0
                         modelBindingMap.get(modelKey).add(0, entry.getValue());
@@ -249,7 +240,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                     String modelKey = entry.getKey()
                                            .substring(0,
                                                       doPropertyPath.length()
-                                                          - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
+                                                      - DataSourcePluginConstants.UPPER_BOUND_SUFFIX.length());
                     if (modelBindingMap.containsKey(modelKey)) {
                         // Add upper bound value at index 1
                         modelBindingMap.get(modelKey).add(entry.getValue());
@@ -260,11 +251,11 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                     }
                 } else {
                     // - others : propagate properties
-                    modelBindingMap.put(doPropertyPath, Arrays.asList(entry.getValue()));
+                    modelBindingMap.put(doPropertyPath, List.of(entry.getValue()));
                 }
             } else {
                 // Propagate properties
-                modelBindingMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                modelBindingMap.put(entry.getKey(), List.of(entry.getValue()));
             }
         }
 
@@ -276,22 +267,21 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                                                           .filter(name -> !modelMappingMap.containsKey(name))
                                                           .collect(Collectors.toSet());
         if (!notInModelProperties.isEmpty()) {
-            throw new ModuleException(
-                "Following properties don't exist into model : " + Joiner.on(", ").join(notInModelProperties));
+            throw new ModuleException(String.format("Following properties don't exist into model : %s",
+                                                    Joiner.on(", ").join(notInModelProperties)));
         }
         DataObject forIntrospection = new DataObject();
-        PropertyUtilsBean propertyUtilsBean = new PropertyUtilsBean();
+        PropertyUtilsBean property = new PropertyUtilsBean();
         Set<String> notInModelStaticProperties = modelBindingMap.keySet()
                                                                 .stream()
                                                                 .filter(name -> !name.startsWith(
                                                                     DataSourcePluginConstants.PROPERTY_PREFIX))
-                                                                .filter(name -> !propertyUtilsBean.isWriteable(
-                                                                    forIntrospection,
-                                                                    name))
+                                                                .filter(name -> !property.isWriteable(forIntrospection,
+                                                                                                      name))
                                                                 .collect(Collectors.toSet());
         if (!notInModelStaticProperties.isEmpty()) {
-            throw new ModuleException(
-                "Following static properties don't exist : " + Joiner.on(", ").join(notInModelProperties));
+            throw new ModuleException("Following static properties don't exist : " + Joiner.on(", ")
+                                                                                           .join(notInModelProperties));
         }
 
         // Check number of values mapped for each type
@@ -300,13 +290,15 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                 PropertyType attributeType = modelMappingMap.get(entry.getKey());
                 if (attributeType.isInterval()) {
                     if (entry.getValue().size() != 2) {
-                        throw new ModuleException(
-                            attributeType + " properties " + entry.getKey() + " has to be mapped to exactly 2 values");
+                        throw new ModuleException(String.format("%s properties %s has to be mapped to exactly 2 values",
+                                                                attributeType,
+                                                                entry.getKey()));
                     }
                 } else {
                     if (entry.getValue().size() != 1) {
-                        throw new ModuleException(
-                            attributeType + " properties " + entry.getKey() + " has to be mapped to a single value");
+                        throw new ModuleException(String.format("%s properties %s has to be mapped to a single value",
+                                                                attributeType,
+                                                                entry.getKey()));
                     }
                 }
             }
@@ -319,72 +311,138 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     }
 
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+    public String getModelName() {
+        return modelName;
+    }
+
+    @Override
+    public void handle(String tenant, ProjectUpdateEvent projectEvent) {
+        if (projects.get(projectEvent.getProject().getName()) != null) {
+            projects.put(projectEvent.getProject().getName(), projectEvent.getProject());
+        }
+    }
+
+    @Override
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
         throws DataSourceException {
+        PagedModel<EntityModel<AIPEntity>> pageAipEntities;
+        List<DataObjectFeature> dataObjects;
+        Collection<EntityModel<AIPEntity>> aipEntities;
         try {
             FeignSecurityManager.asSystem();
-            ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponseEntity = storageRestClient.retrieve();
-            List<StorageLocationDTO> storageLocationDTOList = storageResponseEntity.getBody()
-                                                                                   .stream()
-                                                                                   .map(n -> n.getContent())
-                                                                                   .collect(Collectors.toList());
-            // Manage overlap
-            OffsetDateTime from = date;
-            if (date != null) {
-                from = date.minusSeconds(60L);
-            }
+            Storages storages = getStorageLocations();
 
-            ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(
-                SearchAIPsParameters.build()
-                                    .withState(AIPState.STORED)
-                                    .withTags(subsettingTags)
-                                    .withCategories(categories)
-                                    .withLastUpdateFrom(from),
-                pageable.getPageNumber(),
-                pageable.getPageSize());
-            Storages storages = Storages.build(storageLocationDTOList);
-            if (aipResponseEntity.getStatusCode() == HttpStatus.OK) {
-                List<DataObjectFeature> list = new ArrayList<>();
-                for (EntityModel<AIPEntity> aipDataFiles : aipResponseEntity.getBody().getContent()) {
-                    // rs-storage stores all kinds of entity, we only want data here.
-                    AIPEntity aipEntity = aipDataFiles.getContent();
-                    if (aipEntity.getAip().getIpType() == EntityType.DATA) {
-                        multimap.put(tenant, aipEntity.getAip().getId().toString());
-                        try {
-                            list.add(buildFeature(aipEntity, storages, tenant));
-                        } catch (URISyntaxException e) {
-                            throw new DataSourceException("AIP dataObject url cannot be transformed in URI", e);
-                        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                            throw new PluginUtilsRuntimeException(e);
-                        }
-                    }
-                }
+            // 1) Get all storage locations and aipEntities to process
+            pageAipEntities = getAipEntities(cursor);
+            aipEntities = pageAipEntities.getContent();
 
-                PagedModel.PageMetadata responsePageMeta = aipResponseEntity.getBody().getMetadata();
-                int pageSize = (int) responsePageMeta.getSize();
-                return new PageImpl<>(list,
-                                      PageRequest.of((int) responsePageMeta.getNumber(), pageSize == 0 ? 1 : pageSize),
-                                      responsePageMeta.getTotalElements());
-            } else {
-                throw new DataSourceException(
-                    "Error while calling storage client (HTTP STATUS : " + aipResponseEntity.getStatusCode());
-            }
+            // 2) Build dataObjectFeatures only from DATA aipEntities
+            dataObjects = convertAIPEntitiesToDataObjects(tenant, aipEntities, storages);
+
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
+            throw new DataSourceException(String.format(
+                "An error occurred during the processing of aipEntities. Cause %s: ",
+                e.getMessage()), e);
         } finally {
             FeignSecurityManager.reset();
         }
+
+        // 3) Update cursor for next iteration
+        // determine if there is a next page to search after this one
+        cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
+
+        // set last update date with the most recent aip entity update.
+        cursor.setLastEntityDate(aipEntities.stream()
+                                            .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
+                                                                       .getLastUpdate())
+                                            .max(Comparator.comparing(lastUpdate -> lastUpdate))
+                                            .orElse(null));
+
+        return dataObjects;
+    }
+
+    /**
+     * Build {@link DataObjectFeature} features from a {@link AIPEntity}s
+     *
+     * @throws DataSourceException      in case call to {@link #getDownloadUrl(OaisUniformResourceName, String, String)} fails
+     * @throws HttpClientErrorException same as above
+     * @throws HttpServerErrorException same as above
+     */
+    private List<DataObjectFeature> convertAIPEntitiesToDataObjects(String tenant,
+                                                                    Collection<EntityModel<AIPEntity>> aipEntities,
+                                                                    Storages storages) throws DataSourceException {
+        List<DataObjectFeature> dataObjects = new ArrayList<>();
+        for (EntityModel<AIPEntity> entityModel : aipEntities) {
+            AIPEntity aipEntity = entityModel.getContent();
+            multimap.put(tenant, Objects.requireNonNull(aipEntity).getAip().getId().toString());
+            try {
+                dataObjects.add(buildFeature(aipEntity, storages, tenant));
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw new PluginUtilsRuntimeException(e);
+            }
+        }
+        return dataObjects;
+    }
+
+    /**
+     * Search for all storages locations
+     *
+     * @throws DataSourceException in case locations could not be retrieved
+     */
+    private Storages getStorageLocations() throws DataSourceException {
+        ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponse = storageRestClient.retrieve();
+
+        if (!storageResponse.getStatusCode().is2xxSuccessful() || !storageResponse.hasBody()) {
+            throw new DataSourceException(String.format(
+                "Cannot fetch storage locations list. (HTTP STATUS: %s, BODY: %s)",
+                storageResponse.getStatusCode(),
+                storageResponse.getBody()));
+        }
+        return Storages.build(Objects.requireNonNull(storageResponse.getBody())
+                                     .stream()
+                                     .filter(entityModel -> entityModel.getContent() != null)
+                                     .map(EntityModel::getContent)
+                                     .toList());
+    }
+
+    /**
+     * Search a page of {@link AIPEntity}s by several criteria
+     *
+     * @param cursor aipEntities should be retrieved with a lastUpdate >= {@link CrawlingCursor#getPreviousLastEntityDate()}
+     * @throws DataSourceException in case aipEntities could not be retrieved
+     */
+    private PagedModel<EntityModel<AIPEntity>> getAipEntities(CrawlingCursor cursor) throws DataSourceException {
+        // /!\ this sorting is very important as it allows the db to retrieve aipEntities always in the same order, to avoid any entity to be skipped.
+        // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
+        Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
+                               new Sort.Order(Sort.Direction.ASC, "id"));
+        ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(SearchAIPsParameters.build()
+                                                                                                                        .withIpType(
+                                                                                                                            EntityType.DATA)
+                                                                                                                        .withState(
+                                                                                                                            AIPState.STORED)
+                                                                                                                        .withTags(
+                                                                                                                            subsettingTags)
+                                                                                                                        .withCategories(
+                                                                                                                            categories)
+                                                                                                                        .withLastUpdateFrom(
+                                                                                                                            cursor.getPreviousLastEntityDate()),
+                                                                                                    cursor.getPosition(),
+                                                                                                    cursor.getSize(),
+                                                                                                    sorting);
+        if (!aipResponseEntity.getStatusCode().is2xxSuccessful() || !aipResponseEntity.hasBody()) {
+            throw new DataSourceException(String.format("Cannot fetch aip entities. (HTTP STATUS: %s, BODY: %s)",
+                                                        aipResponseEntity.getStatusCode(),
+                                                        aipResponseEntity.getBody()));
+        }
+        return Objects.requireNonNull(aipResponseEntity.getBody());
     }
 
     /**
      * Build DataObjectFeature from AIPEntity
-     *
-     * @param aipEntity
-     * @param storages
      */
-    @SuppressWarnings("unchecked")
     private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages, String tenant)
-        throws URISyntaxException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, DataSourceException {
         AIP aip = aipEntity.getAip();
         // Build feature
         DataObjectFeature feature = new DataObjectFeature(aip.getId(), aip.getProviderId(), "NO_LABEL");
@@ -404,7 +462,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
             if (oaisDo.getLocations().isEmpty()) {
                 LOGGER.warn("No location inside the AIP's content informations {}", aipEntity.getAipId());
             } else {
-                Boolean online = checkOnline(oaisDo, storages);
+                boolean online = checkOnline(oaisDo, storages);
                 Optional<String> referenceUrl = Optional.empty();
                 if (!online) {
                     referenceUrl = checkReference(oaisDo, storages);
@@ -422,9 +480,11 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                 dataFile.setChecksum(oaisDo.getChecksum());
                 dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
                 dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
-                if ((ci.getRepresentationInformation() != null) && (
-                    ci.getRepresentationInformation().getEnvironmentDescription() != null) && (
-                    ci.getRepresentationInformation().getEnvironmentDescription().getSoftwareEnvironment() != null)) {
+                if ((ci.getRepresentationInformation() != null)
+                    && (ci.getRepresentationInformation()
+                          .getEnvironmentDescription() != null)
+                    && (ci.getRepresentationInformation().getEnvironmentDescription().getSoftwareEnvironment()
+                        != null)) {
                     Object types = ci.getRepresentationInformation()
                                      .getEnvironmentDescription()
                                      .getSoftwareEnvironment()
@@ -456,10 +516,10 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         }
 
         // Tags
-        if ((commonTags != null) && (commonTags.size() > 0)) {
+        if (commonTags != null && !commonTags.isEmpty()) {
             feature.addTags(commonTags.toArray(new String[commonTags.size()]));
         }
-        if ((aip.getTags() != null) && (aip.getTags().size() > 0)) {
+        if ((aip.getTags() != null) && !(aip.getTags().isEmpty())) {
             feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
         }
         // BEWARE:
@@ -493,7 +553,9 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                     Object upperBound = null;
                     String lowerBoundPropertyPath = null;
                     String upperBoundPropertyPath = null;
-                    if (entry.getValue().size() == 2 && entry.getValue().get(0) != null && entry.getValue().get(1) != null) {
+                    if (entry.getValue().size() == 2
+                        && entry.getValue().get(0) != null
+                        && entry.getValue().get(1) != null) {
                         // Values from AIP
                         lowerBoundPropertyPath = entry.getValue().get(0);
                         lowerBound = getNestedProperty(aip, lowerBoundPropertyPath);
@@ -504,7 +566,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                         try {
                             propAtt = IProperty.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
-                            String msg = String.format("Cannot map %s and to %s (values %s and %s)",
+                            String msg = String.format("Cannot map %s and %s to %s (values %s and %s)",
                                                        lowerBoundPropertyPath,
                                                        upperBoundPropertyPath,
                                                        propName,
@@ -535,7 +597,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                                                             .stream()
                                                             .filter(p -> p.getName().equals(fragmentName))
                                                             .findAny();
-                        ObjectProperty fragmentAtt = opt.isPresent() ? (ObjectProperty) opt.get() : null;
+                        ObjectProperty fragmentAtt = (ObjectProperty) opt.orElse(null);
                         if (fragmentAtt == null) {
                             fragmentAtt = IProperty.buildObject(fragmentName, propAtt);
                         } else {
@@ -554,29 +616,38 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
     /**
      * Generate URL to access file from REGARDS system thanks to is checksum
-     *
-     * @param checksum
-     * @return
      */
-    private String getDownloadUrl(OaisUniformResourceName uniformResourceName, String checksum, String tenant) {
+    private String getDownloadUrl(OaisUniformResourceName uniformResourceName, String checksum, String tenant)
+        throws DataSourceException {
         Project project = projects.get(tenant);
         if (project == null) {
             FeignSecurityManager.asSystem();
-            project = projectClient.retrieveProject(tenant).getBody().getContent();
+            ResponseEntity<EntityModel<Project>> response = projectClient.retrieveProject(tenant);
+            if (!response.getStatusCode().is2xxSuccessful() || !response.hasBody()) {
+                throw new DataSourceException(String.format(
+                    "Download url could not be retrieved from tenant %s. (HTTP STATUS %s, BODY: %s)",
+                    tenant,
+                    response.getStatusCode(),
+                    response.getBody()));
+            }
+            project = Objects.requireNonNull(response.getBody()).getContent();
             projects.put(tenant, project);
             FeignSecurityManager.reset();
         }
-        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog")
-            + CATALOG_DOWNLOAD_PATH.replace("{aip_id}", uniformResourceName.toString()).replace("{checksum}", checksum);
+
+        return Objects.requireNonNull(project).getHost()
+               + urlPrefix
+               + "/"
+               + encode4Uri("rs-catalog")
+               + CATALOG_DOWNLOAD_PATH.replace("{aip_id}", uniformResourceName.toString())
+                                      .replace("{checksum}", checksum);
     }
 
     private Optional<String> checkReference(OAISDataObject oaisDo, Storages storages) {
         Optional<String> referenceUrl = Optional.empty();
         for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
-            Boolean isOffline =
-                storages.getOfflines().contains(oaisDataObjectLocation.getStorage()) || !storages.getAll()
-                                                                                                 .contains(
-                                                                                                     oaisDataObjectLocation.getStorage());
+            boolean isOffline = storages.getOfflines().contains(oaisDataObjectLocation.getStorage())
+                                || !storages.getAll().contains(oaisDataObjectLocation.getStorage());
             if (isOffline && oaisDataObjectLocation.getUrl().startsWith("http")) {
                 referenceUrl = Optional.of(oaisDataObjectLocation.getUrl());
                 break;
@@ -585,8 +656,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         return referenceUrl;
     }
 
-    private Boolean checkOnline(OAISDataObject oaisDo, Storages storageLocationDTOList) {
-        Boolean isOnline = false;
+    private boolean checkOnline(OAISDataObject oaisDo, Storages storageLocationDTOList) {
+        boolean isOnline = false;
         for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
             isOnline = storageLocationDTOList.getOnlines().contains(oaisDataObjectLocation.getStorage());
             if (isOnline) {
@@ -610,11 +681,6 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         return value;
     }
 
-    @Override
-    public String getModelName() {
-        return modelName;
-    }
-
     private static class Storages {
 
         private List<String> all;
@@ -625,17 +691,19 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
         public static Storages build(List<StorageLocationDTO> storageLocationDTOList) {
             Storages storages = new Storages();
-            storages.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
+            storages.all = storageLocationDTOList.stream().map(StorageLocationDTO::getName).toList();
             storages.onlines = storageLocationDTOList.stream()
-                                                     .filter(s -> (s.getConfiguration() != null) && (
-                                                         s.getConfiguration().getStorageType() == StorageType.ONLINE))
-                                                     .map(n -> n.getName())
-                                                     .collect(Collectors.toList());
+                                                     .filter(s -> (s.getConfiguration() != null)
+                                                                  && (s.getConfiguration().getStorageType()
+                                                                      == StorageType.ONLINE))
+                                                     .map(StorageLocationDTO::getName)
+                                                     .toList();
             storages.offlines = storageLocationDTOList.stream()
-                                                      .filter(s -> (s.getConfiguration() == null) || (
-                                                          s.getConfiguration().getStorageType() == StorageType.OFFLINE))
-                                                      .map(n -> n.getName())
-                                                      .collect(Collectors.toList());
+                                                      .filter(s -> (s.getConfiguration() == null)
+                                                                   || (s.getConfiguration().getStorageType()
+                                                                       == StorageType.OFFLINE))
+                                                      .map(StorageLocationDTO::getName)
+                                                      .toList();
             return storages;
         }
 

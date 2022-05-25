@@ -38,6 +38,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.DynamicAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
@@ -56,8 +57,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.net.MalformedURLException;
@@ -129,11 +128,6 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
 
     /**
      * Populate the datasource as a legacy catalog
-     *
-     * @throws SQLException
-     * @throws ModuleException
-     * @throws MalformedURLException
-     * @throws NotAvailablePluginConfigurationException
      */
     @Before
     public void setUp()
@@ -193,15 +187,11 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
                                              "three"));
         nbElements = 3;
 
-        /*
-         * Initialize the AbstractAttributeMapping
-         */
+        // Initialize the AbstractAttributeMapping
         buildAttributesMapping();
 
-        /*
-         * Instantiate the data source plugin
-         */
-        List<String> tags = new ArrayList<String>();
+        // Instantiate the data source plugin
+        List<String> tags = new ArrayList<>();
         tags.add("TOTO");
         tags.add("TITI");
         Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
@@ -241,26 +231,26 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
         Assert.assertEquals(nbElements, repository.count());
 
         // Get first page
-        Page<DataObjectFeature> page = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 2));
-        Assert.assertNotNull(page);
-        Assert.assertEquals(2, page.getContent().size());
+        List<DataObjectFeature> features = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 2), null);
+        Assert.assertNotNull(features);
+        Assert.assertEquals(2, features.size());
 
-        page.getContent().get(0).getProperties().forEach(attr -> {
+        features.get(0).getProperties().forEach(attr -> {
             if (attr.getName().equals("name")) {
                 Assert.assertTrue(attr.getValue().toString().contains(HELLO));
             }
         });
 
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        features.forEach(d -> Assert.assertNotNull(d.getId()));
+        features.forEach(d -> Assert.assertNotNull(d.getProviderId()));
+        features.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
 
         // Get second page
-        page = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(1, 2));
-        Assert.assertNotNull(page);
-        Assert.assertEquals(1, page.getContent().size());
+        features = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(1, 2), null);
+        Assert.assertNotNull(features);
+        Assert.assertEquals(1, features.size());
 
-        page.getContent().forEach(dataObj -> {
+        features.forEach(dataObj -> {
             LOG.info("------------------->");
             dataObj.getProperties().forEach(attr -> {
                 LOG.info(attr.getName() + " : " + attr.getValue());
@@ -270,11 +260,11 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
             });
         });
 
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
-        page.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        page.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
-        page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TOTO")));
-        page.getContent().forEach(d -> Assert.assertTrue(d.getTags().contains("TITI")));
+        features.forEach(d -> Assert.assertNotNull(d.getId()));
+        features.forEach(d -> Assert.assertNotNull(d.getProviderId()));
+        features.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        features.forEach(d -> Assert.assertTrue(d.getTags().contains("TOTO")));
+        features.forEach(d -> Assert.assertTrue(d.getTags().contains("TITI")));
 
         plgDBDataSource.getDBConnection().closeConnection();
     }
@@ -282,15 +272,15 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
     @Test
     @Requirement("REGARDS_DSL_DAM_ARC_140")
     @Purpose("The system allows to define a mapping between the datasource's attributes and an internal model")
-    public void getDataSourceIntrospectionFromPastDate() throws SQLException, DataSourceException {
+    public void getDataSourceIntrospectionFromPastDate() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), date);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), date);
         Assert.assertNotNull(ll);
-        Assert.assertEquals(1, ll.getContent().size());
+        Assert.assertEquals(1, ll.size());
 
-        ll.getContent().forEach(dataObj -> {
+        ll.forEach(dataObj -> {
             LOG.info("------------------->");
             dataObj.getProperties().forEach(attr -> {
                 LOG.info(attr.getName() + " : " + attr.getValue());
@@ -300,19 +290,19 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
             });
         });
 
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getId()));
-        ll.getContent().forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        ll.getContent().forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        ll.forEach(d -> Assert.assertNotNull(d.getId()));
+        ll.forEach(d -> Assert.assertNotNull(d.getProviderId()));
+        ll.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
     }
 
     @Test
-    public void getDataSourceIntrospectionFromFutureDate() throws SQLException, DataSourceException {
+    public void getDataSourceIntrospectionFromFutureDate() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        Page<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), PageRequest.of(0, 10), ldt);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), ldt);
         Assert.assertNotNull(ll);
-        Assert.assertEquals(0, ll.getContent().size());
+        Assert.assertEquals(0, ll.size());
     }
 
     @After

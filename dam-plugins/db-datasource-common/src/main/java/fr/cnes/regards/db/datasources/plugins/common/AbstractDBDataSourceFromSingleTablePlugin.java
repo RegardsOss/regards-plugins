@@ -19,10 +19,22 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.nurkiewicz.jdbcrepository.TableDescription;
 import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
+
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -30,12 +42,12 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourceFromS
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -140,12 +152,12 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
         if (pos > 0) {
             String str = attrDataSourceName.substring(pos + AS.length()).trim();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("the extracted column name is : <" + str + ">");
+                LOG.debug("the extracted column name is : <{}>", str);
             }
             return str;
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("the extracted column name is : <" + attrDataSourceName + ">");
+                LOG.debug("the extracted column name is : <{}>", attrDataSourceName);
             }
             return attrDataSourceName;
         }
@@ -165,26 +177,30 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             if (selectRequest.contains(WHERE)) {
                 // Add at the beginning of the where clause
                 int pos = selectRequest.indexOf(WHERE);
-                selectRequest =
-                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                        + AND + selectRequest.substring(pos + WHERE.length(), selectRequest.length());
+                selectRequest = selectRequest.substring(0, pos)
+                                + WHERE
+                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                                + AND
+                                + selectRequest.substring(pos + WHERE.length());
             } else if (selectRequest.contains(ORDER_BY)) {
                 // Add before the order by clause
                 int pos = selectRequest.indexOf(ORDER_BY);
-                selectRequest =
-                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                        + SPACE + selectRequest.substring(pos, selectRequest.length());
+                selectRequest = selectRequest.substring(0, pos)
+                                + WHERE
+                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                                + SPACE
+                                + selectRequest.substring(pos);
             } else if (selectRequest.contains(LIMIT)) {
                 // Add before the limit clause
                 int pos = selectRequest.indexOf(LIMIT);
-                selectRequest =
-                    selectRequest.substring(0, pos) + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                        + SPACE + selectRequest.substring(pos, selectRequest.length());
+                selectRequest = selectRequest.substring(0, pos)
+                                + WHERE
+                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                                + SPACE
+                                + selectRequest.substring(pos);
             } else {
                 // Add at the end of the request
-                StringBuilder buf = new StringBuilder(selectRequest);
-                buf.append(WHERE).append(AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD);
-                selectRequest = buf.toString();
+                selectRequest = selectRequest + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
             }
         }
 
@@ -195,27 +211,27 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
         if ((date == null) || getLastUpdateAttributeName().isEmpty()) {
             return sqlGenerator.count(tableDescription);
         } else {
-            return sqlGenerator.count(tableDescription) + WHERE
-                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
+            return sqlGenerator.count(tableDescription)
+                   + WHERE
+                   + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
         }
     }
 
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
         throws DataSourceException {
         if (sqlGenerator == null) {
             throw new DataSourceException("sqlGenerator is null");
         }
-        final String selectRequest = getSelectRequest(pageable, date);
+        final String selectRequest = getSelectRequest(PageRequest.of(cursor.getPosition(), cursor.getSize()), date);
         final String countRequest = getCountRequest(date);
 
         try (Connection conn = getDBConnection().getConnection()) {
 
-            return findAll(tenant, conn, selectRequest, countRequest, pageable, date);
+            return findAll(tenant, conn, selectRequest, countRequest, cursor, date);
         } catch (SQLException e) {
             // This exception can only be thrown from getDBConnection(), others have already been transformed into
             // DataSourceException
-            LOG.error("Unable to obtain a database connection.", e);
             throw new DataSourceException("Unable to obtain a database connection.", e);
         }
     }

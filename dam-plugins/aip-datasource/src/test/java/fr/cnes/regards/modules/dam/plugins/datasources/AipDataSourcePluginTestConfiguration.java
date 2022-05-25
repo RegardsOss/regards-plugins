@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
@@ -91,7 +92,8 @@ public class AipDataSourcePluginTestConfiguration {
         @SuppressWarnings("unused")
         public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
                                                                              int page,
-                                                                             int size) {
+                                                                             int size,
+                                                                             Sort sort) {
             List<AIPEntity> aipEntities = new ArrayList<>();
 
             for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {

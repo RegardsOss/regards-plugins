@@ -18,7 +18,36 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+
 import com.google.common.collect.Lists;
+
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -32,6 +61,7 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
@@ -45,8 +75,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
@@ -210,12 +238,11 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void test() throws DataSourceException {
-        Page<DataObjectFeature> page = dsPlugin.findAll(getDefaultTenant(), PageRequest.of(0, 10));
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.getContent());
-        Assert.assertTrue(page.getContent().size() == 1);
+        List<DataObjectFeature> dataObjects = dsPlugin.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), null);
+        Assert.assertNotNull(dataObjects);
+        Assert.assertEquals(1, dataObjects.size());
 
-        DataObjectFeature feature = page.getContent().get(0);
+        DataObjectFeature feature = dataObjects.get(0);
         Assert.assertEquals("libellé du data object 0", feature.getLabel());
         Assert.assertNotNull(feature.getProperty("START_DATE"));
         Assert.assertNotNull(feature.getProperty("LINKS"));
@@ -224,11 +251,11 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertNotNull(feature.getTags());
         Assert.assertTrue(feature.getTags().contains("tag1"));
         Assert.assertTrue(feature.getTags().contains("tag2"));
-        Assert.assertTrue(PropertyType.STRING_ARRAY.equals(feature.getProperty("history").getType()));
+        Assert.assertEquals(PropertyType.STRING_ARRAY, feature.getProperty("history").getType());
         Assert.assertTrue(Arrays.binarySearch((Object[]) feature.getProperty("history").getValue(), "H1") > -1);
         Assert.assertTrue(Arrays.binarySearch((Object[]) feature.getProperty("history").getValue(), "H2") > -1);
-        Assert.assertTrue(PropertyType.DATE_INTERVAL.equals(feature.getProperty("DATE_INTERVAL").getType()));
-        Assert.assertTrue(PropertyType.INTEGER_INTERVAL.equals(feature.getProperty("INT_INTERVAL").getType()));
+        Assert.assertEquals(PropertyType.DATE_INTERVAL, feature.getProperty("DATE_INTERVAL").getType());
+        Assert.assertEquals(PropertyType.INTEGER_INTERVAL, feature.getProperty("INT_INTERVAL").getType());
         Assert.assertNotNull(feature.getFiles());
         Assert.assertEquals(1, feature.getFiles().size());
         Assert.assertTrue(feature.getFiles().containsKey(DataType.RAWDATA));

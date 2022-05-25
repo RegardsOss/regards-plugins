@@ -8,6 +8,7 @@ import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.ConversionConfiguration;
@@ -21,10 +22,7 @@ import fr.cnes.regards.modules.model.dto.properties.ObjectProperty;
 import org.elasticsearch.common.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 
 import java.net.MalformedURLException;
@@ -109,9 +107,9 @@ public class FeaturesConverter {
     private ConversionReport report;
 
     /**
-     * Currently converted page
+     * Pair of converted dataObjects and total of dataObjects to convert
      */
-    private Page<DataObjectFeature> convertedPage;
+    private Pair<List<DataObjectFeature>, Integer> convertedResults;
 
     /**
      * Constructor: initializes required runtime conversion data
@@ -125,7 +123,7 @@ public class FeaturesConverter {
         this.conversionConfiguration = conversionConfiguration;
         // pack conversion data into runtime conversion data
         Map<String, String> attributesToPathCopy = new HashMap<>(conversionConfiguration.getAttributeToJSonField());
-        // A - Extract mandatory fields for features (and remove them of the list of attributes to converts)
+        // A - Extract mandatory fields for features (and remove them of the list of attributes to convert)
         // A.1 - extract label GeoJSON field (it cannot be null as it is checked at plugin init by ConversionConfiguration)
         labelJSONPath = attributesToPathCopy.remove(StaticProperties.FEATURE_LABEL);
         // A.2 - extract providerId GeoJSON field (it cannot be null as it is checked at plugin init by ConversionConfiguration)
@@ -171,19 +169,19 @@ public class FeaturesConverter {
             throw new DataSourceException(String.format("The field '%s' is missing in results page properties",
                                                         fieldName));
         }
-        if (foundValue instanceof Number) {
-            return ((Number) foundValue).intValue();
+        if (foundValue instanceof Number foundNumber) {
+            return foundNumber.intValue();
         }
         try {
-            return Integer.valueOf(foundValue.toString());
+            return Integer.parseInt(foundValue.toString());
         } catch (NumberFormatException e) {
             throw new DataSourceException(String.format("Field '%s' value cannot be parsed into a valid integer number",
                                                         fieldName), e);
         }
     }
 
-    public Page<DataObjectFeature> getConvertedPage() {
-        return convertedPage;
+    public Pair<List<DataObjectFeature>, Integer> getConvertedResults() {
+        return convertedResults;
     }
 
     public ConversionReport getReport() {
@@ -194,10 +192,10 @@ public class FeaturesConverter {
      * Converts GEOJSon feature collection as parameter into a list of REGARDS data object features
      *
      * @param tenant            tenant for the new feature (used to create URN)
-     * @param page              page that was requested to external provider
+     * @param cursor            cursor that was requested to external provider
      * @param featureCollection Feature collection to convert
      */
-    public void convert(String tenant, Pageable page, FeatureWithPropertiesCollection featureCollection)
+    public void convert(String tenant, CrawlingCursor cursor, FeatureWithPropertiesCollection featureCollection)
         throws DataSourceException {
         LOGGER.trace("Webservice data source plugin: Starting features conversion");
         List<Feature> webserviceFeatures = featureCollection.getFeatures();
@@ -206,22 +204,19 @@ public class FeaturesConverter {
 
         // Compute page data (breaks conversion if not found)
         int totalResults = retrieveMandatoryIntField(featureCollection, conversionConfiguration.getTotalResultsField());
-        int pageSize = page.getPageSize();
-        if (page.getPageNumber() == 0) {
+        int pageSize = cursor.getSize();
+        if (cursor.getPosition() == 0) {
             // Allowing page size setting changes only on first results page
             pageSize = retrieveMandatoryIntField(featureCollection, conversionConfiguration.getPageSizeField());
         }
         if (webserviceFeatures.isEmpty()) {
             // XXX - workaround for THEIA: total results is wrong, recompute it to let parent caller stop current indexation
-            LOGGER.info(String.format(
-                "Webservice data source plugin: No results found at page #%d, stopping indexation.",
-                page.getPageNumber()));
-            totalResults = page.getPageNumber() * pageSize; // total count: sum of previous pages elements
+            LOGGER.info("Webservice data source plugin: No results found at page #{}, stopping indexation.",
+                        cursor.getPosition());
+            totalResults = cursor.getPosition() * pageSize; // total count: sum of previous pages elements
         }
 
-        LOGGER.trace(String.format("Webservice data source plugin: Found page size %d and total results %d",
-                                   pageSize,
-                                   totalResults));
+        LOGGER.trace("Webservice data source plugin: Found page size {} and total results {}", pageSize, totalResults);
 
         // Convert each element. Remove null elements (impossible conversions due to missing mandatory property
         List<DataObjectFeature> convertedFeatures = new ArrayList<>();
@@ -231,11 +226,11 @@ public class FeaturesConverter {
                 convertedFeatures.add(convertedElement);
             }
         }
-        convertedPage = new PageImpl<>(convertedFeatures, PageRequest.of(page.getPageNumber(), pageSize), totalResults);
-        LOGGER.info(String.format("Finished converting page %d (converted %d / %d elements)",
-                                  page.getPageNumber(),
-                                  convertedFeatures.size(),
-                                  webserviceFeatures.size()));
+        this.convertedResults = Pair.of(convertedFeatures,  totalResults);
+        LOGGER.info("Finished converting page {} (converted {} / {} elements)",
+                    cursor.getPosition(),
+                    convertedFeatures.size(),
+                    webserviceFeatures.size());
     }
 
     /**
@@ -279,9 +274,9 @@ public class FeaturesConverter {
         convertedFeature.setGeometry(feature.getGeometry());
 
         // E - Convert other attributes
-        LOGGER.trace(String.format("Webservice data source plugin: convert other attributes in feature %s(%s)",
-                                   labelValue,
-                                   providerIDValue));
+        LOGGER.trace("Webservice data source plugin: convert other attributes in feature {}({})",
+                     labelValue,
+                     providerIDValue);
         attributeModelToPath.forEach((key, value) -> this.convertAttribute(value,
                                                                            feature,
                                                                            key,
@@ -345,10 +340,10 @@ public class FeaturesConverter {
                                   String label,
                                   String providerId,
                                   int featureIndex) {
-        LOGGER.trace(String.format("Webservice data source plugin: convert attribute from %s to %s(%s)",
-                                   sourceJSonPath,
-                                   targetAttributeModel.getJsonPath(),
-                                   targetAttributeModel.getType()));
+        LOGGER.trace("Webservice data source plugin: convert attribute from {} to {}({})",
+                     sourceJSonPath,
+                     targetAttributeModel.getJsonPath(),
+                     targetAttributeModel.getType());
 
         // A - Retrieve source value (let delegate method add mandatory and path errors if any)
         Object sourceValue = this.getAttributeValueByPath(sourceFeature,
@@ -398,19 +393,17 @@ public class FeaturesConverter {
                 if (fragment == null) {
                     fragment = IProperty.buildObject(fragmentName);
                     targetFeature.addProperty(fragment);
-                    LOGGER.trace(String.format("Webservice data source plugin: added fragment %s in feature",
-                                               fragmentName));
+                    LOGGER.trace("Webservice data source plugin: added fragment {} in feature", fragmentName);
                 }
                 fragment.addProperty(convertedAttribute);
-                LOGGER.trace(String.format("Webservice data source plugin: added converted attribute %s in fragment %s",
-                                           targetAttributeModel.getJsonPath(),
-                                           fragmentName));
+                LOGGER.trace("Webservice data source plugin: added converted attribute {} in fragment {}",
+                             targetAttributeModel.getJsonPath(),
+                             fragmentName);
             } else {
                 // D.2.b - Add attribute as entity root element (not in a fragment)
                 targetFeature.addProperty(convertedAttribute);
-                LOGGER.trace(String.format(
-                    "Webservice data source plugin: added converted attribute %s in feature properties",
-                    targetAttributeModel.getJsonPath()));
+                LOGGER.trace("Webservice data source plugin: added converted attribute {} in feature properties",
+                             targetAttributeModel.getJsonPath());
             }
         }
 
@@ -470,14 +463,14 @@ public class FeaturesConverter {
             String inferredMimeType = URLConnection.guessContentTypeFromName(fileURL);
             if (inferredMimeType == null) {
                 // refuse converting file as pictures MIME type must be restricted to REGARDS supported ones
-                LOGGER.warn(String.format(
-                    "Webservice data source plugin: Could not guess mime type from URL '%s' at path '%s' while converting feature #%d-%s(%s) %s",
+                LOGGER.warn(
+                    "Webservice data source plugin: Could not guess mime type from URL '{}' at path '{}' while converting feature #{}-{}({}) {}",
                     fileURL,
                     fileURLSourcePath,
                     featureIndex,
                     label,
                     providerId,
-                    fileType));
+                    fileType);
                 report.addFeatureConversionError(featureIndex,
                                                  label,
                                                  providerId,
@@ -486,15 +479,15 @@ public class FeaturesConverter {
                                                                                                  fileURLSourcePath));
                 return;
             } else if (!imagesAllowedMimeTypes.contains(inferredMimeType)) {
-                LOGGER.warn(String.format(
-                    "Webservice data source plugin: Found a not supported MIME type '%s' for URL '%s' at path '%s' while converting feature #%d-%s(%s) %s",
+                LOGGER.warn(
+                    "Webservice data source plugin: Found a not supported MIME type '{}' for URL '{}' at path '{}' while converting feature #{}-{}({}) {}",
                     inferredMimeType,
                     fileURL,
                     fileURLSourcePath,
                     featureIndex,
                     label,
                     providerId,
-                    fileType));
+                    fileType);
                 report.addFeatureConversionError(featureIndex,
                                                  label,
                                                  providerId,
@@ -579,17 +572,17 @@ public class FeaturesConverter {
                 currentValue = sourceFeature.getProperties().get(currentPathElement);
             } else if (currentValue != null) {
                 // loop case: check previous element is a map before search lower value
-                if (currentValue instanceof Map) {
-                    currentValue = ((Map) currentValue).get(currentPathElement);
+                if (currentValue instanceof Map currentValueMap) {
+                    currentValue = currentValueMap.get(currentPathElement);
                 } else {
                     // error case: it was not possible to get in sub level
-                    LOGGER.warn(String.format(
-                        "When converting feature at %d, attribute %s value could not be extracted from path '%s' as value at '%s' (%s) is not a Json object.",
+                    LOGGER.warn(
+                        "When converting feature at {}, attribute {} value could not be extracted from path '{}' as value at '{}' ({}) is not a Json object.",
                         featureIndex,
                         targetAttributePath,
                         path,
                         pathElements.get(i - 1),
-                        currentValue.toString()));
+                        currentValue);
                     report.addFeatureConversionError(featureIndex,
                                                      label,
                                                      providerId,

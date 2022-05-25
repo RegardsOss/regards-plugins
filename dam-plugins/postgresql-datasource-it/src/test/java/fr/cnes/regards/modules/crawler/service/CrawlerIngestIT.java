@@ -40,13 +40,13 @@ import fr.cnes.regards.modules.crawler.service.conf.CrawlerPropertiesConfigurati
 import fr.cnes.regards.modules.crawler.service.ds.ExternalData;
 import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
+import fr.cnes.regards.modules.crawler.service.exception.FirstFindException;
 import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.StaticAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DBConnectionPluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -84,7 +84,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.OffsetDateTime;
@@ -102,7 +101,7 @@ import java.util.concurrent.ExecutionException;
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class CrawlerIngestIT extends AbstractRegardsIT {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(CrawlerIngestIT.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CrawlerIngestIT.class);
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
@@ -325,8 +324,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     @Test
     @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
     public void test()
-        throws ModuleException, IOException, InterruptedException, ExecutionException, DataSourceException,
-        NotFinishedException {
+        throws ModuleException, InterruptedException, NotFinishedException, FirstFindException {
         LOGGER.info("********************* test CrawlerIngestIT ***********************************");
         final String tenant = tenantResolver.getTenant();
         // First delete index if it already exists
@@ -417,19 +415,19 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
     @Ignore
     @Test
-    public void testDsIngestionWithValidation()
-        throws InterruptedException, ExecutionException, DataSourceException, ModuleException, NotFinishedException {
+    public void testDsIngestionWithValidation() throws ModuleException, NotFinishedException, FirstFindException {
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getBusinessId());
         dsiRepos.save(dsi);
         // First ingestion with a "nude" model
-        try {
+//        try {
             crawlerService.ingest(dsi.getId())
                           .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi"));
             Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
-        } catch (ExecutionException ee) {
-            Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
-            Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
-        }
+            //FIXME: does this test still needs to be?
+//        } catch (ExecutionException ee) {
+//            Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
+//            Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
+//        }
 
         model.setId(15000L);
         List<ModelAttrAssoc> modelAttrAssocs = new ArrayList<>();

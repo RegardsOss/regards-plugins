@@ -1,10 +1,10 @@
 package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.OffsetDateTime;
@@ -28,7 +28,7 @@ public class OpenSearchFetcherTest {
                                                                               35,
                                                                               null),
                                                   null,
-                                                  null).getFetchURL(PageRequest.of(65, 55),
+                                                  null).getFetchURL(new CrawlingCursor(65, 55),
                                                                     null));// init page = 10, no update date by parameters, first query parameter (no query separator)
 
         // init page = 1, no config page size, no update date by configuration, query separator but no query
@@ -42,7 +42,7 @@ public class OpenSearchFetcherTest {
                                                                               null,
                                                                               null),
                                                   null,
-                                                  null).getFetchURL(PageRequest.of(0, 20), OffsetDateTime.now()));
+                                                  null).getFetchURL(new CrawlingCursor(0, 20), OffsetDateTime.now()));
 
         // init page = 0, config size = 50, update date OK, already some query (but not & parameter)
         Assert.assertEquals(
@@ -54,7 +54,7 @@ public class OpenSearchFetcherTest {
                                                               "update",
                                                               0,
                                                               50,
-                                                              null), null, null).getFetchURL(PageRequest.of(0, 20),
+                                                              null), null, null).getFetchURL(new CrawlingCursor(0, 20),
                                                                                              OffsetDateTime.parse(
                                                                                                  "2019-02-18T15:30:44.372Z")));
 
@@ -69,7 +69,7 @@ public class OpenSearchFetcherTest {
                                                                               null,
                                                                               null),
                                                   null,
-                                                  null).getFetchURL(PageRequest.of(8, 40),
+                                                  null).getFetchURL(new CrawlingCursor(8, 40),
                                                                     OffsetDateTime.parse("2019-02-18T15:30:44.372Z")));
 
         // with some parameters (we keep them ordered for test)
@@ -86,7 +86,7 @@ public class OpenSearchFetcherTest {
                                                               "update",
                                                               0,
                                                               50,
-                                                              params), null, null).getFetchURL(PageRequest.of(0, 20),
+                                                              params), null, null).getFetchURL(new CrawlingCursor(0, 20),
                                                                                                OffsetDateTime.parse(
                                                                                                    "2019-02-18T15:30:44.372Z")));
     }

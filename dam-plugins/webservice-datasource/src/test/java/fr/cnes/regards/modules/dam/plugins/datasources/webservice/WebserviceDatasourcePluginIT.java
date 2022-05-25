@@ -6,6 +6,7 @@ import fr.cnes.regards.framework.notification.client.INotificationClient;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
@@ -26,8 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.time.OffsetDateTime;
@@ -139,16 +138,15 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         DataType[] expectedFileTypes = new DataType[] { DataType.RAWDATA, DataType.QUICKLOOK_SD, DataType.THUMBNAIL };
 
         // Fetch all pages and check conversion is successful
-        Page<DataObjectFeature> result;
-        PageRequest currentPage = PageRequest.of(0, 100);
+        List<DataObjectFeature> result;
+        CrawlingCursor cursor = new CrawlingCursor(0, 100);
         OffsetDateTime updateDate = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         do {
-            result = pl.findAll("myTenant", currentPage, updateDate);
+            result = pl.findAll("myTenant", cursor, updateDate);
             // No error to report
             Assert.assertFalse("There should be no error in report", pl.getConverter().getReport().hasErrors());
             // Check that each feature has been fully converted
-            List<DataObjectFeature> features = result.getContent();
-            for (DataObjectFeature f : features) {
+            for (DataObjectFeature f : result) {
                 // Properties
                 for (AttributeModel prop : expectedProps) {
                     IProperty<?> attr;
@@ -189,8 +187,8 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
             }
 
             // prepare for next page
-            currentPage = PageRequest.of(result.getNumber() + 1, result.getSize());
-        } while (result.hasNext());
+            cursor.next();
+        } while (cursor.hasNext());
     }
 
 }

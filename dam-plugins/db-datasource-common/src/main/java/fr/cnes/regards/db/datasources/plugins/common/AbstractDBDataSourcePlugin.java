@@ -24,14 +24,16 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * A {@link Plugin} to retrieve the data elements from a SQL Database.</br>
@@ -63,8 +65,12 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
 
     protected String getSelectRequest(Pageable pageable, OffsetDateTime sinceData) {
         if ((sinceData != null) && !getLastUpdateAttributeName().isEmpty()) {
-            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + WHERE
-                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD + buildLimitPart(pageable);
+            return SELECT
+                   + buildColumnClause(columns.toArray(new String[0]))
+                   + getFromClause()
+                   + WHERE
+                   + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
+                   + buildLimitPart(pageable);
         } else {
             return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + buildLimitPart(
                 pageable);
@@ -85,18 +91,18 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
      * @param sinceDate can be null
      */
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime sinceDate)
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime sinceDate)
         throws DataSourceException {
-        final String selectRequest = getSelectRequest(pageable, sinceDate);
+        final String selectRequest = getSelectRequest(PageRequest.of(cursor.getPosition(), cursor.getSize()),
+                                                      sinceDate);
         final String countRequest = getCountRequest(sinceDate);
 
         LOG.debug("select request: {}", selectRequest);
         LOG.debug("count request: {}", countRequest);
 
         try (Connection conn = getDBConnection().getConnection()) {
-            return findAll(tenant, conn, selectRequest, countRequest, pageable, sinceDate);
+            return findAll(tenant, conn, selectRequest, countRequest, cursor, sinceDate);
         } catch (SQLException e) {
-            LOG.error("Unable to obtain a database connection.", e);
             throw new DataSourceException("Unable to obtain a database connection.", e);
         }
     }

@@ -30,13 +30,13 @@ import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.model.domain.Model;
-import fr.cnes.regards.modules.model.dto.properties.AbstractProperty;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.MarkdownURL;
 import fr.cnes.regards.modules.model.service.IModelService;
@@ -44,9 +44,6 @@ import org.dom4j.tree.AbstractAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.util.MimeType;
 
@@ -146,13 +143,13 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
     private String lastUpdateAttributeName = "";
 
     /**
-     * Get {@link DateAttribute}.
+     * Get {@link fr.cnes.regards.modules.model.dto.properties.DateProperty}.
      *
      * @param rs       the {@link ResultSet}
      * @param attrName the attribute name
      *                 àparam attrDSName the column name in the external data source
      * @param colName  the column name in the {@link ResultSet}
-     * @return a new {@link DateAttribute}
+     * @return a new {@link fr.cnes.regards.modules.model.dto.properties.DateProperty}
      * @throws SQLException if an error occurs in the {@link ResultSet}
      */
     protected abstract IProperty<?> buildDateAttribute(ResultSet rs, String attrName, String attrDSName, String colName)
@@ -180,15 +177,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @param ctx             a {@link Connection} to a database
      * @param inSelectRequest the SQL request
      * @param inCountRequest  the SQL count request
-     * @param pageable        the page information
      * @param sinceDate       a {@link Date} used to apply returns the {@link DataObject} update or create after this date
      * @return a page of {@link DataObject}
      */
-    protected Page<DataObjectFeature> findAll(String tenant,
+    protected List<DataObjectFeature> findAll(String tenant,
                                               Connection ctx,
                                               String inSelectRequest,
                                               String inCountRequest,
-                                              Pageable pageable,
+                                              CrawlingCursor cursor,
                                               OffsetDateTime sinceDate) throws DataSourceException {
         List<DataObjectFeature> features = new ArrayList<>();
 
@@ -201,21 +197,26 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                 selectRequest = buildDateStatement(selectRequest, sinceDate);
                 countRequest = buildDateStatement(countRequest, sinceDate);
             }
-            LOG.info("select request : " + selectRequest);
-            LOG.info("count request : " + countRequest);
+            LOG.info("select request : {}", selectRequest);
+            LOG.info("count request : {}", countRequest);
 
             // Execute the request to get the elements
             try (ResultSet rs = statement.executeQuery(selectRequest)) {
                 while (rs.next()) {
-                    features.add(processResultSet(rs, this.model, tenant));
+                    features.add(processResultSet(rs, tenant));
                 }
             }
             countItems(statement, countRequest);
+
+            // 3) Update cursor for next iteration
+            // compute the total number of pages to process and see if there are still requests to be performed
+            int totalNumOfPages = nbItems == 0 ? 1 : (int) Math.ceil((double) nbItems / (double) cursor.getSize());
+            cursor.setHasNext(cursor.getPosition() + 1 < totalNumOfPages);
+
         } catch (SQLException e) {
-            LOG.error("Error while retrieving or counting datasource elements", e);
             throw new DataSourceException("Error while retrieving or counting datasource elements", e);
         }
-        return new PageImpl<>(features, pageable, nbItems);
+        return features;
     }
 
     /**
@@ -243,7 +244,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return the {@link DataObject} created
      * @throws SQLException An SQL error occurred
      */
-    protected DataObjectFeature processResultSet(ResultSet rset, Model model, String tenant)
+    protected DataObjectFeature processResultSet(ResultSet rset, String tenant)
         throws SQLException, DataSourceException {
 
         DataObjectFeature feature = new DataObjectFeature(OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP,
@@ -256,9 +257,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         Set<IProperty<?>> attributes = new HashSet<>();
         Map<String, List<IProperty<?>>> spaceNames = Maps.newHashMap();
 
-        /**
-         * Loop the attributes in the mapping
-         */
+        // Loop the attributes in the mapping
         for (AbstractAttributeMapping attrMapping : attributesMapping) {
             IProperty<?> attr = buildAttribute(rset, attrMapping);
 
@@ -282,16 +281,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             }
         }
 
-        /**
-         * For each name space, add an ObjectAttribute to the list of attribute
-         */
+        //For each name space, add an ObjectAttribute to the list of attribute
         spaceNames.forEach((pName, pAttrs) -> attributes.add(IProperty.buildObject(pName,
-                                                                                   pAttrs.toArray(new AbstractProperty<?>[pAttrs.size()]))));
+                                                                                   pAttrs.toArray(new IProperty[0]))));
 
         feature.setProperties(attributes);
 
         // Add common tags
-        if ((commonTags != null) && (commonTags.size() > 0)) {
+        if ((commonTags != null) && (!commonTags.isEmpty())) {
             feature.addTags(commonTags.toArray(new String[0]));
         }
 
@@ -308,7 +305,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     private IProperty<?> buildAttribute(ResultSet rset, AbstractAttributeMapping attrMapping)
         throws SQLException, DataSourceException {
-        IProperty<?> attr = null;
+        IProperty<?> attr;
         final String colName = extractColumnName(attrMapping.getNameDS(),
                                                  attrMapping.getName(),
                                                  attrMapping.isPrimaryKey());
@@ -321,7 +318,6 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                 } catch (MalformedURLException e) {
                     String message = String.format("Given url into database (column %s) could not be processed as a URL",
                                                    colName);
-                    LOG.error(message, e);
                     throw new DataSourceException(message, e);
                 }
                 break;
@@ -340,12 +336,17 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
 
         if (LOG.isDebugEnabled() && (attr != null)) {
             if ((attrMapping.getName() != null) && attrMapping.getName().equals(attrMapping.getNameDS())) {
-                LOG.debug("the value for <" + attrMapping.getName() + "> of type <" + attrMapping.getType() + "> is :"
-                              + attr.getValue());
+                LOG.debug("the value for <{}> of type <{}> is :{}",
+                          attrMapping.getName(),
+                          attrMapping.getType(),
+                          attr.getValue());
 
             } else {
-                LOG.debug("the value for <" + attrMapping.getName() + "|" + attrMapping.getNameDS() + "> of type <"
-                              + attrMapping.getType() + "> is :" + attr.getValue());
+                LOG.debug("the value for <{}|{}> of type <{}> is :{}",
+                          attrMapping.getName(),
+                          attrMapping.getNameDS(),
+                          attrMapping.getType(),
+                          attr.getValue());
             }
         }
 
@@ -362,7 +363,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @return the column label extracted from the PL/SQL
      */
     protected String extractColumnName(String attrDataSourceName, String attrName, boolean isPrimaryKey) {
-        String colName = "";
+        String colName;
 
         int pos = attrDataSourceName.toLowerCase().lastIndexOf(AS);
 
@@ -463,7 +464,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
     protected String buildColumnClause(String... columns) {
         StringBuilder clauseStr = new StringBuilder();
         for (String col : columns) {
-            clauseStr.append(col + COMMA);
+            clauseStr.append(col).append(COMMA);
         }
         return clauseStr.substring(0, clauseStr.length() - 1) + BLANK;
     }
@@ -481,8 +482,10 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
             return request;
         }
         return request.replaceAll(LAST_MODIFICATION_DATE_KEYWORD,
-                                  getLastUpdateAttributeName() + " > '"
-                                      + getLastUpdateValue(getLastUpdateAttributeName(), date) + "'");
+                                  getLastUpdateAttributeName()
+                                  + " > '"
+                                  + getLastUpdateValue(getLastUpdateAttributeName(), date)
+                                  + "'");
     }
 
     protected abstract String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date)

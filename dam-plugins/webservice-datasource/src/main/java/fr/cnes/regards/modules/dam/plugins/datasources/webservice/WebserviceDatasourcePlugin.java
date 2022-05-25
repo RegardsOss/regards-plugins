@@ -16,6 +16,7 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.ConversionConfiguration;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.WebserviceConfiguration;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.reports.ConversionReport;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
 import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
 import fr.cnes.regards.modules.templates.service.TemplateService;
@@ -23,8 +24,7 @@ import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
 
@@ -98,12 +98,6 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      * Delegate features fetcher
      */
     private OpenSearchFetcher fetcher;
-
-    /**
-     * Spring bean constructor
-     */
-    public WebserviceDatasourcePlugin() {
-    }
 
     /**
      * Complete constructor for tests
@@ -184,37 +178,29 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
     }
 
     /**
-     * Fetcher delegate getter, opened for tests
-     *
-     * @return -
-     */
-    public OpenSearchFetcher getFetcher() {
-        return fetcher;
-    }
-
-    /**
      * Main implementation: retrieves elements and convert them, taking date in account if it is not null
      *
      * @param tenant Tenant
-     * @param page   page information (crawl process advancement)
+     * @param cursor cursor information
      * @param date   last crawling date, null when first crawling
-     * @return converted page
+     * @return converted results
      * @throws DataSourceException when conversion was not possible
      */
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable page, OffsetDateTime date)
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
         throws DataSourceException {
         // A - pull web service resulting features for page (ignore date if not provided)
-        /// ResponseEntity<FeatureWithPropertiesCollection> codeFeatures = this.getWebserviceFeatures(page, date);
-        LOGGER.info(String.format(
-            "Webservice data source plugin: starting OpenSearch webservice source conversion at URL '%s', for page #%d (size %d)",
-            webserviceConfiguration.getWebserviceURL(),
-            page.getPageNumber(),
-            page.getPageSize()));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(String.format(
+                "Webservice data source plugin: starting OpenSearch webservice source conversion at URL '%s', for page #%d (size %d)",
+                webserviceConfiguration.getWebserviceURL(),
+                cursor.getPosition(),
+                cursor.getSize()));
+        }
 
         ResponseEntity<FeatureWithPropertiesCollection> retrievedFeatures;
         try {
-            retrievedFeatures = fetcher.fetchFeatures(page, date);
+            retrievedFeatures = fetcher.fetchFeatures(cursor, date);
         } catch (DataSourceException e) {
             // catch exception to notify administrator, then let it through
             notificationClient.notify(e.getMessage(),
@@ -226,7 +212,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
         }
 
         // B - Convert each feature retrieved
-        converter.convert(tenant, page, retrievedFeatures.getBody());
+        converter.convert(tenant, cursor, retrievedFeatures.getBody());
 
         // C - Notify if errors were encountered
         ConversionReport conversionReport = converter.getReport();
@@ -244,13 +230,17 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
                                       DefaultRole.ADMIN);
         }
 
-        return converter.getConvertedPage();
-    }
+        // D - Update cursor for next iteration
+        Pair<List<DataObjectFeature>, Integer> convertedResults = converter.getConvertedResults();
+        // compute the total number of pages to process and see if there are still features to convert
+        int totalNumOfElements = convertedResults.getSecond();
+        int totalNumOfPages = totalNumOfElements == 0 ?
+            1 :
+            (int) Math.ceil((double) totalNumOfElements / (double) cursor.getSize());
+        cursor.setHasNext(cursor.getPosition() + 1 < totalNumOfPages);
 
-    @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable page) throws DataSourceException {
-        // delegate to the dated mehtod
-        return this.findAll(tenant, page, null);
+        // return converted features
+        return convertedResults.getFirst();
     }
 
 }

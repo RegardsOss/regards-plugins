@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
@@ -36,10 +37,7 @@ import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
 import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +50,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Plugin to get data from feature manager
@@ -69,15 +66,38 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     private static final String CHECKSUM_PLACEHOLDER = "{checksum}";
 
-    private static final String CATALOG_DOWNLOAD_PATH =
-        "/downloads/" + URN_PLACEHOLDER + "/files/" + CHECKSUM_PLACEHOLDER;
+    private static final String CATALOG_DOWNLOAD_PATH = "/downloads/"
+                                                        + URN_PLACEHOLDER
+                                                        + "/files/"
+                                                        + CHECKSUM_PLACEHOLDER;
 
-    @Value("${regards.feature.datasource.plugin.refreshRate:1000}")
-    private int refreshRate;
+    /**
+     * Map of {@link Project}s by tenant
+     */
+    private final Map<String, Project> projects = new ConcurrentHashMap<>();
+
+    /**
+     * Storage cache for online and offline storages. Only used if at least one feature has files.
+     */
+    private Storages storages;
+
+    // -------------------------
+    // --- PLUGIN PARAMETERS ---
+    // -------------------------
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
         description = "Associated data source model name")
     protected String modelName;
+
+    @Value("${prefix.path}")
+    private String urlPrefix;
+
+    @Value("${regards.feature.datasource.plugin.refreshRate:1000}")
+    private int refreshRate;
+
+    // -------------------------
+    // ------- SERVICES --------
+    // -------------------------
 
     @Autowired
     private IFeatureEntityClient featureClient;
@@ -94,18 +114,6 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @Autowired(required = false)
     private IProjectsClient projectClient;
 
-    @Value("${prefix.path}")
-    private String urlPrefix;
-
-    /**
-     * Map of {@link Project}s by tenant
-     */
-    private final Map<String, Project> projects = new ConcurrentHashMap<>();
-
-    /**
-     * Storage cache for online and offline storages. Only used if at least one feature has files.
-     */
-    private Storages storages;
 
     @Override
     public int getRefreshRate() {
@@ -113,43 +121,71 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     }
 
     @Override
-    public Page<DataObjectFeature> findAll(String tenant, Pageable pageable, OffsetDateTime date)
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
         throws DataSourceException {
+        // 1) Get page of feature entities to process
+        PagedModel<EntityModel<FeatureEntityDto>> pageFeatureEntities;
 
-        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response;
         try {
             FeignSecurityManager.asSystem();
-            // Do remote request to FEATURE MANAGER
-            response = featureClient.findAll(modelName, date, pageable.getPageNumber(), pageable.getPageSize());
+            pageFeatureEntities = getFeatureEntities(cursor);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            throw new DataSourceException(String.format("An error occurred during the searching of feature entities. Cause %s: ", e.getMessage()), e);
         } finally {
             FeignSecurityManager.reset();
         }
 
-        // Manage request error
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new DataSourceException(
-                "Error while calling FEATURE MANAGER client (HTTP STATUS : " + response.getStatusCode());
-        }
-
-        // Process current page
-        PagedModel<EntityModel<FeatureEntityDto>> page = response.getBody();
-        Collection<EntityModel<FeatureEntityDto>> dtos = page.getContent();
-
-        List<DataObjectFeature> result = new ArrayList<>();
+        // 2) Build dataObjectFeatures from featureEntities
+        Collection<EntityModel<FeatureEntityDto>> dtos = pageFeatureEntities.getContent();
+        List<DataObjectFeature> dataObjects = new ArrayList<>();
         for (EntityModel<FeatureEntityDto> em : dtos) {
-            result.add(initDataObjectFeature(tenant, em));
+            dataObjects.add(initDataObjectFeature(tenant, em));
         }
-        return new PageImpl<DataObjectFeature>(result,
-                                               PageRequest.of(Long.valueOf(page.getMetadata().getNumber()).intValue(),
-                                                              Long.valueOf(page.getMetadata().getSize()).intValue()),
-                                               page.getMetadata().getTotalElements());
+
+        // 3) Update cursor for next iteration
+        // determine if there is a next page to search after this one
+        cursor.setHasNext(pageFeatureEntities.getNextLink().isPresent());
+
+        // set last update date with the most recent feature entity update.
+        cursor.setLastEntityDate(dtos.stream()
+                                     .map(entityModel -> Objects.requireNonNull(entityModel.getContent()).getLastUpdate())
+                                     .max(Comparator.comparing(lastUpdate -> lastUpdate))
+                                     .orElse(null));
+
+        return dataObjects;
+    }
+
+    /**
+     * Search a page of {@link FeatureEntityDto}s by several criteria
+     * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getPreviousLastEntityDate()}
+     * @throws DataSourceException in case featureEntities could not be retrieved
+     */
+    private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor)
+        throws DataSourceException {
+        // /!\ this sorting is very important as it allows the db to retrieve aipEntities always in the same order, to avoid any entity to be skipped.
+        // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
+        Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
+                               new Sort.Order(Sort.Direction.ASC, "id"));
+        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
+                                                                                                   cursor.getPreviousLastEntityDate(),
+                                                                                                   cursor.getPosition(),
+                                                                                                   cursor.getSize(),
+                                                                                                   sorting);
+        // Manage request error
+        if (!response.getStatusCode().is2xxSuccessful() || !response.hasBody()) {
+            throw new DataSourceException(String.format(
+                "Error while calling FEATURE MANAGER client (HTTP STATUS : %s, BODY: %s)",
+                response.getStatusCode(),
+                response.getBody()));
+        }
+        return Objects.requireNonNull(response.getBody());
     }
 
     private DataObjectFeature initDataObjectFeature(String tenant, EntityModel<FeatureEntityDto> entity)
         throws DataSourceException {
 
         FeatureEntityDto featureDto = entity.getContent();
-        Feature feature = featureDto.getFeature();
+        Feature feature = Objects.requireNonNull(featureDto).getFeature();
 
         // Initialize catalog feature
         DataObjectFeature dataObject = new DataObjectFeature(feature.getUrn(),
@@ -169,7 +205,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                 FeatureFileAttributes atts = file.getAttributes();
                 Set<FeatureFileLocation> locations = file.getLocations();
 
-                Boolean online = checkOnline(locations, getStorages());
+                boolean online = checkOnline(locations, getStorages());
                 Optional<String> referenceUrl = Optional.empty();
                 if (!online) {
                     referenceUrl = checkReference(locations, getStorages());
@@ -199,7 +235,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     private Optional<String> checkReference(Set<FeatureFileLocation> locations, Storages storages) {
         Optional<String> referenceUrl = Optional.empty();
         for (FeatureFileLocation location : locations) {
-            Boolean isOffline = storages.getOfflines().contains(location.getStorage()) || !storages.getAll()
+            boolean isOffline = storages.getOfflines().contains(location.getStorage()) || !storages.getAll()
                                                                                                    .contains(location.getStorage());
             if (isOffline && location.getUrl().startsWith("http")) {
                 referenceUrl = Optional.of(location.getUrl());
@@ -209,8 +245,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         return referenceUrl;
     }
 
-    private Boolean checkOnline(Set<FeatureFileLocation> locations, Storages storages) {
-        Boolean isOnline = false;
+    private boolean checkOnline(Set<FeatureFileLocation> locations, Storages storages) {
+        boolean isOnline = false;
         for (FeatureFileLocation location : locations) {
             isOnline = storages.getOnlines().contains(location.getStorage());
             if (isOnline) {
@@ -229,14 +265,14 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new DataSourceException(
-                        "Error while calling STORAGE client (HTTP STATUS : " + response.getStatusCode());
+                    throw new DataSourceException("Error while calling STORAGE client (HTTP STATUS : "
+                                                  + response.getStatusCode());
                 }
 
-                List<StorageLocationDTO> storageLocationDTOList = response.getBody()
-                                                                          .stream()
-                                                                          .map(n -> n.getContent())
-                                                                          .collect(Collectors.toList());
+                List<StorageLocationDTO> storageLocationDTOList = Objects.requireNonNull(response.getBody())
+                                                                         .stream()
+                                                                         .map(EntityModel::getContent)
+                                                                         .toList();
                 storages = Storages.build(storageLocationDTOList);
             } catch (HttpClientErrorException | HttpServerErrorException e) {
                 throw new DataSourceException("Cannot fetch storage locations list because: " + e.getMessage(), e);
@@ -257,17 +293,19 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
         public static Storages build(List<StorageLocationDTO> storageLocationDTOList) {
             Storages storages = new Storages();
-            storages.all = storageLocationDTOList.stream().map(n -> n.getName()).collect(Collectors.toList());
+            storages.all = storageLocationDTOList.stream().map(StorageLocationDTO::getName).toList();
             storages.onlines = storageLocationDTOList.stream()
-                                                     .filter(s -> (s.getConfiguration() != null) && (
-                                                         s.getConfiguration().getStorageType() == StorageType.ONLINE))
-                                                     .map(n -> n.getName())
-                                                     .collect(Collectors.toList());
+                                                     .filter(s -> (s.getConfiguration() != null)
+                                                                  && (s.getConfiguration().getStorageType()
+                                                                      == StorageType.ONLINE))
+                                                     .map(StorageLocationDTO::getName)
+                                                     .toList();
             storages.offlines = storageLocationDTOList.stream()
-                                                      .filter(s -> (s.getConfiguration() == null) || (
-                                                          s.getConfiguration().getStorageType() == StorageType.OFFLINE))
-                                                      .map(n -> n.getName())
-                                                      .collect(Collectors.toList());
+                                                      .filter(s -> (s.getConfiguration() == null)
+                                                                   || (s.getConfiguration().getStorageType()
+                                                                       == StorageType.OFFLINE))
+                                                      .map(StorageLocationDTO::getName)
+                                                      .toList();
             return storages;
         }
 
@@ -294,19 +332,21 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new DataSourceException(
-                        "Error while calling PROJECT client (HTTP STATUS : " + response.getStatusCode());
+                    throw new DataSourceException("Error while calling PROJECT client (HTTP STATUS : "
+                                                  + response.getStatusCode());
                 }
 
-                project = response.getBody().getContent();
+                project = Objects.requireNonNull(response.getBody()).getContent();
                 projects.put(tenant, project);
             } finally {
                 FeignSecurityManager.reset();
             }
         }
-        return project.getHost() + urlPrefix + "/" + encode4Uri("rs-catalog") + CATALOG_DOWNLOAD_PATH.replace(
-            URN_PLACEHOLDER,
-            urn.toString()).replace(CHECKSUM_PLACEHOLDER, checksum);
+        return Objects.requireNonNull(project).getHost()
+               + urlPrefix
+               + "/"
+               + encode4Uri("rs-catalog")
+               + CATALOG_DOWNLOAD_PATH.replace(URN_PLACEHOLDER, urn.toString()).replace(CHECKSUM_PLACEHOLDER, checksum);
     }
 
     private static String encode4Uri(String str) {
