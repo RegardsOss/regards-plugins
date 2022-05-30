@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.storage.plugin.local;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -50,6 +49,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.zip.ZipFile;
 
 /**
@@ -59,8 +59,6 @@ import java.util.zip.ZipFile;
     version = "1.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
     url = "https://regardsoss.github.io/")
 public class LocalDataStorage implements IOnlineStorageLocation {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataStorage.class);
 
     /**
      * Plugin parameter name of the storage base location as a string
@@ -81,6 +79,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     public static final String LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP = "Local_Storage_Max_File_Size_For_Zip";
 
+    public static final int MAX_REQUESTS_PER_WORKING_SUBSET = 100;
+
+    public static final String IOEXCEPTION_ERROR_MESSAGE_FORMAT = "Storage of StorageDataFile(%s) failed due to the following IOException: %s";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataStorage.class);
+
     /**
      * ZIP directory name which is only used when no storage sub directory is specified
      */
@@ -97,8 +101,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     private static final String ZIP_PROTOCOL = "jar:file:";
 
     private static final Long ZIP_ACQUIRE_TIMEOUT = 600L;
-
-    public static final String IOEXCEPTION_ERROR_MESSAGE_FORMAT = "Storage of StorageDataFile(%s) failed due to the following IOException: %s";
 
     /**
      * Base storage location url
@@ -129,22 +131,40 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
-        Collection<FileStorageWorkingSubset> workingSubSets = Lists.newArrayList();
-        workingSubSets.add(new FileStorageWorkingSubset(fileReferenceRequests));
-        return PreparationResponse.build(workingSubSets, Maps.newHashMap());
+        return createWorkingSubset(fileReferenceRequests, (requests) -> new FileStorageWorkingSubset((requests)));
     }
 
     @Override
     public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
-        Collection<FileDeletionWorkingSubset> workingSubSets = Lists.newArrayList();
-        workingSubSets.add(new FileDeletionWorkingSubset(Sets.newHashSet(fileDeletionRequests)));
-        return PreparationResponse.build(workingSubSets, Maps.newHashMap());
+        return createWorkingSubset(fileDeletionRequests, (requests) -> new FileDeletionWorkingSubset((requests)));
     }
 
     @Override
-    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> requests) {
-        Collection<FileRestorationWorkingSubset> workingSubSets = Lists.newArrayList();
-        workingSubSets.add(new FileRestorationWorkingSubset(Sets.newHashSet(requests)));
+    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> fileCacheRequests) {
+        return createWorkingSubset(fileCacheRequests, (requests) -> new FileRestorationWorkingSubset((requests)));
+    }
+
+    /**
+     * Creates working subsets of requests to limit number of requests to handle in a same batch.
+     *
+     * @param requests
+     * @param createSubset
+     */
+    private <W, R> PreparationResponse createWorkingSubset(Collection<R> requests,
+                                                           Function<Collection<R>, W> createSubset) {
+        Collection<W> workingSubSets = Lists.newArrayList();
+        Iterator<R> it = requests.iterator();
+        List<R> requestsPerSubset = new ArrayList<>();
+        do {
+            if (it.hasNext()) {
+                requestsPerSubset.add(it.next());
+            }
+            if (requestsPerSubset.size() >= MAX_REQUESTS_PER_WORKING_SUBSET || (!it.hasNext()
+                                                                                && !requestsPerSubset.isEmpty())) {
+                workingSubSets.add(createSubset.apply(requestsPerSubset));
+                requestsPerSubset.clear();
+            }
+        } while (it.hasNext() || !requestsPerSubset.isEmpty());
         return PreparationResponse.build(workingSubSets, Maps.newHashMap());
     }
 
@@ -159,8 +179,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fullPathToFile = getStorageLocation(request);
         } catch (IOException ioe) {
             String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                                                request.getMetaInfo().getChecksum(),
-                                                ioe.toString());
+                                                request.getMetaInfo().getChecksum(), ioe);
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, ioe.getMessage());
             return;
@@ -215,8 +234,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
             String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                                                request.getMetaInfo().getChecksum(),
-                                                ioe.toString());
+                                                request.getMetaInfo().getChecksum(), ioe);
             LOGGER.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, failureCause);
@@ -242,8 +260,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             boolean downloadOk = false;
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                 FileLock zipLock = zipFC.lock();
-                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
-                                                                                                   .toString()), env)) {
+                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()), env)) {
                     Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
                     if (Files.exists(pathInZip)) {
                         //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
@@ -292,8 +309,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         } catch (IOException ioe) {
             String failureCause = String.format(
                 "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                request.getMetaInfo().getChecksum(),
-                ioe.toString());
+                request.getMetaInfo().getChecksum(), ioe);
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
         } finally {
@@ -348,7 +364,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Path linkPath = storageLocation.resolve(CURRENT_ZIP_NAME);
         // If link exists but is associated to a non existing file, so delete the dead link
         if (Files.isSymbolicLink(linkPath) && Files.notExists(Files.readSymbolicLink(linkPath))) {
-            LOGGER.warn("[LOCAL STORAGE PLUGIN] Deleting dead link {}", linkPath.toString());
+            LOGGER.warn("[LOCAL STORAGE PLUGIN] Deleting dead link {}", linkPath);
             Files.deleteIfExists(linkPath);
         }
         if (!Files.isSymbolicLink(linkPath)) {
@@ -360,8 +376,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                    + OffsetDateTime.now()
                                                                    .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
                                                    + ".zip");
-            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
-                                                                                               .toString()), env)) {
+            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()), env)) {
                 // now that zip has been created, lets create the link.
                 Files.createSymbolicLink(linkPath, zipPath);
             }
@@ -387,8 +402,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                                                       .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
                                                                       + ".zip");
                             try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
-                                                                                         + newZipPath.toAbsolutePath()
-                                                                                                     .toString()),
+                                                                                         + newZipPath.toAbsolutePath()),
                                                                               env)) {
                                 // now that zip has been created, lets create the link.
                                 Files.deleteIfExists(linkPath);
@@ -418,10 +432,10 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     URL url = new URL(request.getFileReference().getLocation().getUrl());
                     Path location = Paths.get(url.getPath());
                     if (Files.deleteIfExists(location)) {
-                        LOGGER.debug("[LOCAL STORAGE PLUGIN] File {} deleted", location.toAbsolutePath().toString());
+                        LOGGER.debug("[LOCAL STORAGE PLUGIN] File {} deleted", location.toAbsolutePath());
                     } else {
                         LOGGER.debug("[LOCAL STORAGE PLUGIN] File {} not deleted as it does not exists",
-                                     location.toAbsolutePath().toString());
+                                     location.toAbsolutePath());
                     }
                     progressManager.deletionSucceed(request);
                 } catch (IOException ioe) {
@@ -450,8 +464,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                         FileLock zipLock = zipFC.lock();
                         try {
                             try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
-                                                                                         + zipPath.toAbsolutePath()
-                                                                                                  .toString()), env)) {
+                                                                                         + zipPath.toAbsolutePath()), env)) {
                                 Path pathInZip = zipFs.getPath(checksum);
                                 Files.deleteIfExists(pathInZip);
                                 progressManager.deletionSucceed(request);
@@ -482,7 +495,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 }
             } else {
                 LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file {} but zip file does not exists.",
-                             zipPath.toString());
+                             zipPath);
                 progressManager.deletionSucceed(request);
             }
         } catch (IOException e) {
@@ -541,8 +554,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                      StandardOpenOption.WRITE,
                                                      StandardOpenOption.READ); // NOSONAR
                 FileLock zipLock = zipFC.lock();
-                FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
-                                                                                              .toString()), // NOSONAR
+                FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),// NOSONAR
                                                              env); // NOSONAR
                 Path pathInZip = zipFs.getPath(checksum);
                 return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);

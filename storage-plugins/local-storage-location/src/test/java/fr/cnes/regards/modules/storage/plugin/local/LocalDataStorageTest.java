@@ -29,10 +29,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -47,6 +44,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -88,7 +87,9 @@ public class LocalDataStorageTest {
 
     @After
     public void after() throws IOException {
-        Files.walk(Paths.get(baseStorageLocation)).forEach(p -> p.toFile().delete());
+        if (Files.exists(Paths.get(baseStorageLocation))) {
+            Files.walk(Paths.get(baseStorageLocation)).forEach(p -> p.toFile().delete());
+        }
     }
 
     @Test
@@ -117,6 +118,35 @@ public class LocalDataStorageTest {
         Mockito.verify(storageProgress, Mockito.times(1))
                .storageSucceed(Mockito.eq(storageRequest), Mockito.any(), Mockito.any());
         Assert.assertTrue("", Files.exists(plugin.getStorageLocationForZip(storageRequest)));
+    }
+
+    @Test
+    public void createWorkingSubsets() throws MalformedURLException {
+
+        int nbRequests = 5 * LocalDataStorage.MAX_REQUESTS_PER_WORKING_SUBSET;
+        URL urlToDelete = new URL("file", null, "target/local-storage/test/huhu/fileToDelete.test");
+        List<FileDeletionRequest> files = new ArrayList<>();
+        for (long id = 0; id < nbRequests; id++) {
+            FileReference fileRef = new FileReference("owner",
+                                                      new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
+                                                                                "MD5",
+                                                                                "file.name",
+                                                                                null,
+                                                                                MediaType.APPLICATION_OCTET_STREAM),
+                                                      new FileLocation("local-storage", urlToDelete.toString(), false));
+            fileRef.setId(id);
+            FileDeletionRequest request = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
+            request.setId(id);
+            files.add(request);
+        }
+
+        PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> wss = plugin.prepareForDeletion(files);
+        Assert.assertEquals(nbRequests / LocalDataStorage.MAX_REQUESTS_PER_WORKING_SUBSET,
+                            wss.getWorkingSubsets().size());
+        Assert.assertTrue(wss.getWorkingSubsets()
+                             .stream()
+                             .allMatch(ws -> ws.getFileDeletionRequests().size()
+                                             == LocalDataStorage.MAX_REQUESTS_PER_WORKING_SUBSET));
     }
 
     @Test
