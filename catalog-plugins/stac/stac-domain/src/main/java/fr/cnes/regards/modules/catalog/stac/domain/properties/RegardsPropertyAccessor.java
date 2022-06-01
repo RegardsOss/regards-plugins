@@ -19,10 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties;
 
-import java.util.function.Function;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -31,6 +28,8 @@ import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
+
+import java.util.function.Function;
 
 /**
  * Represents a path to a value
@@ -82,9 +81,7 @@ public class RegardsPropertyAccessor {
      */
     @VisibleForTesting
     public static RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value, boolean internal) {
-        AttributeModelBuilder build = AttributeModelBuilder.build(name, sPropType.getPropertyType(), "");
-        if (internal) { build = build.isInternal(); }
-        AttributeModel attr = build.get();
+        AttributeModel attr = new AttributeModelBuilder(name, sPropType.getPropertyType(), "").setInternal(internal).build();
         return new RegardsPropertyAccessor(
                 name, attr, d -> Try.success(value), value.getClass()
         );

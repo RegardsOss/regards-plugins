@@ -28,7 +28,7 @@ import io.vavr.control.Try;
 public interface RegardsPropertyAccessorAwareTest {
 
     default AttributeModel attr(String name, StacPropertyType sPropType) {
-        return AttributeModelBuilder.build(name, sPropType.getPropertyType(), "").get();
+        return new AttributeModelBuilder(name, sPropType.getPropertyType(), "").build();
     }
 
     default RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value) {

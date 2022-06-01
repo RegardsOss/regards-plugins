@@ -61,27 +61,27 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         model.setName("theModelName");
         dataObject = new DataObject(model, "theTenant", "theProviderId", "theLabel");
         dataObject.addProperty(IProperty.buildString("someStringProp", "someStringValue"));
-        when(finder.findByName("someStringProp")).thenAnswer(i -> AttributeModelBuilder.build("someStringProp", PropertyType.STRING, "").get());
+        when(finder.findByName("someStringProp")).thenAnswer(i -> new AttributeModelBuilder("someStringProp", PropertyType.STRING, "").build());
 
         dataObject.addProperty(IProperty.buildBoolean("someBooleanProp", false));
-        when(finder.findByName("someBooleanProp")).thenAnswer(i -> AttributeModelBuilder.build("someBooleanProp", PropertyType.BOOLEAN, "").get());
+        when(finder.findByName("someBooleanProp")).thenAnswer(i -> new AttributeModelBuilder("someBooleanProp", PropertyType.BOOLEAN, "").build());
 
         dataObject.addProperty(IProperty.buildDouble("someDoubleProp", 15d));
-        when(finder.findByName("someDoubleProp")).thenAnswer(i -> AttributeModelBuilder.build("someDoubleProp", PropertyType.DOUBLE, "").get());
+        when(finder.findByName("someDoubleProp")).thenAnswer(i -> new AttributeModelBuilder("someDoubleProp", PropertyType.DOUBLE, "").build());
 
         dataObject.addProperty(IProperty.buildUrl("someURLProp", "http://xkcd.com/1"));
-        when(finder.findByName("someURLProp")).thenAnswer(i -> AttributeModelBuilder.build("someURLProp", PropertyType.URL, "").get());
+        when(finder.findByName("someURLProp")).thenAnswer(i -> new AttributeModelBuilder("someURLProp", PropertyType.URL, "").build());
 
         dataObject.addProperty(IProperty.buildDate("someDateProp", now));
-        when(finder.findByName("someDateProp")).thenAnswer(i -> AttributeModelBuilder.build("someDateProp", PropertyType.DATE_ISO8601, "").get());
+        when(finder.findByName("someDateProp")).thenAnswer(i -> new AttributeModelBuilder("someDateProp", PropertyType.DATE_ISO8601, "").build());
 
         dataObject.addProperty(IProperty.buildJson("someJsonObjectProp", jsonObject));
-        when(finder.findByName("someJsonObjectProp")).thenAnswer(i -> AttributeModelBuilder.build("someJsonObjectProp", PropertyType.JSON, "").get());
+        when(finder.findByName("someJsonObjectProp")).thenAnswer(i -> new AttributeModelBuilder("someJsonObjectProp", PropertyType.JSON, "").build());
 
         dataObject.addProperty(IProperty.buildObject("anObject", IProperty.buildString("anObjectStringProp", "anObjectStringPropValue"),
                                                                  IProperty.buildString("anotherObjectStringProp", "anotherObjectStringPropValue")));
-        when(finder.findByName("anObject.anObjectStringProp")).thenAnswer(i -> AttributeModelBuilder.build("anObjectStringProp", PropertyType.STRING, "")
-                                                                                                      .fragment(Fragment.buildFragment("anObject", "")).get());
+        when(finder.findByName("anObject.anObjectStringProp")).thenAnswer(i -> new AttributeModelBuilder("anObjectStringProp", PropertyType.STRING, "")
+            .setFragment(Fragment.buildFragment("anObject", "")).build());
     }
 
     @Test
