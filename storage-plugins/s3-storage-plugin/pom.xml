@@ -33,19 +33,8 @@
         </developer>
     </developers>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom</artifactId>
-                <version>2.17.46</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
+        <!-- Regards -->
         <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
             <artifactId>storage-domain</artifactId>
@@ -53,10 +42,10 @@
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
-            <artifactId>file-utils</artifactId>
-            <scope>provided</scope>
+            <artifactId>s3-storage-utils</artifactId>
         </dependency>
 
+        <!-- Externals -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -77,12 +66,8 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-        </dependency>
 
-        <!-- TEST dependencies -->
+        <!-- Test -->
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
             <artifactId>regards-integration-test</artifactId>
@@ -93,13 +78,8 @@
             <artifactId>plugin-utils</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>1.14.3</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -146,6 +126,7 @@
                                     <include>org.apache.httpcomponents:*</include>
                                     <include>io.netty:*</include>
                                     <include>com.typesafe.netty:*</include>
+                                    <include>fr.cnes.regards.framework.utils:s3-storage-utils</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

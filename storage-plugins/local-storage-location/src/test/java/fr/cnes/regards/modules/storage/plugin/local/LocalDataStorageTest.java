@@ -98,9 +98,10 @@ public class LocalDataStorageTest {
     public void store() throws IOException {
         Set<FileStorageRequest> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
-                        testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
+                        null , MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
 
         files.add(storageRequest);
@@ -116,8 +117,9 @@ public class LocalDataStorageTest {
     public void store_file_exists() throws IOException {
         Set<FileStorageRequest> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", 9L,
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null ,
                         MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         files.add(storageRequest);
@@ -134,8 +136,9 @@ public class LocalDataStorageTest {
     public void store_error_missing_file() throws MalformedURLException {
         Set<FileStorageRequest> files = Sets.newHashSet();
         Path unknownFilePath = Paths.get("src", "test", "resources", "unknown.test");
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "unknown.test", 9877L,
+                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "unknown.test", null,
                         MediaType.APPLICATION_OCTET_STREAM),
                 unknownFilePath.toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         files.add(storageRequest);
@@ -149,8 +152,9 @@ public class LocalDataStorageTest {
     @Test
     public void store_error_invalid_md5() throws MalformedURLException {
         Set<FileStorageRequest> files = Sets.newHashSet();
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                new FileReferenceMetaInfo("abcde123456789abcde123456789abcd", "MD5", "file.name", 9L,
+                new FileReferenceMetaInfo("abcde123456789abcde123456789abcd", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
                 (new URL("file", null, "src/test/resources/file.test")).toString(), "localStorage", Optional.empty(),
                 "group", "TEST", "session-001");
@@ -166,9 +170,10 @@ public class LocalDataStorageTest {
     public void deleteFromZipAndZip() throws IOException {
         store();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name",
-                        testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
+                       null , MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
         Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> files = Sets.newHashSet();
@@ -199,9 +204,10 @@ public class LocalDataStorageTest {
         // store second file
         Set<FileStorageRequest> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file2.test");
+
         FileStorageRequest storageRequest = new FileStorageRequest("owner",
                 new FileReferenceMetaInfo("b4b2c823e4a4cf98d755f76679c83918", "MD5", "file2.name",
-                        testFilePath.toFile().length(), MediaType.APPLICATION_OCTET_STREAM),
+                       null , MediaType.APPLICATION_OCTET_STREAM),
                 testFilePath.toUri().toString(), "localStorage", Optional.empty(), "group", "TEST", "session-001");
 
         files.add(storageRequest);
@@ -240,6 +246,7 @@ public class LocalDataStorageTest {
     public void delete() throws IOException {
         URL urlToDelete = new URL("file", null, "target/local-storage/test/huhu/fileToDelete.test");
         Set<FileDeletionRequest> files = Sets.newHashSet();
+
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
@@ -265,6 +272,7 @@ public class LocalDataStorageTest {
     public void delete_missing_file() throws IOException {
         URL urlToDelete = new URL("file", null, "target/local-storage/test/fileToDelete.test");
         Set<FileDeletionRequest> files = Sets.newHashSet();
+
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
@@ -290,6 +298,7 @@ public class LocalDataStorageTest {
     public void delete_error() throws IOException {
         URL urlToDelete = new URL("file", null, "target/local-storage/test/fileToDelete.test");
         Set<FileDeletionRequest> files = Sets.newHashSet();
+
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
                 new FileLocation("local-storage", urlToDelete.toString()));
