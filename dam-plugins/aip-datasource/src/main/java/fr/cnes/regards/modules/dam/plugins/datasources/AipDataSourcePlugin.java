@@ -489,11 +489,17 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                 PropertyType attributeType = modelMappingMap.get(doPropertyPath);
                 IProperty<?> propAtt = null;
                 if (attributeType.isInterval()) {
-                    // Values from AIP
-                    String lowerBoundPropertyPath = entry.getValue().get(0);
-                    Object lowerBound = getNestedProperty(aip, lowerBoundPropertyPath);
-                    String upperBoundPropertyPath = entry.getValue().get(1);
-                    Object upperBound = getNestedProperty(aip, upperBoundPropertyPath);
+                    Object lowerBound = null;
+                    Object upperBound = null;
+                    String lowerBoundPropertyPath = null;
+                    String upperBoundPropertyPath = null;
+                    if (entry.getValue().size() == 2 && entry.getValue().get(0) != null && entry.getValue().get(1) != null) {
+                        // Values from AIP
+                        lowerBoundPropertyPath = entry.getValue().get(0);
+                        lowerBound = getNestedProperty(aip, lowerBoundPropertyPath);
+                        upperBoundPropertyPath = entry.getValue().get(1);
+                        upperBound = getNestedProperty(aip, upperBoundPropertyPath);
+                    }
                     if ((lowerBound != null) || (upperBound != null)) {
                         try {
                             propAtt = IProperty.forType(attributeType, propName, lowerBound, upperBound);
