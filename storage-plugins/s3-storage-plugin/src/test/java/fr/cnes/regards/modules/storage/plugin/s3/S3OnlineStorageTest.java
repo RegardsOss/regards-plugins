@@ -41,17 +41,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MimeType;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
@@ -99,15 +93,21 @@ public class S3OnlineStorageTest {
 
     private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
         // Set plugin configuration
-        Collection<IPluginParam> parameters = IPluginParam.set(
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_ENDPOINT_PARAM_NAME, endpoint),
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_REGION_PARAM_NAME, region),
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_KEY_PARAM_NAME, key),
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret),
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_BUCKET_PARAM_NAME, bucket),
-                IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME, rootPath));
+        Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(S3OnlineStorage.S3_SERVER_ENDPOINT_PARAM_NAME,
+                                                                                  endpoint),
+                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_REGION_PARAM_NAME,
+                                                                                  region),
+                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_KEY_PARAM_NAME,
+                                                                                  key),
+                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME,
+                                                                                  secret),
+                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_BUCKET_PARAM_NAME,
+                                                                                  bucket),
+                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME,
+                                                                                  rootPath));
 
-        PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3OnlineStorage.class, "S3 plugin",
+        PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3OnlineStorage.class,
+                                                                            "S3 plugin",
                                                                             parameters);
         // Load plugin
         try {
@@ -129,26 +129,38 @@ public class S3OnlineStorageTest {
 
         FileStorageRequest fileStorageRequest = createFileStorageRequest();
 
-        FileStorageWorkingSubset fileStorageWorkingSubset = new FileStorageWorkingSubset(
-                Collections.singletonList(fileStorageRequest));
+        FileStorageWorkingSubset fileStorageWorkingSubset = new FileStorageWorkingSubset(Collections.singletonList(
+            fileStorageRequest));
         // Store file to S3
         s3OnlineStorage.store(fileStorageWorkingSubset, new IStorageProgressManager() {
+
             @Override
             public void storageSucceed(FileStorageRequest fileReferenceRequest, URL storedUrl, Long fileSize) {
             }
+
             @Override
             public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
             }
         });
 
         // Retrieve file from S3
-        FileReference fileReference = new FileReference("regards", new FileReferenceMetaInfo(
-                fileStorageRequest.getMetaInfo().getChecksum(), fileStorageRequest.getMetaInfo().getAlgorithm(),
-                fileStorageRequest.getMetaInfo().getFileName(), fileStorageRequest.getMetaInfo().getFileSize(),
-                MimeType.valueOf("text/plain")), new FileLocation("S3",
-                                                                  endPointS3 + File.separator + bucket + File.separator
-                                                                          + fileStorageRequest.getMetaInfo()
-                                                                          .getChecksum()));
+        FileReference fileReference = new FileReference("regards",
+                                                        new FileReferenceMetaInfo(fileStorageRequest.getMetaInfo()
+                                                                                                    .getChecksum(),
+                                                                                  fileStorageRequest.getMetaInfo()
+                                                                                                    .getAlgorithm(),
+                                                                                  fileStorageRequest.getMetaInfo()
+                                                                                                    .getFileName(),
+                                                                                  fileStorageRequest.getMetaInfo()
+                                                                                                    .getFileSize(),
+                                                                                  MimeType.valueOf("text/plain")),
+                                                        new FileLocation("S3",
+                                                                         endPointS3
+                                                                         + File.separator
+                                                                         + bucket
+                                                                         + File.separator
+                                                                         + fileStorageRequest.getMetaInfo()
+                                                                                             .getChecksum()));
 
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
@@ -158,9 +170,11 @@ public class S3OnlineStorageTest {
         Assert.assertNotNull(inputStream);
 
         // Delete file from S3
-        FileDeletionRequest fileDeletionRequest= createFileDeletionRequest();
-        FileDeletionWorkingSubset fileDeletionWorkingSubset=new FileDeletionWorkingSubset(Collections.singletonList(fileDeletionRequest));
+        FileDeletionRequest fileDeletionRequest = createFileDeletionRequest();
+        FileDeletionWorkingSubset fileDeletionWorkingSubset = new FileDeletionWorkingSubset(Collections.singletonList(
+            fileDeletionRequest));
         s3OnlineStorage.delete(fileDeletionWorkingSubset, new IDeletionProgressManager() {
+
             @Override
             public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
             }
@@ -171,12 +185,11 @@ public class S3OnlineStorageTest {
         });
 
         // Retrieve file from S3
-        try{
+        try {
             s3OnlineStorage.retrieve(fileReference);
 
             Assert.fail("File always exists");
-        }
-        catch(Exception exc){
+        } catch (Exception exc) {
         }
     }
 
@@ -205,10 +218,14 @@ public class S3OnlineStorageTest {
         fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
         fileReferenceMetaInfo.setChecksum("706126bf6d8553708227dba90694e81c");
 
-        FileLocation fileLocation=new FileLocation();
-        fileLocation.setUrl(endPointS3+File.pathSeparator+bucket+File.pathSeparator+fileReferenceMetaInfo.getChecksum());
+        FileLocation fileLocation = new FileLocation();
+        fileLocation.setUrl(endPointS3
+                            + File.pathSeparator
+                            + bucket
+                            + File.pathSeparator
+                            + fileReferenceMetaInfo.getChecksum());
 
-        FileReference fileReference=new FileReference();
+        FileReference fileReference = new FileReference();
         fileReference.setMetaInfo(fileReferenceMetaInfo);
         fileReference.setLocation(fileLocation);
 
