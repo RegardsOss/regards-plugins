@@ -48,6 +48,7 @@ import org.springframework.util.MimeType;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,7 +62,9 @@ import java.util.HashSet;
 @RunWith(RegardsSpringRunner.class)
 @SpringBootTest
 @SpringBootConfiguration
-public class S3OnlineStorageTest {
+public class S3OnlineStorageIT {
+
+    private static final String TENANT = "TENANT";
 
     @Value("${s3.server}")
     private String endPointS3;
@@ -82,8 +85,6 @@ public class S3OnlineStorageTest {
     public final S3Rule s3Rule = new S3Rule(() -> endPointS3, () -> key, () -> secret, () -> region, () -> bucket);
 
     private S3OnlineStorage s3OnlineStorage;
-
-    private static final String TENANT = "TENANT";
 
     @Before
     public void prepare() {
@@ -123,11 +124,29 @@ public class S3OnlineStorageTest {
     }
 
     @Test
-    public void givenS3_whenReference_thenValidateAndRetrieveFile() {
+    public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath() {
+        givenS3_whenReference_thenValidateAndRetrieveFile("/rootPath0/rootPath1/", "");
+    }
 
-        loadPlugin(endPointS3, region, key, secret, bucket, "");
+    @Test
+    public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPathSubDirectory() {
+        givenS3_whenReference_thenValidateAndRetrieveFile("/rootPath0", "/dir0/dir1");
+    }
 
-        FileStorageRequest fileStorageRequest = createFileStorageRequest();
+    @Test
+    public void givenS3_whenReference_thenValidateAndRetrieveFile_withSubDirectory() {
+        givenS3_whenReference_thenValidateAndRetrieveFile("", "/dir0/dir1");
+    }
+
+    @Test
+    public void givenS3_whenReference_thenValidateAndRetrieveFile_only() {
+        givenS3_whenReference_thenValidateAndRetrieveFile("", "");
+    }
+
+    private void givenS3_whenReference_thenValidateAndRetrieveFile(String rootPath, String subDirectory) {
+        loadPlugin(endPointS3, region, key, secret, bucket, rootPath);
+
+        FileStorageRequest fileStorageRequest = createFileStorageRequest(subDirectory);
 
         FileStorageWorkingSubset fileStorageWorkingSubset = new FileStorageWorkingSubset(Collections.singletonList(
             fileStorageRequest));
@@ -144,23 +163,7 @@ public class S3OnlineStorageTest {
         });
 
         // Retrieve file from S3
-        FileReference fileReference = new FileReference("regards",
-                                                        new FileReferenceMetaInfo(fileStorageRequest.getMetaInfo()
-                                                                                                    .getChecksum(),
-                                                                                  fileStorageRequest.getMetaInfo()
-                                                                                                    .getAlgorithm(),
-                                                                                  fileStorageRequest.getMetaInfo()
-                                                                                                    .getFileName(),
-                                                                                  fileStorageRequest.getMetaInfo()
-                                                                                                    .getFileSize(),
-                                                                                  MimeType.valueOf("text/plain")),
-                                                        new FileLocation("S3",
-                                                                         endPointS3
-                                                                         + File.separator
-                                                                         + bucket
-                                                                         + File.separator
-                                                                         + fileStorageRequest.getMetaInfo()
-                                                                                             .getChecksum()));
+        FileReference fileReference = createFileReference(fileStorageRequest, rootPath);
 
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
@@ -170,7 +173,7 @@ public class S3OnlineStorageTest {
         Assert.assertNotNull(inputStream);
 
         // Delete file from S3
-        FileDeletionRequest fileDeletionRequest = createFileDeletionRequest();
+        FileDeletionRequest fileDeletionRequest = createFileDeletionRequest(fileStorageRequest, rootPath);
         FileDeletionWorkingSubset fileDeletionWorkingSubset = new FileDeletionWorkingSubset(Collections.singletonList(
             fileDeletionRequest));
         s3OnlineStorage.delete(fileDeletionWorkingSubset, new IDeletionProgressManager() {
@@ -193,9 +196,10 @@ public class S3OnlineStorageTest {
         }
     }
 
-    private FileStorageRequest createFileStorageRequest() {
+    private FileStorageRequest createFileStorageRequest(String subDirectory) {
         FileStorageRequest fileStorageRequest = new FileStorageRequest();
         fileStorageRequest.setOriginUrl("file:./src/test/resources/small.txt");
+        fileStorageRequest.setStorageSubDirectory(subDirectory);
 
         FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
         fileReferenceMetaInfo.setFileName("small.txt");
@@ -208,29 +212,30 @@ public class S3OnlineStorageTest {
         return fileStorageRequest;
     }
 
-    private FileDeletionRequest createFileDeletionRequest() {
+    private FileReference createFileReference(FileStorageRequest fileStorageRequest, String rootPath) {
+        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
+        fileReferenceMetaInfo.setFileName(fileStorageRequest.getMetaInfo().getFileName());
+        fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
+        fileReferenceMetaInfo.setMimeType(fileStorageRequest.getMetaInfo().getMimeType());
+        fileReferenceMetaInfo.setChecksum(fileStorageRequest.getMetaInfo().getChecksum());
+
+        FileLocation fileLocation = new FileLocation();
+        fileLocation.setUrl(buildFileLocationUrl(fileStorageRequest, rootPath));
+
+        return new FileReference("regards", fileReferenceMetaInfo, fileLocation);
+    }
+
+    private FileDeletionRequest createFileDeletionRequest(FileStorageRequest fileStorageRequest, String rootPath) {
         FileDeletionRequest fileDeletionRequest = new FileDeletionRequest();
         fileDeletionRequest.setJobId("JOB_ID");
 
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName("small.txt");
-        fileReferenceMetaInfo.setAlgorithm("MD5");
-        fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
-        fileReferenceMetaInfo.setChecksum("706126bf6d8553708227dba90694e81c");
-
-        FileLocation fileLocation = new FileLocation();
-        fileLocation.setUrl(endPointS3
-                            + File.pathSeparator
-                            + bucket
-                            + File.pathSeparator
-                            + fileReferenceMetaInfo.getChecksum());
-
-        FileReference fileReference = new FileReference();
-        fileReference.setMetaInfo(fileReferenceMetaInfo);
-        fileReference.setLocation(fileLocation);
-
-        fileDeletionRequest.setFileReference(fileReference);
+        fileDeletionRequest.setFileReference(createFileReference(fileStorageRequest, rootPath));
 
         return fileDeletionRequest;
+    }
+
+    private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
+        return endPointS3 + File.separator + bucket + Paths.get(rootPath, fileStorageRequest.getStorageSubDirectory())
+                                                           .resolve(fileStorageRequest.getMetaInfo().getChecksum());
     }
 }

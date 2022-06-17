@@ -3,6 +3,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import com.google.common.collect.Maps;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
@@ -27,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,6 +37,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -61,7 +64,8 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     private static final Logger LOGGER = getLogger(S3OnlineStorage.class);
 
-    @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME, description = "Endpoint of the S3 server",
+    @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
+        description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
         label = "S3 server endpoint")
     private String endpoint;
 
@@ -94,11 +98,6 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     private int multipartThresholdMb;
 
     /**
-     * Do not use this field, use the getStorageConfig getter
-     */
-    private StorageConfig storageConfigCache;
-
-    /**
      * Do not use this field, use the getClient getter
      */
     private S3HighLevelReactiveClient clientCache;
@@ -106,23 +105,9 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
 
-    private String getEntryKey(StorageConfig storageConfig, String url) {
-        return url.replaceFirst(Pattern.quote(storageConfig.getEndpoint()) + "/*", "")
-                  .replaceFirst(Pattern.quote(storageConfig.getBucket()) + "/*", "");
-    }
-
-    private StorageConfig getStorageConfig() {
-        if (storageConfigCache == null) {
-            storageConfigCache = StorageConfig.builder()
-                                              .endpoint(endpoint)
-                                              .bucket(bucket)
-                                              .key(key)
-                                              .secret(secret)
-                                              .region(region)
-                                              .rootPath(rootPath)
-                                              .build();
-        }
-        return storageConfigCache;
+    @PluginInit
+    public void init() {
+        rootPath = rootPath == null ? "" : rootPath;
     }
 
     private S3HighLevelReactiveClient getClient() {
@@ -136,24 +121,21 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public InputStream retrieve(FileReference fileReference) {
-        String url = fileReference.getLocation().getUrl();
 
-        StorageConfig storageConfig = getStorageConfig();
+        StorageCommandID cmdId = new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID());
 
-        String entryKey = getEntryKey(storageConfig, url);
+        StorageConfig storageConfig = buildStorageConfig(getRootPathFromUrl(fileReference));
 
-        StorageCommand.Read readCmd = StorageCommand.read(storageConfig,
-                                                          new StorageCommandID(String.format("%d",
-                                                                                             fileReference.getId()),
-                                                                               UUID.randomUUID()),
-                                                          entryKey);
+        String entryKey = storageConfig.entryKey(fileReference.getMetaInfo().getChecksum());
+
+        StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, entryKey);
         return getClient().read(readCmd)
-                          .flatMap(result -> result.matchReadResult(this::toInputStream,
-                                                                    unreachable -> Mono.error(new ModuleException(
-                                                                        "Unreachable server: "
-                                                                        + unreachable.toString())),
-                                                                    notFound -> Mono.error(new FileNotFoundException(
-                                                                        "Entry not found"))))
+                          .flatMap(readResult -> readResult.matchReadResult(this::toInputStream,
+                                                                            unreachable -> Mono.error(new ModuleException(
+                                                                                "Unreachable server: "
+                                                                                + unreachable.toString())),
+                                                                            notFound -> Mono.error(new FileNotFoundException(
+                                                                                "Entry not found"))))
                           .block();
     }
 
@@ -174,17 +156,17 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                         request.getFileReference().getLocation().getUrl());
             StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
-            StorageConfig storageConfig = getStorageConfig();
+            StorageConfig storageConfig = buildStorageConfig(getRootPathFromUrl(request.getFileReference()));
 
             String entryKey = storageConfig.entryKey(request.getFileReference().getMetaInfo().getChecksum());
 
             StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfig, cmdId, entryKey);
             return getClient().delete(deleteCmd)
-                              .flatMap(result -> result.matchDeleteResult(Mono::just,
-                                                                          unreachable -> Mono.error(new RuntimeException(
-                                                                              "Unreachable endpoint")),
-                                                                          failure -> Mono.error(new RuntimeException(
-                                                                              "Delete failure in S3 storage"))))
+                              .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
+                                                                                      unreachable -> Mono.error(new RuntimeException(
+                                                                                          "Unreachable endpoint")),
+                                                                                      failure -> Mono.error(new RuntimeException(
+                                                                                          "Delete failure in S3 storage"))))
                               .doOnError(t -> {
                                   try {
                                       runtimeTenantResolver.forceTenant(tenant);
@@ -225,38 +207,67 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                                        multipartThresholdMb * 1024 * 1024)
                                                       .map(DataBuffer::asByteBuffer);
 
-            StorageConfig storageConfig = getStorageConfig();
+            StorageConfig storageConfig = buildStorageConfig(makeRootPath(request.getStorageSubDirectory()));
             StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
             String entryKey = storageConfig.entryKey(request.getMetaInfo().getChecksum());
 
-            StorageEntry entry = StorageEntry.builder()
-                                             .config(storageConfig)
-                                             .fullPath(entryKey)
-                                             .checksum(entryChecksum(request))
-                                             .size(entrySize(request))
-                                             .data(buffers)
-                                             .build();
+            StorageEntry storageEntry = StorageEntry.builder()
+                                                    .config(storageConfig)
+                                                    .fullPath(entryKey)
+                                                    .checksum(entryChecksum(request))
+                                                    .size(entrySize(request))
+                                                    .data(buffers)
+                                                    .build();
 
-            StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfig, cmdId, entryKey, entry);
+            StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfig, cmdId, entryKey, storageEntry);
+
             return getClient().write(writeCmd)
-                              .flatMap(r -> r.matchWriteResult(Mono::just,
-                                                               unreachable -> Mono.error(new RuntimeException(
-                                                                   "Unreachable endpoint")),
-                                                               failure -> Mono.error(new RuntimeException(
-                                                                   "Write failure in S3 storage"))))
+                              .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                                   unreachable -> Mono.error(new RuntimeException(
+                                                                                       "Unreachable endpoint")),
+                                                                                   failure -> Mono.error(new RuntimeException(
+                                                                                       "Write failure in S3 storage"))))
                               .doOnError(t -> {
                                   LOGGER.error("End storing {}", request.getOriginUrl(), t);
                                   progressManager.storageFailed(request, "Write failure in S3 storage");
+
                               })
                               .doOnSuccess(success -> {
                                   LOGGER.info("End storing {}", request.getOriginUrl());
                                   progressManager.storageSucceed(request,
-                                                                 storageConfig.entryKeyUrl(entryKey),
+                                                                 storageConfig.entryKeyUrl(entryKey.replaceFirst("^/*",
+                                                                                                                 "")),
                                                                  success.getSize());
                               })
                               .block();
         }));
+    }
+
+    private String getRootPathFromUrl(FileReference fileReference) {
+        return fileReference.getLocation()
+                            .getUrl()
+                            .replaceFirst(Pattern.quote(endpoint) + "/*", "")
+                            .replaceFirst(Pattern.quote(bucket), "")
+                            .replaceFirst(Pattern.quote(fileReference.getMetaInfo().getChecksum()), "");
+    }
+
+    private String makeRootPath(String subDirectory) {
+        if (subDirectory == null) {
+            return rootPath;
+        }
+        return Paths.get(rootPath, subDirectory).toString();
+    }
+
+    private StorageConfig buildStorageConfig(String path) {
+        return StorageConfig.builder()
+                            .endpoint(endpoint)
+                            .bucket(bucket)
+                            .key(key)
+                            .secret(secret)
+                            .region(region)
+                            .rootPath(path)
+                            .build();
     }
 
     private Option<Long> entrySize(FileStorageRequest request) {
@@ -269,29 +280,26 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public boolean isValidUrl(String urlToValidate, Set<String> errors) {
-        boolean result = true;
-
-        String configEndpoint = getStorageConfig().getEndpoint();
-        String configBucket = getStorageConfig().getBucket();
-        String configRootpath = getStorageConfig().getRootPath();
-
-        if (!urlToValidate.startsWith(configEndpoint)) {
-            errors.add("Url does not start with storage endpoint: " + configEndpoint);
-            result = false;
+        // Check endPoint in url
+        if (!urlToValidate.startsWith(endpoint)) {
+            errors.add("Url does not start with storage endpoint: " + endpoint);
+            return false;
         }
-        String prefixBucket = configEndpoint.replaceFirst("/*$", "") + "/" + configBucket;
+        // Check bucket in url
+        String prefixBucket = endpoint + File.separator + bucket;
         if (!urlToValidate.startsWith(prefixBucket)) {
-            errors.add("Url does not correspond to storage bucket: " + configBucket);
-            result = false;
+            errors.add("Url does not correspond to storage bucket: " + bucket);
+            return false;
         }
-        String prefixRootPath = prefixBucket + File.separator + Optional.ofNullable(configRootpath)
-                                                                        .orElse("")
-                                                                        .replaceFirst("^/*", "");
-        if (!urlToValidate.startsWith(prefixRootPath)) {
-            errors.add("Url does correspond to storage root path: " + configRootpath);
-            result = false;
+        // Check rootPath
+        if (StringUtils.isNotBlank(rootPath)) {
+            String prefixRootPath = prefixBucket + File.separator + rootPath.replaceFirst("^/*", "");
+            if (!urlToValidate.startsWith(prefixRootPath)) {
+                errors.add("Url does correspond to storage root path: " + rootPath);
+                return false;
+            }
         }
-        return result;
+        return true;
     }
 
     @Override
