@@ -412,39 +412,4 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     }
 
     public static Model model = new Model();
-
-    @Ignore
-    @Test
-    public void testDsIngestionWithValidation() throws ModuleException, NotFinishedException, FirstFindException {
-        DatasourceIngestion dsi = new DatasourceIngestion(dataSourceTestPluginConf.getBusinessId());
-        dsiRepos.save(dsi);
-        // First ingestion with a "nude" model
-//        try {
-            crawlerService.ingest(dsi.getId())
-                          .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi"));
-            Assert.fail("Test should have failed on \"Model identifier must be specified.\"");
-            //FIXME: does this test still needs to be?
-//        } catch (ExecutionException ee) {
-//            Assert.assertTrue(ee.getCause() instanceof IllegalArgumentException);
-//            Assert.assertEquals("Model identifier must be specified.", ee.getCause().getMessage());
-//        }
-
-        model.setId(15000L);
-        List<ModelAttrAssoc> modelAttrAssocs = new ArrayList<>();
-        AttributeModel attTutuToto = new AttributeModel();
-        Fragment fragmentTutu = new Fragment();
-        fragmentTutu.setName("tutu");
-        attTutuToto.setFragment(fragmentTutu);
-        attTutuToto.setName("toto");
-        attTutuToto.setType(PropertyType.STRING);
-        attTutuToto.setOptional(false);
-        ModelAttrAssoc attrAssocTutuToto = new ModelAttrAssoc(attTutuToto, model);
-        modelAttrAssocs.add(attrAssocTutuToto);
-        Mockito.when(modelAttrAssocService.getModelAttrAssocs(Mockito.anyString())).thenReturn(modelAttrAssocs);
-        IngestionResult summary = crawlerService.ingest(dsi.getId())
-                                                .orElseThrow(() -> new RuntimeException(
-                                                    "There was some issues while ingesting dsi"));
-        // 2 validation errors so nothing saved
-        Assert.assertEquals(0, summary.getSavedObjectsCount());
-    }
 }

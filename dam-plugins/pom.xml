@@ -60,5 +60,6 @@
 		<module>postgresql-datasource-it</module>
 		<module>feature-datasource</module>
         <module>webservice-datasource</module>
+		<module>mock-datasources</module>
     </modules>
 </project>

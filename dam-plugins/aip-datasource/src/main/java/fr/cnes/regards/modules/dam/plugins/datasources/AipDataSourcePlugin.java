@@ -170,8 +170,6 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
     private final Multimap<String, String> multimap = HashMultimap.create();
 
-    private Model model;
-
     // -------------------------
     // ------- SERVICES --------
     // -------------------------
@@ -203,8 +201,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      */
     @PluginInit
     private void initPlugin() throws ModuleException {
-        this.model = modelService.getModelByName(modelName);
-        if (this.model == null) {
+        Model model = modelService.getModelByName(modelName);
+        if (model == null) {
             throw new ModuleException(String.format("Model '%s' does not exist.", modelName));
         }
 
@@ -268,7 +266,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                                                           .collect(Collectors.toSet());
         if (!notInModelProperties.isEmpty()) {
             throw new ModuleException(String.format("Following properties don't exist into model : %s",
-                                                    Joiner.on(", ").join(notInModelProperties)));
+                                                    String.join(", ", notInModelProperties)));
         }
         DataObject forIntrospection = new DataObject();
         PropertyUtilsBean property = new PropertyUtilsBean();
@@ -323,22 +321,31 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
+    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime from)
         throws DataSourceException {
-        PagedModel<EntityModel<AIPEntity>> pageAipEntities;
-        List<DataObjectFeature> dataObjects;
-        Collection<EntityModel<AIPEntity>> aipEntities;
         try {
             FeignSecurityManager.asSystem();
             Storages storages = getStorageLocations();
 
             // 1) Get all storage locations and aipEntities to process
-            pageAipEntities = getAipEntities(cursor);
-            aipEntities = pageAipEntities.getContent();
+            PagedModel<EntityModel<AIPEntity>> pageAipEntities = getAipEntities(cursor);
+            Collection<EntityModel<AIPEntity>> aipEntities = pageAipEntities.getContent();
 
             // 2) Build dataObjectFeatures only from DATA aipEntities
-            dataObjects = convertAIPEntitiesToDataObjects(tenant, aipEntities, storages);
+            List<DataObjectFeature> dataObjects = convertAIPEntitiesToDataObjects(tenant, aipEntities, storages);
 
+            // 3) Update cursor for next iteration
+            // determine if there is a next page to search after this one
+            cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
+
+            // set last update date with the most recent aip entity update.
+            cursor.setLastEntityDate(aipEntities.stream()
+                                                .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
+                                                                           .getLastUpdate())
+                                                .max(Comparator.comparing(lastUpdate -> lastUpdate))
+                                                .orElse(null));
+
+            return dataObjects;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException(String.format(
                 "An error occurred during the processing of aipEntities. Cause %s: ",
@@ -346,19 +353,6 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         } finally {
             FeignSecurityManager.reset();
         }
-
-        // 3) Update cursor for next iteration
-        // determine if there is a next page to search after this one
-        cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
-
-        // set last update date with the most recent aip entity update.
-        cursor.setLastEntityDate(aipEntities.stream()
-                                            .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
-                                                                       .getLastUpdate())
-                                            .max(Comparator.comparing(lastUpdate -> lastUpdate))
-                                            .orElse(null));
-
-        return dataObjects;
     }
 
     /**
@@ -517,10 +511,10 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
         // Tags
         if (commonTags != null && !commonTags.isEmpty()) {
-            feature.addTags(commonTags.toArray(new String[commonTags.size()]));
+            feature.addTags(commonTags.toArray(new String[0]));
         }
         if ((aip.getTags() != null) && !(aip.getTags().isEmpty())) {
-            feature.addTags(aip.getTags().toArray(new String[aip.getTags().size()]));
+            feature.addTags(aip.getTags().toArray(new String[0]));
         }
         // BEWARE:
         // Initial geometry needs to be normalized (for Circle search with another than Wgs84 crs)

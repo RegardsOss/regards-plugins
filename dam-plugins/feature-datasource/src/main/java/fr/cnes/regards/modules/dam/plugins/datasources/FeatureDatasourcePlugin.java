@@ -174,7 +174,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         // Manage request error
         if (!response.getStatusCode().is2xxSuccessful() || !response.hasBody()) {
             throw new DataSourceException(String.format(
-                "Error while calling FEATURE MANAGER client (HTTP STATUS : %s, BODY: %s)",
+                "Error while calling FEATURE MANAGER client, HTTP STATUS : %s, BODY: %s",
                 response.getStatusCode(),
                 response.getBody()));
         }
@@ -265,7 +265,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new DataSourceException("Error while calling STORAGE client (HTTP STATUS : "
+                    throw new DataSourceException("Error while calling STORAGE client, HTTP STATUS : "
                                                   + response.getStatusCode());
                 }
 
@@ -332,7 +332,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
-                    throw new DataSourceException("Error while calling PROJECT client (HTTP STATUS : "
+                    throw new DataSourceException("Error while calling PROJECT client, HTTP STATUS : "
                                                   + response.getStatusCode());
                 }
 
