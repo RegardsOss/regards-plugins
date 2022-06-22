@@ -304,12 +304,12 @@
 	<!-- Hydrology -->
 	<fragment>
 		<name>hydro</name>
-		<attribute optional="true">
+		<attribute>
 			<label>Data type</label>
 			<name>data_type</name>
 			<type>STRING</type>
 		</attribute>
-		<attribute>
+		<attribute optional="true">
 			<label>Variables</label>
 			<name>variables</name>
 			<type>JSON</type>

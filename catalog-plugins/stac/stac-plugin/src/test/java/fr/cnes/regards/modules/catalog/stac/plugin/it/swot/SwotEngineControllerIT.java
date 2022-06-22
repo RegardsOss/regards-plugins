@@ -28,17 +28,16 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBo
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.StringQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.plugin.it.AbstractStacIT;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
-import fr.cnes.regards.modules.search.service.SearchException;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -59,7 +58,7 @@ import java.util.List;
 @TestPropertySource(locations = { "classpath:test.properties" },
         properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
-public class SwotEngineControllerIT extends AbstractSwotIT {
+public class SwotEngineControllerIT extends AbstractStacIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SwotEngineControllerIT.class);
 

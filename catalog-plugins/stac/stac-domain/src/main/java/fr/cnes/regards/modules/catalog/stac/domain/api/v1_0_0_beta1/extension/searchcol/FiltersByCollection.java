@@ -22,26 +22,31 @@ import io.vavr.collection.List;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import lombok.experimental.NonFinal;
 
 /**
- * Search parameters for all selected collections to prepare download.
+ * Set filters to search collections.
  *
  * @author Marc SORDI
  */
 @Value
+@NonFinal
 @With
 @Builder
-public class DownloadPreparationBody {
+public class FiltersByCollection {
 
-    List<DownloadCollectionPreparationBody> collections;
+    private List<CollectionFilters> collections;
 
     @Value
     @With
     @Builder
-    public static class DownloadCollectionPreparationBody {
+    public static class CollectionFilters {
 
-        String collectionId;
+        private String collectionId;
 
-        CollectionSearchBody.CollectionItemSearchBody filters;
+        /* This identifier is used as a discriminant when two collections have the same collectionID */
+        private String correlationId;
+
+        private CollectionSearchBody.CollectionItemSearchBody filters;
     }
 }

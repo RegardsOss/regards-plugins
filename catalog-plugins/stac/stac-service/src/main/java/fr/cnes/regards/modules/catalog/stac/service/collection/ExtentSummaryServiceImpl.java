@@ -239,7 +239,7 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private List<StacProperty> summaryStacProps(List<StacProperty> otherProps) {
-        return otherProps.filter(StacProperty::getComputeSummary)
+        return otherProps.filter(o -> !o.getVirtual()).filter(StacProperty::getComputeSummary)
                 .filter(sp -> Number.class.isAssignableFrom(sp.getStacType().getValueType()));
     }
 

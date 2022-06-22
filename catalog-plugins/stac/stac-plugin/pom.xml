@@ -55,6 +55,11 @@
 			<artifactId>feature-dto</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>json-random-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>fr.cnes.regards.modules.model</groupId>
 			<artifactId>model-service</artifactId>

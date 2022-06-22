@@ -1,0 +1,91 @@
+{
+  "id": "SWOT_L2_HR_Raster_250m_timeline_ser_consistency",
+  "type": "Feature",
+  "entityType": "DATASET",
+  "model": "HYGOR_DATASET_V2",
+  "geometry": null,
+  "properties": {
+    "title": "SWOT Raster 250m Level-2",
+    "description": "The SWOT Raster 100m Level-2 product contains rasterized water surface elevation and inundation extent data from the High Rate data stream of the SWOT KaRIn instrument, along with appropriate uncertainties and flags, resampled onto a uniform grid. Data is provided at 100m resolution. \n The SWOT Raster 100m Level-2 product is organized into swath-aligned scenes. Each of these granules nominally contains data over 128 km x 128 km. \n SWOT Raster 100m Level-2 product is generated with a latency of at most 45 days from SWOT data collection. The latency allows for consolidation of instrument calibration and the required auxiliary or ancillary data that are needed to generate this product. Different versions of the product may be generated at different latencies and/or through reprocessing with refined input data.",
+    "keywords": [
+      "swot",
+      "l2",
+      "hr",
+      "raster",
+      "250m"
+    ],
+    "license": "Apache-2.0",
+    "providers": [
+      {
+        "name": "NASA-JPL / CNES",
+        "description": "<p>Contact us at <a href=\"mailto:hydroweb-ng@cnes.fr\">hydroweb-ng@cnes.fr</a></p>",
+        "roles": [
+          "producer",
+          "processor"
+        ]
+      }
+    ],
+    "links": [
+      {
+        "href": "https://spdx.org/licenses/Apache-2.0.html",
+        "rel": "license",
+        "type": "application/html",
+        "title": "Apache License 2.0"
+      }
+    ],
+    "min_start_datetime": "2020-04-02T11:21:39Z",
+    "items": 0,
+    "version": "1",
+    "release": "DT",
+    "processing": {
+      "level": "L2",
+      "software": {
+        "crid": "PIA0"
+      }
+    },
+    "resolution": {
+      "spatial_res": "250m",
+      "temporal_res": "21d"
+    },
+    "dcs": {
+      "acquisition_type": "satellite",
+      "datasource": "SWOT mission center",
+      "data_format": "Raster",
+      "data_file_format": "NetCDF4",
+      "item_type": "tile"
+    },
+    "hydro": {
+      "data_type": "L2_HR_RASTER_250m_timeline",
+      "variables": [
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/waterLevel",
+          "short_name": "wse",
+          "unit": "m",
+          "long_name": "Water Surface Elevation"
+        },
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/landWaterMask",
+          "short_name": "water_frac",
+          "unit": "1",
+          "long_name": "Water Fraction"
+        },
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/waterArea",
+          "short_name": "water_area",
+          "unit": "m^2",
+          "long_name": "Water area"
+        }
+      ]
+    }
+  },
+  "tags": []
+}

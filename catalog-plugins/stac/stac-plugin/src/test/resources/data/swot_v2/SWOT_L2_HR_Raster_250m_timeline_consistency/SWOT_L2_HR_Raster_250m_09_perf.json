@@ -1,0 +1,55 @@
+{
+  "id": "SWOT:GOLDEN:L2_HR_RASTER_250m_01_perf",
+  "type": "Feature",
+  "entityType": "DATA",
+  "model": "HYGOR_V2",
+  "geometry": null,
+  "properties": {
+    "datetime": "2018-04-01T00:00:00.012345Z",
+    "start_datetime": "1990-01-09T00:05:00Z",
+    "end_datetime": "1990-01-09T00:10:00Z",
+    "license": "Apache-2.0",
+    "providers": [
+      {
+        "name": "CNES",
+        "description": "<p>Contact us at <a href=\"mailto:foo@bar.example.com\">foo@bar.example.com</a></p>",
+        "roles": [
+          "producer",
+          "processor"
+        ]
+      }
+    ],
+    "platform": "SWOT_PERF",
+    "instruments": [
+      "KaRIn"
+    ],
+    "mission": "SWOT",
+    "version": "012",
+    "release": "NRT",
+    "processing": {
+      "level": "L2",
+      "software": {
+        "crid": "PIA0"
+      }
+    },
+    "resolution": {
+      "spatial_res": "250m",
+      "temporal_res": "21d"
+    },
+    "dcs": {
+      "acquisition_type": "satellite",
+      "datasource": "SWOT mission center",
+      "data_format": "Vector",
+      "data_file_format": "NetCDF4",
+      "item_type": "tile"
+    },
+    "hydro": {
+      "data_type": "L2_HR_RASTER_250m"
+    },
+    "spatial": {
+      "cycle_id": 1,
+      "pass_id": 42,
+      "scene_id": 1
+    }
+  }
+}

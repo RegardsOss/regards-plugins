@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
+package fr.cnes.regards.modules.catalog.stac.plugin.it;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -26,6 +26,8 @@ import fr.cnes.regards.framework.jsoniter.property.AttributeModelPropertyTypeFin
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.tinyurl.dao.TinyUrlRepository;
+import fr.cnes.regards.framework.random.Generator;
+import fr.cnes.regards.framework.random.GeneratorBuilder;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -59,6 +61,8 @@ import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
@@ -82,7 +86,9 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("deprecation")
 //@DirtiesContext
-public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
+public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStacIT.class);
 
     /**
      * Data folders
@@ -131,6 +137,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     @Autowired
     protected Gson gson;
 
+    protected Model dataModel;
+
+    protected Map<String, Dataset> datasets;
+
     @Autowired
     private IAttributeModelRepository attributeModelRepository;
 
@@ -148,6 +158,9 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
     @Autowired
     private TinyUrlRepository tinyUrlRepository;
+
+    @Autowired
+    private GeneratorBuilder generatorBuilder;
 
     protected void cleanDatabase() {
         modelAttrAssocRepository.deleteAllInBatch();
@@ -172,6 +185,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         return getDataFolder().resolve("datasets");
     }
 
+    protected Path getTemplatesFolder() {
+        return getDataFolder().resolve("templates");
+    }
+
     protected void initIndex(String index) {
         if (esRepository.indexExists(index)) {
             esRepository.deleteIndex(index);
@@ -183,12 +200,12 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
         // Needed for test on date in opensearch descriptors. Date are generated in test and compare with date generated
         // by elasticsearch on test server.
-        // Test server is in UTC timezone, so to do comparasion we have to be in the same timezone.
+        // Test server is in UTC timezone, so to do comparison we have to be in the same timezone.
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
         // Manage project
-        Project project = new Project(1L, "SWOT project", "http://plop/icon.png", true, "SWOT");
-        project.setHost("http://regards/swot");
+        Project project = new Project(1L, "Test project", "http://plop/icon.png", true, "TEST");
+        project.setHost("http://regards/test");
         ResponseEntity<EntityModel<Project>> response = ResponseEntity.ok(EntityModel.of(project));
         Mockito.when(projectsClientMock.retrieveProject(Mockito.anyString())).thenReturn(response);
 
@@ -237,11 +254,10 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         prepareProject();
 
         // - Import models
-        // DATA : SWOT feature
-        Model swotModel = modelService.importModel(Files.newInputStream(getConfigFolder().resolve(getDataModel())));
+        // DATA
+        dataModel = modelService.importModel(Files.newInputStream(getConfigFolder().resolve(getDataModel())));
         // DATASET
-        Model datasetModel = modelService
-                .importModel(Files.newInputStream(getConfigFolder().resolve(getDatasetModel())));
+        Model datasetModel = modelService.importModel(Files.newInputStream(getConfigFolder().resolve(getDatasetModel())));
 
         // - Manage attribute model retrieval
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocsFor(Mockito.any())).thenAnswer(invocation -> {
@@ -254,19 +270,20 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         });
         Mockito.when(modelAttrAssocClientMock.getModelAttrAssocs(Mockito.any())).thenAnswer(invocation -> {
             String modelName = invocation.getArgument(0);
-            return ResponseEntity
-                    .ok(modelService.getModelAttrAssocs(modelName).stream().map(EntityModel::of)
-                                .collect(Collectors.toList()));
+            return ResponseEntity.ok(modelService.getModelAttrAssocs(modelName)
+                                                 .stream()
+                                                 .map(EntityModel::of)
+                                                 .collect(Collectors.toList()));
         });
 
         // - Refresh attribute factory (legacy and Jsoniter)
-        List<AttributeModel> atts = attributeModelService.getAttributes(null, null, null);
-        gsonAttributeFactory.refresh(getDefaultTenant(), atts);
-        attributeModelPropertyTypeFinder.refresh(getDefaultTenant(), atts);
+        List<AttributeModel> attributes = attributeModelService.getAttributes(null, null, null);
+        gsonAttributeFactory.refresh(getDefaultTenant(), attributes);
+        attributeModelPropertyTypeFinder.refresh(getDefaultTenant(), attributes);
 
         // - Manage attribute cache
         List<EntityModel<AttributeModel>> resAtts = new ArrayList<>();
-        atts.forEach(att -> resAtts.add(EntityModel.of(att)));
+        attributes.forEach(att -> resAtts.add(EntityModel.of(att)));
         Mockito.when(attributeModelClientMock.getAttributes(null, null)).thenReturn(ResponseEntity.ok(resAtts));
         finder.refresh(getDefaultTenant());
 
@@ -274,12 +291,12 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
 
         initIndex(getDefaultTenant());
 
-        // Create SWOT datasets
-        Map<String, Dataset> swotDatasets = createSwotDatasets(datasetModel);
-        indexerService.saveBulkEntities(getDefaultTenant(), swotDatasets.values());
+        // Create datasets
+        datasets = createDatasets(datasetModel);
+        indexerService.saveBulkEntities(getDefaultTenant(), datasets.values());
 
-        // Create SWOT data
-        indexerService.saveBulkEntities(getDefaultTenant(), createSWOTData(swotModel, swotDatasets));
+        // Create data
+        indexerService.saveBulkEntities(getDefaultTenant(), createData(dataModel, datasets));
         // Refresh index to be sure data is available for requesting
         indexerService.refresh(getDefaultTenant());
 
@@ -298,27 +315,33 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     /**
      * Return map of dataset with key indicating related data folder
      */
-    private Map<String, Dataset> createSwotDatasets(Model datasetModel) throws IOException {
-        return Files.list(getDatasetFolder()).filter(Files::isRegularFile)
-                .map(p -> createSWOTDatasetFromFeature(datasetModel, p))
-                .collect(Collectors.toMap(AbstractEntity::getLabel, Function.identity()));
+    private Map<String, Dataset> createDatasets(Model datasetModel) throws IOException {
+        return Files.list(getDatasetFolder())
+                    .filter(Files::isRegularFile)
+                    .map(p -> createDatasetFromFeature(datasetModel, p))
+                    .collect(Collectors.toMap(AbstractEntity::getLabel, Function.identity()));
     }
 
-    private List<DataObject> createSWOTData(Model swotModel, Map<String, Dataset> swotDatasets) {
-        List<DataObject> dataobjects = new ArrayList<>();
+    private List<DataObject> createData(Model dataModel, Map<String, Dataset> datasets) {
+        List<DataObject> dataObjects = new ArrayList<>();
         try {
-            for (Entry<String, Dataset> entry : swotDatasets.entrySet()) {
-                dataobjects.addAll(Files.list(getDataFolder().resolve(entry.getKey())).filter(Files::isRegularFile)
-                                           .map(p -> createDataObjectFromFeature(swotModel, p, entry.getValue()))
-                                           .collect(Collectors.toList()));
+            for (Entry<String, Dataset> entry : datasets.entrySet()) {
+                Path datasetFolderPath = getDataFolder().resolve(entry.getKey());
+                if (Files.exists(datasetFolderPath)) {
+                    dataObjects.addAll(Files.list(datasetFolderPath)
+                                            .filter(Files::isRegularFile)
+                                            .map(p -> createDataObjectFromFeature(dataModel, p, entry.getValue()))
+                                            .collect(Collectors.toList()));
+                }
             }
         } catch (IOException e) {
+            LOGGER.error("data creation fails", e);
             Assert.fail(e.getMessage());
         }
-        return dataobjects;
+        return dataObjects;
     }
 
-    private Dataset createSWOTDatasetFromFeature(Model datasetModel, Path filepath) {
+    private Dataset createDatasetFromFeature(Model datasetModel, Path filepath) {
         // Load from file
         Feature feature = loadFromJson(filepath, Feature.class);
         // Create related dataset label!
@@ -331,7 +354,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         // Compute label to match directory
         Dataset dataset = createEntity(datasetModel, label);
         dataset.setGeometry(feature.getGeometry());
-        feature.getProperties().stream().forEach(p -> dataset.addProperty(p));
+        feature.getProperties().forEach(dataset::addProperty);
         dataset.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
 
         return dataset;
@@ -340,11 +363,18 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
     /**
      * Create a data object from source feature
      */
-    private DataObject createDataObjectFromFeature(Model swotModel, Path filepath, Dataset dataset) {
+    protected DataObject createDataObjectFromFeature(Model dataModel, Path filepath, Dataset dataset) {
         // Load from file
         Feature feature = loadFromJson(filepath, Feature.class);
+        return createDataObjectFromFeature(dataModel, feature, dataset);
+    }
+
+    /**
+     * Create a data object from source feature
+     */
+    protected DataObject createDataObjectFromFeature(Model dataModel, Feature feature, Dataset dataset) {
         // Create related data object
-        DataObject data = createEntity(swotModel, feature.getId());
+        DataObject data = createEntity(dataModel, feature.getId());
         data.setGroups(getAccessGroups());
         data.setCreationDate(OffsetDateTime.now());
         data.setGeometry(feature.getGeometry());
@@ -352,7 +382,7 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         data.setProperties(feature.getProperties());
         data.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
         // Link to dataset
-        data.addTags("CNES", "SWOT", dataset.getIpId().toString());
+        data.addTags("CNES", "TEST", dataset.getIpId().toString());
         return data;
     }
 
@@ -362,9 +392,12 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
             files = ArrayListMultimap.create();
             // TODO
             for (FeatureFile ff : featureFiles) {
-                DataFile dataFile = DataFile.build(ff.getAttributes().getDataType(), ff.getAttributes().getFilename(),
+                DataFile dataFile = DataFile.build(ff.getAttributes().getDataType(),
+                                                   ff.getAttributes().getFilename(),
                                                    ff.getLocations().stream().findFirst().get().getUrl(),
-                                                   ff.getAttributes().getMimeType(), true, false);
+                                                   ff.getAttributes().getMimeType(),
+                                                   true,
+                                                   false);
                 dataFile.setFilesize(ff.getAttributes().getFilesize());
                 dataFile.setCrc32(ff.getAttributes().getCrc32());
                 dataFile.setChecksum(ff.getAttributes().getChecksum());
@@ -431,4 +464,52 @@ public abstract class AbstractSwotIT extends AbstractRegardsTransactionalIT {
         return String.format("%s%s%s", protect, value, protect);
     }
 
+    protected Map<String, Dataset> getDatasets() {
+        return datasets;
+    }
+
+    /**
+     * Utility method to generate data and index them in elasticsearch
+     *
+     * @param templateFileName path to the template (must exist in templates folder)
+     * @param iterations       number of data to generate
+     * @param bulkSize         number of data to save per bulk
+     * @param datasetId        feature id of the dataset (must exist in datasets folder)
+     */
+    protected void generateAndSave(String templateFileName, Integer iterations, Integer bulkSize, String datasetId) {
+        // Generate and save entities
+        Generator randomGenerator = generatorBuilder.build(getTemplatesFolder().resolve(templateFileName));
+        long generationStart = System.currentTimeMillis();
+        LOGGER.info("Generating {} data", iterations);
+        Integer remaining = iterations;
+        while (remaining > 0) {
+            Integer batchSize = remaining >= bulkSize ? bulkSize : remaining;
+            remaining = remaining - batchSize;
+            // Generate batch
+            java.util.List<java.util.Map<String, Object>> messages = randomGenerator.generate(batchSize);
+            java.util.List<DataObject> dataObjects = messages.stream()
+                                                             .map(this::getFeature)
+                                                             .map(f -> createDataObjectFromFeature(dataModel,
+                                                                                                   f,
+                                                                                                   datasets.get(
+                                                                                                       datasetId)))
+                                                             .collect(Collectors.toList());
+            // Save data
+            indexerService.saveBulkEntities(getDefaultTenant(), dataObjects);
+            LOGGER.debug("Batch of {} data saved. Remaining {}.", batchSize, remaining);
+        }
+
+        // Refresh index to be sure data is available for requesting
+        indexerService.refresh(getDefaultTenant());
+        LOGGER.info("{} data generated and saved in {} ms", iterations, System.currentTimeMillis() - generationStart);
+    }
+
+    private Feature getFeature(java.util.Map<String, Object> map) {
+        try {
+            return gson.fromJson(gson.toJson(map), Feature.class);
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+        return null;
+    }
 }

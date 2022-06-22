@@ -57,6 +57,7 @@ import java.util.function.Function;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_ATTRIBUTE_VALUE_EXTRACTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_JSON_EXTRACTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.trace;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
@@ -99,7 +100,7 @@ public class RegardsPropertyAccessorFactory {
         RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(), attr,
                                                                      classFunctionTuple2._2, classFunctionTuple2._1);
 
-        debug(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
+        trace(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
 
         return result;
     }

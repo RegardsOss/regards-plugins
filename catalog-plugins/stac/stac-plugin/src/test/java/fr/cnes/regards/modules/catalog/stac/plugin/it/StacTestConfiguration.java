@@ -78,7 +78,7 @@ public class StacTestConfiguration {
     }
 
     @Bean
-    public IToponymsClient toponymesClient() {
+    public IToponymsClient toponymsClient() {
         return Mockito.mock(IToponymsClient.class);
     }
 

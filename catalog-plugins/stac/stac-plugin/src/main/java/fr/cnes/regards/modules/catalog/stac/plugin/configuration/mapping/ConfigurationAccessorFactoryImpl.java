@@ -50,8 +50,7 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.ArrayList;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
@@ -183,7 +182,7 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
     private List<StacProperty> getConfiguredProperties(List<StacPropertyConfiguration> paramConfigurations) {
         return paramConfigurations.map(s -> {
-            debug(LOGGER, "Converting stac prop config: {}", s);
+            trace(LOGGER, "Converting stac prop config: {}", s);
             StacPropertyType stacType = StacPropertyType.parse(s.getStacPropertyType());
             @SuppressWarnings("rawtypes") AbstractPropertyConverter converter = propertyConverterFactory
                     .getConverter(stacType, s.getStacPropertyFormat(), s.getSourcePropertyFormat());

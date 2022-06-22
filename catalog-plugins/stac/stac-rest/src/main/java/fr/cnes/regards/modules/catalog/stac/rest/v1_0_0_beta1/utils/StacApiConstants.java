@@ -98,5 +98,8 @@ public interface StacApiConstants {
      * Parameter to pass query parameters on items on a collection search request
      */
     String STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX = "item_";
+    
+    
+    String COLLECTIONS_TIMELINE = "/timeline";
 
 }

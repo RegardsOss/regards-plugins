@@ -1,0 +1,83 @@
+{
+  "id": "{{uuid()}}",
+  "type": "Feature",
+  "entityType": "DATA",
+  "model": "HYGOR_V2",
+  "geometry": null,
+  "properties": {
+    "datetime": "2018-04-01T00:00:00.012345Z",
+    "start_datetime": "{{start(1990-01-01,1)}}",
+    "end_datetime": "{{end(properties.start_datetime,10950)}}",
+    "license": "Apache-2.0",
+    "providers": [
+      {
+        "name": "CNES",
+        "description": "<p>Contact us at <a href=\"mailto:foo@bar.example.com\">foo@bar.example.com</a></p>",
+        "roles": [
+          "producer",
+          "processor"
+        ]
+      }
+    ],
+    "platform": "SWOT_THIRTY_YEARS",
+    "instruments": [
+      "KaRIn"
+    ],
+    "mission": "SWOT",
+    "version": "012",
+    "release": "NRT",
+    "processing": {
+      "level": "L2"
+    },
+    "resolution": {
+      "spatial_res": "250m",
+      "temporal_res": "21d"
+    },
+    "dcs": {
+      "acquisition_type": "{{enum(in-situ,satellite,airborne,model)}}",
+      "datasource": "SWOT mission center",
+      "data_format": "Vector",
+      "data_file_format": "NetCDF4",
+      "item_type": "tile"
+    },
+    "hydro": {
+      "data_type": "L2_HR_RASTER_250m",
+      "variables": [
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/waterLevel",
+          "short_name": "wse",
+          "unit": "m",
+          "long_name": "Water Surface Elevation"
+        },
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/landWaterMask",
+          "short_name": "water_frac",
+          "unit": "1",
+          "long_name": "Water Fraction"
+        },
+        {
+          "categories": [
+            "https://w3id.org/hysope2/surfaceWater"
+          ],
+          "uri": "https://w3id.org/hysope2/waterArea",
+          "short_name": "water_area",
+          "unit": "m^2",
+          "long_name": "Water Area"
+        }
+      ]
+    },
+    "spatial": {
+      "cycle_id": 1,
+      "pass_id": "{{integer(1,584)}}",
+      "tile_id": "{{integer(1,308)}}",
+      "tile_side": "{{enum(Full,Left,Right)}}",
+      "continent_id": "{{enum(AU,EU,GR,NA,SA,SI)}}"
+    }
+  }
+}
