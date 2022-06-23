@@ -42,6 +42,7 @@ import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,9 @@ import java.util.ArrayList;
 public class TimelineServiceImpl extends AbstractSearchService implements TimelineService {
 
     private static final String EXPANDED_DATE = "T00:00:00Z";
+
+    @Value("${regards.timeline.two.many.results.threshold:30000}")
+    private long twoManyResultsThreshold;
 
     @Autowired
     private ConfigurationAccessorFactory configurationAccessorFactory;
@@ -92,12 +96,15 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
             switch (timelineFiltersByCollection.getMode()) {
                 case BINARY:
                 case BINARY_MAP:
-                    timelineBuilder = new BinaryTimelineBuilder(catalogSearchService, propertyExtractionService);
+                    timelineBuilder = new BinaryTimelineBuilder(catalogSearchService,
+                                                                propertyExtractionService).withTwoManyResultsThreshold(
+                        twoManyResultsThreshold);
                     break;
                 case HISTOGRAM:
                 case HISTOGRAM_MAP:
                     timelineBuilder = new HistogramTimelineBuilder(catalogSearchService,
-                                                                   propertyExtractionService);
+                                                                   propertyExtractionService).withTwoManyResultsThreshold(
+                        twoManyResultsThreshold);
                     break;
                 default:
                     throw new StacException(String.format("Unexpected timeline mode %s",
@@ -111,9 +118,9 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
                                                                                  collectionFilters.getCollectionId(),
                                                                                  itemStacProperties,
                                                                                  expandDatetime(
-                                                                                            timelineFiltersByCollection.getFrom()),
+                                                                                     timelineFiltersByCollection.getFrom()),
                                                                                  expandDatetime(
-                                                                                            timelineFiltersByCollection.getTo()));
+                                                                                     timelineFiltersByCollection.getTo()));
             collectionTimelines.add(formatTimelineOutput(timeline,
                                                          collectionFilters.getCollectionId(),
                                                          collectionFilters.getCorrelationId(),

@@ -37,6 +37,7 @@
 
 <!-- 	<logger name="org.springframework.boot.autoconfigure.logging" level="DEBUG"/> -->
 	<logger name="fr.cnes.regards.modules.catalog.stac" level="DEBUG"/>
+	<logger name="fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder" level="TRACE"/>
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>

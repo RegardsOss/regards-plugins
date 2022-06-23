@@ -52,6 +52,9 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
     // Count number of timeline entry alteration
     private long reportingCount = 0;
 
+    // Fallback activation threshold
+    private long twoManyResultsThreshold = 30000;
+
     public BinaryTimelineBuilder(ICatalogSearchService catalogSearchService,
                                  PropertyExtractionService propertyExtractionService) {
         super(catalogSearchService);
@@ -83,27 +86,52 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
             || p.getStacPropertyName().equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
 
         // Build timeline
-        buildTimelineByPage(itemCriteria,
-                            pageable,
-                            collectionId,
-                            timeline,
-                            timelineStart,
-                            timelineEnd,
-                            datetimeStacProperties);
+        long requestDuration = buildTimelineByPage(itemCriteria,
+                                                   pageable,
+                                                   collectionId,
+                                                   timeline,
+                                                   timelineStart,
+                                                   timelineEnd,
+                                                   datetimeStacProperties);
+        LOGGER.trace("---> All pages reported in {} ms", requestDuration);
 
         return timeline;
     }
 
-    private void buildTimelineByPage(ICriterion itemCriteria,
+    private long buildTimelineByPage(ICriterion itemCriteria,
                                      Pageable pageable,
                                      String collectionId,
-                                     java.util.Map<String, Long> timeline,
+                                     Map<String, Long> timeline,
                                      OffsetDateTime timelineStart,
                                      OffsetDateTime timelineEnd,
                                      List<StacProperty> datetimeStacProperties) {
 
+        long requestStart = System.currentTimeMillis();
         // Search data
         FacetPage<AbstractEntity<?>> page = getTimelineFacetPaged(itemCriteria, pageable, collectionId);
+        LOGGER.trace("---> Page retrieved in {} ms", System.currentTimeMillis() - requestStart);
+
+        // Fallback if too many results reached
+        if (page.getTotalElements() > twoManyResultsThreshold) {
+            // Enable fallback to avoid HTTP timeout
+            LOGGER.info("Too many results detected ({} > {})! Fallback enabled for current timeline computing!",
+                        page.getTotalElements(),
+                        twoManyResultsThreshold);
+            // Get collection temporal extent
+            Option<Tuple2<OffsetDateTime, OffsetDateTime>> temporalExtent = getCollectionTemporalExtent(itemCriteria,
+                                                                                                        collectionId,
+                                                                                                        datetimeStacProperties);
+            if (temporalExtent.isDefined()) {
+                // Report collection temporal extent into timeline
+                reportTemporalExtent(timelineStart,
+                                     timelineEnd,
+                                     temporalExtent.get()._1,
+                                     temporalExtent.get()._2,
+                                     timeline);
+            }
+            return System.currentTimeMillis() - requestStart;
+        }
+
         // Analyse data
         page.forEach(entity -> {
             if (continueReporting(timeline)) {
@@ -119,26 +147,47 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
                                                                               .get();
                     OffsetDateTime itemEnd = (OffsetDateTime) datetimeExtent.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME)
                                                                             .get();
-                    // Get intersection between feature temporal extent and timeline temporal extent
-                    Option<Tuple2<OffsetDateTime, OffsetDateTime>> intersection = getIntersection(timelineStart,
-                                                                                                  timelineEnd,
-                                                                                                  itemStart,
-                                                                                                  itemEnd);
-                    // Update timeline entries for each date of the intersection if any
-                    reportIntersection(intersection, timeline);
+                    // Report item temporal extent into timeline
+                    reportTemporalExtent(timelineStart, timelineEnd, itemStart, itemEnd, timeline);
                 }
             }
         });
+        long requestDuration = System.currentTimeMillis() - requestStart;
+        LOGGER.trace("---> Page reported in {} ms", requestDuration);
 
         if (page.hasNext() && continueReporting(timeline)) {
-            buildTimelineByPage(itemCriteria,
-                                page.getPageable().next(),
-                                collectionId,
-                                timeline,
-                                timelineStart,
-                                timelineEnd,
-                                datetimeStacProperties);
+            Pageable next = page.getPageable().next();
+            // Dereference page to be available for garbage collecting
+            page = null;
+            requestDuration += buildTimelineByPage(itemCriteria,
+                                                   next,
+                                                   collectionId,
+                                                   timeline,
+                                                   timelineStart,
+                                                   timelineEnd,
+                                                   datetimeStacProperties);
         }
+        return requestDuration;
+    }
+
+    private void reportTemporalExtent(OffsetDateTime timelineStart,
+                                      OffsetDateTime timelineEnd,
+                                      OffsetDateTime extentStart,
+                                      OffsetDateTime extentEnd,
+                                      Map<String, Long> timeline) {
+        // Get intersection between feature temporal extent and timeline temporal extent
+        Option<Tuple2<OffsetDateTime, OffsetDateTime>> intersection = getIntersection(timelineStart,
+                                                                                      timelineEnd,
+                                                                                      extentStart,
+                                                                                      extentEnd);
+        // Update timeline entries for each date of the intersection if any
+        reportIntersection(intersection, timeline);
+    }
+
+    private Option<Tuple2<OffsetDateTime, OffsetDateTime>> getCollectionTemporalExtent(ICriterion itemCriteria,
+                                                                                       String collectionId,
+                                                                                       List<StacProperty> datetimeStacProperties) {
+        return getPropertyBound(itemCriteria, collectionId, datetimeStacProperties);
     }
 
     private Option<Tuple2<OffsetDateTime, OffsetDateTime>> getIntersection(OffsetDateTime timelineStart,
@@ -161,7 +210,7 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
             // Locate the bounds to 00:00:00.
             OffsetDateTime start = intersection.get()._1.with(LocalTime.MIDNIGHT);
             OffsetDateTime end = intersection.get()._2.with(LocalTime.MIDNIGHT);
-            LOGGER.trace("Reporting intersection for item with temporal extent : {} -> {}", start, end);
+            // LOGGER.trace("Reporting intersection for item with temporal extent : {} -> {}", start, end);
             long timelineNbDays = ChronoUnit.DAYS.between(start, end);
 
             java.util.stream.Stream.iterate(start, currentDate -> currentDate.plusDays(1))
@@ -189,5 +238,13 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
      */
     private String getMapKey(OffsetDateTime offsetDateTime) {
         return offsetDateTime.toLocalDate().toString();
+    }
+
+    /**
+     * Allows to alter the default threshold
+     */
+    public BinaryTimelineBuilder withTwoManyResultsThreshold(long twoManyResultsThreshold) {
+        this.twoManyResultsThreshold = twoManyResultsThreshold;
+        return this;
     }
 }
