@@ -57,6 +57,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.*;
 
+import static fr.cnes.regards.modules.notifier.plugins.ChronosRecipientSender.ACTION_KEY;
+import static fr.cnes.regards.modules.notifier.plugins.ChronosRecipientSender.OWNER_KEY;
+
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "test", "noscheduler" })
 @ContextConfiguration(classes = { ChronosRecipientSenderTest.ScanningConfiguration.class })
@@ -78,6 +81,26 @@ public class ChronosRecipientSenderTest {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSenderTest.class);
+
+    private static final String EXCHANGE_PARAMETER = "exchange";
+
+    private static final String QUEUE_NAME_PARAMETER = "queueName";
+
+    private static final String RECIPIENT_LABEL_PARAMETER = "recipientLabel";
+
+    private static final String CREATED_BY_PARAMETER = "history.createdBy";
+
+    private static final String UPDATED_BY_PARAMETER = "history.updatedBy";
+
+    private static final String DELETED_BY_PARAMETER = "history.deletedBy";
+
+    private static final String GPFS_URL_PARAMETER = "properties.system.gpfs_url";
+
+    private static final String LOM_URL_PARAMETER = "properties.system.lom_url";
+
+    private static final String FILENAME_PARAMETER = "properties.system.filename";
+
+    private static final boolean ACK_REQUIRED = true;
 
     @Autowired
     private Gson gson;
@@ -107,50 +130,60 @@ public class ChronosRecipientSenderTest {
     private ArgumentCaptor<Map<String, Object>> headersCaptor;
 
     @Test
-    public void sendTest() throws NotAvailablePluginConfigurationException {
+    public void sendTest_with_uri_gpfs_url() throws NotAvailablePluginConfigurationException {
+        sendTest(getEvent("input-chronos_with_gpfs_url.json"), false, "file://home/geode/test.tar");
 
+        sendTest(getEvent("input-chronos_with_gpfs_lom_url.json"), false, "file://home/geode/test.tar");
+    }
+
+    @Test
+    public void sendTest_with_uri_null() throws NotAvailablePluginConfigurationException {
+        sendTest(getEvent("input-chronos_with_gpfs_url.json"), true, null);
+
+        sendTest(getEvent("input-chronos_without_gpfs_lom_url.json"), true, null);
+        sendTest(getEvent("input-chronos_without_gpfs_lom_url.json"), false, null);
+    }
+
+    @Test
+    public void sendTest_with_uri_lom_url() throws NotAvailablePluginConfigurationException {
+        sendTest(getEvent("input-chronos_with_gpfs_lom_url.json"),
+                 true,
+                 "http://rs-s3-minio:9000/bucket/854e6e34e4e4e470ac554627b1a0329b");
+
+        sendTest(getEvent("input-chronos_without_gpfs_url.json"),
+                 false,
+                 "http://rs-s3-minio:9000/bucket/854e6e34e4e4e470ac554627b1a0329b");
+
+        sendTest(getEvent("input-chronos_without_gpfs_url.json"),
+                 true,
+                 "http://rs-s3-minio:9000/bucket/854e6e34e4e4e470ac554627b1a0329b");
+    }
+
+    private void sendTest(NotificationRequestEvent event, boolean notify_only_lom_url, String expectedUri)
+        throws NotAvailablePluginConfigurationException {
+        // Given
         Mockito.clearInvocations(publisher);
 
-        PluginUtils.setup();
-        String exchange = "exchange";
-        String queueName = "queueName";
-        String recipientLabel = "recipientLabel";
-        String createdBy = "history.createdBy";
-        String updatedBy = "history.updatedBy";
-        String deletedBy = "history.deletedBy";
-        String gpfsUrl = "properties.system.gpfs_url";
-        String filename = "properties.system.filename";
-        boolean ackRequired = true;
-        // Plugin parameters
+        String actionOwner = "DeletedBy";
+        String action = event.getMetadata().getAsJsonObject().get("action").getAsString();
+        String filename = event.getPayload()
+                               .getAsJsonObject()
+                               .get("properties")
+                               .getAsJsonObject()
+                               .get("system")
+                               .getAsJsonObject()
+                               .get("filename")
+                               .getAsString();
 
-        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(ChronosRecipientSender.EXCHANGE_PARAM_NAME,
-                                                                           exchange),
-                                                        IPluginParam.build(ChronosRecipientSender.QUEUE_PARAM_NAME,
-                                                                           queueName),
-                                                        IPluginParam.build(ChronosRecipientSender.RECIPIENT_LABEL_PARAM_NAME,
-                                                                           recipientLabel),
-                                                        IPluginParam.build(ChronosRecipientSender.ACK_REQUIRED_PARAM_NAME,
-                                                                           ackRequired),
-                                                        IPluginParam.build(ChronosRecipientSender.CREATED_BY_PROPERTY_PATH_PARAM_NAME,
-                                                                           createdBy),
-                                                        IPluginParam.build(ChronosRecipientSender.UPDATED_BY_PROPERTY_PATH_PARAM_NAME,
-                                                                           updatedBy),
-                                                        IPluginParam.build(ChronosRecipientSender.DELETED_BY_PROPERTY_PATH_PARAM_NAME,
-                                                                           deletedBy),
-                                                        IPluginParam.build(ChronosRecipientSender.GPFS_URL_PROPERTY_PATH_PARAM_NAME,
-                                                                           gpfsUrl),
-                                                        IPluginParam.build(ChronosRecipientSender.FILENAME_PROPERTY_PATH_PARAM_NAME,
-                                                                           filename));
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(OWNER_KEY, actionOwner);
+        headers.put(ACTION_KEY, action);
 
+        // When
         // Instantiate plugin
-        IRecipientNotifier sender = PluginUtils.getPlugin(PluginConfiguration.build(ChronosRecipientSender.class,
-                                                                                    UUID.randomUUID().toString(),
-                                                                                    parameters), new HashMap<>());
+        IRecipientNotifier sender = createPlugin(notify_only_lom_url);
         Assert.assertNotNull(sender);
-
         // Run plugin
-        NotificationRequestEvent event = getEvent("input-chronos.json");
-
         sender.send(Sets.newHashSet(new NotificationRequest(event.getPayload(),
                                                             event.getMetadata(),
                                                             event.getRequestId(),
@@ -158,12 +191,8 @@ public class ChronosRecipientSenderTest {
                                                             event.getRequestDate(),
                                                             NotificationState.SCHEDULED,
                                                             new HashSet<>())));
-        String actionOwner = "DeletedBy";
-        String action = event.getMetadata().getAsJsonObject().get("action").getAsString();
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("actionOwner", actionOwner);
-        headers.put("action", action);
 
+        // Then
         Mockito.verify(publisher, Mockito.times(1))
                .broadcastAll(exchangeNameCaptor.capture(),
                              queueNameCaptor.capture(),
@@ -172,26 +201,69 @@ public class ChronosRecipientSenderTest {
                              priorityCaptor.capture(),
                              messagesCaptor.capture(),
                              headersCaptor.capture());
-        Assert.assertEquals("should retrieve good exchange", exchange, exchangeNameCaptor.getValue());
-        Assert.assertEquals("should retrieve good queue name", Optional.of(queueName), queueNameCaptor.getValue());
+        Assert.assertEquals("should retrieve good exchange", EXCHANGE_PARAMETER, exchangeNameCaptor.getValue());
+        Assert.assertEquals("should retrieve good queue name",
+                            Optional.of(QUEUE_NAME_PARAMETER),
+                            queueNameCaptor.getValue());
         Assert.assertFalse("should not override routing key", routingKeyCaptor.getValue().isPresent());
         Assert.assertFalse("should not override DLK", dlkCaptor.getValue().isPresent());
         Assert.assertEquals("should retrieve default priority", Integer.valueOf(0), priorityCaptor.getValue());
-        Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
         Assert.assertEquals("should set action(s) headers", headers, headersCaptor.getValue());
+
+        Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
+        Assert.assertEquals("should send only one message", 1, messagesCaptor.getValue().size());
         Assert.assertTrue("Message send as notification to chronos is not valid",
                           messagesCaptor.getValue()
                                         .contains(new ChronosNotificationEvent(action,
                                                                                actionOwner,
-                                                                               "file://home/geode/test.tar",
-                                                                               "test.tar")));
-        Assert.assertEquals("Message send as notification to chronos is not valid",
-                            1,
-                            messagesCaptor.getValue().size());
-
+                                                                               expectedUri,
+                                                                               filename)));
     }
 
-    protected NotificationRequestEvent getEvent(String name) {
+    private IRecipientNotifier createPlugin(boolean notify_only_lom_url)
+        throws NotAvailablePluginConfigurationException {
+        PluginUtils.setup();
+
+        String exchangeParameter = "exchange";
+        String queueNameParameter = "queueName";
+        String recipientLabelParameter = "recipientLabel";
+        String createdByParameter = "history.createdBy";
+        String updatedByParameter = "history.updatedBy";
+        String deletedByParameter = "history.deletedBy";
+        String gpfsUrlParameter = "properties.system.gpfs_url";
+        String lomUrlParameter = "properties.system.lom_url";
+        String filenameParameter = "properties.system.filename";
+        boolean ackRequired = true;
+        // Plugin parameters
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(ChronosRecipientSender.EXCHANGE_PARAM_NAME,
+                                                                           exchangeParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.QUEUE_PARAM_NAME,
+                                                                           queueNameParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.RECIPIENT_LABEL_PARAM_NAME,
+                                                                           recipientLabelParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.ACK_REQUIRED_PARAM_NAME,
+                                                                           ackRequired),
+                                                        IPluginParam.build(ChronosRecipientSender.CREATED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           createdByParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.UPDATED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           updatedByParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.DELETED_BY_PROPERTY_PATH_PARAM_NAME,
+                                                                           deletedByParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.GPFS_URL_PROPERTY_PATH_PARAM_NAME,
+                                                                           gpfsUrlParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.LOM_URL_PROPERTY_PATH_PARAM_NAME,
+                                                                           lomUrlParameter),
+                                                        IPluginParam.build(ChronosRecipientSender.NOTIFY_ONLY_LOM_PARAM_NAME,
+                                                                           notify_only_lom_url),
+                                                        IPluginParam.build(ChronosRecipientSender.FILENAME_PROPERTY_PATH_PARAM_NAME,
+                                                                           filenameParameter));
+
+        return PluginUtils.getPlugin(PluginConfiguration.build(ChronosRecipientSender.class,
+                                                               UUID.randomUUID().toString(),
+                                                               parameters), new HashMap<>());
+    }
+
+    private NotificationRequestEvent getEvent(String name) {
         try (InputStream input = this.getClass().getResourceAsStream(name);
             Reader reader = new InputStreamReader(input)) {
             return gson.fromJson(CharStreams.toString(reader), NotificationRequestEvent.class);
@@ -201,6 +273,7 @@ public class ChronosRecipientSenderTest {
             throw new AssertionError(errorMessage);
         }
     }
+
 }
 
 

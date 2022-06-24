@@ -73,11 +73,11 @@ public class ChronosNotificationEvent implements ISubscribable {
         ChronosNotificationEvent that = (ChronosNotificationEvent) o;
         return Objects.equals(action, that.action) && Objects.equals(actionOwner, that.actionOwner) && Objects.equals(
             filename,
-            that.filename);
+            that.filename) && Objects.equals(uri, that.uri);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, actionOwner, filename);
+        return Objects.hash(action, actionOwner, filename, uri);
     }
 }

@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "history": {
+      "createdBy": "CreatedBy",
+      "updatedBy": "UpdatedBy",
+      "deletedBy": "DeletedBy"
+    },
+    "properties": {
+      "system": {
+        "filename": "test.tar",
+        "lom_url": ""
+      }
+    }
+  },
+  "metadata": {
+    "action": "CREATION"
+  }
+}

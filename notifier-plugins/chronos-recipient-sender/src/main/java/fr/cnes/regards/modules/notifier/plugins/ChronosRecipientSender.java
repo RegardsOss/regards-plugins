@@ -25,6 +25,7 @@ import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +53,21 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
 
     public static final String GPFS_URL_PROPERTY_PATH_PARAM_NAME = "gpfsUrlPropertyPath";
 
+    public static final String NOTIFY_ONLY_LOM_PARAM_NAME = "notify_only_lom_url";
+
+    public static final String LOM_URL_PROPERTY_PATH_PARAM_NAME = "lomUrlPropertyPath";
+
     public static final String FILENAME_PROPERTY_PATH_PARAM_NAME = "filenamePropertyPath";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronosRecipientSender.class);
 
-    private static final String OWNER_KEY = "actionOwner";
+    public static final String OWNER_KEY = "actionOwner";
 
-    private static final String ACTION_KEY = "action";
+    public static final String ACTION_KEY = "action";
+
+    public static final String NOTIFY_ONLY_LOM_URL_KEY = "notify_only_lom_url";
+
+    public static final String URI_KEY = "uri";
 
     @PluginParameter(label = "Ack required", name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
     private boolean ackRequired;
@@ -78,6 +87,14 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
     @PluginParameter(label = "Feature gpfs_url property path", name = GPFS_URL_PROPERTY_PATH_PARAM_NAME,
         optional = true, defaultValue = "properties.system.gpfs_url")
     private String gpfsUrlPropertyPath;
+
+    @PluginParameter(label = "Notify or not LOM URL", name = NOTIFY_ONLY_LOM_PARAM_NAME, optional = true,
+        defaultValue = "false")
+    private boolean notify_only_lom_url;
+
+    @PluginParameter(label = "Feature lom_url property path", name = LOM_URL_PROPERTY_PATH_PARAM_NAME, optional = true,
+        defaultValue = "properties.system.lom_url")
+    private String lomUrlPropertyPath;
 
     @PluginParameter(label = "Feature filename property path", name = FILENAME_PROPERTY_PATH_PARAM_NAME,
         optional = true, defaultValue = "properties.system.filename")
@@ -110,7 +127,7 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
             Optional<String> createdBy = getValue(element, createdByPropertyPath);
             Optional<String> updatedBy = getValue(element, updatedByPropertyPath);
             Optional<String> deletedBy = getValue(element, deletedByPropertyPath);
-            String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
+            String uri = getUri(element);
             // This is business key so filename cannot be null!
             String filename = getValue(element, filenamePropertyPath).orElse(null);
             if ((metadata == null) || !createdBy.isPresent() || (filename == null)) {
@@ -141,5 +158,20 @@ public class ChronosRecipientSender extends AbstractRabbitMQSender {
     @Override
     public boolean isAckRequired() {
         return ackRequired;
+    }
+
+    private String getUri(JsonElement element) {
+
+        String uri = getValue(element, gpfsUrlPropertyPath).orElse(null);
+        if (StringUtils.isNotBlank(uri) && !notify_only_lom_url) {
+            return uri;
+        } else {
+            uri = getValue(element, lomUrlPropertyPath).orElse(null);
+            if (StringUtils.isNotBlank(uri)) {
+                return uri;
+            }
+        }
+
+        return null;
     }
 }
