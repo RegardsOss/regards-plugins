@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -93,6 +94,8 @@ public class S3OnlineStorageIT {
     }
 
     private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
+        StringPluginParam secretParam = IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret);
+        secretParam.setDecryptedValue(secret);
         // Set plugin configuration
         Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(S3OnlineStorage.S3_SERVER_ENDPOINT_PARAM_NAME,
                                                                                   endpoint),
@@ -100,8 +103,7 @@ public class S3OnlineStorageIT {
                                                                                   region),
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_KEY_PARAM_NAME,
                                                                                   key),
-                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME,
-                                                                                  secret),
+                                                               secretParam,
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_BUCKET_PARAM_NAME,
                                                                                   bucket),
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME,

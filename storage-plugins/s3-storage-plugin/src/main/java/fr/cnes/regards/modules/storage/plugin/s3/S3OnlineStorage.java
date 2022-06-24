@@ -77,7 +77,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     private String key;
 
     @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME, description = "Secret of the S3 server",
-        label = "S3 server secret")
+        label = "S3 server secret", sensitive = true)
     private String secret;
 
     @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME, description = "Bucket of the S3 server",
