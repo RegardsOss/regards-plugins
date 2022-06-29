@@ -180,7 +180,7 @@ public class LocalDataStorageTest {
         FileReference fileRef = new FileReference("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new FileLocation("local-storage", zipPath.toUri().toURL().toString()));
+                new FileLocation("local-storage", zipPath.toUri().toURL().toString(), false));
         fileRef.setId(1L);
         FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
@@ -225,7 +225,7 @@ public class LocalDataStorageTest {
         FileReference fileRef = new FileReference("owner",
                 new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c", "MD5", "file.name", null,
                         MediaType.APPLICATION_OCTET_STREAM),
-                new FileLocation("local-storage", zipPath.toUri().toURL().toString()));
+                new FileLocation("local-storage", zipPath.toUri().toURL().toString(), false));
         fileRef.setId(1L);
         FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         fileDeletionRequests.add(deletionRequest);
@@ -249,7 +249,7 @@ public class LocalDataStorageTest {
 
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
-                new FileLocation("local-storage", urlToDelete.toString()));
+                new FileLocation("local-storage", urlToDelete.toString(), false));
         fileRef.setId(1L);
         FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
@@ -275,7 +275,7 @@ public class LocalDataStorageTest {
 
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
-                new FileLocation("local-storage", urlToDelete.toString()));
+                new FileLocation("local-storage", urlToDelete.toString(), false));
         fileRef.setId(1L);
         FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);
@@ -301,7 +301,7 @@ public class LocalDataStorageTest {
 
         FileReference fileRef = new FileReference("owner", new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
                 "MD5", "file.name", null, MediaType.APPLICATION_OCTET_STREAM),
-                new FileLocation("local-storage", urlToDelete.toString()));
+                new FileLocation("local-storage", urlToDelete.toString(), false));
         fileRef.setId(1L);
         FileDeletionRequest deletionRequest = new FileDeletionRequest(fileRef, "groupId", "TEST", "session-001");
         files.add(deletionRequest);

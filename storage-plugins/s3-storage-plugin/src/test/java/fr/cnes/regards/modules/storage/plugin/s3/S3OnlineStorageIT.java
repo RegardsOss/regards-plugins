@@ -160,6 +160,19 @@ public class S3OnlineStorageIT {
             }
 
             @Override
+            public void storageSucceedWithPendingActionRemaining(FileStorageRequest fileReferenceRequest,
+                                                                 URL storedUrl,
+                                                                 Long fileSize,
+                                                                 Boolean notifyAdministrators) {
+
+            }
+
+            @Override
+            public void storagePendingActionSucceed(String storedUrl) {
+
+            }
+
+            @Override
             public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
             }
         });

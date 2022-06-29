@@ -139,6 +139,7 @@ public class AipDataSourcePluginTestConfiguration {
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
         StorageLocationDTO dto = new StorageLocationDTO("AWS",
                                                         1L,
+                                                        0L,
                                                         1L,
                                                         1L,
                                                         1L,
