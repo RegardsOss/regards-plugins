@@ -125,6 +125,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         // 1) Get page of feature entities to process
         PagedModel<EntityModel<FeatureEntityDto>> pageFeatureEntities;
 
+        // To avoid missing updated or new storages, reset cache of storages
+        resetStorages();
+
         try {
             FeignSecurityManager.asSystem();
             pageFeatureEntities = getFeatureEntities(cursor);
@@ -284,6 +287,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
             }
         }
         return storages;
+    }
+
+    private void resetStorages() {
+        storages = null;
     }
 
     private static class Storages {
