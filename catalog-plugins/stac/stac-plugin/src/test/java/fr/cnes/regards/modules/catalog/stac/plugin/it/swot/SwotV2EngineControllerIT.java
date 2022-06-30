@@ -290,6 +290,14 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     }
 
     @Test
+    public void searchCollections_withIds() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("$.context.matched", 1);
+        CollectionSearchBody body = CollectionSearchBody.builder().ids(List.of("SWOT_L2_HR_Raster_100m")).build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+    }
+
+    @Test
     public void given_noCollection_when_prepareDownload_then_badRequest() {
         RequestBuilderCustomizer customizer = customizer().expectStatusBadRequest();
         FiltersByCollection body = FiltersByCollection.builder().build();

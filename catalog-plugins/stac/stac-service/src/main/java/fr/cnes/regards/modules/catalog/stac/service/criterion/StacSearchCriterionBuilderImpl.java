@@ -25,6 +25,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import java.util.function.Function;
 
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,12 +63,14 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
 
     private final QueryObjectCriterionBuilder queryObjectCriterionBuilder;
 
+    private IdMappingService idMappingService;
+
     @Autowired
     public StacSearchCriterionBuilderImpl(AccessRightFilter accessRightFilter,
             GeometryCriterionBuilder geometryCriterionBuilder, IdentitiesCriterionBuilder identitiesCriterionBuilder,
             FieldsCriterionBuilder fieldsCriterionBuilder, DateIntervalCriterionBuilder dateIntervalCriterionBuilder,
             CollectionsCriterionBuilder collectionsCriterionBuilder, BBoxCriterionBuilder bBoxCriterionBuilder,
-            QueryObjectCriterionBuilder queryObjectCriterionBuilder) {
+            QueryObjectCriterionBuilder queryObjectCriterionBuilder, IdMappingService idMappingService) {
         this.accessRightFilter = accessRightFilter;
         this.geometryCriterionBuilder = geometryCriterionBuilder;
         this.identitiesCriterionBuilder = identitiesCriterionBuilder;
@@ -76,13 +79,14 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
         this.collectionsCriterionBuilder = collectionsCriterionBuilder;
         this.bBoxCriterionBuilder = bBoxCriterionBuilder;
         this.queryObjectCriterionBuilder = queryObjectCriterionBuilder;
+        this.idMappingService = idMappingService;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
         return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, itemSearchBody.getBbox()),
-                             collectionsCriterionBuilder.buildCriterion(properties, itemSearchBody.getCollections()),
+                             collectionsCriterionBuilder.buildCriterion(properties, idMappingService.getUrnsByStacIds(itemSearchBody.getCollections())),
                              dateIntervalCriterionBuilder.buildCriterion(properties, itemSearchBody.getDatetime()),
                              fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
                              identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
@@ -94,10 +98,10 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody collectionSearchBody) {
         return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, collectionSearchBody.getBbox()),
-                             collectionsCriterionBuilder.buildCriterion(properties, collectionSearchBody.getCollections()),
+                             collectionsCriterionBuilder.buildCriterion(properties, idMappingService.getUrnsByStacIds(collectionSearchBody.getCollections())),
                              dateIntervalCriterionBuilder.buildCriterion(properties, collectionSearchBody.getDatetime()),
                              fieldsCriterionBuilder.buildCriterion(properties, collectionSearchBody.getFields()),
-                             identitiesCriterionBuilder.buildCriterion(properties, collectionSearchBody.getIds()),
+                             identitiesCriterionBuilder.buildCriterion(properties, idMappingService.getUrnsByStacIds(collectionSearchBody.getIds())),
                              geometryCriterionBuilder.buildCriterion(properties, collectionSearchBody.getIntersects()),
                              queryObjectCriterionBuilder.buildCriterion(properties, collectionSearchBody.getQuery()))
                 .flatMap(addAccessCriteria());
@@ -107,7 +111,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     public Option<ICriterion> buildCriterion(List<StacProperty> properties,
             CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
         return andAllPresent(bBoxCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getBbox()),
-                             collectionsCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getCollections()),
+                             collectionsCriterionBuilder.buildCriterion(properties, idMappingService.getUrnsByStacIds(collectionItemSearchBody.getCollections())),
                              dateIntervalCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getDatetime()),
                              identitiesCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIds()),
                              geometryCriterionBuilder.buildCriterion(properties, collectionItemSearchBody.getIntersects()),
@@ -128,7 +132,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     @Override
     public Option<EODagParameters> buildEODagParameters(List<StacProperty> properties, String collectionId,
             CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
-        EODagParameters parameters = new EODagParameters(collectionId);
+        EODagParameters parameters = new EODagParameters(idMappingService.getUrnByStacId(collectionId));
         computeEODagParameters(parameters, properties, ItemSearchBody.builder().build());
         bBoxCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getBbox());
         collectionsCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getCollections());

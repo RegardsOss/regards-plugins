@@ -32,6 +32,7 @@ import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.Collection;
@@ -64,8 +65,10 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
@@ -86,6 +89,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("deprecation")
 //@DirtiesContext
+@ActiveProfiles("noStacHandler")
 public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStacIT.class);
@@ -161,6 +165,9 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     @Autowired
     private GeneratorBuilder generatorBuilder;
+
+    @Autowired
+    private IdMappingService idMappingService;
 
     protected void cleanDatabase() {
         modelAttrAssocRepository.deleteAllInBatch();
@@ -300,6 +307,8 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         // Refresh index to be sure data is available for requesting
         indexerService.refresh(getDefaultTenant());
 
+        // Manage STAC id mappings
+        idMappingService.initOrUpdateCache();
     }
 
     protected abstract void initPlugins() throws ModuleException;

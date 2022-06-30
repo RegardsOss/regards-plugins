@@ -18,13 +18,10 @@
  */
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.searchcol;
 
-import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.*;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
@@ -64,8 +61,6 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 @RequestMapping(path = STAC_COLLECTION_SEARCH_PATH, produces = APPLICATION_JSON)
 public class CollectionSearchController implements TryToResponseEntity {
 
-    private final ItemSearchBodyFactory itemSearchBodyFactory;
-
     private final CollectionSearchBodyFactory collectionSearchBodyFactory;
 
     private final CollectionItemSearchBodyFactory collectionItemSearchBodyFactory;
@@ -78,24 +73,18 @@ public class CollectionSearchController implements TryToResponseEntity {
 
     private final TimelineService timelineService;
 
-    private final IAuthenticationResolver authenticationResolver;
-
-    public CollectionSearchController(ItemSearchBodyFactory itemSearchBodyFactory,
-                                      CollectionSearchBodyFactory collectionSearchBodyFactory,
+    public CollectionSearchController(CollectionSearchBodyFactory collectionSearchBodyFactory,
                                       CollectionItemSearchBodyFactory collectionItemSearchBodyFactory,
                                       SearchOtherPageCollectionBodySerdeService searchTokenSerde,
                                       LinkCreatorService linkCreatorService,
                                       CollectionSearchService collectionSearchService,
-                                      TimelineService timelineService,
-                                      IAuthenticationResolver authenticationResolver) {
-        this.itemSearchBodyFactory = itemSearchBodyFactory;
+                                      TimelineService timelineService) {
         this.collectionSearchBodyFactory = collectionSearchBodyFactory;
         this.collectionItemSearchBodyFactory = collectionItemSearchBodyFactory;
         this.searchTokenSerde = searchTokenSerde;
         this.linkCreatorService = linkCreatorService;
         this.collectionSearchService = collectionSearchService;
         this.timelineService = timelineService;
-        this.authenticationResolver = authenticationResolver;
     }
 
     @Operation(summary = "Search collection with simple filtering",
@@ -122,7 +111,7 @@ public class CollectionSearchController implements TryToResponseEntity {
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + IDS_QUERY_PARAM, required = false)
             List<String> itemIds,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + QUERY_QUERY_PARAM, required = false)
-            String itemQuery) throws ModuleException {
+            String itemQuery) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory.parseCollectionSearch(page,
                                                                                                       limit,
@@ -160,8 +149,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<SearchCollectionsResponse> complex(@RequestBody CollectionSearchBody collectionSearchBody,
                                                              @RequestParam(name = PAGE_QUERY_PARAM, required = false,
-                                                                 defaultValue = "1") Integer page)
-        throws ModuleException {
+                                                                 defaultValue = "1") Integer page) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
@@ -186,8 +174,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     @RequestMapping(path = "paginate", method = RequestMethod.GET)
     public ResponseEntity<SearchCollectionsResponse> otherPage(
         @RequestParam(name = SEARCH_COLLECTIONBODY_QUERY_PARAM) String collectionBodyBase64,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page)
-        throws ModuleException {
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<CollectionSearchBody> tryCollectionSearchBody = searchTokenSerde.deserialize(collectionBodyBase64);
         Try<ItemSearchBody> itemSearchBody = tryCollectionSearchBody.map(b -> b.getItem().toItemSearchBody());

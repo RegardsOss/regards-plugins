@@ -102,6 +102,7 @@
                                     <include>fr.cnes.regards.framework.modules.jobs:*</include>
                                     <include>fr.cnes.regards.modules.feature:*</include>
                                     <include>fr.cnes.regards.framework.modules:tinyurl</include>
+                                    <include>org.apache.commons:commons-collections4</include>
                                     <include>org.noggit:*</include>
                                 </includes>
                             </artifactSet>

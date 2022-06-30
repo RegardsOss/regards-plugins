@@ -27,6 +27,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.se
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder.BinaryTimelineBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder.HistogramTimelineBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder.TimelineBuilder;
@@ -62,6 +63,9 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
 
     @Autowired
     private PropertyExtractionService propertyExtractionService;
+
+    @Autowired
+    private IdMappingService idMappingService;
 
     @Override
     public TimelineByCollectionResponse buildCollectionsTimeline(TimelineFiltersByCollection timelineFiltersByCollection) {
@@ -147,11 +151,14 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
                 CollectionSearchBody.CollectionItemSearchBody.builder().build() :
                 collectionFilters.getFilters();
 
-        return ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS,
-                                            collectionFilters.getCollectionId(),
-                                            StringMatchType.KEYWORD),
-                              searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
-                                                    .getOrElse(ICriterion.all()));
+        String urn_tag = idMappingService.getUrnByStacId(collectionFilters.getCollectionId());
+        if (urn_tag == null) {
+            throw new StacException(String.format("Unknown collection identifier %s", collectionFilters.getCollectionId()),
+                                    null, StacFailureType.MAPPING_ID_FAILURE);
+        }
+
+        return ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS, urn_tag, StringMatchType.KEYWORD),
+                              searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody).getOrElse(ICriterion.all()));
 
     }
 

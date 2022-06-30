@@ -77,17 +77,20 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private final StaticCollectionService staticCollectionService;
 
+    private final IdMappingService idMappingService;
+
     @Autowired
     public CollectionServiceImpl(ConfigurationAccessorFactory configurationAccessorFactory,
             DynamicCollectionService dynCollService, DynCollValNextSublevelHelper subLevelHelper,
             ItemSearchBodyFactory itemSearchBodyFactory, ItemSearchService itemSearchService,
-            StaticCollectionService staticCollectionService) {
+            StaticCollectionService staticCollectionService, IdMappingService idMappingService) {
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
         this.subLevelHelper = subLevelHelper;
         this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
         this.staticCollectionService = staticCollectionService;
+        this.idMappingService = idMappingService;
     }
 
     @Override
@@ -138,7 +141,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     private List<Link> staticCollectionLinks(OGCFeatLinkCreator linkCreator) {
         return staticCollectionService.staticRootCollectionsIdsAndLabels()
-                .map(idLabel -> linkCreator.createCollectionLinkWithRel(idLabel._1, idLabel._2, CHILD)).flatMap(l -> l);
+                .map(idLabel -> linkCreator.createCollectionLinkWithRel(idMappingService.getStacIdByUrn(idLabel._1), idLabel._2, CHILD)).flatMap(l -> l);
     }
 
     @Override
@@ -173,7 +176,7 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
             return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
                     .flatMap(dcv -> dynCollService.buildCollection(dcv, linkCreator, config));
         } else {
-            return staticCollectionService.convertRequest(collectionId, linkCreator, config);
+            return staticCollectionService.convertRequest(idMappingService.getUrnByStacId(collectionId), linkCreator, config);
         }
     }
 

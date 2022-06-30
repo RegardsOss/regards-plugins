@@ -1,5 +1,21 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URN_PARSING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Component;
+
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
@@ -8,6 +24,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -29,21 +46,6 @@ import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URN_PARSING;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.CHILD;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ITEMS;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
 
 @Component
 public class StaticCollectionServiceImpl implements StaticCollectionService {
@@ -52,14 +54,17 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
 
     private final CatalogSearchService catalogSearchService;
     private final ExtentSummaryService extentSummaryService;
+    private IdMappingService idMappingService;
 
     @Autowired
     public StaticCollectionServiceImpl(
             CatalogSearchService catalogSearchService,
-            ExtentSummaryService extentSummaryService
+            ExtentSummaryService extentSummaryService,
+            IdMappingService idMappingService
     ) {
         this.catalogSearchService = catalogSearchService;
         this.extentSummaryService = extentSummaryService;
+        this.idMappingService = idMappingService;
     }
 
     @Override
@@ -145,8 +150,7 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
             return new Collection(
                     StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(),
                     regardsCollection.getLabel(),
-                    regardsCollection.getIpId().toString(),
-//                    regardsCollection.getModel().getDescription(),
+                    idMappingService.getStacIdByUrn(regardsCollection.getIpId().toString()),
                     "",
                     links,
                     config.getKeywords(urn),
@@ -203,7 +207,7 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
     }
 
     private Option<Link> getItemsLinks(UniformResourceName resourceName, OGCFeatLinkCreator linkCreator) {
-        return linkCreator.createCollectionItemsLinkWithRel(resourceName.toString(), ITEMS);
+        return linkCreator.createCollectionItemsLinkWithRel(idMappingService.getStacIdByUrn(resourceName.toString()), ITEMS);
     }
 
     private List<AbstractEntity<?>> getSubCollectionsOrDatasets(String urn, EntityType entityType)
@@ -230,7 +234,8 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
             ICriterion tags = ICriterion.contains("ipId", urn, StringMatchType.KEYWORD);
             return searchCriterion(tags, EntityType.COLLECTION)
                 .map(AbstractEntity::getIpId)
-                .map(Object::toString);
+                .map(Object::toString)
+                    .map(idMappingService::getStacIdByUrn);
     }
 
     private List<AbstractEntity<?>> searchCriterion(ICriterion criterion, EntityType type)

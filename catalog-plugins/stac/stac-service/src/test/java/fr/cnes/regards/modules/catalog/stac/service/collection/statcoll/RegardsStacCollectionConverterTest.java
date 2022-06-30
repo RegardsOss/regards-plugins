@@ -1,34 +1,26 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.statcoll;
 
-import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
-import fr.cnes.regards.framework.module.rest.exception.EntityOperationForbiddenException;
-import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
-import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
-import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
-import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
-import fr.cnes.regards.modules.indexer.dao.FacetPage;
-import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
-import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
-import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.model.domain.Model;
-import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
-import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
-import fr.cnes.regards.modules.search.domain.plugin.SearchType;
-import fr.cnes.regards.modules.search.service.CatalogSearchService;
-import fr.cnes.regards.modules.search.service.SearchException;
-import io.vavr.collection.List;
-import io.vavr.collection.TreeSet;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.COLLECTION;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.ROOT;
+import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.SELF;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.range.ParsedDateRange;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
@@ -50,18 +42,36 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import fr.cnes.regards.framework.module.rest.exception.EntityNotFoundException;
+import fr.cnes.regards.framework.module.rest.exception.EntityOperationForbiddenException;
+import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.framework.urn.UniformResourceName;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.indexer.dao.FacetPage;
+import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
+import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
+import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.model.domain.Model;
+import fr.cnes.regards.modules.opensearch.service.exception.OpenSearchUnknownParameter;
+import fr.cnes.regards.modules.search.domain.plugin.CollectionWithStats;
+import fr.cnes.regards.modules.search.domain.plugin.SearchType;
+import fr.cnes.regards.modules.search.service.CatalogSearchService;
+import fr.cnes.regards.modules.search.service.SearchException;
+import io.vavr.collection.List;
+import io.vavr.collection.TreeSet;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @ActiveProfiles({ "test" })
@@ -87,6 +97,9 @@ public class RegardsStacCollectionConverterTest {
 
     @MockBean
     private ExtentSummaryService extentSummaryService;
+    
+    @MockBean
+    private IdMappingService idMappingService;
 
     private fr.cnes.regards.modules.dam.domain.entities.Collection generateRandomDamCollection() {
         EasyRandom easyRandom = new EasyRandom();
@@ -167,6 +180,8 @@ public class RegardsStacCollectionConverterTest {
                     .map(l -> l.withRel("parent"));
 
         });
+        
+        when(idMappingService.getStacIdByUrn(anyString())).thenReturn("stacId");
 
         StacProperty stacProperty = new StacProperty(Mockito.mock(RegardsPropertyAccessor.class), null, "stacProp",
                                                      "ext", false, 1, "dynFormat", StacPropertyType.NUMBER,
@@ -187,7 +202,7 @@ public class RegardsStacCollectionConverterTest {
         assertThat(collections.isSuccess(), is(true));
 
         assertThat(collections.get().getTitle(), is(collection.getLabel()));
-        assertThat(collections.get().getId(), is(collection.getIpId().toString()));
+        assertEquals("stacId", collections.get().getId());
 
         Assert.assertFalse(collections.get().getLinks().isEmpty());
         Assert.assertEquals(1, collections.get().getLinks().map(Link::getRel).count(x -> x.equals("parent")));

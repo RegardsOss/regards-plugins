@@ -35,6 +35,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
@@ -122,6 +123,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     @Autowired
     private TinyUrlService tinyUrlService;
+    
+    @Autowired
+    private IdMappingService idMappingService;
 
     @Override
     public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody,
@@ -262,7 +266,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
                                   extensions,
                                   extractTitle(dataset, collectionConfigurationAccessor.getTitleProperty()),
-                                  dataset.getIpId().toString(),
+                                  idMappingService.getStacIdByUrn(dataset.getIpId().toString()),
                                   extractDescription(dataset, collectionConfigurationAccessor.getDescriptionProperty()),
                                   extractLinks(searchItemPageLinkCreator,
                                                dataset,
@@ -451,29 +455,28 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
         return Try.of(() -> {
 
-                      // Translate collection id to urn
-                      UniformResourceName datasetUrn = parseCollectionUrn(collectionFilters.getCollectionId()).get();
+            // Translate collection id to urn
+            UniformResourceName datasetUrn = parseCollectionUrn(
+                    idMappingService.getUrnByStacId(collectionFilters.getCollectionId())).get();
 
                       // Retrieve configured item properties
                       ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
                       List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
 
-                      // Build item search criteria with dataset filter
-                      CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
-                          collectionFilters.getFilters() == null ?
-                              CollectionSearchBody.CollectionItemSearchBody.builder().build() :
-                              collectionFilters.getFilters();
-                      // Build item criteria
-                      ICriterion itemCriteria = ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS,
-                                                                             collectionFilters.getCollectionId(),
-                                                                             StringMatchType.KEYWORD),
-                                                               searchCriterionBuilder.buildCriterion(itemStacProperties,
-                                                                                                     collectionItemSearchBody)
-                                                                                     .getOrElse(ICriterion.all()));
-                      // Transform and store request as EODagParameters
-                      Option<EODagParameters> eoDagParameters = searchCriterionBuilder.buildEODagParameters(itemStacProperties,
-                                                                                                            collectionFilters.getCollectionId(),
-                                                                                                            collectionItemSearchBody);
+            // Build item search criteria with dataset filter
+            CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
+                    collectionFilters.getFilters() == null ?
+                            CollectionSearchBody.CollectionItemSearchBody.builder().build() :
+                            collectionFilters.getFilters();
+            // Build item criteria
+            ICriterion itemCriteria = ICriterion.and(
+                    ICriterion.eq(StaticProperties.FEATURE_TAGS, datasetUrn.toString(), StringMatchType.KEYWORD),
+                    searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
+                            .getOrElse(ICriterion.all()));
+            // Transform and store request as EODagParameters
+            Option<EODagParameters> eoDagParameters = searchCriterionBuilder.buildEODagParameters(itemStacProperties,
+                                                                                                  collectionFilters.getCollectionId(),
+                                                                                                  collectionItemSearchBody);
 
                       // Compute summary and getting first hit
                       DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();

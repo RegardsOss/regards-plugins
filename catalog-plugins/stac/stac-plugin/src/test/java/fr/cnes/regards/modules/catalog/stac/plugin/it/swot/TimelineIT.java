@@ -90,6 +90,20 @@ public class TimelineIT extends AbstractStacIT {
     }
 
     @Test
+    public void unknown_collection_timeline() {
+        // GIVEN
+        FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder().collectionId("unknown:collection").build();
+        TimelineFiltersByCollection body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder().collections(List.of(collectionFilters)).build();
+
+        // THEN
+        RequestBuilderCustomizer customizer = customizer().expectStatusBadRequest();
+
+        // WHEN
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE, body, customizer, "Timeline retrieve failed");
+
+    }
+
+    @Test
     public void nominal_timeline() {
         // GIVEN
         Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
@@ -101,9 +115,7 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           collection.getIpId()
-                                                                                                                     .toString())
+                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -140,9 +152,7 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           collection.getIpId()
-                                                                                                                     .toString())
+                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -176,9 +186,7 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           collection.getIpId()
-                                                                                                                     .toString())
+                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -214,9 +222,7 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           collection.getIpId()
-                                                                                                                     .toString())
+                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -253,9 +259,7 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           dataset.getIpId()
-                                                                                                                  .toString())
+                                                                                                       .collectionId(datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -325,9 +329,7 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           dataset.getIpId()
-                                                                                                                  .toString())
+                                                                                                       .collectionId(datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -397,9 +399,7 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           dataset.getIpId()
-                                                                                                                  .toString())
+                                                                                                       .collectionId(datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -457,10 +457,8 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectToHaveSize("timelines", 1);
 
-        Dataset dataset = this.getDatasets().get(datasetId);
-
         // Pass body as pure JSON
-        String body = "{\"collections\":[{\"collectionId\":\"" + dataset.getIpId().toString()
+        String body = "{\"collections\":[{\"collectionId\":\"" + datasetId
             + "\",\"correlationId\":\"selection_01\"}]}";
 
         ResultActions resultActions = performDefaultPost(
@@ -498,7 +496,7 @@ public class TimelineIT extends AbstractStacIT {
                                          end,
                                          TimelineFiltersByCollection.TimelineMode.BINARY,
                                          true);
-        Assert.assertTrue("Expected max response time exceeded!", duration < 15000);
+        Assert.assertTrue(String.format("Expected max response time exceeded! %d > 15000",duration), duration < 15000);
 
         // HISTOGRAM test
         duration = performance_test("one-day-data-template.json",
@@ -599,9 +597,7 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(
-                                                                                                           dataset.getIpId()
-                                                                                                                  .toString())
+                                                                                                       .collectionId(datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())

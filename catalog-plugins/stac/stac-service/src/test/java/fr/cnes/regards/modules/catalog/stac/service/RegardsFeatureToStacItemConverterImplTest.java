@@ -16,7 +16,6 @@ import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionServiceImpl;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +37,12 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.RegardsPropertyAccessorAwareTest;
 import fr.cnes.regards.modules.catalog.stac.service.item.RegardsFeatureToStacItemConverterImpl;
+import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionServiceImpl;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdderImpl;
@@ -77,9 +78,12 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
     ConfigurationAccessorFactory configurationAccessorFactory = mock(ConfigurationAccessorFactory.class);
 
     UriParamAdder uriParamAdder = mock(UriParamAdderImpl.class);
+       
+    IdMappingService idMappingService = mock(IdMappingService.class);
 
     RegardsFeatureToStacItemConverterImpl service = new RegardsFeatureToStacItemConverterImpl(new StacGeoHelper(gson),
-            configurationAccessorFactory, new PropertyExtractionServiceImpl(uriParamAdder));
+                                                                                              configurationAccessorFactory, new PropertyExtractionServiceImpl(uriParamAdder),
+                                                                                              idMappingService);
 
     @Test
     public void convertFeatureToItem() throws Exception {
@@ -97,7 +101,9 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         when(linkCreator.createItemLink(anyString(), anyString()))
                 .thenAnswer(i -> Option.of(new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                         .map(uri -> new Link(uri, SELF, "", "")));
-
+        
+        when(idMappingService.getStacIdByUrn(any())).thenReturn("stacId");
+        
         List<StacProperty> stacProperties = List.of(new StacProperty(
                 accessor("regardsAttr", StacPropertyType.DATETIME, OffsetDateTime.now().minusYears(2L)), null,
                 "stac:prop", "", false, 0, null, StacPropertyType.DATETIME,
@@ -125,12 +131,12 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         assertThat(item.getBbox()).isEqualTo(new BBox(0d, 0d, 3d, 3d));
         assertThat(item.getGeometry()).isEqualTo(polygon);
         assertThat(item.getCentroid()).isEqualTo(new Centroid(1d, 1d));
-        assertThat(item.getCollection()).isEqualTo(parentDatasetIpId);
+        assertThat(item.getCollection()).isEqualTo("stacId");
         assertThat(item.getLinks()).hasSize(3)
                 .anyMatch(l -> l.getHref().equals(uri("/root")) && l.getRel().equals(Link.Relations.ROOT))
-                .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId))
+                .anyMatch(l -> l.getHref().equals(uri("/collection/" + "stacId"))
                         && l.getRel().equals(Link.Relations.COLLECTION))
-                .anyMatch(l -> l.getHref().equals(uri("/collection/" + parentDatasetIpId + "/item/" + itemIpId))
+                .anyMatch(l -> l.getHref().equals(uri("/collection/" + "stacId" + "/item/" + itemIpId))
                         && l.getRel().equals(Link.Relations.SELF));
         assertThat(item.getAssets()).hasSize(2);
         assertThat(item.getAssets().head()._2.getHref()).matches(uri -> uri.getQuery().contains("token=theJwtToken"));

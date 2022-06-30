@@ -28,6 +28,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
@@ -67,22 +68,27 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     private final PropertyExtractionService propertyExtractionService;
 
+    private IdMappingService idMappingService;
+
     public RegardsFeatureToStacItemConverterImpl(StacGeoHelper geoHelper,
-            ConfigurationAccessorFactory configurationAccessorFactory,
-            PropertyExtractionService propertyExtractionService) {
+                                                 ConfigurationAccessorFactory configurationAccessorFactory,
+                                                 PropertyExtractionService propertyExtractionService,
+                                                 IdMappingService idMappingService) {
         this.geoHelper = geoHelper;
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.propertyExtractionService = propertyExtractionService;
+        this.idMappingService = idMappingService;
     }
 
     @Override
-    public Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator,
-            AbstractEntity<? extends EntityFeature> feature) {
+    public Try<Item> convertFeatureToItem(List<StacProperty> properties,
+                                          OGCFeatLinkCreator linkCreator,
+                                          AbstractEntity<? extends EntityFeature> feature) {
         debug(LOGGER, "Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return trying(() -> {
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String, Object> featureStacProperties = propertyExtractionService.extractStacProperties(feature,
-                                                                                                           properties);
+                                                                                                        properties);
             List<Link> staticFeatureLinks = propertyExtractionService.extractStaticLinks(feature,
                                                                                          configurationAccessor.getLinksStacProperty());
             Map<String, Asset> staticFeatureAssets = propertyExtractionService.extractStaticAssets(feature,
@@ -92,7 +98,13 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
             String collection = extractCollection(feature).getOrNull();
             String itemId = feature.getIpId().toString();
 
-            Item result = new Item(extensions, itemId, geo._2, geo._1, geo._3, collection, featureStacProperties,
+            Item result = new Item(extensions,
+                                   itemId,
+                                   geo._2,
+                                   geo._1,
+                                   geo._3,
+                                   collection,
+                                   featureStacProperties,
                                    extractLinks(itemId, collection, linkCreator).appendAll(staticFeatureLinks),
                                    propertyExtractionService.extractAssets(feature).merge(staticFeatureAssets));
             debug(LOGGER, "Result Item={}", result);
@@ -102,24 +114,29 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
     }
 
     private List<Link> extractLinks(String itemId, String collection, OGCFeatLinkCreator linkCreator) {
-        return List.of(linkCreator.createRootLink(), linkCreator.createCollectionLink(collection, "Item collection"),
+        return List.of(linkCreator.createRootLink(),
+                       linkCreator.createCollectionLink(collection, "Item collection"),
                        linkCreator.createItemLink(collection, itemId)).flatMap(tl -> tl);
     }
 
     private Option<String> extractCollection(AbstractEntity<? extends EntityFeature> feature) {
-        return HashSet.ofAll(feature.getTags()).filter(tag -> tag.startsWith("URN:"))
-                .filter(tag -> tag.contains(":DATASET:")).headOption();
+        Option<String> urn = HashSet.ofAll(feature.getTags())
+                                    .filter(tag -> tag.startsWith("URN:"))
+                                    .filter(tag -> tag.contains(":DATASET:"))
+                                    .headOption();
+
+        return Option.of(idMappingService.getStacIdByUrn(urn.get()));
     }
 
     private Tuple3<IGeometry, BBox, Centroid> extractGeo(AbstractEntity<? extends EntityFeature> feature,
-            GeoJSONReader geoJSONReader) {
+                                                         GeoJSONReader geoJSONReader) {
         Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry());
         if (geometry.isDefined() && !GeoJsonType.UNLOCATED.equals(geometry.get().getType())) {
             Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
             return geometry.flatMap(g -> bbox.map(b -> Tuple.of(g, b, b.centroid()))
-                            .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
-                    .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid())))
-                    .getOrElse(() -> Tuple.of(null, null, null));
+                                             .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
+                           .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid())))
+                           .getOrElse(() -> Tuple.of(null, null, null));
         } else {
             return new Tuple3<>(IGeometry.unlocated(), null, null);
         }
