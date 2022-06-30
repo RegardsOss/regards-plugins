@@ -32,7 +32,7 @@ import java.time.OffsetDateTime;
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_DATE_TIME_UTC;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.DATEINTERVAL_PARSING;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.parseStacDatetime;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -44,12 +44,15 @@ import static org.apache.commons.lang3.StringUtils.split;
 public class DateInterval {
 
     private static final OffsetDateTime MAX = OffsetDateTime.now(UTC).plusYears(100L);
+
     private static final OffsetDateTime MIN = OffsetDateTime.ofInstant(Instant.EPOCH, UTC).minusYears(100);
 
     public static final String OPEN_END = "..";
+
     public static final String SEPARATOR = "/";
 
     OffsetDateTime from;
+
     OffsetDateTime to;
 
     public boolean isSingleDate() {
@@ -59,12 +62,15 @@ public class DateInterval {
     public static DateInterval single(OffsetDateTime d) {
         return new DateInterval(d, d);
     }
+
     public static DateInterval from(OffsetDateTime d) {
         return new DateInterval(d, MAX);
     }
+
     public static DateInterval to(OffsetDateTime d) {
         return new DateInterval(MIN, d);
     }
+
     public static DateInterval of(OffsetDateTime f, OffsetDateTime t) {
         return new DateInterval(f, t);
     }
@@ -73,11 +79,10 @@ public class DateInterval {
         String repr;
         if (isSingleDate()) {
             repr = ISO_DATE_TIME_UTC.format(from);
-        }
-        else {
-            repr = (MIN.equals(from) ? OPEN_END : ISO_DATE_TIME_UTC.format(from))
-                    + SEPARATOR
-                    + (MAX.equals(to) ? OPEN_END : ISO_DATE_TIME_UTC.format(to));
+        } else {
+            repr = (MIN.equals(from) ? OPEN_END : ISO_DATE_TIME_UTC.format(from)) + SEPARATOR + (MAX.equals(to) ?
+                OPEN_END :
+                ISO_DATE_TIME_UTC.format(to));
         }
         return repr;
     }
@@ -85,29 +90,28 @@ public class DateInterval {
     public static Try<Option<DateInterval>> parseDateInterval(String repr) {
         if (StringUtils.isBlank(repr)) {
             return Try.success(Option.none());
-        }
-        else if (repr.contains(SEPARATOR)) {
-            return trying(() -> List.of(split(repr, SEPARATOR)))
-                .map(parts -> Tuple.of(parts.get(0), parts.get(1)))
-                .flatMap(parts -> parseDateOrDefault(parts._1(), MIN)
-                    .flatMap(from -> parseDateOrDefault(parts._2(), MAX)
-                        .map(to -> DateInterval.of(from, to))
-                        .map(Option::of)
-                    )
-                )
-                .mapFailure(
-                    DATEINTERVAL_PARSING,
-                    () -> format("Failed to parse date interval from %s", repr)
-                );
-        }
-        else {
+        } else if (repr.contains(SEPARATOR)) {
+            return trying(() -> List.of(split(repr, SEPARATOR))).map(parts -> Tuple.of(parts.get(0), parts.get(1)))
+                                                                .flatMap(parts -> parseDateOrDefault(parts._1(),
+                                                                                                     MIN).flatMap(from -> parseDateOrDefault(
+                                                                    parts._2(),
+                                                                    MAX).map(to -> DateInterval.of(from, to))
+                                                                        .map(Option::of)))
+                                                                .mapFailure(DATEINTERVAL_PARSING,
+                                                                            () -> format(
+                                                                                "Failed to parse date interval from %s",
+                                                                                repr));
+        } else {
             return parseStacDatetime(repr).map(DateInterval::single).map(Option::of);
         }
     }
 
     private static Try<OffsetDateTime> parseDateOrDefault(String repr, OffsetDateTime def) {
-        if (OPEN_END.equals(repr)) { return Try.success(def); }
-        else { return parseStacDatetime(repr); }
+        if (OPEN_END.equals(repr)) {
+            return Try.success(def);
+        } else {
+            return parseStacDatetime(repr);
+        }
     }
 
 }

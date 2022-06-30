@@ -4,6 +4,9 @@ import fr.cnes.regards.modules.catalog.stac.domain.AbstractDomainSerdeTest;
 
 public class BBoxTest extends AbstractDomainSerdeTest<BBox> {
 
-    @Override protected Class<BBox> testedType() { return BBox.class; }
+    @Override
+    protected Class<BBox> testedType() {
+        return BBox.class;
+    }
 
 }

@@ -28,7 +28,8 @@ import java.util.Map;
  */
 public class HistogramTimelineBuilder extends BinaryTimelineBuilder {
 
-    public HistogramTimelineBuilder(ICatalogSearchService catalogSearchService, PropertyExtractionService propertyExtractionService) {
+    public HistogramTimelineBuilder(ICatalogSearchService catalogSearchService,
+                                    PropertyExtractionService propertyExtractionService) {
         super(catalogSearchService, propertyExtractionService);
     }
 

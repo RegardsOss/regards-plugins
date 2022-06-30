@@ -1,20 +1,18 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
-import static fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.RestDynCollValSerdeServiceImpl.URN_PREFIX;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.jeasy.random.EasyRandom;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.Gson;
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.rest.RestDynCollVal;
 import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
 import fr.cnes.regards.modules.catalog.stac.testutils.random.RandomAwareTest;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
+import org.jeasy.random.EasyRandom;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.RestDynCollValSerdeServiceImpl.URN_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RestDynCollValSerdeServiceImplTest implements GsonAwareTest, RandomAwareTest {
 
@@ -31,8 +29,7 @@ public class RestDynCollValSerdeServiceImplTest implements GsonAwareTest, Random
     public void test_serde() {
         List.range(0, 100).forEach(i -> {
             RestDynCollVal value = randomInstance(RestDynCollVal.class);
-            @SuppressWarnings("unused")
-            String json = gson.toJson(value);
+            @SuppressWarnings("unused") String json = gson.toJson(value);
             //info(LOGGER, "value={}", json);
             String urn = service.toUrn(value);
             //info(LOGGER, "\n\tvalues={}\n\turn={}", value, urn);

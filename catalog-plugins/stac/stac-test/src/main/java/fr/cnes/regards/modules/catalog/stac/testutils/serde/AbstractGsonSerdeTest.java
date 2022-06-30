@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package fr.cnes.regards.modules.catalog.stac.testutils.serde;
 
 import com.google.gson.Gson;
@@ -38,6 +38,7 @@ public abstract class AbstractGsonSerdeTest<T> implements GsonAwareTest, RandomA
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractGsonSerdeTest.class);
 
     public final EasyRandom random = easyRandom();
+
     protected final Gson gson = gson();
 
     protected boolean logValues() {
@@ -47,7 +48,7 @@ public abstract class AbstractGsonSerdeTest<T> implements GsonAwareTest, RandomA
     @Test
     public void test_toJson_fromJson() {
         Class<T> testedType = testedType();
-        for (int i = 0; i < 100 ; i++) {
+        for (int i = 0; i < 100; i++) {
             T expected = randomInstance(testedType);
             String expectedJson = gson.toJson(expected);
             if (logValues()) {
@@ -60,7 +61,10 @@ public abstract class AbstractGsonSerdeTest<T> implements GsonAwareTest, RandomA
             }
             boolean equal = actualJson.equals(expectedJson);
             if (!equal) {
-                LOGGER.error("Different values for {}: \n    FROM: {}\n    TO  : {}", testedType, expectedJson, actualJson);
+                LOGGER.error("Different values for {}: \n    FROM: {}\n    TO  : {}",
+                             testedType,
+                             expectedJson,
+                             actualJson);
                 LOGGER.error("Different values for {}: \n    FROM: {}\n    TO  : {}", testedType, expected, actual);
             }
             Assertions.assertThat(actualJson).isEqualTo(expectedJson);

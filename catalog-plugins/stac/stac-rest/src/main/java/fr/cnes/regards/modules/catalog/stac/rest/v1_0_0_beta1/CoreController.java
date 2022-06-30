@@ -45,8 +45,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.CORERESPONSE_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Core, landing page
@@ -54,57 +54,50 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/core"></a>
  */
 @RestController
-@RequestMapping(
-        path = StacApiConstants.STAC_PATH,
-        produces = APPLICATION_JSON
-)
+@RequestMapping(path = StacApiConstants.STAC_PATH, produces = APPLICATION_JSON)
 public class CoreController implements TryToResponseEntity {
 
     private final ConfigurationAccessorFactory configFactory;
+
     private final LinkCreatorService linker;
+
     private final IRuntimeTenantResolver runtimeTenantResolver;
+
     private final CollectionService collectionService;
 
     @Autowired
-    public CoreController(
-            ConfigurationAccessorFactory configFactory,
-            LinkCreatorService linker,
-            IRuntimeTenantResolver runtimeTenantResolver,
-            CollectionService collectionService
-    ) {
+    public CoreController(ConfigurationAccessorFactory configFactory,
+                          LinkCreatorService linker,
+                          IRuntimeTenantResolver runtimeTenantResolver,
+                          CollectionService collectionService) {
         this.configFactory = configFactory;
         this.linker = linker;
         this.runtimeTenantResolver = runtimeTenantResolver;
         this.collectionService = collectionService;
     }
 
-    @Operation(summary = "landing page",
-            description = "Returns the root STAC Catalog or STAC Collection that is the entry " +
-                    "point for users to browse with STAC Browser or for search engines to crawl. " +
-                    "This can either return a single STAC Collection or more commonly a STAC catalog.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Links to the API definition and Feature Collections") })
-    @ResourceAccess(
-            description = "landing page",
-            role = DefaultRole.PUBLIC
-    )
+    @Operation(summary = "landing page", description =
+        "Returns the root STAC Catalog or STAC Collection that is the entry "
+        + "point for users to browse with STAC Browser or for search engines to crawl. "
+        + "This can either return a single STAC Collection or more commonly a STAC catalog.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Links to the API definition and Feature Collections") })
+    @ResourceAccess(description = "landing page", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CoreResponse> root() throws ModuleException {
         JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         String title = config.getTitle();
         OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
-        return toResponseEntity(trying(() -> new CoreResponse(
-            StacSpecConstants.Version.STAC_API_VERSION,
-            List.empty(),
-            title,
-            runtimeTenantResolver.getTenant(),
-            config.getDescription(),
-            collectionService.buildRootLinks(config, linkCreator),
-            ConformanceController.CONFORMANCES
-        )).mapFailure(
+        return toResponseEntity(trying(() -> new CoreResponse(StacSpecConstants.Version.STAC_API_VERSION,
+                                                              List.empty(),
+                                                              title,
+                                                              runtimeTenantResolver.getTenant(),
+                                                              config.getDescription(),
+                                                              collectionService.buildRootLinks(config, linkCreator),
+                                                              ConformanceController.CONFORMANCES)).mapFailure(
             CORERESPONSE_CONSTRUCTION,
-            () -> "Failed to build core response"
-        ));
+            () -> "Failed to build core response"));
     }
 
 }

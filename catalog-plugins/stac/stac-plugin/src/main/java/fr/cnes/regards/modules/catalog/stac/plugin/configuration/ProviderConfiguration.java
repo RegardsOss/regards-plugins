@@ -30,32 +30,26 @@ import java.util.List;
  * Configuration for the STAC collection providers, associated to datasets in
  * the {@link CollectionConfiguration}.
  */
-@Data @AllArgsConstructor @NoArgsConstructor
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProviderConfiguration {
 
-    @PluginParameter(name = "providerName",
-            label = "Provider name",
-            description = "Name of the institution which provides this collection.",
-            optional = true)
+    @PluginParameter(name = "providerName", label = "Provider name",
+        description = "Name of the institution which provides this collection.", optional = true)
     String providerName;
 
-    @PluginParameter(name = "providerDescription",
-            label = "Provider description",
-            description = "Description of the institution which provides this collection.",
-            optional = true)
+    @PluginParameter(name = "providerDescription", label = "Provider description",
+        description = "Description of the institution which provides this collection.", optional = true)
     String providerDescription;
 
-    @PluginParameter(name = "providerUrl",
-            label = "Provider URL",
-            description = "URL to the institution which provides this collection.",
-            optional = true)
+    @PluginParameter(name = "providerUrl", label = "Provider URL",
+        description = "URL to the institution which provides this collection.", optional = true)
     String providerUrl;
 
-    @PluginParameter(name = "providerRoles",
-            label = "Provider roles",
-            description = "Roles of the institution which provides this collection. " +
-                    " Must be only among the following values:" +
-                    " 'LICENSOR', 'PRODUCER', 'PROCESSOR', 'HOST'.",
-            optional = true)
+    @PluginParameter(name = "providerRoles", label = "Provider roles", description =
+        "Roles of the institution which provides this collection. "
+        + " Must be only among the following values:"
+        + " 'LICENSOR', 'PRODUCER', 'PROCESSOR', 'HOST'.", optional = true)
     List<String> providerRoles;
 }

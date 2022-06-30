@@ -174,7 +174,7 @@ public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
 
             // Create dataObject
             DataObject object = new DataObject(Model.build(modelName, "For testing purposes", EntityType.DATA),
-                                                   objectFeature);
+                                               objectFeature);
             object.setCreationDate(lastUpdateDate);
             object.setLastUpdate(lastUpdateDate);
             objects.add(object);

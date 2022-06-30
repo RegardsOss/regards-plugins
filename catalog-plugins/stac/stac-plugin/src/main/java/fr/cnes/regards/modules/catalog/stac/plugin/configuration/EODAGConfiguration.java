@@ -30,16 +30,12 @@ import lombok.With;
 @NoArgsConstructor
 public class EODAGConfiguration {
 
-    @PluginParameter(name = "portalName",
-            label = "Portal name",
-            description = "Name of the portal to render in downloaded script. Default : STAC API title",
-            optional = true)
+    @PluginParameter(name = "portalName", label = "Portal name",
+        description = "Name of the portal to render in downloaded script. Default : STAC API title", optional = true)
     String portalName;
 
-    @PluginParameter(name = "provider",
-            label = "EODAG provider name",
-            description = "Name of EODAG provider variable to render in downloaded script.",
-            defaultValue = "eodag_provider",
-            optional = true)
+    @PluginParameter(name = "provider", label = "EODAG provider name",
+        description = "Name of EODAG provider variable to render in downloaded script.",
+        defaultValue = "eodag_provider", optional = true)
     String provider;
 }

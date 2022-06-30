@@ -30,10 +30,14 @@ public class DynCollSublevelVal {
 
     DynCollSublevelDef sublevelDefinition;
 
-    /** Used to compute query criterion */
+    /**
+     * Used to compute query criterion
+     */
     String sublevelValue;
 
-    /** Used to display the subcollection name */
+    /**
+     * Used to display the subcollection name
+     */
     String sublevelLabel;
 
 }

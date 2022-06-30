@@ -1,23 +1,32 @@
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
 import io.vavr.collection.List;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StringPrefixLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "PREFIX(3,9)", StacPropertyType.STRING, null, Boolean.FALSE);
+    StacProperty prop = new StacProperty(null,
+                                         null,
+                                         "prop",
+                                         "",
+                                         false,
+                                         2,
+                                         "PREFIX(3,9)",
+                                         StacPropertyType.STRING,
+                                         null,
+                                         Boolean.FALSE);
 
     StringPrefixLevelDef ldef = new StringPrefixLevelDef(prop,
-            List.of(new StringPrefixSublevelDef(0, false, true), new StringPrefixSublevelDef(1, false, true),
-                    new StringPrefixSublevelDef(2, false, true)));
+                                                         List.of(new StringPrefixSublevelDef(0, false, true),
+                                                                 new StringPrefixSublevelDef(1, false, true),
+                                                                 new StringPrefixSublevelDef(2, false, true)));
 
     List<StringPrefixSublevelDef> sublevelDefs = ldef.getSublevels();
 

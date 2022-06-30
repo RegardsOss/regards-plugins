@@ -39,10 +39,15 @@ public class FieldsCriterionBuilder implements CriterionBuilder<Fields> {
         if (fields == null) {
             return Option.none();
         }
-        Option<ICriterion> includes = fields.getIncludes().flatMap(inc -> propertyNameFor(properties, inc)).map(IFeatureCriterion::attributeExists)
-                .reduceLeftOption(ICriterion::and);
-        Option<ICriterion> excludes = fields.getExcludes().flatMap(inc -> propertyNameFor(properties, inc)).map(IFeatureCriterion::attributeExists)
-                .map(ICriterion::not).reduceLeftOption(ICriterion::and);
+        Option<ICriterion> includes = fields.getIncludes()
+                                            .flatMap(inc -> propertyNameFor(properties, inc))
+                                            .map(IFeatureCriterion::attributeExists)
+                                            .reduceLeftOption(ICriterion::and);
+        Option<ICriterion> excludes = fields.getExcludes()
+                                            .flatMap(inc -> propertyNameFor(properties, inc))
+                                            .map(IFeatureCriterion::attributeExists)
+                                            .map(ICriterion::not)
+                                            .reduceLeftOption(ICriterion::and);
         return withAll(List.of(includes, excludes).flatMap(opt -> opt), ICriterion::and);
     }
 

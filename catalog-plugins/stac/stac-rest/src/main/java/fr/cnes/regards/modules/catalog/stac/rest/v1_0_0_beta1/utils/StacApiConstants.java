@@ -86,20 +86,21 @@ public interface StacApiConstants {
 
     String STAC_DOWNLOAD_BY_COLLECTION_SCRIPT_SUFFIX = "/{collectionId}" + STAC_DOWNLOAD_SCRIPT_SUFFIX;
 
-    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX =
-            "/{collectionId}" + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
+    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX = "/{collectionId}"
+                                                              + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX
+                                                              + STAC_DOWNLOAD_AS_ZIP_SUFFIX;
 
     String STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX = "/{collectionId}" + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
 
-    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX =
-            "/{collectionId}" + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
+    String STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX = "/{collectionId}"
+                                                                    + STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX
+                                                                    + STAC_DOWNLOAD_AS_ZIPSTREAM_SUFFIX;
 
     /**
      * Parameter to pass query parameters on items on a collection search request
      */
     String STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX = "item_";
-    
-    
+
     String COLLECTIONS_TIMELINE = "/timeline";
 
 }

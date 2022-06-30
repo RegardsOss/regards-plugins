@@ -54,7 +54,11 @@ public class LongQueryCriterionBuilder extends NumberQueryCriterionBuilder<Long>
     }
 
     @Override
-    protected ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive) {
+    protected ICriterion between(AttributeModel attr,
+                                 Double lower,
+                                 boolean lowerInclusive,
+                                 Double upper,
+                                 boolean upperInclusive) {
         return IFeatureCriterion.between(attr, convert(lower), lowerInclusive, convert(upper), upperInclusive);
     }
 

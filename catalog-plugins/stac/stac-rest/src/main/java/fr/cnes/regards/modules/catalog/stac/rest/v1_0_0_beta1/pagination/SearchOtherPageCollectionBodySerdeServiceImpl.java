@@ -35,7 +35,7 @@ import static java.lang.String.format;
  */
 @Service
 public class SearchOtherPageCollectionBodySerdeServiceImpl
-        implements SearchOtherPageCollectionBodySerdeService, Base64Codec {
+    implements SearchOtherPageCollectionBodySerdeService, Base64Codec {
 
     private final Gson gson;
 
@@ -46,8 +46,8 @@ public class SearchOtherPageCollectionBodySerdeServiceImpl
 
     @Override
     public Try<CollectionSearchBody> deserialize(String repr) {
-        return trying(() -> gson.fromJson(fromBase64(repr), CollectionSearchBody.class))
-                .mapFailure(COLLECTIONSEARCHBODY_PARSING,
-                            () -> format("Failed to deserialize collection search body representation: %s", repr));
+        return trying(() -> gson.fromJson(fromBase64(repr), CollectionSearchBody.class)).mapFailure(
+            COLLECTIONSEARCHBODY_PARSING,
+            () -> format("Failed to deserialize collection search body representation: %s", repr));
     }
 }

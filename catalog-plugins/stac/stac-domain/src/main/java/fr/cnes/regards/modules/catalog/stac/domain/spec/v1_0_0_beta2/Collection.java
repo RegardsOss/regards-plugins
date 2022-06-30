@@ -23,7 +23,6 @@ import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
 import fr.cnes.regards.modules.catalog.stac.domain.common.LinkCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import io.vavr.collection.List;
@@ -44,7 +43,8 @@ import lombok.With;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/collection-spec.md">Description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/json-schema/collection.json">JSON schema</a>
  */
-@Value @With
+@Value
+@With
 public class Collection implements LinkCollection<Collection> {
 
     @SerializedName("stac_version")
@@ -54,22 +54,27 @@ public class Collection implements LinkCollection<Collection> {
     Set<String> stacExtensions;
 
     String title;
+
     String id;
 
     public enum TypeEnum {
-        @SerializedName("Collection")
-        COLLECTION
+        @SerializedName("Collection") COLLECTION
     }
+
     TypeEnum type = TypeEnum.COLLECTION;
 
     String description;
+
     List<Link> links;
 
     List<String> keywords;
+
     String license;
+
     Object providers;
 
     Extent extent;
+
     Map<String, Object> summaries;
 
     Map<String, Asset> assets;

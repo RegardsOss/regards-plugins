@@ -12,7 +12,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DatePartsLevelDefTest {
 
     // GIVEN
-    StacProperty prop = new StacProperty(null, null, "prop", "", false, 2, "MINUTE", StacPropertyType.DATETIME, null,
+    StacProperty prop = new StacProperty(null,
+                                         null,
+                                         "prop",
+                                         "",
+                                         false,
+                                         2,
+                                         "MINUTE",
+                                         StacPropertyType.DATETIME,
+                                         null,
                                          Boolean.FALSE);
 
     DatePartsLevelDef ldef = new DatePartsLevelDef(prop, MINUTE);

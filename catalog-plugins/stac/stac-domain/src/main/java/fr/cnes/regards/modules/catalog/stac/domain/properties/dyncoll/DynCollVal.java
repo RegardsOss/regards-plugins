@@ -31,16 +31,16 @@ import lombok.With;
 /**
  * Value for dynamic collections.
  */
-@Value @With
+@Value
+@With
 public class DynCollVal {
 
     DynCollDef definition;
+
     List<DynCollLevelVal> levels;
 
     public Option<DynCollLevelDef<?>> firstMissingValue() {
-        return definition.getLevels().zipWithIndex()
-            .find(lvlIdx -> lvlIdx._2 == levels.size())
-            .map(Tuple2::_1);
+        return definition.getLevels().zipWithIndex().find(lvlIdx -> lvlIdx._2 == levels.size()).map(Tuple2::_1);
     }
 
     public Option<DynCollLevelVal> firstPartiallyValued() {
@@ -48,17 +48,12 @@ public class DynCollVal {
     }
 
     public Option<DynCollVal> parentValue() {
-        return firstPartiallyValued()
-            .map(pv ->
-                pv.getSublevels().length() == 1
-                ? withLevels(getLevels().dropRight(1))
-                : withLevels(getLevels().dropRight(1).append(pv.withSublevels(pv.getSublevels().dropRight(1))))
-            )
-            .orElse(() ->
-                getLevels().length() <= 1
-                ? Option.none()
-                : Option.of(withLevels(getLevels().dropRight(1)))
-            );
+        return firstPartiallyValued().map(pv -> pv.getSublevels().length() == 1 ?
+                                         withLevels(getLevels().dropRight(1)) :
+                                         withLevels(getLevels().dropRight(1).append(pv.withSublevels(pv.getSublevels().dropRight(1)))))
+                                     .orElse(() -> getLevels().length() <= 1 ?
+                                         Option.none() :
+                                         Option.of(withLevels(getLevels().dropRight(1))));
     }
 
     public boolean isFullyValued() {
@@ -66,18 +61,16 @@ public class DynCollVal {
     }
 
     public String getLowestLevelLabel() {
-        return levels
-            .lastOption()
-            .flatMap(lval -> lval.getSublevels().lastOption())
-            .map(DynCollSublevelVal::getSublevelLabel)
-            .getOrElse("?");
+        return levels.lastOption()
+                     .flatMap(lval -> lval.getSublevels().lastOption())
+                     .map(DynCollSublevelVal::getSublevelLabel)
+                     .getOrElse("?");
     }
 
     public String toLabel() {
-        return getLevels()
-            .flatMap(l -> l.getSublevels().lastOption())
-            .map(DynCollSublevelVal::getSublevelLabel)
-            .reduceLeftOption((a,b) -> a + " & " + b)
-            .getOrElse("?");
+        return getLevels().flatMap(l -> l.getSublevels().lastOption())
+                          .map(DynCollSublevelVal::getSublevelLabel)
+                          .reduceLeftOption((a, b) -> a + " & " + b)
+                          .getOrElse("?");
     }
 }

@@ -31,14 +31,15 @@ import static fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.
 public class PropertyConverterFactoryImpl implements PropertyConverterFactory {
 
     @Override
-    public AbstractPropertyConverter<?, ?> getConverter(
-            StacPropertyType type,
-            String stacFormat,
-            String regardsFormat
-    ) {
+    public AbstractPropertyConverter<?, ?> getConverter(StacPropertyType type,
+                                                        String stacFormat,
+                                                        String regardsFormat) {
         switch (type) {
-            case PERCENTAGE: return new PercentagePropertyConverter(parsePercentageBase(stacFormat), parsePercentageBase(regardsFormat));
-            default: return new IdentityPropertyConverter<>(type);
+            case PERCENTAGE:
+                return new PercentagePropertyConverter(parsePercentageBase(stacFormat),
+                                                       parsePercentageBase(regardsFormat));
+            default:
+                return new IdentityPropertyConverter<>(type);
         }
     }
 

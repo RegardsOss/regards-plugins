@@ -29,6 +29,7 @@ import io.vavr.control.Try;
 public interface SearchOtherPageItemBodySerdeService {
 
     String serialize(ItemSearchBody itemSearchBody);
+
     Try<ItemSearchBody> deserialize(String repr);
 
 }

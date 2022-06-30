@@ -62,13 +62,15 @@ public class StacTestConfiguration {
         IDatasetClient client = Mockito.mock(IDatasetClient.class);
         Model mockedModel = new Model();
         mockedModel.setName("MockedModel");
-        Dataset mockDataset = new Dataset(mockedModel, "tenant", "DSMOCK",
+        Dataset mockDataset = new Dataset(mockedModel,
+                                          "tenant",
+                                          "DSMOCK",
                                           "Mocked dataset response from mock dataset dam client");
         mockDataset.setId(1L);
-        mockDataset.setIpId(
-                UniformResourceName.fromString("URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
+        mockDataset.setIpId(UniformResourceName.fromString(
+            "URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
         Mockito.when(client.retrieveDataset(Mockito.anyString()))
-                .thenReturn(new ResponseEntity<>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
+               .thenReturn(new ResponseEntity<>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
         return client;
     }
 
@@ -88,12 +90,11 @@ public class StacTestConfiguration {
 
         // Build accessGroupMock mock
         PagedModel.PageMetadata md = new PagedModel.PageMetadata(0, 0, 0);
-        PagedModel<EntityModel<AccessGroup>> pagedResources = PagedModel.of(new ArrayList<>(), md,
-                                                                               new ArrayList<>());
+        PagedModel<EntityModel<AccessGroup>> pagedResources = PagedModel.of(new ArrayList<>(), md, new ArrayList<>());
         ResponseEntity<PagedModel<EntityModel<AccessGroup>>> pageResponseEntity = ResponseEntity.ok(pagedResources);
-        Mockito.when(
-                accessGroupClient.retrieveAccessGroupsList(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(pageResponseEntity);
+        Mockito.when(accessGroupClient.retrieveAccessGroupsList(Mockito.anyBoolean(),
+                                                                Mockito.anyInt(),
+                                                                Mockito.anyInt())).thenReturn(pageResponseEntity);
         return accessGroupClient;
     }
 

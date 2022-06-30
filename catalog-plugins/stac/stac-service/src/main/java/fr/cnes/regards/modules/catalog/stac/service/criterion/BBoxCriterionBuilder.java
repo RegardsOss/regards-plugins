@@ -44,7 +44,8 @@ public class BBoxCriterionBuilder implements CriterionBuilder<BBox> {
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, BBox bbox) {
-        return Option.of(bbox).map(bb -> ICriterion.intersectsBbox(bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY()));
+        return Option.of(bbox)
+                     .map(bb -> ICriterion.intersectsBbox(bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY()));
     }
 
     @Override

@@ -40,46 +40,56 @@ import static org.springframework.data.domain.Sort.Order.desc;
  */
 public abstract class AbstractSearchService {
 
-    protected Pageable pageable(Integer limit, Integer stacApiPage, List<SearchBody.SortBy> sortBy,
-            List<StacProperty> stacProperties) {
+    protected Pageable pageable(Integer limit,
+                                Integer stacApiPage,
+                                List<SearchBody.SortBy> sortBy,
+                                List<StacProperty> stacProperties) {
         int pageablePage = stacApiPage - 1; //stac-browser forces us to have "first page is 1"-policy in the REST API,
-                                            // while the pageable given to ES has "first-page is 0"-policy
+        // while the pageable given to ES has "first-page is 0"-policy
         return PageRequest.of(pageablePage, Option.of(limit).getOrElse(10), sort(sortBy, stacProperties));
     }
 
     private Sort sort(List<SearchBody.SortBy> sortBy, List<StacProperty> stacProperties) {
-        return Option.of(sortBy).map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList()).map(Sort::by)
-                .getOrElse(Sort::unsorted);
+        return Option.of(sortBy)
+                     .map(sbs -> sbs.map(sb -> order(stacProperties, sb)).toJavaList())
+                     .map(Sort::by)
+                     .getOrElse(Sort::unsorted);
     }
 
     private Sort.Order order(List<StacProperty> stacProperties, SearchBody.SortBy sb) {
         return sb.getDirection() == ASC ?
-                asc(regardsPropName(sb.getField(), stacProperties)) :
-                desc(regardsPropName(sb.getField(), stacProperties));
+            asc(regardsPropName(sb.getField(), stacProperties)) :
+            desc(regardsPropName(sb.getField(), stacProperties));
     }
 
     private String regardsPropName(String field, List<StacProperty> stacProperties) {
         return stacProperties.find(sp -> sp.getStacPropertyName().equals(field))
-                .map(StacProperty::getRegardsPropertyAccessor)
-                .map(RegardsPropertyAccessor::getRegardsAttributeName) // TODO: this does not work with internal JSON properties
-                .getOrElse(field);
+                             .map(StacProperty::getRegardsPropertyAccessor)
+                             .map(RegardsPropertyAccessor::getRegardsAttributeName) // TODO: this does not work with internal JSON properties
+                             .getOrElse(field);
     }
 
     protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
-        return List.of(extractSelfPage(searchPageLinkCreator), extractNextPage(searchPageLinkCreator, page),
+        return List.of(extractSelfPage(searchPageLinkCreator),
+                       extractNextPage(searchPageLinkCreator, page),
                        extractPreviousPage(searchPageLinkCreator, page)).flatMap(l -> l);
     }
 
     private Option<Link> extractSelfPage(SearchPageLinkCreator searchPageLinkCreator) {
         return searchPageLinkCreator.createSelfPageLink()
-                .map(uri -> new Link(uri, Link.Relations.SELF, Asset.MediaType.APPLICATION_JSON, "this search page"));
+                                    .map(uri -> new Link(uri,
+                                                         Link.Relations.SELF,
+                                                         Asset.MediaType.APPLICATION_JSON,
+                                                         "this search page"));
     }
 
     private Option<Link> extractNextPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
         if (page.getTotalElements() - (long) page.getNumber() * page.getSize() - page.getNumberOfElements() > 0) {
             return searchPageLinkCreator.createNextPageLink()
-                    .map(uri -> new Link(uri, Link.Relations.NEXT, Asset.MediaType.APPLICATION_JSON,
-                                         "next search page"));
+                                        .map(uri -> new Link(uri,
+                                                             Link.Relations.NEXT,
+                                                             Asset.MediaType.APPLICATION_JSON,
+                                                             "next search page"));
         }
         return Option.none();
     }
@@ -87,8 +97,10 @@ public abstract class AbstractSearchService {
     private Option<Link> extractPreviousPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page) {
         if (page.getPageable().hasPrevious()) {
             return searchPageLinkCreator.createPrevPageLink()
-                    .map(uri -> new Link(uri, Link.Relations.PREV, Asset.MediaType.APPLICATION_JSON,
-                                         "prev search page"));
+                                        .map(uri -> new Link(uri,
+                                                             Link.Relations.PREV,
+                                                             Asset.MediaType.APPLICATION_JSON,
+                                                             "prev search page"));
         }
         return Option.none();
     }

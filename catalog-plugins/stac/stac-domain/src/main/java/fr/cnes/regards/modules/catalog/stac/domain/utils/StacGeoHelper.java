@@ -19,12 +19,13 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-
-import java.util.function.Function;
-
+import com.google.gson.Gson;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
+import io.vavr.Tuple;
+import io.vavr.Tuple3;
+import io.vavr.control.Option;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
@@ -37,14 +38,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.Gson;
+import java.util.function.Function;
 
-import fr.cnes.regards.framework.geojson.geometry.IGeometry;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
-import io.vavr.Tuple;
-import io.vavr.Tuple3;
-import io.vavr.control.Option;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Provides utilities to compute geometry-related values.
@@ -82,7 +80,10 @@ public class StacGeoHelper {
             Shape shape = reader.read(json);
 
             Rectangle boundingBox = shape.getBoundingBox();
-            BBox bbox = new BBox(boundingBox.getMinX(), boundingBox.getMinY(), boundingBox.getMaxX(), boundingBox.getMaxY());
+            BBox bbox = new BBox(boundingBox.getMinX(),
+                                 boundingBox.getMinY(),
+                                 boundingBox.getMaxX(),
+                                 boundingBox.getMaxY());
 
             Point center = shape.getCenter();
             Centroid centroid = new Centroid(center.getX(), center.getY());

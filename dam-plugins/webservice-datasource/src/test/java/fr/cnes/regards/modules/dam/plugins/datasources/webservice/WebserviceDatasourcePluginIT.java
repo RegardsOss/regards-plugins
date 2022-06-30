@@ -153,18 +153,22 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
                     if (prop.hasFragment()) {
                         // in fragment prop
                         IProperty<?> fragment = f.getProperty(prop.getFragment().getName());
-                        Assert.assertTrue("Fragment '" + prop.getFragment().getName()
-                                              + "' should be present with the right type in feature " + f.getLabel(),
-                                          fragment instanceof ObjectProperty);
+                        Assert.assertTrue("Fragment '"
+                                          + prop.getFragment().getName()
+                                          + "' should be present with the right type in feature "
+                                          + f.getLabel(), fragment instanceof ObjectProperty);
                         Optional<IProperty<?>> optionalAttr = ((ObjectProperty) fragment).getValue()
                                                                                          .stream()
                                                                                          .filter(fragAttr -> fragAttr.getName()
                                                                                                                      .equals(
                                                                                                                          prop.getName()))
                                                                                          .findFirst();
-                        Assert.assertTrue(
-                            "Fragment '" + prop.getFragment().getName() + "' should contain property " + prop.getName()
-                                + " in feature " + f.getLabel(), optionalAttr.isPresent());
+                        Assert.assertTrue("Fragment '"
+                                          + prop.getFragment().getName()
+                                          + "' should contain property "
+                                          + prop.getName()
+                                          + " in feature "
+                                          + f.getLabel(), optionalAttr.isPresent());
                         attr = optionalAttr.get();
                     } else {
                         // root prop
@@ -180,9 +184,11 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
                     Assert.assertEquals("There should be 1 data file for " + type + " in " + f.getProviderId(),
                                         1,
                                         dataFiles.size());
-                    Assert.assertNotNull(
-                        "Data file path for " + type + " in " + f.getProviderId() + " should not be null",
-                        dataFiles.iterator().next());
+                    Assert.assertNotNull("Data file path for "
+                                         + type
+                                         + " in "
+                                         + f.getProviderId()
+                                         + " should not be null", dataFiles.iterator().next());
                 }
             }
 

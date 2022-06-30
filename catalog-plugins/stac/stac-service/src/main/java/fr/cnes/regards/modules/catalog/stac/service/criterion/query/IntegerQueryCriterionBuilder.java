@@ -18,15 +18,11 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import io.vavr.collection.List;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.function.Function;
 
 public class IntegerQueryCriterionBuilder extends NumberQueryCriterionBuilder<Integer> {
@@ -58,7 +54,11 @@ public class IntegerQueryCriterionBuilder extends NumberQueryCriterionBuilder<In
     }
 
     @Override
-    protected ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive) {
+    protected ICriterion between(AttributeModel attr,
+                                 Double lower,
+                                 boolean lowerInclusive,
+                                 Double upper,
+                                 boolean upperInclusive) {
         return IFeatureCriterion.between(attr, convert(lower), lowerInclusive, convert(upper), upperInclusive);
     }
 

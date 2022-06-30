@@ -7,8 +7,8 @@ import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
 import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.dam.plugins.datasources.webservice.configuration.ConversionConfiguration;
@@ -226,7 +226,7 @@ public class FeaturesConverter {
                 convertedFeatures.add(convertedElement);
             }
         }
-        this.convertedResults = Pair.of(convertedFeatures,  totalResults);
+        this.convertedResults = Pair.of(convertedFeatures, totalResults);
         LOGGER.info("Finished converting page {} (converted {} / {} elements)",
                     cursor.getPosition(),
                     convertedFeatures.size(),

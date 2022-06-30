@@ -34,52 +34,44 @@ import static fr.cnes.regards.modules.catalog.stac.plugin.configuration.StacProp
  * Definition of the configuration for a STAC property, defining which model attribute
  * it corresponds to and how to convert from the one to the other.
  */
-@Data @With @AllArgsConstructor @NoArgsConstructor
+@Data
+@With
+@AllArgsConstructor
+@NoArgsConstructor
 public class StacDatetimePropertyConfiguration {
 
-    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path",
-            description = "This parameter defines the path to the model attribute and its corresponding "
-                    + "source property in a product (default value is mapped to an internal property)",
-            optional = true, defaultValue = "creationDate")
+    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path", description =
+        "This parameter defines the path to the model attribute and its corresponding "
+        + "source property in a product (default value is mapped to an internal property)", optional = true,
+        defaultValue = "creationDate")
     private String sourcePropertyPath;
 
     @PluginParameter(name = "sourceJsonPropertyPath", label = "JSON property path (for a JSON type attribute only)",
-            description = "If the source model attribute is of type JSON, "
-                    + " this parameter defines the path in the JSON structure where to read the value.",
-            optional = true)
+        description = "If the source model attribute is of type JSON, "
+                      + " this parameter defines the path in the JSON structure where to read the value.",
+        optional = true)
     private String sourceJsonPropertyPath;
 
-    @PluginParameter(
-            name = STAC_DYNAMIC_COLLECTION_LEVEL,
-            label = "STAC dynamic collection level",
-            markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
-            defaultValue = "-1",
-            optional = true
-    )
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_LEVEL, label = "STAC dynamic collection level",
+        markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD, defaultValue = "-1", optional = true)
     private Integer stacDynamicCollectionLevel;
 
-    @PluginParameter(
-            name = STAC_DYNAMIC_COLLECTION_FORMAT,
-            label = "STAC dynamic collection format",
-            markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
-            optional = true
-    )
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_FORMAT, label = "STAC dynamic collection format",
+        markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD, optional = true)
     private String stacDynamicCollectionFormat;
 
     public StacPropertyConfiguration toStacPropertyConfiguration() {
-        return new StacPropertyConfiguration(
-                Option.of(sourcePropertyPath).getOrElse("creationDate"),
-                sourceJsonPropertyPath,
-                null,
-                null,
-                StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
-                "",
-                StacPropertyType.DATETIME.name(),
-                null,
-                false,
-                stacDynamicCollectionLevel,
-                stacDynamicCollectionFormat
-        );
+        return new StacPropertyConfiguration(Option.of(sourcePropertyPath).getOrElse("creationDate"),
+                                             sourceJsonPropertyPath,
+                                             null,
+                                             null,
+                                             StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
+                                             "",
+                                             StacPropertyType.DATETIME.name(),
+                                             null,
+                                             false,
+                                             stacDynamicCollectionLevel,
+                                             stacDynamicCollectionFormat);
     }
 
 }

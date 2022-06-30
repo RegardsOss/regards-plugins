@@ -34,24 +34,34 @@ import java.util.function.Function;
 /**
  * Represents a path to a value
  */
-@Data @With @AllArgsConstructor
+@Data
+@With
+@AllArgsConstructor
 public class RegardsPropertyAccessor {
 
-    /** Name of the REGARDS feature property */
+    /**
+     * Name of the REGARDS feature property
+     */
     String regardsAttributeName;
 
-    /** The corresponding attribute model */
+    /**
+     * The corresponding attribute model
+     */
     AttributeModel attributeModel;
 
-    /** How to get the REGARDS property value from an entity */
-    Function<AbstractEntity<? extends EntityFeature> , Try<?>> extractValueFn;
+    /**
+     * How to get the REGARDS property value from an entity
+     */
+    Function<AbstractEntity<? extends EntityFeature>, Try<?>> extractValueFn;
 
-    /** Explicitly giving the property type */
+    /**
+     * Explicitly giving the property type
+     */
     Class<?> valueType;
 
     @SuppressWarnings("unchecked")
     public <T> Function<AbstractEntity<? extends EntityFeature>, Try<T>> getGenericExtractValueFn() {
-        return t -> ((Try<T>)extractValueFn.apply(t));
+        return t -> ((Try<T>) extractValueFn.apply(t));
     }
 
     /**
@@ -60,7 +70,7 @@ public class RegardsPropertyAccessor {
      * for build StacProperties in very specific contexts. It is mainly meant
      * to be used in tests and where a StacProperty instance is required but
      * has not been configured by the user.
-     *
+     * <p>
      * Outside of tests, unless you know exactly why you should use this,
      * you should prefer using an instance of RegardsPropertyAccessorFactory.
      */
@@ -75,15 +85,17 @@ public class RegardsPropertyAccessor {
      * for build StacProperties in very specific contexts. It is mainly meant
      * to be used in tests and where a StacProperty instance is required but
      * has not been configured by the user.
-     *
+     * <p>
      * Outside of tests, unless you know exactly why you should use this,
      * you should prefer using an instance of RegardsPropertyAccessorFactory.
      */
     @VisibleForTesting
-    public static RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value, boolean internal) {
-        AttributeModel attr = new AttributeModelBuilder(name, sPropType.getPropertyType(), "").setInternal(internal).build();
-        return new RegardsPropertyAccessor(
-                name, attr, d -> Try.success(value), value.getClass()
-        );
+    public static RegardsPropertyAccessor accessor(String name,
+                                                   StacPropertyType sPropType,
+                                                   Object value,
+                                                   boolean internal) {
+        AttributeModel attr = new AttributeModelBuilder(name, sPropType.getPropertyType(), "").setInternal(internal)
+                                                                                              .build();
+        return new RegardsPropertyAccessor(name, attr, d -> Try.success(value), value.getClass());
     }
 }

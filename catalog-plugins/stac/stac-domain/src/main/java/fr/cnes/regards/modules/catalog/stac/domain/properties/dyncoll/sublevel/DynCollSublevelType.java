@@ -28,6 +28,7 @@ import io.vavr.collection.List;
 public interface DynCollSublevelType {
 
     String name();
+
     boolean applicableTo(StacPropertyType propType);
 
     enum DatetimeBased implements DynCollSublevelType {
@@ -41,8 +42,7 @@ public interface DynCollSublevelType {
         }
 
         public List<DatetimeBased> allPrevious() {
-            return List.of(values()).takeUntil(t -> t == this)
-                .append(this);
+            return List.of(values()).takeUntil(t -> t == this).append(this);
         }
 
         public static void main(String[] args) {
@@ -56,8 +56,13 @@ public interface DynCollSublevelType {
         @Override
         public boolean applicableTo(StacPropertyType propType) {
             switch (propType) {
-                case NUMBER: case LENGTH: case ANGLE: case PERCENTAGE: return true;
-                default: return false;
+                case NUMBER:
+                case LENGTH:
+                case ANGLE:
+                case PERCENTAGE:
+                    return true;
+                default:
+                    return false;
             }
         }
     }

@@ -56,7 +56,6 @@ import java.util.function.Function;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_ATTRIBUTE_VALUE_EXTRACTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.ENTITY_JSON_EXTRACTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.trace;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
@@ -89,16 +88,20 @@ public class RegardsPropertyAccessorFactory {
     }
 
     public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
-            StacPropertyType sPropType) {
+                                                               StacPropertyType sPropType) {
         String attrName = sPropConfig.getSourcePropertyPath();
         AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
         Option<String> jsonPath = Option.of(sPropConfig.getSourceJsonPropertyPath()).filter(StringUtils::isNotBlank);
 
         Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(
-                sPropType, attr, jsonPath);
+            sPropType,
+            attr,
+            jsonPath);
 
-        RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(), attr,
-                                                                     classFunctionTuple2._2, classFunctionTuple2._1);
+        RegardsPropertyAccessor result = new RegardsPropertyAccessor(sPropConfig.getSourcePropertyPath(),
+                                                                     attr,
+                                                                     classFunctionTuple2._2,
+                                                                     classFunctionTuple2._1);
 
         trace(LOGGER, "Stac prop config: {} ; regards prop accessor : {}", sPropConfig, result);
 
@@ -112,13 +115,17 @@ public class RegardsPropertyAccessorFactory {
      * @return List of attribute models.
      */
     public List<AttributeModel> loadVirtualAttributesFrom(StacProperty stacProperty) {
-        return Try.of(() -> List.ofAll(finder.findAll()).filter(a -> a.isVirtual() && a.getJsonPath()
-                .startsWith(stacProperty.getRegardsPropertyAccessor().getAttributeModel().getJsonPath())))
-                .getOrElse(List.empty());
+        return Try.of(() -> List.ofAll(finder.findAll())
+                                .filter(a -> a.isVirtual() && a.getJsonPath()
+                                                               .startsWith(stacProperty.getRegardsPropertyAccessor()
+                                                                                       .getAttributeModel()
+                                                                                       .getJsonPath())))
+                  .getOrElse(List.empty());
     }
 
-    private AttributeModel loadAttribute(String attrName, StacSourcePropertyConfiguration sPropConfig,
-            StacPropertyType sPropType) {
+    private AttributeModel loadAttribute(String attrName,
+                                         StacSourcePropertyConfiguration sPropConfig,
+                                         StacPropertyType sPropType) {
         AttributeModel attribute = Try.of(() -> finder.findByName(attrName)).getOrElseGet(t -> {
             AttributeModel result = new AttributeModel();
             result.setName(attrName);
@@ -131,7 +138,9 @@ public class RegardsPropertyAccessorFactory {
     }
 
     private Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> makeValueTypeAndExtractionFn(
-            StacPropertyType sPropType, AttributeModel attr, Option<String> jsonPath) {
+        StacPropertyType sPropType,
+        AttributeModel attr,
+        Option<String> jsonPath) {
         Class<?> valueType = sPropType.getValueType();
 
         Function<AbstractEntity<? extends EntityFeature>, Try<?>> extractFn;
@@ -145,12 +154,13 @@ public class RegardsPropertyAccessorFactory {
     }
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
-            String attrName, boolean dynamic) {
-        return entity -> trying(() -> extractValue(sPropType.getValueType(), sPropType,
-                                                   getProperty(attrName, dynamic, entity.getFeature())))
-                .mapFailure(ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
-                            () -> format("Failed to extract value for %s in data object %s", attrName,
-                                         entity.getIpId()));
+                                                                                    String attrName,
+                                                                                    boolean dynamic) {
+        return entity -> trying(() -> extractValue(sPropType.getValueType(),
+                                                   sPropType,
+                                                   getProperty(attrName, dynamic, entity.getFeature()))).mapFailure(
+            ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
+            () -> format("Failed to extract value for %s in data object %s", attrName, entity.getIpId()));
     }
 
     /**
@@ -161,14 +171,20 @@ public class RegardsPropertyAccessorFactory {
     }
 
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeJsonExtractFn(StacPropertyType sPropType,
-            String attrName, String jsonPath) {
-        return entity -> trying(() -> JsonObject.class.cast(entity.getFeature().getProperty(attrName).getValue()))
-                .map(jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
-                .map(value -> extractJsonValue(sPropType, (JsonPrimitive) value)).mapFailure(ENTITY_JSON_EXTRACTION,
-                                                                                             () -> format(
-                                                                                                     "Failed to extract JSON value at %s in data object %s",
-                                                                                                     jsonPath,
-                                                                                                     entity.getIpId()));
+                                                                                        String attrName,
+                                                                                        String jsonPath) {
+        return entity -> trying(() -> JsonObject.class.cast(entity.getFeature().getProperty(attrName).getValue())).map(
+                                                                                                                      jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
+                                                                                                                  .map(
+                                                                                                                      value -> extractJsonValue(
+                                                                                                                          sPropType,
+                                                                                                                          (JsonPrimitive) value))
+                                                                                                                  .mapFailure(
+                                                                                                                      ENTITY_JSON_EXTRACTION,
+                                                                                                                      () -> format(
+                                                                                                                          "Failed to extract JSON value at %s in data object %s",
+                                                                                                                          jsonPath,
+                                                                                                                          entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")

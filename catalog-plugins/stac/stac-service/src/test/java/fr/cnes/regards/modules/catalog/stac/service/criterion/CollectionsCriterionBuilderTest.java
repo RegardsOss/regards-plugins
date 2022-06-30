@@ -45,9 +45,9 @@ public class CollectionsCriterionBuilderTest {
         assertThat(criterion).isNotEmpty();
 
         assertThat(criterion.get()).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)criterion.get()).getName()).isEqualTo(TAGS_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)criterion.get()).getValue()).isEqualTo("coll1");
-        assertThat(((StringMatchCriterion)criterion.get()).getType()).isEqualTo(CONTAINS);
+        assertThat(((StringMatchCriterion) criterion.get()).getName()).isEqualTo(TAGS_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) criterion.get()).getValue()).isEqualTo("coll1");
+        assertThat(((StringMatchCriterion) criterion.get()).getType()).isEqualTo(CONTAINS);
     }
 
     @Test
@@ -66,14 +66,14 @@ public class CollectionsCriterionBuilderTest {
         assertThat(andCrits).hasSize(2);
 
         assertThat(andCrits.get(0)).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getName()).isEqualTo(TAGS_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getValue()).isEqualTo("coll1");
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getType()).isEqualTo(CONTAINS);
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getName()).isEqualTo(TAGS_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getValue()).isEqualTo("coll1");
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getType()).isEqualTo(CONTAINS);
 
         assertThat(andCrits.get(1)).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getName()).isEqualTo(TAGS_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getValue()).isEqualTo("coll2");
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getType()).isEqualTo(CONTAINS);
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getName()).isEqualTo(TAGS_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getValue()).isEqualTo("coll2");
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getType()).isEqualTo(CONTAINS);
 
     }
 

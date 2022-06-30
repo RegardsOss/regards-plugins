@@ -44,9 +44,9 @@ public class ProductNameFromFilePatternPlugin implements IProductPlugin {
         description = "File name pattern used to remove selected groups to calculate product name.")
     private String pattern;
 
-    @PluginParameter(name = FIELD_GROUPS, label = "Patter groups to remove",
-        description = "Number of groups to remove from file pattern to file name to generate product name. Use ','"
-            + " as separation character between group numbers. Exemple : 1,2,7")
+    @PluginParameter(name = FIELD_GROUPS, label = "Patter groups to remove", description =
+        "Number of groups to remove from file pattern to file name to generate product name. Use ','"
+        + " as separation character between group numbers. Exemple : 1,2,7")
     private String groups;
 
     @Override

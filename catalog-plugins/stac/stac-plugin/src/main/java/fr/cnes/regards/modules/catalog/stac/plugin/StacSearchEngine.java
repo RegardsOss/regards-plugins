@@ -44,8 +44,8 @@ import java.net.URI;
 import java.util.List;
 
 @Plugin(id = StacSearchEngine.PLUGIN_ID, version = "1.0.0", description = "Allow usage of the STAC API",
-        author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-        url = "https://github.com/RegardsOss", markdown = "StacSearchEngine.md")
+    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
+    url = "https://github.com/RegardsOss", markdown = "StacSearchEngine.md")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -60,25 +60,24 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private LinkCreatorService linkCreator;
 
     @PluginParameter(name = "stac-api-title", label = "STAC title", description = "Title for the root STAC catalog.",
-            optional = true)
+        optional = true)
     private String stacTitle;
 
     @PluginParameter(name = "stac-api-description", label = "STAC description",
-            description = "Description for the root STAC catalog.", optional = true)
+        description = "Description for the root STAC catalog.", optional = true)
     private String stacDescription;
 
     @PluginParameter(name = "stac-api-root-static-collection-title", label = "STAC root static collection title",
-            description = "Displayed label for the static collections root.", defaultValue = "static", optional = true)
+        description = "Displayed label for the static collections root.", defaultValue = "static", optional = true)
     private String rootStaticCollectionTitle;
 
     @PluginParameter(name = "stac-api-root-dynamic-collection-title", label = "STAC root dynamic collection title",
-            description = "Displayed label for the dynamic collections root.", defaultValue = "dynamic",
-            optional = true)
+        description = "Displayed label for the dynamic collections root.", defaultValue = "dynamic", optional = true)
     private String rootDynamicCollectionTitle;
 
-    @PluginParameter(name = "stac-api-datetime-property", label = "STAC datetime property",
-            description = "Mandatory configuration for the datetime property, corresponding to the"
-                    + " 'temporal' aspect of the STAC spec.")
+    @PluginParameter(name = "stac-api-datetime-property", label = "STAC datetime property", description =
+        "Mandatory configuration for the datetime property, corresponding to the"
+        + " 'temporal' aspect of the STAC spec.")
     private StacDatetimePropertyConfiguration stacDatetimeProperty;
 
     @PluginParameter(name = "stac-api-links-property", label = "STAC links property", optional = true)
@@ -88,15 +87,15 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private StacSourcePropertyConfiguration stacAssetsProperty;
 
     @PluginParameter(name = "stac-properties", label = "STAC properties",
-            description = "List of STAC properties to be mapped to product properties.", optional = true)
+        description = "List of STAC properties to be mapped to product properties.", optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
     @PluginParameter(name = "stac-collection-dataset-properties", label = "STAC dataset properties",
-            description = "Configure STAC collection properties for selected datasets.")
+        description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
     @PluginParameter(name = "eodag-properties", label = "EODGA properties for STAC script generation",
-            description = "EODAG configuration to be injected in python script template", optional = true)
+        description = "EODAG configuration to be injected in python script template", optional = true)
     private EODAGConfiguration eodagConfiguration;
 
     // TODO WIP
@@ -112,8 +111,9 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     }
 
     @Override
-    public ResponseEntity<Object> search(SearchContext context, ISearchEngine<?, ?, ?, ?> requestParser,
-            IEntityLinkBuilder linkBuilder) throws ModuleException {
+    public ResponseEntity<Object> search(SearchContext context,
+                                         ISearchEngine<?, ?, ?, ?> requestParser,
+                                         IEntityLinkBuilder linkBuilder) throws ModuleException {
         return null;
     }
 
@@ -124,7 +124,7 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
 
     @Override
     public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder)
-            throws ModuleException {
+        throws ModuleException {
         return null;
     }
 
@@ -152,15 +152,21 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
         JWTAuthentication auth = null; // The link creator will not create token URI params if the given auth is null
 
         OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(auth);
-        SearchPageLinkCreator searchPageLinkCreator = linkCreator
-                .makeSearchPageLinkCreator(auth, 0, ItemSearchBody.builder().limit(100).build());
+        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(auth,
+                                                                                            0,
+                                                                                            ItemSearchBody.builder()
+                                                                                                          .limit(100)
+                                                                                                          .build());
         Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
         return io.vavr.collection.List.of(collectionsLink.map(href -> Link.of(href, "search-collections")),
                                           collectionsLink.map(href -> Link.of(href, "search-datasets")),
-                                          searchPageLinkCreator.searchAll().map(URI::toString)
-                                                  .map(href -> Link.of(href, "search-objects")),
-                                          ogcFeatLinkCreator.createRootLink().map(l -> l.getHref().toString())
-                                                  .map(href -> Link.of(href, "search"))).flatMap(vl -> vl)
-                .toJavaList();
+                                          searchPageLinkCreator.searchAll()
+                                                               .map(URI::toString)
+                                                               .map(href -> Link.of(href, "search-objects")),
+                                          ogcFeatLinkCreator.createRootLink()
+                                                            .map(l -> l.getHref().toString())
+                                                            .map(href -> Link.of(href, "search")))
+                                      .flatMap(vl -> vl)
+                                      .toJavaList();
     }
 }

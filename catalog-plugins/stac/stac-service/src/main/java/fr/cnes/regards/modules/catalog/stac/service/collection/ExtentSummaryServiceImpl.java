@@ -19,28 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.NUMBER;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.extractTemporalBound;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-
-import java.time.OffsetDateTime;
-import java.util.function.Supplier;
-
-import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
-import org.elasticsearch.search.aggregations.metrics.ParsedStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
@@ -52,6 +30,27 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
+import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
+import org.elasticsearch.search.aggregations.metrics.ParsedStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.time.OffsetDateTime;
+import java.util.function.Supplier;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.NUMBER;
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.extractTemporalBound;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Base implementation for {@link ExtentSummaryService}.
@@ -67,14 +66,38 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     public static final String NWPOINTLAT_AGGNAME = NWPOINT_AGGNAME + ".lat";
 
-    private static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""), null,
-            NWPOINT_AGGNAME, "", false, -1, "", STRING, null, Boolean.FALSE);
+    private static final StacProperty NWPOINT_PROP = new StacProperty(accessor(NWPOINT_AGGNAME, STRING, ""),
+                                                                      null,
+                                                                      NWPOINT_AGGNAME,
+                                                                      "",
+                                                                      false,
+                                                                      -1,
+                                                                      "",
+                                                                      STRING,
+                                                                      null,
+                                                                      Boolean.FALSE);
 
-    private static final StacProperty NWPOINTLON_PROP = new StacProperty(accessor(NWPOINTLON_AGGNAME, NUMBER, -180), null,
-            NWPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
+    private static final StacProperty NWPOINTLON_PROP = new StacProperty(accessor(NWPOINTLON_AGGNAME, NUMBER, -180),
+                                                                         null,
+                                                                         NWPOINTLON_AGGNAME,
+                                                                         "",
+                                                                         false,
+                                                                         -1,
+                                                                         "",
+                                                                         NUMBER,
+                                                                         null,
+                                                                         Boolean.FALSE);
 
-    private static final StacProperty NWPOINTLAT_PROP = new StacProperty(accessor(NWPOINTLAT_AGGNAME, NUMBER, 90), null,
-            NWPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
+    private static final StacProperty NWPOINTLAT_PROP = new StacProperty(accessor(NWPOINTLAT_AGGNAME, NUMBER, 90),
+                                                                         null,
+                                                                         NWPOINTLAT_AGGNAME,
+                                                                         "",
+                                                                         false,
+                                                                         -1,
+                                                                         "",
+                                                                         NUMBER,
+                                                                         null,
+                                                                         Boolean.FALSE);
 
     public static final String SEPOINT_AGGNAME = "sePoint";
 
@@ -82,51 +105,112 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     public static final String SEPOINTLAT_AGGNAME = SEPOINT_AGGNAME + ".lat";
 
-    private static final StacProperty SEPOINT_PROP = new StacProperty(accessor(SEPOINT_AGGNAME, STRING, ""), null,
-            SEPOINT_AGGNAME, "", false, -1, "", STRING, null, Boolean.FALSE);
+    private static final StacProperty SEPOINT_PROP = new StacProperty(accessor(SEPOINT_AGGNAME, STRING, ""),
+                                                                      null,
+                                                                      SEPOINT_AGGNAME,
+                                                                      "",
+                                                                      false,
+                                                                      -1,
+                                                                      "",
+                                                                      STRING,
+                                                                      null,
+                                                                      Boolean.FALSE);
 
-    private static final StacProperty SEPOINTLON_PROP = new StacProperty(accessor(SEPOINTLON_AGGNAME, NUMBER, 180), null,
-            SEPOINTLON_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
+    private static final StacProperty SEPOINTLON_PROP = new StacProperty(accessor(SEPOINTLON_AGGNAME, NUMBER, 180),
+                                                                         null,
+                                                                         SEPOINTLON_AGGNAME,
+                                                                         "",
+                                                                         false,
+                                                                         -1,
+                                                                         "",
+                                                                         NUMBER,
+                                                                         null,
+                                                                         Boolean.FALSE);
 
-    private static final StacProperty SEPOINTLAT_PROP = new StacProperty(accessor(SEPOINTLAT_AGGNAME, NUMBER, -90), null,
-            SEPOINTLAT_AGGNAME, "", false, -1, "", NUMBER, null, Boolean.FALSE);
+    private static final StacProperty SEPOINTLAT_PROP = new StacProperty(accessor(SEPOINTLAT_AGGNAME, NUMBER, -90),
+                                                                         null,
+                                                                         SEPOINTLAT_AGGNAME,
+                                                                         "",
+                                                                         false,
+                                                                         -1,
+                                                                         "",
+                                                                         NUMBER,
+                                                                         null,
+                                                                         Boolean.FALSE);
 
     @Override
     public List<QueryableAttribute> extentSummaryQueryableAttributes(StacProperty datetimeProp,
-            List<StacProperty> otherProps) {
+                                                                     List<StacProperty> otherProps) {
         String datetimePropFullJsonPath = toAggregationName(datetimeProp);
 
-        List<QueryableAttribute> summaryQueryableAttributes = summaryStacProps(otherProps)
-                .map(sp -> new QueryableAttribute(toAggregationName(sp), null, false, 0, false, false));
+        List<QueryableAttribute> summaryQueryableAttributes = summaryStacProps(otherProps).map(sp -> new QueryableAttribute(
+            toAggregationName(sp),
+            null,
+            false,
+            0,
+            false,
+            false));
 
-        List<QueryableAttribute> extentQueryableAttributes = List
-                .of(new QueryableAttribute(datetimePropFullJsonPath, null, false, 0, false),
-                    new QueryableAttribute(NWPOINT_AGGNAME, null, false, 0, false, true),
-                    new QueryableAttribute(NWPOINTLAT_AGGNAME, null, false, 0, false, false),
-                    new QueryableAttribute(NWPOINTLON_AGGNAME, null, false, 0, false, false),
-                    new QueryableAttribute(SEPOINT_AGGNAME, null, false, 0, false, true),
-                    new QueryableAttribute(SEPOINTLAT_AGGNAME, null, false, 0, false, false),
-                    new QueryableAttribute(SEPOINTLON_AGGNAME, null, false, 0, false, false));
+        List<QueryableAttribute> extentQueryableAttributes = List.of(new QueryableAttribute(datetimePropFullJsonPath,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false),
+                                                                     new QueryableAttribute(NWPOINT_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            true),
+                                                                     new QueryableAttribute(NWPOINTLAT_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            false),
+                                                                     new QueryableAttribute(NWPOINTLON_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            false),
+                                                                     new QueryableAttribute(SEPOINT_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            true),
+                                                                     new QueryableAttribute(SEPOINTLAT_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            false),
+                                                                     new QueryableAttribute(SEPOINTLON_AGGNAME,
+                                                                                            null,
+                                                                                            false,
+                                                                                            0,
+                                                                                            false,
+                                                                                            false));
 
         return extentQueryableAttributes.appendAll(summaryQueryableAttributes);
     }
 
     @Override
     public List<AggregationBuilder> extentSummaryAggregationBuilders(StacProperty datetimeProp,
-            List<StacProperty> otherProps) {
+                                                                     List<StacProperty> otherProps) {
         String datetimePath = toAggregationName(datetimeProp);
-        return List
-                .<AggregationBuilder> of(AggregationBuilders.stats(datetimePath).field(datetimePath),
-                                         AggregationBuilders.geoBounds(NWPOINT_AGGNAME).field(NWPOINT_AGGNAME),
-                                         AggregationBuilders.stats(NWPOINTLON_AGGNAME).field(NWPOINTLON_AGGNAME),
-                                         AggregationBuilders.stats(NWPOINTLAT_AGGNAME).field(NWPOINTLAT_AGGNAME),
-                                         AggregationBuilders.geoBounds(SEPOINT_AGGNAME).field(SEPOINT_AGGNAME),
-                                         AggregationBuilders.stats(SEPOINTLON_AGGNAME).field(SEPOINTLON_AGGNAME),
-                                         AggregationBuilders.stats(SEPOINTLAT_AGGNAME).field(SEPOINTLAT_AGGNAME))
-                .appendAll(summaryStacProps(otherProps).map(prop -> {
-                    String name = toAggregationName(prop);
-                    return AggregationBuilders.stats(name).field(name);
-                }));
+        return List.<AggregationBuilder>of(AggregationBuilders.stats(datetimePath).field(datetimePath),
+                                           AggregationBuilders.geoBounds(NWPOINT_AGGNAME).field(NWPOINT_AGGNAME),
+                                           AggregationBuilders.stats(NWPOINTLON_AGGNAME).field(NWPOINTLON_AGGNAME),
+                                           AggregationBuilders.stats(NWPOINTLAT_AGGNAME).field(NWPOINTLAT_AGGNAME),
+                                           AggregationBuilders.geoBounds(SEPOINT_AGGNAME).field(SEPOINT_AGGNAME),
+                                           AggregationBuilders.stats(SEPOINTLON_AGGNAME).field(SEPOINTLON_AGGNAME),
+                                           AggregationBuilders.stats(SEPOINTLAT_AGGNAME).field(SEPOINTLAT_AGGNAME))
+                   .appendAll(summaryStacProps(otherProps).map(prop -> {
+                       String name = toAggregationName(prop);
+                       return AggregationBuilders.stats(name).field(name);
+                   }));
     }
 
     @Override
@@ -155,14 +239,12 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     @Override
     public Extent extractExtent(Map<StacProperty, Aggregation> aggregationMap) {
-        GeoPoint nwBound = extractBound(aggregationMap.get(NWPOINT_PROP), true)
-                .getOrElse(() -> extractBoundFromNumericAggs(aggregationMap.get(NWPOINTLON_PROP),
-                                                             aggregationMap.get(NWPOINTLAT_PROP), this::getNWPoint,
-                                                             () -> new GeoPoint(90d, -180d)));
-        GeoPoint seBound = extractBound(aggregationMap.get(SEPOINT_PROP), false)
-                .getOrElse(() -> extractBoundFromNumericAggs(aggregationMap.get(SEPOINTLON_PROP),
-                                                             aggregationMap.get(SEPOINTLAT_PROP), this::getSEPoint,
-                                                             () -> new GeoPoint(-90d, 180d)));
+        GeoPoint nwBound = extractBound(aggregationMap.get(NWPOINT_PROP),
+                                        true).getOrElse(() -> extractBoundFromNumericAggs(aggregationMap.get(
+            NWPOINTLON_PROP), aggregationMap.get(NWPOINTLAT_PROP), this::getNWPoint, () -> new GeoPoint(90d, -180d)));
+        GeoPoint seBound = extractBound(aggregationMap.get(SEPOINT_PROP),
+                                        false).getOrElse(() -> extractBoundFromNumericAggs(aggregationMap.get(
+            SEPOINTLON_PROP), aggregationMap.get(SEPOINTLAT_PROP), this::getSEPoint, () -> new GeoPoint(-90d, 180d)));
         Extent.Spatial spatial = getSpatial(nwBound, seBound);
 
         Extent.Temporal temporal = extractTemporal(aggregationMap);
@@ -170,12 +252,16 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
         return new Extent(spatial, temporal);
     }
 
-    private GeoPoint extractBoundFromNumericAggs(Option<Aggregation> seLon, Option<Aggregation> seLat,
-            Function2<ParsedStats, ParsedStats, GeoPoint> extractPointFn, Supplier<GeoPoint> defaultValue) {
-        return trying(() -> seLon
-                .flatMap(lon -> seLat.map(lat -> extractPointFn.apply((ParsedStats) lon, (ParsedStats) lat))))
-                        .onFailure(t -> warn(LOGGER, "Failed to parse NW bound from {} {}", seLon, seLat)).toOption()
-                        .flatMap(t -> t).getOrElse(defaultValue);
+    private GeoPoint extractBoundFromNumericAggs(Option<Aggregation> seLon,
+                                                 Option<Aggregation> seLat,
+                                                 Function2<ParsedStats, ParsedStats, GeoPoint> extractPointFn,
+                                                 Supplier<GeoPoint> defaultValue) {
+        return trying(() -> seLon.flatMap(lon -> seLat.map(lat -> extractPointFn.apply((ParsedStats) lon,
+                                                                                       (ParsedStats) lat)))).onFailure(t -> warn(
+            LOGGER,
+            "Failed to parse NW bound from {} {}",
+            seLon,
+            seLat)).toOption().flatMap(t -> t).getOrElse(defaultValue);
     }
 
     private GeoPoint getNWPoint(ParsedStats lon, ParsedStats lat) {
@@ -192,10 +278,15 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     public Extent.Temporal extractTemporal(Map<StacProperty, Aggregation> aggregationMap) {
         Option<StacProperty> datetimeProp = aggregationMap.keySet()
-                .filter(p -> p.getStacPropertyName().equals(DATETIME_PROPERTY_NAME)).headOption();
+                                                          .filter(p -> p.getStacPropertyName()
+                                                                        .equals(DATETIME_PROPERTY_NAME))
+                                                          .headOption();
 
         Option<ParsedStats> parsedStats = datetimeProp.flatMap(aggregationMap::get)
-                .flatMap(agg -> trying(() -> (ParsedStats) agg).onFailure(t -> error(LOGGER, t.getMessage(), t)).toOption());
+                                                      .flatMap(agg -> trying(() -> (ParsedStats) agg).onFailure(t -> error(
+                                                          LOGGER,
+                                                          t.getMessage(),
+                                                          t)).toOption());
 
         OffsetDateTime dateTimeFrom = extractTemporalBound(parsedStats.map(ParsedStats::getMin)).getOrNull();
         OffsetDateTime dateTimeTo = extractTemporalBound(parsedStats.map(ParsedStats::getMax)).getOrNull();
@@ -205,7 +296,8 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
 
     private Option<GeoPoint> extractBound(Option<Aggregation> optAgg, boolean topLeft) {
         return optAgg.flatMap(agg -> trying(() -> (ParsedGeoBounds) agg).onFailure(t -> warn(LOGGER, t.getMessage(), t))
-                .toOption()).flatMap(pgb -> topLeft ? Option.of(pgb.topLeft()) : Option.of(pgb.bottomRight()));
+                                                                        .toOption())
+                     .flatMap(pgb -> topLeft ? Option.of(pgb.topLeft()) : Option.of(pgb.bottomRight()));
     }
 
     public Extent.Spatial getSpatial(GeoPoint nwBound, GeoPoint seBound) {
@@ -216,8 +308,9 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     @Override
     public Map<String, Object> extractSummary(Map<StacProperty, Aggregation> aggregationMap) {
         return aggregationMap.filterKeys(this::isNotExtentAggregation)
-                .flatMap((prop, agg) -> trying(() -> Tuple.of(prop.getStacPropertyName(), toMinMaxObject((ParsedStats) agg)))
-                        .onFailure(t -> error(LOGGER, t.getMessage(), t)));
+                             .flatMap((prop, agg) -> trying(() -> Tuple.of(prop.getStacPropertyName(),
+                                                                           toMinMaxObject((ParsedStats) agg))).onFailure(
+                                 t -> error(LOGGER, t.getMessage(), t)));
     }
 
     public Object toMinMaxObject(ParsedStats parsedDateRange) {
@@ -233,14 +326,20 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private boolean isExtentAggregation(StacProperty prop) {
-        return (prop == NWPOINT_PROP) || (prop == NWPOINTLAT_PROP) || (prop == NWPOINTLON_PROP) || (prop == SEPOINT_PROP)
-                || (prop == SEPOINTLAT_PROP) || (prop == SEPOINTLON_PROP)
-                || prop.getStacPropertyName().equals(DATETIME_PROPERTY_NAME);
+        return (prop == NWPOINT_PROP)
+               || (prop == NWPOINTLAT_PROP)
+               || (prop == NWPOINTLON_PROP)
+               || (prop
+                   == SEPOINT_PROP)
+               || (prop == SEPOINTLAT_PROP)
+               || (prop == SEPOINTLON_PROP)
+               || prop.getStacPropertyName().equals(DATETIME_PROPERTY_NAME);
     }
 
     private List<StacProperty> summaryStacProps(List<StacProperty> otherProps) {
-        return otherProps.filter(o -> !o.getVirtual()).filter(StacProperty::getComputeSummary)
-                .filter(sp -> Number.class.isAssignableFrom(sp.getStacType().getValueType()));
+        return otherProps.filter(o -> !o.getVirtual())
+                         .filter(StacProperty::getComputeSummary)
+                         .filter(sp -> Number.class.isAssignableFrom(sp.getStacType().getValueType()));
     }
 
     private Option<StacProperty> findPropertyForAggregationName(List<StacProperty> props, String key) {
@@ -248,8 +347,10 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private String toAggregationName(StacProperty sp) {
-        return trying(() -> sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath())
-                .onFailure(t -> error(LOGGER, "Failed to get aggregation name for {}", sp, t))
-                .getOrElse(sp.getStacPropertyName());
+        return trying(() -> sp.getRegardsPropertyAccessor().getAttributeModel().getFullJsonPath()).onFailure(t -> error(
+            LOGGER,
+            "Failed to get aggregation name for {}",
+            sp,
+            t)).getOrElse(sp.getStacPropertyName());
     }
 }

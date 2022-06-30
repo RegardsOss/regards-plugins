@@ -130,8 +130,9 @@ public class WorkerManagerSenderIT {
     public void testWorkerManagerSender_withSessionNameOverridden() throws NotAvailablePluginConfigurationException {
         // GIVEN
         // Init worker manager sender plugin
-        IRecipientNotifier workerMngPlugin = initWorkerSenderPluginWithSessionPattern(
-            "{" + CONTENT_TYPE_JSON_PATH + "}-#day-swot");
+        IRecipientNotifier workerMngPlugin = initWorkerSenderPluginWithSessionPattern("{"
+                                                                                      + CONTENT_TYPE_JSON_PATH
+                                                                                      + "}-#day-swot");
 
         // WHEN
         // run plugin
@@ -272,18 +273,21 @@ public class WorkerManagerSenderIT {
         JsonParser jsonParser = new JsonParser();
         Set<JsonObject> featuresSamples = Sets.newHashSet();
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2020\", \"type\": \"Feature\","
-                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                             + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                             + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2021\", \"type\": \"Feature\","
-                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                             + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                             + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
         featuresSamples.add(jsonParser.parse("{\"feature\": {\"id\": \"TEST:2022\", \"type\": \"Feature\","
-                                                 + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
-                                                 + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
+                                             + "\"entityType\": \"DATA\", \"model\": \"SWOT0001\", \"properties\": {\"data\": {"
+                                             + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
 
-        JsonElement metadata = jsonParser.parse(
-            "{\"" + WorkerManagerSender.SESSION_OWNER_METADATA_PATH + "\":\"testSessionOwner" + "\",\""
-                + WorkerManagerSender.SESSION_METADATA_PATH + "\":\"testSession\"}");
+        JsonElement metadata = jsonParser.parse("{\""
+                                                + WorkerManagerSender.SESSION_OWNER_METADATA_PATH
+                                                + "\":\"testSessionOwner"
+                                                + "\",\""
+                                                + WorkerManagerSender.SESSION_METADATA_PATH
+                                                + "\":\"testSession\"}");
         for (JsonObject feature : featuresSamples) {
             notificationRequests.add(new NotificationRequest(feature,
                                                              metadata.getAsJsonObject(),

@@ -37,8 +37,7 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
     Logger LOGGER = LoggerFactory.getLogger(StacSearchCriterionBuilder.class);
 
     default ICriterion toCriterion(List<StacProperty> properties, ItemSearchBody itemSearchBody) {
-        return buildCriterion(properties, itemSearchBody)
-            .getOrElse(ICriterion::all);
+        return buildCriterion(properties, itemSearchBody).getOrElse(ICriterion::all);
     }
 
     /**
@@ -54,15 +53,18 @@ public interface StacSearchCriterionBuilder extends CriterionBuilder<ItemSearchB
     /**
      * Build criteria for item level search related to collection search
      */
-    Option<ICriterion> buildCriterion(List<StacProperty> properties, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
+    Option<ICriterion> buildCriterion(List<StacProperty> properties,
+                                      CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
 
     /**
      * Build EODag parameters according to incoming STAC request on items
-     * @param properties STAC properties
-     * @param collectionId target collection id
+     *
+     * @param properties               STAC properties
+     * @param collectionId             target collection id
      * @param collectionItemSearchBody search parameters
      * @return ready to apply {@link EODagParameters}
      */
     Option<EODagParameters> buildEODagParameters(List<StacProperty> properties,
-            String collectionId, CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
+                                                 String collectionId,
+                                                 CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody);
 }

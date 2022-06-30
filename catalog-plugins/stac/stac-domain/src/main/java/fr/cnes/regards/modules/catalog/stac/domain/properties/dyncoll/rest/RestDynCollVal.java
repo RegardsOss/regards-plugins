@@ -27,7 +27,8 @@ import lombok.With;
 /**
  * Representation of a dynamic collection value as a JSON structure.
  */
-@Value @With
+@Value
+@With
 public class RestDynCollVal {
 
     @SerializedName("ls")

@@ -45,26 +45,17 @@ public interface CollectionService {
 
     Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 
-    Try<CollectionsResponse> buildRootCollectionsResponse(
-        OGCFeatLinkCreator linkCreator,
-        ConfigurationAccessor config
-    );
+    Try<CollectionsResponse> buildRootCollectionsResponse(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 
-    Try<Collection> buildCollection(
-        String collectionId,
-        OGCFeatLinkCreator linkCreator,
-        ConfigurationAccessor config
-    );
+    Try<Collection> buildCollection(String collectionId, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 
-    Try<ItemCollectionResponse> getItemsForCollection(
-        String collectionId,
-        Integer limit,
-        Integer page,
-        BBox bbox,
-        String datetime,
-        OGCFeatLinkCreator ogcFeatLinkCreator,
-        Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker
-    );
+    Try<ItemCollectionResponse> getItemsForCollection(String collectionId,
+                                                      Integer limit,
+                                                      Integer page,
+                                                      BBox bbox,
+                                                      String datetime,
+                                                      OGCFeatLinkCreator ogcFeatLinkCreator,
+                                                      Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker);
 
     List<Link> buildRootLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator);
 }

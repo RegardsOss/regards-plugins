@@ -21,9 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
-import org.springframework.data.util.Pair;
 
 import java.util.HashMap;
 import java.util.Map;

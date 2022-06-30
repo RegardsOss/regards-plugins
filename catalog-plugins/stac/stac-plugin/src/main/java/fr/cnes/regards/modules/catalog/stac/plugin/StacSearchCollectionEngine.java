@@ -45,9 +45,9 @@ import java.util.List;
  * @author Marc SORDI
  */
 @Plugin(id = StacSearchCollectionEngine.PLUGIN_ID, version = "1.0.0",
-        description = "Extend th STAC API for collection search", author = "REGARDS Team",
-        contact = "regards@csgroup.eu.fr", license = "GPLv3", owner = "CS GROUP FRANCE",
-        url = "https://github.com/RegardsOss", markdown = "StacSearchCollectionEngine.md")
+    description = "Extend th STAC API for collection search", author = "REGARDS Team",
+    contact = "regards@csgroup.eu.fr", license = "GPLv3", owner = "CS GROUP FRANCE",
+    url = "https://github.com/RegardsOss", markdown = "StacSearchCollectionEngine.md")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -92,8 +92,9 @@ public class StacSearchCollectionEngine implements ISearchEngine<Object, ItemSea
     }
 
     @Override
-    public ResponseEntity<Object> search(SearchContext context, ISearchEngine<?, ?, ?, ?> requestParser,
-            IEntityLinkBuilder linkBuilder) throws ModuleException {
+    public ResponseEntity<Object> search(SearchContext context,
+                                         ISearchEngine<?, ?, ?, ?> requestParser,
+                                         IEntityLinkBuilder linkBuilder) throws ModuleException {
         return ResponseEntity.badRequest().body(BAD_REQUEST_MESSAGE);
     }
 
@@ -104,7 +105,7 @@ public class StacSearchCollectionEngine implements ISearchEngine<Object, ItemSea
 
     @Override
     public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder)
-            throws ModuleException {
+        throws ModuleException {
         return ResponseEntity.badRequest().body(BAD_REQUEST_MESSAGE);
     }
 }

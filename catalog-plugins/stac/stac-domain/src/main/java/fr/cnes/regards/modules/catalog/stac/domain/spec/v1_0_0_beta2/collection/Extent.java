@@ -38,25 +38,30 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/collection-spec.md#extent-object">description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/json-schema/collection.json#L87">json schema</a>
  */
-@Value @With
+@Value
+@With
 public class Extent {
 
     Spatial spatial;
+
     Temporal temporal;
 
-    @Value @With
+    @Value
+    @With
     public static class Spatial {
+
         List<BBox> bbox;
     }
-    @Value @With
+
+    @Value
+    @With
     public static class Temporal {
+
         List<Tuple2<OffsetDateTime, OffsetDateTime>> interval;
     }
 
     public static Extent maximalExtent() {
-        return new Extent(
-                new Spatial(List.of(new BBox(-180, -90, 180, 90))),
-                new Temporal(List.of(Tuple.of(lowestBound(), uppestBound())))
-        );
+        return new Extent(new Spatial(List.of(new BBox(-180, -90, 180, 90))),
+                          new Temporal(List.of(Tuple.of(lowestBound(), uppestBound()))));
     }
 }

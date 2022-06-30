@@ -48,6 +48,7 @@ public interface GsonAwareTest {
 
     /**
      * Override this to add specific type adapters.
+     *
      * @param builder the builder for GSON
      * @return the updated builder
      */
@@ -75,6 +76,5 @@ public interface GsonAwareTest {
         builder = updateGsonBuilder(builder);
         return builder;
     }
-
 
 }

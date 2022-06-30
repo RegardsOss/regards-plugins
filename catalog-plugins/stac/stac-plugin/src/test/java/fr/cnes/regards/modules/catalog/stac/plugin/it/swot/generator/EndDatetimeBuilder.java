@@ -24,7 +24,10 @@ import fr.cnes.regards.framework.random.generator.builder.RandomGeneratorBuilder
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Generate STAC end_datetime property for timeline testing.

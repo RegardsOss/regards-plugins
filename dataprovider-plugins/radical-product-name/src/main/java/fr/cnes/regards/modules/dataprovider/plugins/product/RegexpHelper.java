@@ -21,7 +21,9 @@ package fr.cnes.regards.modules.dataprovider.plugins.product;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -45,7 +47,9 @@ public final class RegexpHelper {
      */
     public static String removeGroups(Path filePath, String pattern, String groups) throws ModuleException {
         try {
-            List<Integer> iGroups = Arrays.stream(groups.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+            List<Integer> iGroups = Arrays.stream(groups.split(","))
+                                          .map(Integer::parseInt)
+                                          .collect(Collectors.toList());
             return removeGroups(pattern, filePath.getFileName().toString(), iGroups);
         } catch (NumberFormatException e) {
             throw new ModuleException("Error reading plugin parameter group numbers to remove", e);
@@ -63,8 +67,7 @@ public final class RegexpHelper {
      * @return file name with remove groups from pattern
      * @throws ModuleException
      */
-    public static String removeGroups(String pattern, String source, List<Integer> groups)
-            throws ModuleException {
+    public static String removeGroups(String pattern, String source, List<Integer> groups) throws ModuleException {
         return replaceGroups(pattern, source, groups, "");
     }
 
@@ -78,7 +81,7 @@ public final class RegexpHelper {
      * @throws ModuleException
      */
     public static String replaceGroups(String pattern, String source, List<Integer> groups, String replacement)
-            throws ModuleException {
+        throws ModuleException {
         Matcher m = Pattern.compile(pattern).matcher(source);
         if (!m.matches()) {
             throw new ModuleException(String.format("Pattern [%s] does not match file name [%s]", pattern, source));
@@ -90,10 +93,10 @@ public final class RegexpHelper {
 
         String result = source;
         // For each group calculate char index start and end to replace in string
-        for (Integer group: groups) {
+        for (Integer group : groups) {
             int start = m.start(group);
             int end = m.end(group);
-            result = new StringBuilder(result).replace(start,end, replacement).toString();
+            result = new StringBuilder(result).replace(start, end, replacement).toString();
         }
         return result;
     }

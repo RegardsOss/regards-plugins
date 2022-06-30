@@ -194,31 +194,42 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
                 Object head = findFirstDiscriminantValue(inProps.values());
 
                 if (head instanceof Boolean) {
-                    return SearchBody.BooleanQueryObject.builder().eq((Boolean) inProps.get("eq").getOrNull())
-                            .neq((Boolean) inProps.get("neq").getOrNull()).build();
+                    return SearchBody.BooleanQueryObject.builder()
+                                                        .eq((Boolean) inProps.get("eq").getOrNull())
+                                                        .neq((Boolean) inProps.get("neq").getOrNull())
+                                                        .build();
                 } else if (head instanceof Double) {
-                    return SearchBody.NumberQueryObject.builder().eq((Double) inProps.get("eq").getOrNull())
-                            .neq((Double) inProps.get("neq").getOrNull()).gt((Double) inProps.get("gt").getOrNull())
-                            .lt((Double) inProps.get("lt").getOrNull()).gte((Double) inProps.get("gte").getOrNull())
-                            .lte((Double) inProps.get("lte").getOrNull())
-                            .in((List<Double>) inProps.get("in").getOrNull()).build();
+                    return SearchBody.NumberQueryObject.builder()
+                                                       .eq((Double) inProps.get("eq").getOrNull())
+                                                       .neq((Double) inProps.get("neq").getOrNull())
+                                                       .gt((Double) inProps.get("gt").getOrNull())
+                                                       .lt((Double) inProps.get("lt").getOrNull())
+                                                       .gte((Double) inProps.get("gte").getOrNull())
+                                                       .lte((Double) inProps.get("lte").getOrNull())
+                                                       .in((List<Double>) inProps.get("in").getOrNull())
+                                                       .build();
                 } else if (head instanceof OffsetDateTime) {
-                    return SearchBody.DatetimeQueryObject.builder().eq((OffsetDateTime) inProps.get("eq").getOrNull())
-                            .neq((OffsetDateTime) inProps.get("neq").getOrNull())
-                            .gt((OffsetDateTime) inProps.get("gt").getOrNull())
-                            .lt((OffsetDateTime) inProps.get("lt").getOrNull())
-                            .gte((OffsetDateTime) inProps.get("gte").getOrNull())
-                            .lte((OffsetDateTime) inProps.get("lte").getOrNull())
-                            .in((List<OffsetDateTime>) inProps.get("in").getOrNull()).build();
+                    return SearchBody.DatetimeQueryObject.builder()
+                                                         .eq((OffsetDateTime) inProps.get("eq").getOrNull())
+                                                         .neq((OffsetDateTime) inProps.get("neq").getOrNull())
+                                                         .gt((OffsetDateTime) inProps.get("gt").getOrNull())
+                                                         .lt((OffsetDateTime) inProps.get("lt").getOrNull())
+                                                         .gte((OffsetDateTime) inProps.get("gte").getOrNull())
+                                                         .lte((OffsetDateTime) inProps.get("lte").getOrNull())
+                                                         .in((List<OffsetDateTime>) inProps.get("in").getOrNull())
+                                                         .build();
                 } else if (head instanceof String) {
-                    return SearchBody.StringQueryObject.builder().eq((String) inProps.get("eq").getOrNull())
-                            .neq((String) inProps.get("neq").getOrNull())
-                            .startsWith((String) inProps.get("startsWith").getOrNull())
-                            .endsWith((String) inProps.get("endsWith").getOrNull())
-                            .contains((String) inProps.get("contains").getOrNull())
-                            .containsAll((List<String>) inProps.get("containsAll").getOrNull())
-                            .in((List<String>) inProps.get("in").getOrNull())
-                            .matchType((String) inProps.get("matchType").getOrNull()).build();
+                    return SearchBody.StringQueryObject.builder()
+                                                       .eq((String) inProps.get("eq").getOrNull())
+                                                       .neq((String) inProps.get("neq").getOrNull())
+                                                       .startsWith((String) inProps.get("startsWith").getOrNull())
+                                                       .endsWith((String) inProps.get("endsWith").getOrNull())
+                                                       .contains((String) inProps.get("contains").getOrNull())
+                                                       .containsAll((List<String>) inProps.get("containsAll")
+                                                                                          .getOrNull())
+                                                       .in((List<String>) inProps.get("in").getOrNull())
+                                                       .matchType((String) inProps.get("matchType").getOrNull())
+                                                       .build();
                 } else {
                     throw new IOException("QueryObject not parsable");
                 }

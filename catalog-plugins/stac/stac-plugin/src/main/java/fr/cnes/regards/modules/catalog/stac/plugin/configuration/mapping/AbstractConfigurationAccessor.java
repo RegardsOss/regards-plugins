@@ -45,20 +45,24 @@ public abstract class AbstractConfigurationAccessor {
     private final RegardsPropertyAccessorFactory regardsPropertyAccessorFactory;
 
     protected AbstractConfigurationAccessor(IPluginService pluginService,
-            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory) {
+                                            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory) {
         this.pluginService = pluginService;
         this.regardsPropertyAccessorFactory = regardsPropertyAccessorFactory;
     }
 
     protected <E> Try<E> getPlugin(String pluginId) {
-        return List.ofAll(pluginService.getActivePluginConfigurations(pluginId)).headOption().toTry()
-                .flatMap(this::loadPluginFromConfiguration);
+        return List.ofAll(pluginService.getActivePluginConfigurations(pluginId))
+                   .headOption()
+                   .toTry()
+                   .flatMap(this::loadPluginFromConfiguration);
 
     }
 
     protected <E> Try<E> loadPluginFromConfiguration(PluginConfiguration pc) {
-        return (Try<E>) trying(() -> getOptionalPlugin(pc).get())
-                .mapFailure(PLUGIN_CONFIGURATION_ACCESS, () -> format("Failed to load plugin configuration in %s", pc));
+        return (Try<E>) trying(() -> getOptionalPlugin(pc).get()).mapFailure(PLUGIN_CONFIGURATION_ACCESS,
+                                                                             () -> format(
+                                                                                 "Failed to load plugin configuration in %s",
+                                                                                 pc));
     }
 
     protected <E> Option<E> getOptionalPlugin(PluginConfiguration pc) throws NotAvailablePluginConfigurationException {
@@ -66,7 +70,7 @@ public abstract class AbstractConfigurationAccessor {
     }
 
     protected RegardsPropertyAccessor extractPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
-            StacPropertyType stacType) {
+                                                              StacPropertyType stacType) {
         return regardsPropertyAccessorFactory.makeRegardsPropertyAccessor(sPropConfig, stacType);
     }
 
@@ -76,22 +80,32 @@ public abstract class AbstractConfigurationAccessor {
      * @return aggregation of all virtual properties as {@link StacProperty} for reverse mapping
      */
     protected List<StacProperty> addVirtualStacProperties(List<StacProperty> stacProperties) {
-        return stacProperties.appendAll(stacProperties.filter(p -> PropertyType.JSON
-                .equals(p.getRegardsPropertyAccessor().getAttributeModel().getType()))
-                                                .flatMap(this::makeVirtualStacProperties));
+        return stacProperties.appendAll(stacProperties.filter(p -> PropertyType.JSON.equals(p.getRegardsPropertyAccessor()
+                                                                                             .getAttributeModel()
+                                                                                             .getType()))
+                                                      .flatMap(this::makeVirtualStacProperties));
     }
 
     private List<StacProperty> makeVirtualStacProperties(StacProperty jsonBasedProperty) {
         AttributeModel attributeModel = jsonBasedProperty.getRegardsPropertyAccessor().getAttributeModel();
         return regardsPropertyAccessorFactory.loadVirtualAttributesFrom(jsonBasedProperty).map(att -> {
-            StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
-                    att.getJsonPath(), null, null);
-            String stacPropertyName = jsonBasedProperty.getStacPropertyName() + att.getJsonPath().substring(attributeModel.getJsonPath().length());
+            StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(att.getJsonPath(),
+                                                                                                              null,
+                                                                                                              null);
+            String stacPropertyName = jsonBasedProperty.getStacPropertyName() + att.getJsonPath()
+                                                                                   .substring(attributeModel.getJsonPath()
+                                                                                                            .length());
             return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration,
                                                             StacPropertyType.translate(attributeModel.getType())),
                                     jsonBasedProperty.getStacPropertyNamespace(),
-                                    stacPropertyName, null, null,
-                                    null, null, null, null, Boolean.TRUE);
+                                    stacPropertyName,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    Boolean.TRUE);
         });
     }
 }

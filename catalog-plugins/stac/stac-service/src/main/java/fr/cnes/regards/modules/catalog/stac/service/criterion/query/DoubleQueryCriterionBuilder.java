@@ -18,9 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -51,11 +48,17 @@ public class DoubleQueryCriterionBuilder extends NumberQueryCriterionBuilder<Dou
 
     @Override
     protected ICriterion in(AttributeModel attr, List<Double> in) {
-        return IFeatureCriterion.in(attr, in.toJavaStream().mapToDouble(Double::doubleValue).toArray(), DOUBLE_COMPARISON_PRECISION);
+        return IFeatureCriterion.in(attr,
+                                    in.toJavaStream().mapToDouble(Double::doubleValue).toArray(),
+                                    DOUBLE_COMPARISON_PRECISION);
     }
 
     @Override
-    protected ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive) {
+    protected ICriterion between(AttributeModel attr,
+                                 Double lower,
+                                 boolean lowerInclusive,
+                                 Double upper,
+                                 boolean upperInclusive) {
         return IFeatureCriterion.between(attr, lower, lowerInclusive, upper, upperInclusive);
     }
 

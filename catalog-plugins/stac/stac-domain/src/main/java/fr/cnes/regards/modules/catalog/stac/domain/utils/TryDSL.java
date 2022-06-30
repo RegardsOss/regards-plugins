@@ -19,18 +19,17 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import io.vavr.CheckedConsumer;
 import io.vavr.CheckedFunction0;
 import io.vavr.CheckedFunction1;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Provides a small DSL to build {@link Try} instances, forcing the user to
@@ -72,7 +71,7 @@ public interface TryDSL<R> {
     /**
      * When you really need to use Try.of, use this method instead. This allows to track usage of
      * Try.of elsewhere in the code.
-     *
+     * <p>
      * This method should be used sparingly, only for very special cases when the
      * expected exceptions are of very little importance or when the Try can be
      * safely discarded into an Option.
@@ -85,7 +84,7 @@ public interface TryDSL<R> {
      * To be used in recoverWith.
      */
     static <R> Function<? super Throwable, ? extends Try<? extends R>> stacFailure(StacFailureType type,
-            Supplier<String> message) {
+                                                                                   Supplier<String> message) {
         return t -> Try.failure(new StacException(message.get(), t, type));
     }
 

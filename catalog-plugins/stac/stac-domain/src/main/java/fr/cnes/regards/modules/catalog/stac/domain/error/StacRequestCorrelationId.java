@@ -29,8 +29,7 @@ import java.util.UUID;
  */
 public final class StacRequestCorrelationId {
 
-    private static final ThreadLocal<UUID> requestCorrelationId =
-        new ThreadLocal<>();
+    private static final ThreadLocal<UUID> requestCorrelationId = new ThreadLocal<>();
 
     public static final String STAC_REQUEST = "STAC Request ";
 
@@ -51,15 +50,19 @@ public final class StacRequestCorrelationId {
     public static void trace(Logger logger, String pattern, Object... params) {
         logger.trace(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
+
     public static void debug(Logger logger, String pattern, Object... params) {
         logger.debug(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
+
     public static void info(Logger logger, String pattern, Object... params) {
         logger.info(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
+
     public static void warn(Logger logger, String pattern, Object... params) {
         logger.warn(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }
+
     public static void error(Logger logger, String pattern, Object... params) {
         logger.error(STAC_REQUEST + currentCId() + " - " + pattern, params);
     }

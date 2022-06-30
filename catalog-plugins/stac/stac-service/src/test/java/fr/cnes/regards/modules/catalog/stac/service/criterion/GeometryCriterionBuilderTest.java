@@ -28,34 +28,26 @@ public class GeometryCriterionBuilderTest {
     public void testBuildCriterionPolygon() {
         // GIVEN
         List<StacProperty> properties = List.of();
-        IGeometry geom = IGeometry.simplePolygon(1,2,3,4);
+        IGeometry geom = IGeometry.simplePolygon(1, 2, 3, 4);
         // WHEN
         Option<ICriterion> criterion = new GeometryCriterionBuilder().buildCriterion(properties, geom);
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(PolygonCriterion.class);
-        assertThat(((PolygonCriterion)criterion.get()).getCoordinates()).isEqualTo(new double[][][]{new double[][]{
-            new double[]{1,2},
-            new double[]{3,4},
-            new double[]{1,2}
-        }});
+        assertThat(((PolygonCriterion) criterion.get()).getCoordinates()).isEqualTo(new double[][][] {
+            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } });
     }
 
     @Test
     public void testBuildCriterionMultipolygon() {
         // GIVEN
         List<StacProperty> properties = List.of();
-        double[][][] fstPoly = {new double[][]{
-                new double[]{1, 2},
-                new double[]{3, 4},
-                new double[]{1, 2}
-        }};
-        double[][][] sndPoly = {new double[][]{
-                new double[]{1, 2},
-                new double[]{3, 4},
-                new double[]{1, 2}
-        }};
-        IGeometry geom = IGeometry.multiPolygon(PolygonPositions.fromArray(fstPoly), PolygonPositions.fromArray(sndPoly));
+        double[][][] fstPoly = {
+            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } };
+        double[][][] sndPoly = {
+            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } };
+        IGeometry geom = IGeometry.multiPolygon(PolygonPositions.fromArray(fstPoly),
+                                                PolygonPositions.fromArray(sndPoly));
 
         // WHEN
         Option<ICriterion> criterion = new GeometryCriterionBuilder().buildCriterion(properties, geom);
@@ -67,10 +59,10 @@ public class GeometryCriterionBuilderTest {
         assertThat(polyCrits).hasSize(2);
         ICriterion firstPolyCrit = polyCrits.get(0);
         assertThat(firstPolyCrit).isInstanceOf(PolygonCriterion.class);
-        assertThat(((PolygonCriterion)firstPolyCrit).getCoordinates()).isEqualTo(fstPoly);
+        assertThat(((PolygonCriterion) firstPolyCrit).getCoordinates()).isEqualTo(fstPoly);
         ICriterion secondPolyCrit = polyCrits.get(1);
         assertThat(secondPolyCrit).isInstanceOf(PolygonCriterion.class);
-        assertThat(((PolygonCriterion)secondPolyCrit).getCoordinates()).isEqualTo(sndPoly);
+        assertThat(((PolygonCriterion) secondPolyCrit).getCoordinates()).isEqualTo(sndPoly);
     }
 
 }

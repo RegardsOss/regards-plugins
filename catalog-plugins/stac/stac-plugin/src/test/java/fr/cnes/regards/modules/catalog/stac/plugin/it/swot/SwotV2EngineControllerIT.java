@@ -291,7 +291,10 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectValue("$.context.matched", 1);
         CollectionSearchBody body = CollectionSearchBody.builder().ids(List.of("SWOT_L2_HR_Raster_100m")).build();
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer, "Cannot search STAC collections");
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
+                           "Cannot search STAC collections");
     }
 
     @Test
@@ -299,7 +302,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusBadRequest();
         FiltersByCollection body = FiltersByCollection.builder().build();
         performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                               + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                           + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
                            body,
                            customizer,
                            "Download preparation failed");
@@ -319,7 +322,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                                       .collections(List.of(downloadCollectionPreparationBody))
                                                       .build();
         performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                               + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                           + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
                            body,
                            customizer,
                            "Download preparation failed");
@@ -339,7 +342,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                                       .collections(List.of(downloadCollectionPreparationBody))
                                                       .build();
         performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                               + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                           + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
                            body,
                            customizer,
                            "Download preparation failed");
@@ -366,7 +369,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -390,7 +393,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -420,7 +423,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -466,7 +469,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -498,7 +501,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -529,7 +532,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -560,7 +563,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -581,8 +584,14 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                                                                               "2020-04-02T00:00:00Z"))
                                                                                           .build());
 
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder().query(iq).build();
-        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody), 101000, 1, 2);
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                                                                                                                              .query(
+                                                                                                                                  iq)
+                                                                                                                              .build();
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", collectionItemSearchBody),
+                                                      101000,
+                                                      1,
+                                                      2);
 
         // Get tiny url to download all
         String json = payload(resultActions);
@@ -594,7 +603,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         //        downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -637,7 +646,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         downloadCustomizer.addParameter("tinyurl", tinyurl);
         downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -658,7 +667,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
 
         // Get mod_zip file
         ResultActions allItemsActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                                              + StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX,
+                                                          + StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX,
                                                           downloadCustomizer,
                                                           "Cannot download all collections",
                                                           "uselessCollectionId");
@@ -669,7 +678,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
 
         // Get sample mod_zip file
         ResultActions sampleResultActions = performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                                                  + StacApiConstants.STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX,
+                                                              + StacApiConstants.STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX,
                                                               downloadCustomizer,
                                                               "Cannot download all collections",
                                                               "uselessCollectionId");
@@ -692,7 +701,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         downloadCustomizer.addParameter("tinyurl", "unknown-tiny-url");
         downloadCustomizer.addHeader(HttpConstants.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         performDefaultGet(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                              + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX,
+                          + StacApiConstants.STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX,
                           downloadCustomizer,
                           "Cannot download all collections");
     }
@@ -745,7 +754,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         customizer.expectToHaveSize("collections", downloadPreparationBody.getCollections().size());
 
         return performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                      + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                                  + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
                                   downloadPreparationBody,
                                   customizer,
                                   "Download preparation failed");

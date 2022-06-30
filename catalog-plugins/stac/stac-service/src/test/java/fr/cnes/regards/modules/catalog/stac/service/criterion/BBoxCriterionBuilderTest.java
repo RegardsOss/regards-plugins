@@ -32,10 +32,10 @@ public class BBoxCriterionBuilderTest {
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(BoundaryBoxCriterion.class);
-        assertThat(((BoundaryBoxCriterion)criterion.get()).getMinX()).isEqualTo(0);
-        assertThat(((BoundaryBoxCriterion)criterion.get()).getMinY()).isEqualTo(0);
-        assertThat(((BoundaryBoxCriterion)criterion.get()).getMaxX()).isEqualTo(1);
-        assertThat(((BoundaryBoxCriterion)criterion.get()).getMaxY()).isEqualTo(1);
+        assertThat(((BoundaryBoxCriterion) criterion.get()).getMinX()).isEqualTo(0);
+        assertThat(((BoundaryBoxCriterion) criterion.get()).getMinY()).isEqualTo(0);
+        assertThat(((BoundaryBoxCriterion) criterion.get()).getMaxX()).isEqualTo(1);
+        assertThat(((BoundaryBoxCriterion) criterion.get()).getMaxY()).isEqualTo(1);
     }
 
 }

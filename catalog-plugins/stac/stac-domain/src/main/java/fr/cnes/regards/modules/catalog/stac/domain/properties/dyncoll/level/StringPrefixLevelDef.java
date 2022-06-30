@@ -32,24 +32,24 @@ import lombok.Value;
 public class StringPrefixLevelDef implements DynCollLevelDef<StringPrefixSublevelDef> {
 
     StacProperty stacProperty;
+
     List<StringPrefixSublevelDef> sublevels;
 
     @Override
     public DynCollLevelVal parseValues(String repr) {
-        List<DynCollSublevelVal> vals = sublevels
-            .zip(List.range(1, repr.length() + 1).map(i -> repr.substring(0, i)))
-            .map(kv -> {
-                String sublevelValue = kv._2;
-                return new DynCollSublevelVal(kv._1, sublevelValue, toLabel(sublevelValue) + "...");
-            });
+        List<DynCollSublevelVal> vals = sublevels.zip(List.range(1, repr.length() + 1).map(i -> repr.substring(0, i)))
+                                                 .map(kv -> {
+                                                     String sublevelValue = kv._2;
+                                                     return new DynCollSublevelVal(kv._1,
+                                                                                   sublevelValue,
+                                                                                   toLabel(sublevelValue) + "...");
+                                                 });
         return new DynCollLevelVal(this, vals);
     }
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return value.getSublevels().lastOption()
-            .map(DynCollSublevelVal::getSublevelValue)
-            .getOrElse("");
+        return value.getSublevels().lastOption().map(DynCollSublevelVal::getSublevelValue).getOrElse("");
     }
 
     @Override

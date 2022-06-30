@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.CONFORMANCERESPONSE_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
  * Conformance page
@@ -43,35 +43,27 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features"></a>
  */
 @RestController
-@RequestMapping(
-        path = StacApiConstants.STAC_CONFORMANCE_PATH,
-        produces = APPLICATION_JSON
-)
+@RequestMapping(path = StacApiConstants.STAC_CONFORMANCE_PATH, produces = APPLICATION_JSON)
 public class ConformanceController implements TryToResponseEntity {
 
-    public static final List<String> CONFORMANCES = List.of(
-        "https://api.stacspec.org/v1.0.0-beta.1/core",
-        "https://api.stacspec.org/v1.0.0-beta.1/item-search",
-        "https://api.stacspec.org/v1.0.0-beta.1/ogcapi-features",
-        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
-        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
-        "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson"
-    );
+    public static final List<String> CONFORMANCES = List.of("https://api.stacspec.org/v1.0.0-beta.1/core",
+                                                            "https://api.stacspec.org/v1.0.0-beta.1/item-search",
+                                                            "https://api.stacspec.org/v1.0.0-beta.1/ogcapi-features",
+                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
+                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson");
 
     @Operation(summary = "information about specifications that this API conforms to",
-            description = "A list of all conformance classes specified in a standard that the server conforms to.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "The URIs of all conformance classes supported by the server.") })
-    @ResourceAccess(
-            description = "information about specifications that this API conforms to",
-            role = DefaultRole.PUBLIC
-    )
+        description = "A list of all conformance classes specified in a standard that the server conforms to.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+        description = "The URIs of all conformance classes supported by the server.") })
+    @ResourceAccess(description = "information about specifications that this API conforms to",
+        role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ConformanceResponse> conformance() {
-        return toResponseEntity(trying(() -> new ConformanceResponse(CONFORMANCES))
-            .mapFailure(
-                CONFORMANCERESPONSE_CONSTRUCTION,
-                () -> "Failed to build conformance response"
-            ));
+        return toResponseEntity(trying(() -> new ConformanceResponse(CONFORMANCES)).mapFailure(
+            CONFORMANCERESPONSE_CONSTRUCTION,
+            () -> "Failed to build conformance response"));
     }
 
 }

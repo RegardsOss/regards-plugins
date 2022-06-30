@@ -38,8 +38,11 @@ public interface CriterionBuilder<T> {
 
     void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, T value);
 
-    default Option<ICriterion> withAll(List<ICriterion> criteria, Function<Iterable<ICriterion>, ICriterion> combinator) {
-        return criteria.isEmpty() ? Option.none() : criteria.size() == 1 ? Option.of(criteria.get(0)) : Option.of(combinator.apply(criteria));
+    default Option<ICriterion> withAll(List<ICriterion> criteria,
+                                       Function<Iterable<ICriterion>, ICriterion> combinator) {
+        return criteria.isEmpty() ?
+            Option.none() :
+            criteria.size() == 1 ? Option.of(criteria.get(0)) : Option.of(combinator.apply(criteria));
     }
 
     default Option<ICriterion> andAllPresent(Option<ICriterion>... criteria) {
@@ -47,8 +50,9 @@ public interface CriterionBuilder<T> {
     }
 
     default Option<AttributeModel> propertyNameFor(List<StacProperty> properties, String attrName) {
-        return properties.find(p -> attrName.equals(p.getStacPropertyName())).map(StacProperty::getRegardsPropertyAccessor)
-                .map(RegardsPropertyAccessor::getAttributeModel);
+        return properties.find(p -> attrName.equals(p.getStacPropertyName()))
+                         .map(StacProperty::getRegardsPropertyAccessor)
+                         .map(RegardsPropertyAccessor::getAttributeModel);
     }
 
     default Option<StacProperty> getStacProperty(List<StacProperty> properties, String attrName) {

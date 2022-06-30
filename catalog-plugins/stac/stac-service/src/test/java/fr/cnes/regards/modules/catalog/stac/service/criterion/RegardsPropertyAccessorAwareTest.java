@@ -19,8 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
+import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModelBuilder;
 import io.vavr.control.Try;
@@ -32,9 +32,7 @@ public interface RegardsPropertyAccessorAwareTest {
     }
 
     default RegardsPropertyAccessor accessor(String name, StacPropertyType sPropType, Object value) {
-        return new RegardsPropertyAccessor(
-                name, attr(name, sPropType), d -> Try.success(value), value.getClass()
-        );
+        return new RegardsPropertyAccessor(name, attr(name, sPropType), d -> Try.success(value), value.getClass());
     }
 
 }

@@ -31,12 +31,10 @@ import io.vavr.control.Try;
  */
 public interface ItemSearchService {
 
-    Try<ItemCollectionResponse> search(
-            ItemSearchBody itemSearchBody,
-            Integer page,
-            OGCFeatLinkCreator featLinkCreator,
-            SearchPageLinkCreator searchPageLinkCreator
-    );
+    Try<ItemCollectionResponse> search(ItemSearchBody itemSearchBody,
+                                       Integer page,
+                                       OGCFeatLinkCreator featLinkCreator,
+                                       SearchPageLinkCreator searchPageLinkCreator);
 
     Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator);
 

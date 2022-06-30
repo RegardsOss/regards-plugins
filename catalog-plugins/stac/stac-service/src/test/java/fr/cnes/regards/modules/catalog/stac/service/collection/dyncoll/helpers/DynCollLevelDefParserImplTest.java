@@ -1,15 +1,5 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.DAY;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.HOUR;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.MONTH;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.YEAR;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.offset;
-
-import org.assertj.core.data.Offset;
-import org.junit.Test;
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
@@ -18,6 +8,12 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.D
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.NumberRangeSublevelDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.StringPrefixSublevelDef;
 import io.vavr.collection.List;
+import org.assertj.core.data.Offset;
+import org.junit.Test;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DynCollLevelDefParserImplTest {
@@ -91,7 +87,10 @@ public class DynCollLevelDefParserImplTest {
         assertThat(sublevels).hasSize(4);
 
         assertThat(sublevels.filter(t -> t instanceof DatePartSublevelDef)).isEqualTo(sublevels);
-        assertThat(sublevels.map(DatePartSublevelDef.class::cast).map(s -> s.getType())).contains(YEAR, MONTH, DAY, HOUR);
+        assertThat(sublevels.map(DatePartSublevelDef.class::cast).map(s -> s.getType())).contains(YEAR,
+                                                                                                  MONTH,
+                                                                                                  DAY,
+                                                                                                  HOUR);
 
     }
 

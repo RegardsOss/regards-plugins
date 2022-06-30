@@ -57,7 +57,9 @@ public enum StacPropertyType {
     ANGLE(true, PropertyType.DOUBLE, Double.class), LENGTH(true, PropertyType.DOUBLE, Double.class), PERCENTAGE(true,
                                                                                                                 PropertyType.DOUBLE,
                                                                                                                 Double.class), NUMBER(
-            true, PropertyType.DOUBLE, Double.class),
+        true,
+        PropertyType.DOUBLE,
+        Double.class),
 
     // REPRESENTED AS BOOLEANS IN JSON
 
@@ -99,9 +101,13 @@ public enum StacPropertyType {
     }
 
     public static StacPropertyType parse(String stacType) {
-        return Option.of(stacType).map(s -> trying(() -> StacPropertyType.valueOf(s.trim().toUpperCase()))
-                .onFailure(t -> warn(LOGGER, "Failed to parse STAC property type: {}, using STRING instead", stacType))
-                .getOrElse(STRING)).getOrElse(STRING);
+        return Option.of(stacType)
+                     .map(s -> trying(() -> StacPropertyType.valueOf(s.trim()
+                                                                      .toUpperCase())).onFailure(t -> warn(LOGGER,
+                                                                                                           "Failed to parse STAC property type: {}, using STRING instead",
+                                                                                                           stacType))
+                                                                                      .getOrElse(STRING))
+                     .getOrElse(STRING);
     }
 
     public static StacPropertyType translate(PropertyType type) {

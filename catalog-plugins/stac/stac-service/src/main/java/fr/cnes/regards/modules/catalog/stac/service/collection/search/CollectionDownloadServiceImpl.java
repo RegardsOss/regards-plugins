@@ -111,8 +111,11 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     private ConfigurationAccessorFactory configFactory;
 
     @Override
-    public void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, String tinyurl,
-            DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
+    public void prepareDescriptor(OutputStream outputStream,
+                                  Optional<String> collectionId,
+                                  String tinyurl,
+                                  DownloadLinkCreator downloadLinkCreator,
+                                  boolean onlySample) {
         try (PrintWriter writer = new PrintWriter(outputStream)) {
             if (onlySample) {
                 addSampleFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
@@ -123,8 +126,10 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     }
 
     @Override
-    public Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator, boolean onlySample) {
+    public Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId,
+                                                                final String tinyurl,
+                                                                DownloadLinkCreator downloadLinkCreator,
+                                                                boolean onlySample) {
         return trying(() -> (StreamingResponseBody) outputStream -> {
             try (PrintWriter writer = new PrintWriter(outputStream)) {
                 if (onlySample) {
@@ -133,12 +138,16 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                     addFilesToDescriptor(downloadLinkCreator, writer, collectionId, tinyurl);
                 }
             }
-        }).mapFailure(StacFailureType.MOD_ZIP_DESC_BUILD, () -> String.format("Download preparation failure for %s",
-                                                                                  collectionId.orElse("all collections")));
+        }).mapFailure(StacFailureType.MOD_ZIP_DESC_BUILD,
+                      () -> String.format("Download preparation failure for %s",
+                                          collectionId.orElse("all collections")));
     }
 
     @Override
-    public void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator, OutputStream outputStream, Optional<String> collectionId, String tinyurl) {
+    public void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator,
+                                    OutputStream outputStream,
+                                    Optional<String> collectionId,
+                                    String tinyurl) {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
 
         // Retrieve context from tinyurl
@@ -149,8 +158,12 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
         information.setProjectName(runtimeTenantResolver.getTenant());
         information.setPortalName(config.getEODAGPortalName());
         information.setProvider(config.getEODAGProvider());
-        information.setStacSearchApi(searchPageLinkCreator.searchAll().map(uri -> uri.toString()).getOrElse("Unknown STAC API URI"));
-        information.setBaseUri(searchPageLinkCreator.searchAll().map(uri -> getBaseUri(uri)).getOrElse("Unknown host URI"));
+        information.setStacSearchApi(searchPageLinkCreator.searchAll()
+                                                          .map(uri -> uri.toString())
+                                                          .getOrElse("Unknown STAC API URI"));
+        information.setBaseUri(searchPageLinkCreator.searchAll()
+                                                    .map(uri -> getBaseUri(uri))
+                                                    .getOrElse("Unknown host URI"));
 
         // Route according to multi or single collection
         try {
@@ -158,7 +171,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 EODagParameters parameters = tinyUrlService.loadContext(tiny, EODagParameters.class);
                 // Single collection
                 try (PrintWriter writer = new PrintWriter(outputStream)) {
-                        EODagGenerator.generateFromTemplate(writer, information, parameters);
+                    EODagGenerator.generateFromTemplate(writer, information, parameters);
                 }
             } else {
                 // Retrieve list of tiny url id
@@ -174,11 +187,13 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                         if (EODagParameters.class.isAssignableFrom(Class.forName(tu.getClassOfContext()))) {
                             parameterList.add(tinyUrlService.loadContext(tu, EODagParameters.class));
                         } else {
-                            throw new StacException(String.format("Unexpected class %s", tu.getClassOfContext()), null,
+                            throw new StacException(String.format("Unexpected class %s", tu.getClassOfContext()),
+                                                    null,
                                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
                         }
                     } catch (ClassNotFoundException e) {
-                        throw new StacException(String.format("Unknown class %s", tu.getClassOfContext()), e,
+                        throw new StacException(String.format("Unknown class %s", tu.getClassOfContext()),
+                                                e,
                                                 StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
                     }
                 });
@@ -187,7 +202,8 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 }
             }
         } catch (ClassNotFoundException e) {
-            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()), e,
+            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()),
+                                    e,
                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
         }
     }
@@ -206,13 +222,16 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
         return sb.toString();
     }
 
-    private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
-            Optional<String> collectionId, final String tinyurl) {
+    private void addSampleFilesToDescriptor(DownloadLinkCreator downloadLinkCreator,
+                                            PrintWriter writer,
+                                            Optional<String> collectionId,
+                                            final String tinyurl) {
 
         if (collectionId.isPresent()) {
             LOGGER.info("Handling sample for tinyurl {} for collection {}", tinyurl, collectionId.get());
         } else {
-            throw new StacException("Sample can only be downloaded for a specified collection", null,
+            throw new StacException("Sample can only be downloaded for a specified collection",
+                                    null,
                                     StacFailureType.DOWNLOAD_SAMPLE_ONLY_FOR_SINGLE_COLLECTION);
         }
 
@@ -224,20 +243,25 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
 
         try {
             // Extract file from first matching item
-            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria, SearchType.DATAOBJECTS,
-                                                                                  null, PageRequest.of(0, 1));
+            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria,
+                                                                                  SearchType.DATAOBJECTS,
+                                                                                  null,
+                                                                                  PageRequest.of(0, 1));
             // Extract file from it
             facetPage.forEach(feature -> printFeatureReferences(downloadLinkCreator, writer, feature));
 
         } catch (SearchException | OpenSearchUnknownParameter e) {
             throw new StacException(String.format("Cannot retrieve sample files to download for collection %s",
-                                                  collectionId.orElse("unknown collection")), e,
+                                                  collectionId.orElse("unknown collection")),
+                                    e,
                                     StacFailureType.DOWNLOAD_RETRIEVE_SAMPLE_FILES);
         }
     }
 
-    private void addFilesToDescriptor(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
-            Optional<String> collectionId, final String tinyurl) {
+    private void addFilesToDescriptor(DownloadLinkCreator downloadLinkCreator,
+                                      PrintWriter writer,
+                                      Optional<String> collectionId,
+                                      final String tinyurl) {
 
         if (collectionId.isPresent()) {
             LOGGER.info("Handling tinyurl {} for collection {}", tinyurl, collectionId.get());
@@ -262,23 +286,29 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 tinyUrlUuids.forEach(t -> addFilesToDescriptor(downloadLinkCreator, writer, Optional.empty(), t));
             }
         } catch (ClassNotFoundException e) {
-            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()), e,
+            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()),
+                                    e,
                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
         }
     }
 
     private TinyUrl getTinyUrl(final String tinyurl) {
-        return tinyUrlService.get(tinyurl).orElseThrow(
-                () -> new StacException(String.format("Tiny URL not found with this identifier : %s", tinyurl), null,
-                                        StacFailureType.DOWNLOAD_UNKNOWN_TINYURL));
+        return tinyUrlService.get(tinyurl)
+                             .orElseThrow(() -> new StacException(String.format(
+                                 "Tiny URL not found with this identifier : %s",
+                                 tinyurl), null, StacFailureType.DOWNLOAD_UNKNOWN_TINYURL));
     }
 
-    private void extractFilesFromPage(DownloadLinkCreator downloadLinkCreator, PrintWriter writer, Pageable pageable,
-            ICriterion itemCriteria) {
+    private void extractFilesFromPage(DownloadLinkCreator downloadLinkCreator,
+                                      PrintWriter writer,
+                                      Pageable pageable,
+                                      ICriterion itemCriteria) {
         try {
             // Get a page of feature
-            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria, SearchType.DATAOBJECTS,
-                                                                                  null, pageable);
+            FacetPage<DataObjectFeature> facetPage = businessSearchService.search(itemCriteria,
+                                                                                  SearchType.DATAOBJECTS,
+                                                                                  null,
+                                                                                  pageable);
             // Extract file from each one
             facetPage.forEach(feature -> printFeatureReferences(downloadLinkCreator, writer, feature));
             // Handle next page if necessary
@@ -286,24 +316,28 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 extractFilesFromPage(downloadLinkCreator, writer, facetPage.getPageable().next(), itemCriteria);
             }
         } catch (SearchException | OpenSearchUnknownParameter e) {
-            throw new StacException(
-                    String.format("Cannot retrieve files to download at page %d with size %d", pageable.getPageNumber(),
-                                  pageable.getPageSize()), e, StacFailureType.DOWNLOAD_RETRIEVE_FILES);
+            throw new StacException(String.format("Cannot retrieve files to download at page %d with size %d",
+                                                  pageable.getPageNumber(),
+                                                  pageable.getPageSize()), e, StacFailureType.DOWNLOAD_RETRIEVE_FILES);
         }
     }
 
-    private void printFeatureReferences(DownloadLinkCreator downloadLinkCreator, PrintWriter writer,
-            DataObjectFeature feature) {
+    private void printFeatureReferences(DownloadLinkCreator downloadLinkCreator,
+                                        PrintWriter writer,
+                                        DataObjectFeature feature) {
         Collection<DataFile> dataFiles = feature.getFiles().get(DataType.RAWDATA);
         Path dir = getFeatureDirectory(feature);
         if (dataFiles != null) {
             dataFiles.forEach(
-                    // Download
-                    file -> printFileReference(writer, Optional.ofNullable(file.getCrc32()), file.getFilesize(),
-                                               DownloadSource.STORAGE.equals(downloadSource) ?
-                                                       getStorageLocation(file.getChecksum(), downloadLinkCreator) :
-                                                       getCatalogLocation(file.getUri(), downloadLinkCreator),
-                                               Optional.of(dir), file.getFilename()));
+                // Download
+                file -> printFileReference(writer,
+                                           Optional.ofNullable(file.getCrc32()),
+                                           file.getFilesize(),
+                                           DownloadSource.STORAGE.equals(downloadSource) ?
+                                               getStorageLocation(file.getChecksum(), downloadLinkCreator) :
+                                               getCatalogLocation(file.getUri(), downloadLinkCreator),
+                                           Optional.of(dir),
+                                           file.getFilename()));
         }
     }
 
@@ -321,11 +355,14 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
      * @param dir      optional path in zip to tidy up current file
      * @param filename file name only
      */
-    private void printFileReference(PrintWriter writer, Optional<String> crc32, Long size, String location,
-            Optional<Path> dir, String filename) {
+    private void printFileReference(PrintWriter writer,
+                                    Optional<String> crc32,
+                                    Long size,
+                                    String location,
+                                    Optional<Path> dir,
+                                    String filename) {
         String targetFilename = dir.map(path -> path.resolve(filename).toString()).orElse(filename);
-        String line = String.format(MOD_ZIP_LINE_FORMAT, crc32.orElse(UNKNOWN_CRC32), size, location,
-                                    targetFilename);
+        String line = String.format(MOD_ZIP_LINE_FORMAT, crc32.orElse(UNKNOWN_CRC32), size, location, targetFilename);
         LOGGER.debug("Mod_zip line : {}", line);
         writer.println(line);
     }
@@ -352,7 +389,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
      *
      * @param checksum file checksum
      *                 <p>
-     *                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
+     *                                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
      */
     private String getStorageLocation(String checksum, DownloadLinkCreator downloadLinkCreator) {
         return String.format(STORAGE_DOWNLOAD_FILE_PATH, nginxPrefix, checksum, downloadLinkCreator.getSystemToken());

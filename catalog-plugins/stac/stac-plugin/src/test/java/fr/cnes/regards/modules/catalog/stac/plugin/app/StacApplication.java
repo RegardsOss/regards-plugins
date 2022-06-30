@@ -1,2 +1,5 @@
-package fr.cnes.regards.modules.catalog.stac.plugin.app;public class StacApplication {
+package fr.cnes.regards.modules.catalog.stac.plugin.app;
+
+public class StacApplication {
+
 }

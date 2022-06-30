@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CollectionItemSearchBodyFactoryImpl extends AbstractSearchBodyFactoryImpl
-        implements CollectionItemSearchBodyFactory {
+    implements CollectionItemSearchBodyFactory {
 
     @Autowired
     public CollectionItemSearchBodyFactoryImpl(Gson gson) {

@@ -19,21 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_AUTH_PARAM_ADDING;
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_PARAM_ADDING;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-import static java.lang.String.format;
-import static org.springframework.web.util.UriComponentsBuilder.fromUri;
-
-import java.net.URI;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.framework.security.utils.jwt.JWTService;
@@ -43,6 +28,20 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.Map;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_AUTH_PARAM_ADDING;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.URI_PARAM_ADDING;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
+import static java.lang.String.format;
+import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 
 /**
  * Base implementation for {@link UriParamAdder}.
@@ -67,8 +66,9 @@ public class UriParamAdderImpl implements UriParamAdder {
         }
         return uri -> {
             Tuple2<String, String> authParam = makeAuthParam(auth);
-            return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri())
-                    .mapFailure(URI_AUTH_PARAM_ADDING, () -> format("Failed to add auth params to URI %s", uri));
+            return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()).mapFailure(
+                URI_AUTH_PARAM_ADDING,
+                () -> format("Failed to add auth params to URI %s", uri));
         };
     }
 
@@ -83,8 +83,9 @@ public class UriParamAdderImpl implements UriParamAdder {
     @Override
     public CheckedFunction1<URI, Try<URI>> appendTinyUrl(String tinyUrlId) {
         return uri -> {
-            return trying(() -> fromUri(uri).queryParam("tinyurl", tinyUrlId).build().toUri())
-                    .mapFailure(URI_AUTH_PARAM_ADDING, () -> format("Failed to add tiny URL to URI %s", uri));
+            return trying(() -> fromUri(uri).queryParam("tinyurl", tinyUrlId).build().toUri()).mapFailure(
+                URI_AUTH_PARAM_ADDING,
+                () -> format("Failed to add tiny URL to URI %s", uri));
         };
     }
 
@@ -93,8 +94,9 @@ public class UriParamAdderImpl implements UriParamAdder {
         String tenant = auth.getTenant();
         UserDetails user = auth.getUser();
         String role = user.getRole();
-        return DefaultRole.PUBLIC.name().equals(role) ? Tuple.of("scope", tenant)
-                : Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
+        return DefaultRole.PUBLIC.name().equals(role) ?
+            Tuple.of("scope", tenant) :
+            Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
     }
 
     @Override

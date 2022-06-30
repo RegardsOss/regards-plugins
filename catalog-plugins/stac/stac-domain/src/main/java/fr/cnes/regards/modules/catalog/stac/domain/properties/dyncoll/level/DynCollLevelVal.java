@@ -27,15 +27,18 @@ import lombok.With;
 /**
  * A dynamic collection single level value.
  */
-@Value @With
+@Value
+@With
 public class DynCollLevelVal {
 
     DynCollLevelDef<?> definition;
+
     List<DynCollSublevelVal> sublevels;
 
     public boolean isFullyValued() {
         return definition.isFullyValued(this);
     }
+
     public boolean isPartiallyValued() {
         return !isFullyValued();
     }

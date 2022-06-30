@@ -205,8 +205,9 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
      * @return String fileName
      */
     private String getDataObjectFileNameForDownload(DataObject dataobject, DataFile datafile) {
-        String fileName =
-            datafile.getFilename() != null ? datafile.getFilename() : FilenameUtils.getName(datafile.asUri().getPath());
+        String fileName = datafile.getFilename() != null ?
+            datafile.getFilename() :
+            FilenameUtils.getName(datafile.asUri().getPath());
         String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replaceAll(" ", "") : "files";
         return String.format("%s/%s", dataObjectName, fileName);
     }

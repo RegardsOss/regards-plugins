@@ -80,7 +80,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
     @Operation(summary = "Compute information for downloading a set of collections as zip at once or one by one",
         description =
             "For each collection and its item query parameters, a download link, the forecast download size and item number are given plus a"
-                + " link to download all at once")
+            + " link to download all at once")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Zip download information prepared",
         content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
             schema = @Schema(implementation = FiltersByCollection.class)) }) })
@@ -105,10 +105,10 @@ public class CollectionDownloadController implements TryToResponseEntity {
         produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadAllCollectionsAsZipStream(final HttpServletResponse response,
                                                                                    @RequestParam(name = "tinyurl")
-                                                                                       String tinyurl,
+                                                                                   String tinyurl,
                                                                                    @RequestParam(name = "filename",
                                                                                        defaultValue = "regards.zip")
-                                                                                       String filename) {
+                                                                                   String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response, Optional.empty(), tinyurl, filename));
     }
 
@@ -122,7 +122,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
     public void downloadAllCollectionsAsZip(final HttpServletResponse response,
                                             @RequestParam(name = "tinyurl") String tinyurl,
                                             @RequestParam(name = "filename", defaultValue = "regards.zip")
-                                                String filename) {
+                                            String filename) {
         delegateDownloadToNginx(response, Optional.empty(), tinyurl, filename);
     }
 
@@ -152,12 +152,12 @@ public class CollectionDownloadController implements TryToResponseEntity {
         produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadSingeCollectionAsZipStream(final HttpServletResponse response,
                                                                                     @PathVariable(name = "collectionId")
-                                                                                        String collectionId,
+                                                                                    String collectionId,
                                                                                     @RequestParam(name = "tinyurl")
-                                                                                        String tinyurl,
+                                                                                    String tinyurl,
                                                                                     @RequestParam(name = "filename",
                                                                                         defaultValue = "regards.zip")
-                                                                                        String filename) {
+                                                                                    String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response,
                                                                 Optional.of(collectionId),
                                                                 tinyurl,
@@ -174,14 +174,14 @@ public class CollectionDownloadController implements TryToResponseEntity {
     public ResponseEntity<StreamingResponseBody> downloadSingeCollectionSampleAsZipStream(final HttpServletResponse response,
                                                                                           @PathVariable(
                                                                                               name = "collectionId")
-                                                                                              String collectionId,
+                                                                                          String collectionId,
                                                                                           @RequestParam(
                                                                                               name = "tinyurl")
-                                                                                              String tinyurl,
+                                                                                          String tinyurl,
                                                                                           @RequestParam(
                                                                                               name = "filename",
                                                                                               defaultValue = "regards.zip")
-                                                                                              String filename) {
+                                                                                          String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response,
                                                                 Optional.of(collectionId),
                                                                 tinyurl,
@@ -200,7 +200,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
                                              @PathVariable(name = "collectionId") String collectionId,
                                              @RequestParam(name = "tinyurl") String tinyurl,
                                              @RequestParam(name = "filename", defaultValue = "regards.zip")
-                                                 String filename) {
+                                             String filename) {
         delegateDownloadToNginx(response, Optional.of(collectionId), tinyurl, filename);
     }
 
@@ -233,7 +233,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
                                                    @PathVariable(name = "collectionId") String collectionId,
                                                    @RequestParam(name = "tinyurl") String tinyurl,
                                                    @RequestParam(name = "filename", defaultValue = "regards.zip")
-                                                       String filename) {
+                                                   String filename) {
         delegateDownloadToNginx(response, Optional.of(collectionId), tinyurl, filename, Boolean.TRUE);
     }
 

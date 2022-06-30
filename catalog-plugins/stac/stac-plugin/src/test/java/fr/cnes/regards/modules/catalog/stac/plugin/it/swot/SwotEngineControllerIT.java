@@ -35,7 +35,6 @@ import fr.cnes.regards.modules.catalog.stac.service.collection.search.Collection
 import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
-import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import io.vavr.collection.HashMap;
@@ -56,7 +55,7 @@ import java.util.List;
  * @author Marc SORDI
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-        properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
+    properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractStacIT {
 
@@ -92,9 +91,8 @@ public class SwotEngineControllerIT extends AbstractStacIT {
                                                       SearchEngineConfiguration.class);
         searchEngineService.createConf(conf);
 
-        SearchEngineConfiguration collectionConf = loadFromJson(
-                getConfigFolder().resolve("STAC-collection-engine-configuration.json"),
-                SearchEngineConfiguration.class);
+        SearchEngineConfiguration collectionConf = loadFromJson(getConfigFolder().resolve(
+            "STAC-collection-engine-configuration.json"), SearchEngineConfiguration.class);
         searchEngineService.createConf(collectionConf);
     }
 
@@ -114,7 +112,9 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void getStaticCollections() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
-                          customizer, "Cannot reach STAC static collections", "static");
+                          customizer,
+                          "Cannot reach STAC static collections",
+                          "static");
     }
 
     @Test
@@ -122,7 +122,9 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // TODO get JSON result and make assertion on expected collection links
         performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_COLLECTION_PATH_SUFFIX,
-                          customizer, "Cannot reach STAC dynamic collections", "dynamic");
+                          customizer,
+                          "Cannot reach STAC dynamic collections",
+                          "dynamic");
     }
 
     @Test
@@ -130,8 +132,10 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // L2_HR_RASTER URN
         String urn = "URN:DYNCOLL:eyJscyI6W3sicCI6Imh5ZHJvOmRhdGFfdHlwZSIsInYiOiJMMl9IUl9SQVNURVIifV19";
-        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_ITEMS_PATH_SUFFIX, customizer,
-                          "Cannot reach STAC collection items", urn);
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + StacApiConstants.STAC_ITEMS_PATH_SUFFIX,
+                          customizer,
+                          "Cannot reach STAC collection items",
+                          urn);
     }
 
     @Test
@@ -253,8 +257,9 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchItemsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         ItemSearchBody body = ItemSearchBody.builder()
-                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
-                .build();
+                                            .datetime(DateInterval.parseDateInterval(
+                                                "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                                            .build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
@@ -270,7 +275,9 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchItemsOfDataType() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         ItemSearchBody body = ItemSearchBody.builder()
-                .query(HashMap.of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build())).build();
+                                            .query(HashMap.of("hydro:data_type",
+                                                              StringQueryObject.builder().eq("L1B_HR_SLC").build()))
+                                            .build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
@@ -278,13 +285,16 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchCollectionsAsPostWithItemParameter() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define item criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("hydro:data_type",
+                                                           StringQueryObject.builder().eq("L1B_HR_SLC").build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(q).build();
+                                                                                                              .query(q)
+                                                                                                              .build();
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -304,11 +314,16 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectValue("$.context.matched", matchedCollections);
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("title", StringQueryObject.builder().contains(text).matchType(matchType).build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("title",
+                                                           StringQueryObject.builder()
+                                                                            .contains(text)
+                                                                            .matchType(matchType)
+                                                                            .build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -319,25 +334,34 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         // Define collection criteria
         //        Map<String, SearchBody.QueryObject> q = HashMap
         //                .of("title", StringQueryObject.builder().containsAll(io.vavr.collection.List.of("hr slc")).matchType("text").build());
-        Map<String, SearchBody.QueryObject> q = HashMap.of("title", StringQueryObject.builder()
-                .containsAll(io.vavr.collection.List.of("ras", "HR")).matchType("text").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("title",
+                                                           StringQueryObject.builder()
+                                                                            .containsAll(io.vavr.collection.List.of(
+                                                                                "ras",
+                                                                                "HR"))
+                                                                            .matchType("text")
+                                                                            .build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
-
 
     @Test
     public void searchCollectionsAsPostWithDescription() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("description", StringQueryObject.builder().contains("Description").build(), "description",
-                    StringQueryObject.builder().contains("L2").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("description",
+                                                           StringQueryObject.builder().contains("Description").build(),
+                                                           "description",
+                                                           StringQueryObject.builder().contains("L2").build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -345,11 +369,13 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchCollectionsAsPostWithKeywords() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("keywords", StringQueryObject.builder().contains("Level 2").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("keywords",
+                                                           StringQueryObject.builder().contains("Level 2").build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -357,11 +383,13 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchCollectionsAsPostWithLicense() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("license", StringQueryObject.builder().contains("LicenseOne").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("license",
+                                                           StringQueryObject.builder().contains("LicenseOne").build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -369,11 +397,13 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchCollectionsAsPostWithProviderName() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> q = HashMap
-                .of("providers.name", StringQueryObject.builder().contains("JPL").build());
+        Map<String, SearchBody.QueryObject> q = HashMap.of("providers.name",
+                                                           StringQueryObject.builder().contains("JPL").build());
         CollectionSearchBody body = CollectionSearchBody.builder().query(q).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -383,16 +413,19 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         customizer.expectValue("$.context.matched", 1);
         customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
         // Define item criteria
-        Map<String, SearchBody.QueryObject> iq = HashMap
-                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:data_type",
+                                                            StringQueryObject.builder().eq("L1B_HR_SLC").build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
+                                                                                                              .query(iq)
+                                                                                                              .build();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> cq = HashMap
-                .of("title", StringQueryObject.builder().contains("L1B").build());
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("title",
+                                                            StringQueryObject.builder().contains("L1B").build());
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -402,18 +435,36 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         //        customizer.expectValue("$.context.matched", 1);
         //        customizer.expectValue("$.collections[0].title", "L1B HR SLC Title");
         // Define item criteria
-        Map<String, SearchBody.QueryObject> iq = HashMap
-                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:data_type",
+                                                            StringQueryObject.builder().eq("L1B_HR_SLC").build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .intersects(IGeometry.simplePolygon(1.3, 43.5, 1.5, 43.5, 1.5, 43.6, 1.3, 43.6))
-                .datetime(DateInterval.parseDateInterval("2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
-                .build();
+                                                                                                              .intersects(
+                                                                                                                  IGeometry.simplePolygon(
+                                                                                                                      1.3,
+                                                                                                                      43.5,
+                                                                                                                      1.5,
+                                                                                                                      43.5,
+                                                                                                                      1.5,
+                                                                                                                      43.6,
+                                                                                                                      1.3,
+                                                                                                                      43.6))
+                                                                                                              .datetime(
+                                                                                                                  DateInterval.parseDateInterval(
+                                                                                                                                  "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z")
+                                                                                                                              .get()
+                                                                                                                              .get())
+                                                                                                              .build();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> cq = HashMap
-                .of("keywords", StringQueryObject.builder().contains("L2").matchType("keyword").build());
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("keywords",
+                                                            StringQueryObject.builder()
+                                                                             .contains("L2")
+                                                                             .matchType("keyword")
+                                                                             .build());
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -423,16 +474,19 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         customizer.expectValue("$.context.matched", 0);
 
         // Define item criteria
-        Map<String, SearchBody.QueryObject> iq = HashMap
-                .of("hydro:data_type", StringQueryObject.builder().eq("L1B_HR_SLC").build());
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:data_type",
+                                                            StringQueryObject.builder().eq("L1B_HR_SLC").build());
         CollectionSearchBody.CollectionItemSearchBody itemBody = CollectionSearchBody.CollectionItemSearchBody.builder()
-                .query(iq).build();
+                                                                                                              .query(iq)
+                                                                                                              .build();
         // Define collection criteria
-        Map<String, SearchBody.QueryObject> cq = HashMap
-                .of("title", StringQueryObject.builder().contains("L2").build());
+        Map<String, SearchBody.QueryObject> cq = HashMap.of("title",
+                                                            StringQueryObject.builder().contains("L2").build());
         CollectionSearchBody body = CollectionSearchBody.builder().item(itemBody).query(cq).build();
 
-        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH, body, customizer,
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH,
+                           body,
+                           customizer,
                            "Cannot search STAC collections");
     }
 
@@ -451,9 +505,11 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     public void searchTags() {
         String propertyPath = "tags";
         String partialText = "URN:AIP:DATASET";
-        List<String> matchingDatasets = catalogSearchService
-                .retrieveEnumeratedPropertyValues(ICriterion.all(), SearchType.DATAOBJECTS, propertyPath, 500,
-                                                  partialText);
+        List<String> matchingDatasets = catalogSearchService.retrieveEnumeratedPropertyValues(ICriterion.all(),
+                                                                                              SearchType.DATAOBJECTS,
+                                                                                              propertyPath,
+                                                                                              500,
+                                                                                              partialText);
         LOGGER.info("List of matching datasets : {}", matchingDatasets);
     }
 

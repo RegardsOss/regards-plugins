@@ -14,24 +14,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package fr.cnes.regards.modules.catalog.stac.testutils.random;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
+import com.google.common.reflect.TypeToken;
+import io.github.xshadov.easyrandom.vavr.factory.VavrRandomizerFactory;
+import io.vavr.control.Either;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.api.RandomizerRegistry;
 
-import com.google.common.reflect.TypeToken;
-
-import io.github.xshadov.easyrandom.vavr.factory.VavrRandomizerFactory;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * This class provides random generation for vavr collection wrappers.
@@ -63,8 +61,9 @@ public class VavrWrappersRegistry implements RandomizerRegistry {
             final Class<?> leftClass = rawType(leftType);
             final Type rightType = ((ParameterizedType) genericType).getActualTypeArguments()[1];
             final Class<?> rightClass = rawType(rightType);
-            return new VavrEitherRandomizer(() -> easyRandom.nextBoolean(), getRandomizer(leftType, leftClass),
-                    getRandomizer(rightType, rightClass));
+            return new VavrEitherRandomizer(() -> easyRandom.nextBoolean(),
+                                            getRandomizer(leftType, leftClass),
+                                            getRandomizer(rightType, rightClass));
         } else if (fieldType.equals(Option.class)) {
             final Type valueType = ((ParameterizedType) genericType).getActualTypeArguments()[0];
             final Class<?> valueClass = rawType(valueType);

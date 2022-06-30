@@ -19,13 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level;
 
-
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.ExactValueSublevelDef;
 import io.vavr.collection.List;
 import lombok.Value;
-
 
 /**
  * Exact-value specific level definition.
@@ -49,10 +47,7 @@ public class ExactValueLevelDef implements DynCollLevelDef<ExactValueSublevelDef
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return value.getSublevels()
-            .headOption()
-            .map(DynCollSublevelVal::getSublevelValue)
-            .getOrElse(toLabel("?"));
+        return value.getSublevels().headOption().map(DynCollSublevelVal::getSublevelValue).getOrElse(toLabel("?"));
     }
 
     @Override

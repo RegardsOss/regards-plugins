@@ -65,7 +65,7 @@ public class DownloadPreparationResponse {
         String collectionId;
 
         /* This identifier is used as a discriminant when two collections have the same collectionID */
-        private  String correlationId;
+        private String correlationId;
 
         /**
          * Size in bytes
@@ -100,6 +100,7 @@ public class DownloadPreparationResponse {
     @Value
     @With
     public static class DownloadSamplePreparationResponse {
+
         /**
          * Size in bytes
          */

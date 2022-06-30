@@ -28,41 +28,43 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
     public void testSerde() {
         // GIVEN
         SearchOtherPageItemBodySerdeServiceImpl service = new SearchOtherPageItemBodySerdeServiceImpl(gson());
-        randomList(ItemSearchBody.class, 100)
-            .forEach(item -> {
-                // WHEN
-                String repr = service.serialize(item);
-                // THEN
-                Try<ItemSearchBody> deserialize = service.deserialize(repr);
-                assertThat(deserialize).contains(item);
-            });
+        randomList(ItemSearchBody.class, 100).forEach(item -> {
+            // WHEN
+            String repr = service.serialize(item);
+            // THEN
+            Try<ItemSearchBody> deserialize = service.deserialize(repr);
+            assertThat(deserialize).contains(item);
+        });
     }
 
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest
     @Override
     public void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
-        params
-            .randomize(Extent.Temporal.class, () ->
-                new Extent.Temporal(List.range(0, generator.nextInt(10))
-                    .map(i -> Tuple.of(
-                            generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class),
-                            generator.nextBoolean() ? null : generator.nextObject(OffsetDateTime.class)
-                    ))
-                )
-            )
-            .randomize(SearchBody.QueryObject.class, () -> {
-                return generator.nextBoolean()
-                        ? generator.nextBoolean()
-                        ? generator.nextObject(SearchBody.BooleanQueryObject.class)
-                        : generator.nextObject(SearchBody.NumberQueryObject.class)
-                        : generator.nextObject(SearchBody.StringQueryObject.class);
-            })
-            .randomize(DateInterval.class, () -> {
-                return generator.nextBoolean() ? DateInterval.single(generator.nextObject(OffsetDateTime.class))
-                        : generator.nextBoolean() ? DateInterval.from(generator.nextObject(OffsetDateTime.class))
-                        : generator.nextBoolean() ? DateInterval.to(generator.nextObject(OffsetDateTime.class))
-                        : DateInterval.of(generator.nextObject(OffsetDateTime.class), generator.nextObject(OffsetDateTime.class));
-            });
+        params.randomize(Extent.Temporal.class,
+                         () -> new Extent.Temporal(List.range(0, generator.nextInt(10))
+                                                       .map(i -> Tuple.of(generator.nextBoolean() ?
+                                                                              null :
+                                                                              generator.nextObject(OffsetDateTime.class),
+                                                                          generator.nextBoolean() ?
+                                                                              null :
+                                                                              generator.nextObject(OffsetDateTime.class)))))
+              .randomize(SearchBody.QueryObject.class, () -> {
+                  return generator.nextBoolean() ?
+                      generator.nextBoolean() ?
+                          generator.nextObject(SearchBody.BooleanQueryObject.class) :
+                          generator.nextObject(SearchBody.NumberQueryObject.class) :
+                      generator.nextObject(SearchBody.StringQueryObject.class);
+              })
+              .randomize(DateInterval.class, () -> {
+                  return generator.nextBoolean() ?
+                      DateInterval.single(generator.nextObject(OffsetDateTime.class)) :
+                      generator.nextBoolean() ?
+                          DateInterval.from(generator.nextObject(OffsetDateTime.class)) :
+                          generator.nextBoolean() ?
+                              DateInterval.to(generator.nextObject(OffsetDateTime.class)) :
+                              DateInterval.of(generator.nextObject(OffsetDateTime.class),
+                                              generator.nextObject(OffsetDateTime.class));
+              });
     }
 
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest

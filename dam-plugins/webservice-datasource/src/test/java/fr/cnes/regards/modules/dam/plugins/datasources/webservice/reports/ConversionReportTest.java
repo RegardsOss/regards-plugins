@@ -40,9 +40,12 @@ public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT 
         for (FeatureConversionError error : feat.getErrors()) {
             // escape error non HTML chars (StringEscapeUtils.escapeHtml not working there - not sure of the work performed by freemarker so just replace the quote char)
             String msgForHTML = error.getMessage().replaceAll("'", "&#39;");
-            Assert.assertTrue("feat# " + feat.getIndex() + " error '" + msgForHTML
-                                  + "' must be displayed. It was not found in report:\n" + builtNotification,
-                              builtNotification.contains(msgForHTML));
+            Assert.assertTrue("feat# "
+                              + feat.getIndex()
+                              + " error '"
+                              + msgForHTML
+                              + "' must be displayed. It was not found in report:\n"
+                              + builtNotification, builtNotification.contains(msgForHTML));
         }
     }
 

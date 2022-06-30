@@ -37,21 +37,30 @@ public interface CollectionDownloadService {
     /**
      * Use standard response output stream
      */
-    void prepareDescriptor(OutputStream outputStream, Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator, boolean onlySample);
+    void prepareDescriptor(OutputStream outputStream,
+                           Optional<String> collectionId,
+                           final String tinyurl,
+                           DownloadLinkCreator downloadLinkCreator,
+                           boolean onlySample);
 
     /**
      * Use a non-blocking stream
      */
-    Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId, final String tinyurl,
-            DownloadLinkCreator downloadLinkCreator, boolean onlySample);
+    Try<StreamingResponseBody> prepareDescriptorAsStream(Optional<String> collectionId,
+                                                         final String tinyurl,
+                                                         DownloadLinkCreator downloadLinkCreator,
+                                                         boolean onlySample);
 
     /**
      * Generate a script according to the given context through tinyurl
+     *
      * @param searchPageLinkCreator help class to generate links
-     * @param outputStream current output stream for sending file content
-     * @param collectionId optional collection id
-     * @param tinyurl context (store all criteria)
+     * @param outputStream          current output stream for sending file content
+     * @param collectionId          optional collection id
+     * @param tinyurl               context (store all criteria)
      */
-    void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator, OutputStream outputStream, Optional<String> collectionId, final String tinyurl);
+    void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator,
+                             OutputStream outputStream,
+                             Optional<String> collectionId,
+                             final String tinyurl);
 }

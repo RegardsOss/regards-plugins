@@ -26,10 +26,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
  */
 public interface PropertyConverterFactory {
 
-    AbstractPropertyConverter<?, ?> getConverter(
-            StacPropertyType type,
-            String stacFormat,
-            String regardsFormat
-    );
+    AbstractPropertyConverter<?, ?> getConverter(StacPropertyType type, String stacFormat, String regardsFormat);
 
 }

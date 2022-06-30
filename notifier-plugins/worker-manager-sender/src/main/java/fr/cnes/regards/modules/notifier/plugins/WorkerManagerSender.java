@@ -191,9 +191,9 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
             String defaultSessionName = SESSION_NAME_PATTERN_ERROR.replaceAll(WS_SESSION_PATTERN,
                                                                               String.format("$1-%s", currentDate));
             LOGGER.warn("The pattern configured in {} \"{}\" has an invalid pattern.\nCheck if : "
-                            + "- The RegExp is valid and follow the pattern {<jsonPathToAccessProductType>}-#day(.*) \n"
-                            + "- The JsonPath to access the feature type is valid.\n"
-                            + "The session will be named by default: \"{}\".",
+                        + "- The RegExp is valid and follow the pattern {<jsonPathToAccessProductType>}-#day(.*) \n"
+                        + "- The JsonPath to access the feature type is valid.\n"
+                        + "The session will be named by default: \"{}\".",
                         WS_SESSION_NAME_PATTERN_NAME,
                         sessionNamePattern,
                         defaultSessionName);

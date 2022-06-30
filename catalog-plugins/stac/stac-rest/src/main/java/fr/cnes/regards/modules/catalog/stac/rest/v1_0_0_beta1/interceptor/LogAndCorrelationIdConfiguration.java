@@ -33,7 +33,6 @@ public class LogAndCorrelationIdConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LogAndCorrelationIdInterceptor())
-            .addPathPatterns(STAC_PATH + "/**");
+        registry.addInterceptor(new LogAndCorrelationIdInterceptor()).addPathPatterns(STAC_PATH + "/**");
     }
 }

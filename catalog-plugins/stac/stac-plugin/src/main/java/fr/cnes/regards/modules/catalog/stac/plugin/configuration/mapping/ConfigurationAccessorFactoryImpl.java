@@ -47,7 +47,8 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.ArrayList;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.trace;
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
@@ -56,7 +57,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  */
 @Component
 public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAccessor
-        implements ConfigurationAccessorFactory {
+    implements ConfigurationAccessorFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationAccessorFactoryImpl.class);
 
@@ -68,8 +69,10 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
     @Autowired
     public ConfigurationAccessorFactoryImpl(PropertyConverterFactory propertyConverterFactory,
-            IPluginService pluginService, RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
-            IRuntimeTenantResolver runtimeTenantResolver, ProjectGeoSettings geoSettings) {
+                                            IPluginService pluginService,
+                                            RegardsPropertyAccessorFactory regardsPropertyAccessorFactory,
+                                            IRuntimeTenantResolver runtimeTenantResolver,
+                                            ProjectGeoSettings geoSettings) {
         super(pluginService, regardsPropertyAccessorFactory);
         this.propertyConverterFactory = propertyConverterFactory;
         this.runtimeTenantResolver = runtimeTenantResolver;
@@ -100,37 +103,42 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
             @Override
             public List<StacProperty> getStacProperties() {
                 return plugin.map(ConfigurationAccessorFactoryImpl.this::getConfiguredProperties)
-                        .getOrElse(List.empty());
+                             .getOrElse(List.empty());
             }
 
             @Override
             public StacProperty getDatetimeStacProperty() {
                 return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyConfiguration())
-                        .map(spc -> getConfiguredProperties(List.of(spc)).head()).getOrNull();
+                             .map(spc -> getConfiguredProperties(List.of(spc)).head())
+                             .getOrNull();
             }
 
             @Override
             public StacProperty getLinksStacProperty() {
                 String stacPropertyName = StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME;
-                return plugin.map(p -> makeStacProperty(p.getStacLinksProperty(), stacPropertyName,
-                                                        StacPropertyType.JSON_OBJECT)).getOrElse(
-                        makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
-                                                stacPropertyName, StacPropertyType.JSON_OBJECT));
+                return plugin.map(p -> makeStacProperty(p.getStacLinksProperty(),
+                                                        stacPropertyName,
+                                                        StacPropertyType.JSON_OBJECT))
+                             .getOrElse(makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
+                                                                stacPropertyName,
+                                                                StacPropertyType.JSON_OBJECT));
             }
 
             @Override
             public StacProperty getAssetsStacProperty() {
                 String stacPropertyName = StacSpecConstants.PropertyName.STAC_ASSETS_PROPERTY_NAME;
-                return plugin.map(p -> makeStacProperty(p.getStacAssetsProperty(), stacPropertyName,
-                                                        StacPropertyType.JSON_OBJECT)).getOrElse(
-                        makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
-                                                stacPropertyName, StacPropertyType.JSON_OBJECT));
+                return plugin.map(p -> makeStacProperty(p.getStacAssetsProperty(),
+                                                        stacPropertyName,
+                                                        StacPropertyType.JSON_OBJECT))
+                             .getOrElse(makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
+                                                                stacPropertyName,
+                                                                StacPropertyType.JSON_OBJECT));
             }
 
             @Override
             public List<Provider> getProviders(String datasetUrn) {
                 return getCollectionConfigs(datasetUrn).flatMap(CollectionConfiguration::getProviders)
-                        .map(pc -> getProvider(pc));
+                                                       .map(pc -> getProvider(pc));
             }
 
             @Override
@@ -140,13 +148,16 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
             @Override
             public String getLicense(String datasetUrn) {
-                return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense)
-                        .getOrNull();
+                return getCollectionConfigs(datasetUrn).headOption()
+                                                       .map(CollectionConfiguration::getLicense)
+                                                       .getOrNull();
             }
 
             private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
-                return plugin.map(StacSearchEngine::getStacCollectionDatasetProperties).map(List::ofAll)
-                        .getOrElse(List.empty()).filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+                return plugin.map(StacSearchEngine::getStacCollectionDatasetProperties)
+                             .map(List::ofAll)
+                             .getOrElse(List.empty())
+                             .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
             }
 
             @Override
@@ -168,22 +179,29 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
             @Override
             public String getEODAGPortalName() {
-                return plugin.map(StacSearchEngine::getEodagConfiguration).map(EODAGConfiguration::getPortalName).getOrElse(() -> getTitle());
+                return plugin.map(StacSearchEngine::getEodagConfiguration)
+                             .map(EODAGConfiguration::getPortalName)
+                             .getOrElse(() -> getTitle());
             }
 
             @Override
             public String getEODAGProvider() {
-                return plugin.map(StacSearchEngine::getEodagConfiguration).map(EODAGConfiguration::getProvider).getOrElse("provider");
+                return plugin.map(StacSearchEngine::getEodagConfiguration)
+                             .map(EODAGConfiguration::getProvider)
+                             .getOrElse("provider");
             }
         };
     }
 
     private Provider getProvider(ProviderConfiguration pc) {
-        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles()).flatMap(
-                role -> trying(() -> ProviderRole.valueOf(role))
-                        .onFailure(t -> warn(LOGGER, "Failed to parse provider role {}", role)));
-        URL providerUrl = trying(() -> new URL(pc.getProviderUrl()))
-                .onFailure(t -> warn(LOGGER, "Failed to parse provider URL in {}", pc)).getOrNull();
+        List<ProviderRole> roles = List.ofAll(pc.getProviderRoles())
+                                       .flatMap(role -> trying(() -> ProviderRole.valueOf(role)).onFailure(t -> warn(
+                                           LOGGER,
+                                           "Failed to parse provider role {}",
+                                           role)));
+        URL providerUrl = trying(() -> new URL(pc.getProviderUrl())).onFailure(t -> warn(LOGGER,
+                                                                                         "Failed to parse provider URL in {}",
+                                                                                         pc)).getOrNull();
         return new Provider(pc.getProviderName(), pc.getProviderDescription(), providerUrl, roles);
     }
 
@@ -191,13 +209,20 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
         return paramConfigurations.map(s -> {
             trace(LOGGER, "Converting stac prop config: {}", s);
             StacPropertyType stacType = StacPropertyType.parse(s.getStacPropertyType());
-            @SuppressWarnings("rawtypes") AbstractPropertyConverter converter = propertyConverterFactory
-                    .getConverter(stacType, s.getStacPropertyFormat(), s.getSourcePropertyFormat());
-            return new StacProperty(extractPropertyAccessor(s, stacType), s.getStacPropertyNamespace(),
-                                    s.getStacPropertyName(), s.getStacPropertyExtension(),
+            @SuppressWarnings("rawtypes") AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
+                stacType,
+                s.getStacPropertyFormat(),
+                s.getSourcePropertyFormat());
+            return new StacProperty(extractPropertyAccessor(s, stacType),
+                                    s.getStacPropertyNamespace(),
+                                    s.getStacPropertyName(),
+                                    s.getStacPropertyExtension(),
                                     s.getStacComputeSummary() && canComputeSummary(stacType),
-                                    s.getStacDynamicCollectionLevel(), s.getStacDynamicCollectionFormat(), stacType,
-                                    converter, Boolean.FALSE);
+                                    s.getStacDynamicCollectionLevel(),
+                                    s.getStacDynamicCollectionFormat(),
+                                    stacType,
+                                    converter,
+                                    Boolean.FALSE);
         }).toList();
     }
 
@@ -207,22 +232,42 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
     private List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {
         java.util.List<StacPropertyConfiguration> propConfigs = Option.of(plugin.getStacExtraProperties())
-                .getOrElse(new ArrayList<>());
+                                                                      .getOrElse(new ArrayList<>());
         StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyConfiguration();
         return addVirtualStacProperties(getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp)));
     }
 
     private StacProperty makeStacProperty(StacSourcePropertyConfiguration sourcePropertyConfiguration,
-            String stacPropertyName, StacPropertyType stacType) {
-        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null, stacPropertyName,
-                                null, false, null, null, stacType, null, Boolean.FALSE);
+                                          String stacPropertyName,
+                                          StacPropertyType stacType) {
+        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType),
+                                null,
+                                stacPropertyName,
+                                null,
+                                false,
+                                null,
+                                null,
+                                stacType,
+                                null,
+                                Boolean.FALSE);
     }
 
-    private StacProperty makeDefaultStacProperty(String sourcePropertyPath, String stacPropertyName,
-            StacPropertyType stacType) {
+    private StacProperty makeDefaultStacProperty(String sourcePropertyPath,
+                                                 String stacPropertyName,
+                                                 StacPropertyType stacType) {
         StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
-                sourcePropertyPath, null, null);
-        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType), null, stacPropertyName,
-                                null, false, null, null, stacType, null, Boolean.FALSE);
+            sourcePropertyPath,
+            null,
+            null);
+        return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType),
+                                null,
+                                stacPropertyName,
+                                null,
+                                false,
+                                null,
+                                null,
+                                stacType,
+                                null,
+                                Boolean.FALSE);
     }
 }

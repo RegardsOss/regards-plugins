@@ -35,14 +35,19 @@ import java.net.URI;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md#asset-object">description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/json-schema/item.json#L183">json schema</a>
  */
-@Value @With
+@Value
+@With
 public class Asset {
 
     URI href;
+
     String title;
+
     String description;
 
-    /** Media type of the asset */
+    /**
+     * Media type of the asset
+     */
     String type;
 
     @JsonAdapter(RoleTypeAdapter.class)
@@ -54,6 +59,7 @@ public class Asset {
      * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md#media-types"></a>
      */
     public interface MediaType {
+
         String IMAGE_TIFF_GEOTIFF = "image/tiff; application=geotiff";
         String IMAGE_TIFF_GEOTIFF_CLOUD_OPTIMIZED = "image/tiff; application=geotiff; profile=cloud-optimized";
         String IMAGE_JPEG2000 = "image/jp2";
@@ -73,6 +79,7 @@ public class Asset {
      * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md#asset-role-types">description</a>
      */
     public interface Roles {
+
         String THUMBNAIL = "thumbnail";
         String OVERVIEW = "overview";
         String DATA = "data";

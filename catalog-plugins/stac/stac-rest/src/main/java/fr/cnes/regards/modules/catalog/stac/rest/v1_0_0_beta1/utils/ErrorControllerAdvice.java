@@ -47,10 +47,15 @@ public class ErrorControllerAdvice {
 
     @Value
     static class ErrorStructure {
+
         UUID correlationId;
+
         String type;
+
         String message;
+
         String cause;
+
         OffsetDateTime time;
     }
 
@@ -58,17 +63,11 @@ public class ErrorControllerAdvice {
     public ResponseEntity<ErrorStructure> formatStacError(StacException e) {
         UUID cid = StacRequestCorrelationId.currentCId();
         error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
-        return new ResponseEntity<>(
-                new ErrorStructure(
-                    cid,
-                    e.getType().name(),
-                    e.getMessage(),
-                    e.getCause() == null ? null : e.getCause().getMessage(),
-                    OffsetDateTime.now()
-                ),
-                headers(),
-                e.getType().getStatus()
-        );
+        return new ResponseEntity<>(new ErrorStructure(cid,
+                                                       e.getType().name(),
+                                                       e.getMessage(),
+                                                       e.getCause() == null ? null : e.getCause().getMessage(),
+                                                       OffsetDateTime.now()), headers(), e.getType().getStatus());
     }
 
     public HttpHeaders headers() {
@@ -82,17 +81,13 @@ public class ErrorControllerAdvice {
     public ResponseEntity<ErrorStructure> formatError(Throwable e) {
         UUID cid = StacRequestCorrelationId.currentCId();
         error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
-        return new ResponseEntity<>(
-            new ErrorStructure(
-                cid,
-                StacFailureType.UNKNOWN.name(),
-                e.getMessage(),
-                e.getCause() == null ? null : e.getCause().getMessage(),
-                OffsetDateTime.now()
-            ),
-            headers(),
-            StacFailureType.UNKNOWN.getStatus()
-        );
+        return new ResponseEntity<>(new ErrorStructure(cid,
+                                                       StacFailureType.UNKNOWN.name(),
+                                                       e.getMessage(),
+                                                       e.getCause() == null ? null : e.getCause().getMessage(),
+                                                       OffsetDateTime.now()),
+                                    headers(),
+                                    StacFailureType.UNKNOWN.getStatus());
     }
 
 }

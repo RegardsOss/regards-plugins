@@ -242,8 +242,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             boolean downloadOk = false;
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                 FileLock zipLock = zipFC.lock();
-                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
-                    ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
+                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
+                                                                                                   .toString()), env)) {
                     Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
                     if (Files.exists(pathInZip)) {
                         //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
@@ -356,10 +356,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             // Lets create the first one
             Map<String, String> env = new HashMap<>(1);
             env.put(CREATE_ENV_FS, "true");
-            Path zipPath = storageLocation.resolve(
-                "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC) + ".zip");
-            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
-                ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
+            Path zipPath = storageLocation.resolve("regards_"
+                                                   + OffsetDateTime.now()
+                                                                   .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
+                                                   + ".zip");
+            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
+                                                                                               .toString()), env)) {
                 // now that zip has been created, lets create the link.
                 Files.createSymbolicLink(linkPath, zipPath);
             }
@@ -380,11 +382,14 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                             // create a new zip and make the link points to the new zip
                             Map<String, String> env = new HashMap<>(1);
                             env.put(CREATE_ENV_FS, "true");
-                            Path newZipPath = storageLocation.resolve(
-                                "regards_" + OffsetDateTime.now().format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
-                                    + ".zip");
-                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
-                                ZIP_PROTOCOL + newZipPath.toAbsolutePath().toString()), env)) {
+                            Path newZipPath = storageLocation.resolve("regards_"
+                                                                      + OffsetDateTime.now()
+                                                                                      .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
+                                                                      + ".zip");
+                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
+                                                                                         + newZipPath.toAbsolutePath()
+                                                                                                     .toString()),
+                                                                              env)) {
                                 // now that zip has been created, lets create the link.
                                 Files.deleteIfExists(linkPath);
                                 Files.createSymbolicLink(linkPath, newZipPath);
@@ -444,8 +449,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                     try {
                         FileLock zipLock = zipFC.lock();
                         try {
-                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(
-                                ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), env)) {
+                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
+                                                                                         + zipPath.toAbsolutePath()
+                                                                                                  .toString()), env)) {
                                 Path pathInZip = zipFs.getPath(checksum);
                                 Files.deleteIfExists(pathInZip);
                                 progressManager.deletionSucceed(request);
@@ -535,8 +541,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                      StandardOpenOption.WRITE,
                                                      StandardOpenOption.READ); // NOSONAR
                 FileLock zipLock = zipFC.lock();
-                FileSystem zipFs = FileSystems.newFileSystem(URI.create(
-                                                                 ZIP_PROTOCOL + zipPath.toAbsolutePath().toString()), // NOSONAR
+                FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()
+                                                                                              .toString()), // NOSONAR
                                                              env); // NOSONAR
                 Path pathInZip = zipFs.getPath(checksum);
                 return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);

@@ -34,18 +34,23 @@ import java.util.function.Function;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md#link-object">description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/json-schema/item.json#L144">json schema</a>
  */
-@Value @With
+@Value
+@With
 public class Link {
 
     URI href;
+
     String rel;
+
     String type;
+
     String title;
 
     /**
      * List of common relations name constants.
      */
     public interface Relations {
+
         String SELF = "self";
         String ROOT = "root";
         String PARENT = "parent";

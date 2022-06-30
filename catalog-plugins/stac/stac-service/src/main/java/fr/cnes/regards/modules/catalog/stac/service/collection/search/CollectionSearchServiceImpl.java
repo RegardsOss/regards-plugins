@@ -35,8 +35,8 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -123,7 +123,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     @Autowired
     private TinyUrlService tinyUrlService;
-    
+
     @Autowired
     private IdMappingService idMappingService;
 
@@ -147,10 +147,10 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                      collectionStacProperties);
 
         // Build item search criteria
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
-            collectionSearchBody.getItem() == null ?
-                CollectionSearchBody.CollectionItemSearchBody.builder().build() :
-                collectionSearchBody.getItem();
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = collectionSearchBody.getItem()
+                                                                                 == null ?
+            CollectionSearchBody.CollectionItemSearchBody.builder().build() :
+            collectionSearchBody.getItem();
         ICriterion itemCriteria = searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
                                                         .getOrElse(ICriterion.all());
         Option<ICriterion> idCriterion;
@@ -455,28 +455,29 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
         return Try.of(() -> {
 
-            // Translate collection id to urn
-            UniformResourceName datasetUrn = parseCollectionUrn(
-                    idMappingService.getUrnByStacId(collectionFilters.getCollectionId())).get();
+                      // Translate collection id to urn
+                      UniformResourceName datasetUrn = parseCollectionUrn(idMappingService.getUrnByStacId(collectionFilters.getCollectionId())).get();
 
                       // Retrieve configured item properties
                       ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
                       List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
 
-            // Build item search criteria with dataset filter
-            CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
-                    collectionFilters.getFilters() == null ?
-                            CollectionSearchBody.CollectionItemSearchBody.builder().build() :
-                            collectionFilters.getFilters();
-            // Build item criteria
-            ICriterion itemCriteria = ICriterion.and(
-                    ICriterion.eq(StaticProperties.FEATURE_TAGS, datasetUrn.toString(), StringMatchType.KEYWORD),
-                    searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
-                            .getOrElse(ICriterion.all()));
-            // Transform and store request as EODagParameters
-            Option<EODagParameters> eoDagParameters = searchCriterionBuilder.buildEODagParameters(itemStacProperties,
-                                                                                                  collectionFilters.getCollectionId(),
-                                                                                                  collectionItemSearchBody);
+                      // Build item search criteria with dataset filter
+                      CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = collectionFilters.getFilters()
+                                                                                               == null ?
+                          CollectionSearchBody.CollectionItemSearchBody.builder().build() :
+                          collectionFilters.getFilters();
+                      // Build item criteria
+                      ICriterion itemCriteria = ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS,
+                                                                             datasetUrn.toString(),
+                                                                             StringMatchType.KEYWORD),
+                                                               searchCriterionBuilder.buildCriterion(itemStacProperties,
+                                                                                                     collectionItemSearchBody)
+                                                                                     .getOrElse(ICriterion.all()));
+                      // Transform and store request as EODagParameters
+                      Option<EODagParameters> eoDagParameters = searchCriterionBuilder.buildEODagParameters(itemStacProperties,
+                                                                                                            collectionFilters.getCollectionId(),
+                                                                                                            collectionItemSearchBody);
 
                       // Compute summary and getting first hit
                       DocFilesSummary docFilesSummary = computeSummary(itemCriteria, datasetUrn).get();
@@ -495,7 +496,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                                    docFilesSummary.getDocumentsCount(),
                                                                                                    docFilesSummary.getFilesCount(),
                                                                                                    docFilesSummary.getDocumentsCount()
-                                                                                                       == 0 ?
+                                                                                                   == 0 ?
                                                                                                        null :
                                                                                                        tinyUrlURIPair.getSecond(),
                                                                                                    buildScriptDownloadLink(
@@ -510,7 +511,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                                        sampleDocFilesSummary.getFilesSize(),
                                                                                                        sampleDocFilesSummary.getFilesCount()),
                                                                                                    docFilesSummary.getDocumentsCount()
-                                                                                                       == 0 ?
+                                                                                                   == 0 ?
                                                                                                        List.of("No item found") :
                                                                                                        List.empty());
                   })

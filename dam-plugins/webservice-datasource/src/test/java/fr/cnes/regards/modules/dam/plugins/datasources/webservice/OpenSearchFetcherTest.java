@@ -86,7 +86,8 @@ public class OpenSearchFetcherTest {
                                                               "update",
                                                               0,
                                                               50,
-                                                              params), null, null).getFetchURL(new CrawlingCursor(0, 20),
+                                                              params), null, null).getFetchURL(new CrawlingCursor(0,
+                                                                                                                  20),
                                                                                                OffsetDateTime.parse(
                                                                                                    "2019-02-18T15:30:44.372Z")));
     }

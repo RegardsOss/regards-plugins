@@ -31,7 +31,8 @@ import org.springframework.stereotype.Component;
  * Implementation for the ItemSearchBodyFactory interface.
  */
 @Component
-public class CollectionSearchBodyFactoryImpl extends AbstractSearchBodyFactoryImpl implements CollectionSearchBodyFactory {
+public class CollectionSearchBodyFactoryImpl extends AbstractSearchBodyFactoryImpl
+    implements CollectionSearchBodyFactory {
 
     @Autowired
     public CollectionSearchBodyFactoryImpl(Gson gson) {

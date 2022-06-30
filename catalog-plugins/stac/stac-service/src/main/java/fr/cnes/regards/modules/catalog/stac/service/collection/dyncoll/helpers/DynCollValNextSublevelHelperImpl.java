@@ -26,10 +26,10 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased;
-import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import io.vavr.Tuple;
@@ -63,16 +63,18 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollValNextSublevelHelperImpl.class);
 
     private final DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter;
+
     private final StacSearchCriterionBuilder criterionBuilder;
+
     private final EsAggregationHelper aggregagtionHelper;
+
     private final ConfigurationAccessorFactory configFactory;
 
     @Autowired
-    public DynCollValNextSublevelHelperImpl(
-            DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
-            StacSearchCriterionBuilder criterionBuilder,
-            EsAggregationHelper aggregagtionHelper,
-            ConfigurationAccessorFactory configFactory) {
+    public DynCollValNextSublevelHelperImpl(DynCollLevelValToQueryObjectConverter levelValToQueryObjectConverter,
+                                            StacSearchCriterionBuilder criterionBuilder,
+                                            EsAggregationHelper aggregagtionHelper,
+                                            ConfigurationAccessorFactory configFactory) {
         this.levelValToQueryObjectConverter = levelValToQueryObjectConverter;
         this.criterionBuilder = criterionBuilder;
         this.aggregagtionHelper = aggregagtionHelper;
@@ -90,107 +92,109 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
 
         return val.firstPartiallyValued()
-                .map(pLVal -> extractExistingSublevels(val, pLVal))
-                .orElse(() -> val.firstMissingValue()
-                    .map(missingLDef -> extractNonExistingLevel(val, missingLDef, config)))
-                .getOrElse(List::empty);
+                  .map(pLVal -> extractExistingSublevels(val, pLVal))
+                  .orElse(() -> val.firstMissingValue()
+                                   .map(missingLDef -> extractNonExistingLevel(val, missingLDef, config)))
+                  .getOrElse(List::empty);
     }
 
-    private List<DynCollVal> extractNonExistingLevel(DynCollVal val, DynCollLevelDef<?> definition, ConfigurationAccessor config) {
+    private List<DynCollVal> extractNonExistingLevel(DynCollVal val,
+                                                     DynCollLevelDef<?> definition,
+                                                     ConfigurationAccessor config) {
         if (definition instanceof ExactValueLevelDef) {
-            return extractExactValueLevels(val, (ExactValueLevelDef)definition, config);
-        }
-        else if (definition instanceof NumberRangeLevelDef) {
+            return extractExactValueLevels(val, (ExactValueLevelDef) definition, config);
+        } else if (definition instanceof NumberRangeLevelDef) {
             return extractNumberRangeLevels(val, (NumberRangeLevelDef) definition);
-        }
-        else if (definition instanceof StringPrefixLevelDef) {
-            return extractStringPrefixFirstSublevel(val, (StringPrefixLevelDef)definition);
-        }
-        else if (definition instanceof DatePartsLevelDef) {
-            return extractDatePartsFirstSublevel(val, (DatePartsLevelDef)definition, config);
-        }
-        else {
+        } else if (definition instanceof StringPrefixLevelDef) {
+            return extractStringPrefixFirstSublevel(val, (StringPrefixLevelDef) definition);
+        } else if (definition instanceof DatePartsLevelDef) {
+            return extractDatePartsFirstSublevel(val, (DatePartsLevelDef) definition, config);
+        } else {
             error(LOGGER, "Missing case for a dynamic collection level next levels extraction: {}", val);
             return List.empty();
         }
     }
 
     @SuppressWarnings("unchecked")
-    private List<DynCollVal> extractExactValueLevels(DynCollVal val, ExactValueLevelDef definition, ConfigurationAccessor config) {
+    private List<DynCollVal> extractExactValueLevels(DynCollVal val,
+                                                     ExactValueLevelDef definition,
+                                                     ConfigurationAccessor config) {
         ICriterion criterion = computeCriterion(val, config.getStacProperties());
 
         StacProperty prop = definition.getStacProperty();
         String regardsAttributePath = getFullJsonPath(prop);
 
         String termsAggName = "terms";
-        AggregationBuilder termsAggBuilder = AggregationBuilders
-                .terms(termsAggName)
-                .field(regardsAttributePath);
+        AggregationBuilder termsAggBuilder = AggregationBuilders.terms(termsAggName).field(regardsAttributePath);
 
         Aggregations aggs = aggregagtionHelper.getAggregationsFor(criterion, List.of(termsAggBuilder));
         Terms termsAgg = aggs.get(termsAggName);
-        return List.ofAll(termsAgg.getBuckets())
-            .sortBy(MultiBucketsAggregation.Bucket::getKeyAsString)
-            .map(bucket -> {
-                String keyString = bucket.getKeyAsString();
+        return List.ofAll(termsAgg.getBuckets()).sortBy(MultiBucketsAggregation.Bucket::getKeyAsString).map(bucket -> {
+            String keyString = bucket.getKeyAsString();
 
-                Try<String> tryConvertedValue = prop.getConverter().convertRegardsToStac(bucket.getKey())
-                        .map(Object.class::cast)
-                        .map(Object::toString);
-                String exactValue = tryConvertedValue.getOrElse(keyString);
+            Try<String> tryConvertedValue = prop.getConverter()
+                                                .convertRegardsToStac(bucket.getKey())
+                                                .map(Object.class::cast)
+                                                .map(Object::toString);
+            String exactValue = tryConvertedValue.getOrElse(keyString);
 
-                String label = String.format("%s=%s (%d elements)", prop.getStacPropertyName(), exactValue, bucket.getDocCount());
+            String label = String.format("%s=%s (%d elements)",
+                                         prop.getStacPropertyName(),
+                                         exactValue,
+                                         bucket.getDocCount());
 
-                DynCollSublevelVal sublevelVal = new DynCollSublevelVal(new ExactValueSublevelDef(), exactValue, label);
-                DynCollLevelVal levelVal = new DynCollLevelVal(definition, List.of(sublevelVal));
-                List<DynCollLevelVal> newLevels = val.getLevels().append(levelVal);
+            DynCollSublevelVal sublevelVal = new DynCollSublevelVal(new ExactValueSublevelDef(), exactValue, label);
+            DynCollLevelVal levelVal = new DynCollLevelVal(definition, List.of(sublevelVal));
+            List<DynCollLevelVal> newLevels = val.getLevels().append(levelVal);
 
-                return val.withLevels(newLevels);
-            });
+            return val.withLevels(newLevels);
+        });
     }
 
     private List<DynCollVal> extractNumberRangeLevels(DynCollVal val, NumberRangeLevelDef definition) {
         NumberRangeSublevelDef sublevel = definition.getSublevel();
         double step = sublevel.getStep();
         return List.rangeBy(sublevel.getMin(), sublevel.getMax() + (step / 100d), step)
-                .prepend(null).append(null)
-                .sliding(2).toList()
-                .map(ls -> Tuple.of(ls.get(0), ls.get(1)))
-                .map(fromTo -> new DynCollSublevelVal(
-                        sublevel,
-                        toNumberRangeValue(definition, fromTo),
-                        toNumberRangeLabel(definition, fromTo)
-                ))
-                .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
-                .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
+                   .prepend(null)
+                   .append(null)
+                   .sliding(2)
+                   .toList()
+                   .map(ls -> Tuple.of(ls.get(0), ls.get(1)))
+                   .map(fromTo -> new DynCollSublevelVal(sublevel,
+                                                         toNumberRangeValue(definition, fromTo),
+                                                         toNumberRangeLabel(definition, fromTo)))
+                   .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
+                   .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
     }
 
-    private String toNumberRangeLabel(NumberRangeLevelDef definition, Tuple2<Double,Double> fromTo) {
+    private String toNumberRangeLabel(NumberRangeLevelDef definition, Tuple2<Double, Double> fromTo) {
         return definition.toRangeLabel(fromTo._1, fromTo._2);
     }
 
-    private String toNumberRangeValue(NumberRangeLevelDef definition, Tuple2<Double,Double> fromTo) {
+    private String toNumberRangeValue(NumberRangeLevelDef definition, Tuple2<Double, Double> fromTo) {
         return definition.toRangeValue(fromTo._1, fromTo._2);
     }
 
-    private List<DynCollVal> extractDatePartsFirstSublevel(DynCollVal val, DatePartsLevelDef definition, ConfigurationAccessor config) {
+    private List<DynCollVal> extractDatePartsFirstSublevel(DynCollVal val,
+                                                           DatePartsLevelDef definition,
+                                                           ConfigurationAccessor config) {
         ICriterion criterion = computeCriterion(val, config.getStacProperties());
 
         StacProperty prop = definition.getStacProperty();
         String regardsAttributePath = getFullJsonPath(prop);
 
-        Tuple2<OffsetDateTime, OffsetDateTime> dateRange = aggregagtionHelper.dateRange(criterion, regardsAttributePath);
+        Tuple2<OffsetDateTime, OffsetDateTime> dateRange = aggregagtionHelper.dateRange(criterion,
+                                                                                        regardsAttributePath);
 
         int minYear = dateRange._1.getYear();
         int maxYear = dateRange._2.getYear();
 
         return List.range(minYear, maxYear + 1)
-            .map(y -> new DynCollSublevelVal(
-                    definition.getSublevels().head(),
-                    "" + y,
-                    prop.getStacPropertyName() + "=" + y))
-            .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
-            .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
+                   .map(y -> new DynCollSublevelVal(definition.getSublevels().head(),
+                                                    "" + y,
+                                                    prop.getStacPropertyName() + "=" + y))
+                   .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
+                   .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
     }
 
     private List<DynCollVal> extractStringPrefixFirstSublevel(DynCollVal val, StringPrefixLevelDef definition) {
@@ -198,62 +202,75 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         String propName = prop.getStacPropertyName();
         StringPrefixSublevelDef sublevelDef = definition.getSublevels().get(0);
         return sublevelDef.allowedCharacters()
-            .map(c -> new DynCollSublevelVal(sublevelDef, c, propName + "=" + c + "..."))
-            .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
-            .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
+                          .map(c -> new DynCollSublevelVal(sublevelDef, c, propName + "=" + c + "..."))
+                          .map(sublevelVal -> new DynCollLevelVal(definition, List.of(sublevelVal)))
+                          .map(levelVal -> val.withLevels(val.getLevels().append(levelVal)));
     }
 
     private List<DynCollVal> extractExistingSublevels(DynCollVal val, DynCollLevelVal lval) {
         DynCollLevelDef<?> definition = lval.getDefinition();
         if (definition instanceof StringPrefixLevelDef) {
-            return extractStringPrefixNextSublevels(val, lval, (StringPrefixLevelDef)definition);
-        }
-        else if (definition instanceof DatePartsLevelDef) {
-            return extractDatePartsNextSublevels(val, lval, (DatePartsLevelDef)definition);
-        }
-        else {
+            return extractStringPrefixNextSublevels(val, lval, (StringPrefixLevelDef) definition);
+        } else if (definition instanceof DatePartsLevelDef) {
+            return extractDatePartsNextSublevels(val, lval, (DatePartsLevelDef) definition);
+        } else {
             error(LOGGER, "Missing case for a dynamic collection level next levels extraction: {}", lval);
             return List.empty();
         }
     }
 
-    private List<DynCollVal> extractStringPrefixNextSublevels(DynCollVal val, DynCollLevelVal lval, StringPrefixLevelDef definition) {
+    private List<DynCollVal> extractStringPrefixNextSublevels(DynCollVal val,
+                                                              DynCollLevelVal lval,
+                                                              StringPrefixLevelDef definition) {
         StacProperty prop = definition.getStacProperty();
         String propName = prop.getStacPropertyName();
         String prevValue = lval.getSublevels().last().getSublevelValue();
         StringPrefixSublevelDef nextUndefined = definition.getSublevels().get(lval.getSublevels().length());
         return nextUndefined.allowedCharacters()
-            .map(c -> {
-                String newValue = prevValue + c;
-                return new DynCollSublevelVal(nextUndefined, newValue, propName + "=" + prevValue + c + "...");
-            })
-            .map(sublevelVal -> val.withLevels(val.getLevels().init().append(lval.withSublevels(lval.getSublevels().append(sublevelVal)))));
+                            .map(c -> {
+                                String newValue = prevValue + c;
+                                return new DynCollSublevelVal(nextUndefined,
+                                                              newValue,
+                                                              propName + "=" + prevValue + c + "...");
+                            })
+                            .map(sublevelVal -> val.withLevels(val.getLevels()
+                                                                  .init()
+                                                                  .append(lval.withSublevels(lval.getSublevels()
+                                                                                                 .append(sublevelVal)))));
     }
 
-    private List<DynCollVal> extractDatePartsNextSublevels(DynCollVal val, DynCollLevelVal lval, DatePartsLevelDef definition) {
+    private List<DynCollVal> extractDatePartsNextSublevels(DynCollVal val,
+                                                           DynCollLevelVal lval,
+                                                           DatePartsLevelDef definition) {
         String prevValue = lval.getSublevels().last().getSublevelValue();
         DatePartSublevelDef nextUndefined = definition.getSublevels().get(lval.getSublevels().length());
         DatetimeBased newPartType = nextUndefined.getType();
         List<Integer> newParts = getDatepartPossibleValues(lval, newPartType);
-        return newParts
-            .map(i -> {
-                String newValue = String.format("%s%s%02d", prevValue, definition.partPrefix(newPartType), i);
-                return new DynCollSublevelVal(nextUndefined, newValue, definition.toLabel(newValue));
-            })
-            .map(sublevelVal -> val.withLevels(val.getLevels().init().append(lval.withSublevels(lval.getSublevels().append(sublevelVal)))));
+        return newParts.map(i -> {
+                           String newValue = String.format("%s%s%02d", prevValue, definition.partPrefix(newPartType), i);
+                           return new DynCollSublevelVal(nextUndefined, newValue, definition.toLabel(newValue));
+                       })
+                       .map(sublevelVal -> val.withLevels(val.getLevels()
+                                                             .init()
+                                                             .append(lval.withSublevels(lval.getSublevels()
+                                                                                            .append(sublevelVal)))));
     }
 
     private List<Integer> getDatepartPossibleValues(DynCollLevelVal lval, DatetimeBased newPartType) {
         switch (newPartType) {
-            case MONTH: return List.range(1, 13);
-            case HOUR: return List.range(0, 24);
-            case MINUTE: return List.range(0, 60);
+            case MONTH:
+                return List.range(1, 13);
+            case HOUR:
+                return List.range(0, 24);
+            case MINUTE:
+                return List.range(0, 60);
             case DAY:
                 DynCollSublevelVal monthSublevelVal = lval.getSublevels()
-                    .find(v -> v.getSublevelDefinition().type() == MONTH)
-                    .getOrElse(() -> lval.getSublevels().get(1));
+                                                          .find(v -> v.getSublevelDefinition().type() == MONTH)
+                                                          .getOrElse(() -> lval.getSublevels().get(1));
                 return List.range(1, numberOfDays(monthSublevelVal.getSublevelValue()));
-            default: throw new RuntimeException("Unmanaged date sublevel: " + newPartType);
+            default:
+                throw new RuntimeException("Unmanaged date sublevel: " + newPartType);
         }
     }
 
@@ -267,9 +284,9 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
 
     private ICriterion computeCriterion(DynCollVal val, List<StacProperty> props) {
         Map<String, SearchBody.QueryObject> queryObjects = val.getLevels()
-                .map(levelValToQueryObjectConverter::toQueryObject)
-                .flatMap(o -> o)
-                .toMap(t -> t);
+                                                              .map(levelValToQueryObjectConverter::toQueryObject)
+                                                              .flatMap(o -> o)
+                                                              .toMap(t -> t);
         ItemSearchBody isb = ItemSearchBody.builder().query(queryObjects).build();
 
         return criterionBuilder.toCriterion(props, isb);

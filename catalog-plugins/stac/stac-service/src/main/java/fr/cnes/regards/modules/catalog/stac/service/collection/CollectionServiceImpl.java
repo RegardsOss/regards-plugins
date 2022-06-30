@@ -81,9 +81,12 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
 
     @Autowired
     public CollectionServiceImpl(ConfigurationAccessorFactory configurationAccessorFactory,
-            DynamicCollectionService dynCollService, DynCollValNextSublevelHelper subLevelHelper,
-            ItemSearchBodyFactory itemSearchBodyFactory, ItemSearchService itemSearchService,
-            StaticCollectionService staticCollectionService, IdMappingService idMappingService) {
+                                 DynamicCollectionService dynCollService,
+                                 DynCollValNextSublevelHelper subLevelHelper,
+                                 ItemSearchBodyFactory itemSearchBodyFactory,
+                                 ItemSearchService itemSearchService,
+                                 StaticCollectionService staticCollectionService,
+                                 IdMappingService idMappingService) {
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.dynCollService = dynCollService;
         this.subLevelHelper = subLevelHelper;
@@ -102,20 +105,28 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     public Collection buildRootDynamicCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         String name = config.getRootDynamicCollectionName();
         DynCollDef def = dynCollService.dynamicCollectionsDefinition(config.getStacProperties());
-        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(), name, DEFAULT_DYNAMIC_ID, name,
-                              dynamicCollectionLinks(linkCreator, name,
-                                                     new DynCollVal(def, List.empty())), List.empty(), "", List.empty(),
-                              Extent.maximalExtent(), // no extent at this level
-                              HashMap.empty(), // no summaries at this level
-                              null, null);
+        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
+                              HashSet.empty(),
+                              name,
+                              DEFAULT_DYNAMIC_ID,
+                              name,
+                              dynamicCollectionLinks(linkCreator, name, new DynCollVal(def, List.empty())),
+                              List.empty(),
+                              "",
+                              List.empty(),
+                              Extent.maximalExtent(),
+                              // no extent at this level
+                              HashMap.empty(),
+                              // no summaries at this level
+                              null,
+                              null);
     }
 
-    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfTitle,
-            DynCollVal currentVal) {
+    private List<Link> dynamicCollectionLinks(OGCFeatLinkCreator linkCreator, String selfTitle, DynCollVal currentVal) {
 
-        List<Link> baseLinks = List
-                .of(linkCreator.createRootLink(), linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, selfTitle, SELF))
-                .flatMap(l -> l);
+        List<Link> baseLinks = List.of(linkCreator.createRootLink(),
+                                       linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, selfTitle, SELF))
+                                   .flatMap(l -> l);
 
         if (!currentVal.isFullyValued()) {
             List<Link> subLevelsLinks = subLevelHelper.nextSublevels(currentVal).map(val -> {
@@ -132,31 +143,43 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     @Override
     public Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         String name = config.getRootStaticCollectionName();
-        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION, HashSet.empty(), name, DEFAULT_STATIC_ID,
-                              "Static collections", staticCollectionLinks(linkCreator), List.empty(), "", List.empty(),
-                              Extent.maximalExtent(), // no extent at this level
-                              HashMap.empty(), // no summaries at this level
-                              null,null);
+        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
+                              HashSet.empty(),
+                              name,
+                              DEFAULT_STATIC_ID,
+                              "Static collections",
+                              staticCollectionLinks(linkCreator),
+                              List.empty(),
+                              "",
+                              List.empty(),
+                              Extent.maximalExtent(),
+                              // no extent at this level
+                              HashMap.empty(),
+                              // no summaries at this level
+                              null,
+                              null);
     }
 
     private List<Link> staticCollectionLinks(OGCFeatLinkCreator linkCreator) {
         return staticCollectionService.staticRootCollectionsIdsAndLabels()
-                .map(idLabel -> linkCreator.createCollectionLinkWithRel(idMappingService.getStacIdByUrn(idLabel._1), idLabel._2, CHILD)).flatMap(l -> l);
+                                      .map(idLabel -> linkCreator.createCollectionLinkWithRel(idMappingService.getStacIdByUrn(
+                                          idLabel._1), idLabel._2, CHILD))
+                                      .flatMap(l -> l);
     }
 
     @Override
     public Try<CollectionsResponse> buildRootCollectionsResponse(OGCFeatLinkCreator linkCreator,
-            ConfigurationAccessor config) {
+                                                                 ConfigurationAccessor config) {
         return trying(() -> new CollectionsResponse(buildCollectionsLinks(linkCreator),
-                                                    buildRootCollections(linkCreator, config)))
-                .mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build collections response");
+                                                    buildRootCollections(linkCreator, config))).mapFailure(
+            COLLECTIONSRESPONSE_CONSTRUCTION,
+            () -> "Failed to build collections response");
     }
 
     private List<Collection> buildRootCollections(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
         return hasDynamicCollections(config.getStacProperties()) ?
-                List.of(buildRootDynamicCollection(linkCreator, config),
-                        buildRootStaticCollection(linkCreator, config)) :
-                staticCollectionService.staticRootCollections(linkCreator, config);
+            List.of(buildRootDynamicCollection(linkCreator, config), buildRootStaticCollection(linkCreator, config)) :
+            staticCollectionService.staticRootCollections(linkCreator, config);
     }
 
     private List<Link> buildCollectionsLinks(OGCFeatLinkCreator linkCreator) {
@@ -164,54 +187,80 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     }
 
     @Override
-    public Try<Collection> buildCollection(String collectionId, OGCFeatLinkCreator linkCreator,
-            ConfigurationAccessor config) {
+    public Try<Collection> buildCollection(String collectionId,
+                                           OGCFeatLinkCreator linkCreator,
+                                           ConfigurationAccessor config) {
         if (DEFAULT_STATIC_ID.equals(collectionId)) {
-            return trying(() -> buildRootStaticCollection(linkCreator, config))
-                    .mapFailure(COLLECTION_CONSTRUCTION, () -> format("Failed to build collection %s", collectionId));
+            return trying(() -> buildRootStaticCollection(linkCreator, config)).mapFailure(COLLECTION_CONSTRUCTION,
+                                                                                           () -> format(
+                                                                                               "Failed to build collection %s",
+                                                                                               collectionId));
         } else if (DEFAULT_DYNAMIC_ID.equals(collectionId)) {
-            return trying(() -> buildRootDynamicCollection(linkCreator, config))
-                    .mapFailure(COLLECTION_CONSTRUCTION, () -> format("Failed to build collection %s", collectionId));
+            return trying(() -> buildRootDynamicCollection(linkCreator, config)).mapFailure(COLLECTION_CONSTRUCTION,
+                                                                                            () -> format(
+                                                                                                "Failed to build collection %s",
+                                                                                                collectionId));
         } else if (dynCollService.isDynamicCollectionValueURN(collectionId)) {
             return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
-                    .flatMap(dcv -> dynCollService.buildCollection(dcv, linkCreator, config));
+                                 .flatMap(dcv -> dynCollService.buildCollection(dcv, linkCreator, config));
         } else {
-            return staticCollectionService.convertRequest(idMappingService.getUrnByStacId(collectionId), linkCreator, config);
+            return staticCollectionService.convertRequest(idMappingService.getUrnByStacId(collectionId),
+                                                          linkCreator,
+                                                          config);
         }
     }
 
     @Override
-    public Try<ItemCollectionResponse> getItemsForCollection(String collectionId, Integer limit, Integer page,
-            BBox bbox, String datetime, OGCFeatLinkCreator ogcFeatLinkCreator,
-            Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker) {
+    public Try<ItemCollectionResponse> getItemsForCollection(String collectionId,
+                                                             Integer limit,
+                                                             Integer page,
+                                                             BBox bbox,
+                                                             String datetime,
+                                                             OGCFeatLinkCreator ogcFeatLinkCreator,
+                                                             Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
         final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId) ?
-                getDynCollItemSearchBody(collectionId, page, limit, bbox, datetime, config) :
-                getCollectionItemSearchBody(page, limit, bbox, datetime, List.of(collectionId));
+            getDynCollItemSearchBody(collectionId, page, limit, bbox, datetime, config) :
+            getCollectionItemSearchBody(page, limit, bbox, datetime, List.of(collectionId));
 
-        return tryIsb.flatMap(
-                isb -> itemSearchService.search(isb, page, ogcFeatLinkCreator, searchPageLinkCreatorMaker.apply(isb)));
+        return tryIsb.flatMap(isb -> itemSearchService.search(isb,
+                                                              page,
+                                                              ogcFeatLinkCreator,
+                                                              searchPageLinkCreatorMaker.apply(isb)));
     }
 
-    private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId, Integer page, Integer limit, BBox bbox, String datetime,
-            ConfigurationAccessor config) {
-        return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config).flatMap(
-                val -> getCollectionItemSearchBody(page, limit, bbox, datetime, null)
-                        .map(isb -> isb.withQuery(dynCollService.toItemSearchBody(val).getQuery())));
+    private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId,
+                                                         Integer page,
+                                                         Integer limit,
+                                                         BBox bbox,
+                                                         String datetime,
+                                                         ConfigurationAccessor config) {
+        return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
+                             .flatMap(val -> getCollectionItemSearchBody(page,
+                                                                         limit,
+                                                                         bbox,
+                                                                         datetime,
+                                                                         null).map(isb -> isb.withQuery(dynCollService.toItemSearchBody(
+                                 val).getQuery())));
     }
 
-    private Try<ItemSearchBody> getCollectionItemSearchBody(Integer page, Integer limit, BBox bbox, String datetime,
-            List<String> collections) {
+    private Try<ItemSearchBody> getCollectionItemSearchBody(Integer page,
+                                                            Integer limit,
+                                                            BBox bbox,
+                                                            String datetime,
+                                                            List<String> collections) {
         return itemSearchBodyFactory.parseItemSearch(page, limit, bbox, datetime, collections, null, null, null, null);
     }
 
     @Override
     public List<Link> buildRootLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator) {
-        return List.of(linkCreator.createRootLink(), linkCreator
-                               .createCollectionLinkWithRel(DEFAULT_STATIC_ID, config.getRootStaticCollectionName(), CHILD),
-                       linkCreator
-                               .createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID, config.getRootDynamicCollectionName(),
-                                                            CHILD)).flatMap(t -> t);
+        return List.of(linkCreator.createRootLink(),
+                       linkCreator.createCollectionLinkWithRel(DEFAULT_STATIC_ID,
+                                                               config.getRootStaticCollectionName(),
+                                                               CHILD),
+                       linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID,
+                                                               config.getRootDynamicCollectionName(),
+                                                               CHILD)).flatMap(t -> t);
     }
 }

@@ -30,11 +30,14 @@ import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sub
  * - consecutive step-sized ranges,
  * - larger than max.
  */
-@Value @With
+@Value
+@With
 public class NumberRangeSublevelDef implements DynCollSublevelDef {
 
     double min;
+
     double step;
+
     double max;
 
     @Override

@@ -29,7 +29,10 @@ import lombok.With;
 @Value
 @With
 public class Context {
+
     Integer returned;
+
     Integer limit;
+
     Long matched;
 }

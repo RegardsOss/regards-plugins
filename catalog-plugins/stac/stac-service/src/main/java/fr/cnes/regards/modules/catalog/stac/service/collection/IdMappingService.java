@@ -25,13 +25,13 @@ import io.vavr.collection.List;
  */
 public interface IdMappingService {
 
-	String getUrnByStacId(String stacId);
-	
-	List<String> getUrnsByStacIds(List<String> stacIds);
-	
-	String getStacIdByUrn(String urn);
-	
-	void initOrUpdateCache();
+    String getUrnByStacId(String stacId);
 
-	void initOrUpdateCache(String tenant);
+    List<String> getUrnsByStacIds(List<String> stacIds);
+
+    String getStacIdByUrn(String urn);
+
+    void initOrUpdateCache();
+
+    void initOrUpdateCache(String tenant);
 }

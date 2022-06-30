@@ -30,7 +30,10 @@ import java.time.format.DateTimeFormatterBuilder;
 public class StacSpecConstants {
 
     public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()
-            .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME).optionalStart().appendOffset("+HH:MM", "Z").toFormatter();
+                                                                                            .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                                                                            .optionalStart()
+                                                                                            .appendOffset("+HH:MM", "Z")
+                                                                                            .toFormatter();
 
     public interface Version {
 

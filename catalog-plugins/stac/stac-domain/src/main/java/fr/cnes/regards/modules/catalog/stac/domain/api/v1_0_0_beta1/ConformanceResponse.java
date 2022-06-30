@@ -26,7 +26,8 @@ import io.vavr.collection.List;
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/ogcapi-features">Definition</a>
  */
-@lombok.Value @lombok.With
+@lombok.Value
+@lombok.With
 public class ConformanceResponse {
 
     List<String> conformsTo;

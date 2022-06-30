@@ -19,7 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
-import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
@@ -28,28 +27,34 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.With;
 
-import java.time.OffsetDateTime;
-
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
 /**
  * Describes the body of "POST /search" request.
  *
  * @see <a href="">Description</a>
  */
-@Value @With @Builder
+@Value
+@With
+@Builder
 public class ItemSearchBody {
 
     BBox bbox;
+
     DateInterval datetime;
+
     IGeometry intersects;
+
     List<String> collections;
+
     List<String> ids;
+
     Integer page;
+
     Integer limit;
+
     SearchBody.Fields fields;
+
     Map<String, SearchBody.QueryObject> query;
+
     List<SearchBody.SortBy> sortBy;
 
 }

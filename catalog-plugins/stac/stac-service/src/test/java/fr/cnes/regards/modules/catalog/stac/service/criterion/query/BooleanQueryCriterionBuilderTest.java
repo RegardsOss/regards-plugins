@@ -1,9 +1,5 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.BooleanQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -14,15 +10,25 @@ import fr.cnes.regards.modules.indexer.domain.criterion.BooleanMatchCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessorAwareTest {
 
     @Test
     public void testBuildCriterionEmpty() {
         // GIVEN
-        List<StacProperty> properties = List
-                .of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true), null, "stacBool", "", false, 0,
-                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
+        List<StacProperty> properties = List.of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true),
+                                                                 null,
+                                                                 "stacBool",
+                                                                 "",
+                                                                 false,
+                                                                 0,
+                                                                 null,
+                                                                 StacPropertyType.STRING,
+                                                                 new IdentityPropertyConverter<>(StacPropertyType.STRING),
+                                                                 Boolean.FALSE));
         // WHEN
         Option<ICriterion> criterion = new BooleanQueryCriterionBuilder("stacBool").buildCriterion(properties, null);
         // THEN
@@ -32,9 +38,16 @@ public class BooleanQueryCriterionBuilderTest implements RegardsPropertyAccessor
     @Test
     public void testBuildCriterion() {
         // GIVEN
-        List<StacProperty> properties = List
-                .of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true), null, "stacBool", "", false, 0,
-                        null, StacPropertyType.STRING, new IdentityPropertyConverter<>(StacPropertyType.STRING), Boolean.FALSE));
+        List<StacProperty> properties = List.of(new StacProperty(accessor("regardsBool", StacPropertyType.STRING, true),
+                                                                 null,
+                                                                 "stacBool",
+                                                                 "",
+                                                                 false,
+                                                                 0,
+                                                                 null,
+                                                                 StacPropertyType.STRING,
+                                                                 new IdentityPropertyConverter<>(StacPropertyType.STRING),
+                                                                 Boolean.FALSE));
         BooleanQueryObject bqo = BooleanQueryObject.builder().eq(true).neq(false).build();
         // WHEN
         Option<ICriterion> criterion = new BooleanQueryCriterionBuilder("stacBool").buildCriterion(properties, bqo);

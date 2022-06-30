@@ -30,7 +30,6 @@ import lombok.Value;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel.DynCollSublevelType.DatetimeBased.YEAR;
 
-
 /**
  * Date parts specific level definition.
  */
@@ -38,6 +37,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sub
 public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
 
     StacProperty stacProperty;
+
     DatetimeBased deepestDatepart;
 
     @Override
@@ -48,32 +48,33 @@ public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
     @Override
     public DynCollLevelVal parseValues(String repr) {
         List<List<Tuple2<DatetimeBased, String>>> levels = getSublevels().map(DatePartSublevelDef::getType)
-                .zip(List.of(repr.split("[-T:]")))
-                .scanLeft(List.<Tuple2<DatetimeBased, String>>empty(), List::append)
-                .tail();
+                                                                         .zip(List.of(repr.split("[-T:]")))
+                                                                         .scanLeft(List.<Tuple2<DatetimeBased, String>>empty(),
+                                                                                   List::append)
+                                                                         .tail();
 
-        List<DynCollSublevelVal> sublevels = levels
-                .zip(getSublevels())
-                .map(ls -> {
-                    String sublevelValue = toValue(ls._1);
-                    return new DynCollSublevelVal(ls._2, sublevelValue, toLabel(sublevelValue));
-                });
+        List<DynCollSublevelVal> sublevels = levels.zip(getSublevels()).map(ls -> {
+            String sublevelValue = toValue(ls._1);
+            return new DynCollSublevelVal(ls._2, sublevelValue, toLabel(sublevelValue));
+        });
 
         return new DynCollLevelVal(this, sublevels);
     }
 
     private String toValue(List<Tuple2<DatetimeBased, String>> valueParts) {
-        return valueParts
-                .map(kv -> kv.map1(this::partPrefix).apply(String::concat))
-                .foldLeft("", String::concat)
-                .substring(1);
+        return valueParts.map(kv -> kv.map1(this::partPrefix).apply(String::concat))
+                         .foldLeft("", String::concat)
+                         .substring(1);
     }
 
     public String partPrefix(DatetimeBased part) {
         switch (part) {
-            case HOUR: return "T";
-            case MINUTE: return ":";
-            default: return "-";
+            case HOUR:
+                return "T";
+            case MINUTE:
+                return ":";
+            default:
+                return "-";
         }
     }
 
@@ -84,9 +85,11 @@ public class DatePartsLevelDef implements DynCollLevelDef<DatePartSublevelDef> {
 
     @Override
     public boolean isFullyValued(DynCollLevelVal val) {
-        DynCollSublevelType deepestReachedinVal = val.getSublevels().lastOption().map(sval -> sval.getSublevelDefinition().type()).getOrElse(YEAR);
+        DynCollSublevelType deepestReachedinVal = val.getSublevels()
+                                                     .lastOption()
+                                                     .map(sval -> sval.getSublevelDefinition().type())
+                                                     .getOrElse(YEAR);
         return deepestDatepart == deepestReachedinVal;
     }
-
 
 }

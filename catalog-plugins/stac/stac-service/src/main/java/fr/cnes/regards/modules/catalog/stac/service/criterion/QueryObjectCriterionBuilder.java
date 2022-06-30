@@ -46,30 +46,38 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryObjectCriterionBuilder.class);
 
-    private static final ImmutableSet<PropertyType> ACCEPTED_INTEGER_TYPES = Sets.immutableEnumSet(PropertyType.INTEGER, PropertyType.INTEGER_ARRAY,
+    private static final ImmutableSet<PropertyType> ACCEPTED_INTEGER_TYPES = Sets.immutableEnumSet(PropertyType.INTEGER,
+                                                                                                   PropertyType.INTEGER_ARRAY,
                                                                                                    PropertyType.INTEGER_INTERVAL);
 
-    private static final ImmutableSet<PropertyType> ACCEPTED_LONG_TYPES = Sets.immutableEnumSet(PropertyType.LONG, PropertyType.LONG_ARRAY,
+    private static final ImmutableSet<PropertyType> ACCEPTED_LONG_TYPES = Sets.immutableEnumSet(PropertyType.LONG,
+                                                                                                PropertyType.LONG_ARRAY,
                                                                                                 PropertyType.LONG_INTERVAL);
 
-    private static final ImmutableSet<PropertyType> ACCEPTED_DOUBLE_TYPES = Sets.immutableEnumSet(PropertyType.DOUBLE, PropertyType.DOUBLE_ARRAY,
+    private static final ImmutableSet<PropertyType> ACCEPTED_DOUBLE_TYPES = Sets.immutableEnumSet(PropertyType.DOUBLE,
+                                                                                                  PropertyType.DOUBLE_ARRAY,
                                                                                                   PropertyType.DOUBLE_INTERVAL);
 
-    private static final ImmutableSet<PropertyType> ACCEPTED_DATE_TYPES = Sets.immutableEnumSet(PropertyType.DATE_ISO8601, PropertyType.DATE_ARRAY,
+    private static final ImmutableSet<PropertyType> ACCEPTED_DATE_TYPES = Sets.immutableEnumSet(PropertyType.DATE_ISO8601,
+                                                                                                PropertyType.DATE_ARRAY,
                                                                                                 PropertyType.DATE_INTERVAL);
 
     @Override
-    public Option<ICriterion> buildCriterion(List<StacProperty> properties, Map<String, SearchBody.QueryObject> queryObjects) {
+    public Option<ICriterion> buildCriterion(List<StacProperty> properties,
+                                             Map<String, SearchBody.QueryObject> queryObjects) {
         if (queryObjects == null || queryObjects.isEmpty()) {
             return Option.none();
         }
 
-        List<ICriterion> criteria = queryObjects.flatMap(kv -> routeQueryObjectCriterion(properties, kv._1(), kv._2())).toList();
+        List<ICriterion> criteria = queryObjects.flatMap(kv -> routeQueryObjectCriterion(properties, kv._1(), kv._2()))
+                                                .toList();
         return withAll(criteria, ICriterion::and);
     }
 
     @Override
-    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, Map<String, SearchBody.QueryObject> queryObjects) {
+    public void computeEODagParameters(EODagParameters parameters,
+                                       List<StacProperty> properties,
+                                       Map<String, SearchBody.QueryObject> queryObjects) {
         if (queryObjects != null && !queryObjects.isEmpty()) {
             for (Tuple2<String, SearchBody.QueryObject> kv : queryObjects.iterator()) {
                 routeQueryObjectCriterion(parameters, properties, kv._1(), kv._2());
@@ -77,88 +85,121 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
         }
     }
 
-    private Option<ICriterion> routeQueryObjectCriterion(List<StacProperty> properties, String stacPropName, SearchBody.QueryObject queryObject) {
+    private Option<ICriterion> routeQueryObjectCriterion(List<StacProperty> properties,
+                                                         String stacPropName,
+                                                         SearchBody.QueryObject queryObject) {
 
         // Retrieve target attribute
         Option<AttributeModel> attr = propertyNameFor(properties, stacPropName);
 
         if (queryObject instanceof SearchBody.BooleanQueryObject) {
             if (isBooleanQueryAcceptable(attr)) {
-                return new BooleanQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.BooleanQueryObject) queryObject);
+                return new BooleanQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                     (SearchBody.BooleanQueryObject) queryObject);
             } else {
                 return ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.NumberQueryObject) {
             // Dispatch by number type
             if (isIntegerQueryAcceptable(attr)) {
-                return new IntegerQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.NumberQueryObject) queryObject);
+                return new IntegerQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                     (SearchBody.NumberQueryObject) queryObject);
             } else if (isLongQueryAcceptable(attr)) {
-                return new LongQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.NumberQueryObject) queryObject);
+                return new LongQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                  (SearchBody.NumberQueryObject) queryObject);
             } else if (isDoubleQueryAcceptable(attr)) {
-                return new DoubleQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.NumberQueryObject) queryObject);
+                return new DoubleQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                    (SearchBody.NumberQueryObject) queryObject);
             } else {
                 return ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.DatetimeQueryObject) {
             if (isDateQueryAcceptable(attr)) {
-                return new DatetimeQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.DatetimeQueryObject) queryObject);
+                return new DatetimeQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                      (SearchBody.DatetimeQueryObject) queryObject);
             } else {
                 return ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.StringQueryObject) {
             if (isStringQueryAcceptable(attr)) {
-                return new StringQueryCriterionBuilder(stacPropName).buildCriterion(properties, (SearchBody.StringQueryObject) queryObject);
+                return new StringQueryCriterionBuilder(stacPropName).buildCriterion(properties,
+                                                                                    (SearchBody.StringQueryObject) queryObject);
             } else {
                 return ignoreQueryField(attr, stacPropName);
             }
         } else {
-            warn(LOGGER, String.format("Unknown type for query object: %s, ignoring query field %s", queryObject.getClass(), stacPropName));
+            warn(LOGGER,
+                 String.format("Unknown type for query object: %s, ignoring query field %s",
+                               queryObject.getClass(),
+                               stacPropName));
             return Option.none();
         }
     }
 
-    private void routeQueryObjectCriterion(EODagParameters parameters, List<StacProperty> properties, String stacPropName, SearchBody.QueryObject queryObject) {
+    private void routeQueryObjectCriterion(EODagParameters parameters,
+                                           List<StacProperty> properties,
+                                           String stacPropName,
+                                           SearchBody.QueryObject queryObject) {
 
         // Retrieve target attribute
         Option<AttributeModel> attr = propertyNameFor(properties, stacPropName);
 
         if (queryObject instanceof SearchBody.BooleanQueryObject) {
             if (isBooleanQueryAcceptable(attr)) {
-                new BooleanQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.BooleanQueryObject) queryObject);
+                new BooleanQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                      properties,
+                                                                                      (SearchBody.BooleanQueryObject) queryObject);
             } else {
                 ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.NumberQueryObject) {
             // Dispatch by number type
             if (isIntegerQueryAcceptable(attr)) {
-                new IntegerQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+                new IntegerQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                      properties,
+                                                                                      (SearchBody.NumberQueryObject) queryObject);
             } else if (isLongQueryAcceptable(attr)) {
-                new LongQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+                new LongQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                   properties,
+                                                                                   (SearchBody.NumberQueryObject) queryObject);
             } else if (isDoubleQueryAcceptable(attr)) {
-                new DoubleQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.NumberQueryObject) queryObject);
+                new DoubleQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                     properties,
+                                                                                     (SearchBody.NumberQueryObject) queryObject);
             } else {
                 ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.DatetimeQueryObject) {
             if (isDateQueryAcceptable(attr)) {
-                new DatetimeQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.DatetimeQueryObject) queryObject);
+                new DatetimeQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                       properties,
+                                                                                       (SearchBody.DatetimeQueryObject) queryObject);
             } else {
                 ignoreQueryField(attr, stacPropName);
             }
         } else if (queryObject instanceof SearchBody.StringQueryObject) {
             if (isStringQueryAcceptable(attr)) {
-                new StringQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters, properties, (SearchBody.StringQueryObject) queryObject);
+                new StringQueryCriterionBuilder(stacPropName).computeEODagParameters(parameters,
+                                                                                     properties,
+                                                                                     (SearchBody.StringQueryObject) queryObject);
             } else {
                 ignoreQueryField(attr, stacPropName);
             }
         } else {
-            warn(LOGGER, String.format("Unknown type for query object: %s, ignoring query field %s", queryObject.getClass(), stacPropName));
+            warn(LOGGER,
+                 String.format("Unknown type for query object: %s, ignoring query field %s",
+                               queryObject.getClass(),
+                               stacPropName));
         }
     }
 
     private Option<ICriterion> ignoreQueryField(Option<AttributeModel> attr, String stacPropName) {
-        warn(LOGGER, attr.map(a -> String.format("Unacceptable type %s for query field %s. Ignoring it!", a.getType().name(), stacPropName))
-                .getOrElse(() -> String.format("Unknown target attribute for query field %s. Ignoring it!", stacPropName)));
+        warn(LOGGER,
+             attr.map(a -> String.format("Unacceptable type %s for query field %s. Ignoring it!",
+                                         a.getType().name(),
+                                         stacPropName))
+                 .getOrElse(() -> String.format("Unknown target attribute for query field %s. Ignoring it!",
+                                                stacPropName)));
         return Option.none();
     }
 

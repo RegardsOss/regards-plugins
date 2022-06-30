@@ -61,11 +61,8 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
             String b64 = urn.replaceFirst(URN_PREFIX, "");
             String json = fromBase64(b64);
             return gson.fromJson(json, RestDynCollVal.class);
-        })
-        .mapFailure(
-            RESTDYNCOLLVAL_PARSING,
-            () -> format("Failed to parse REST dynamic collection value from %s", urn)
-        );
+        }).mapFailure(RESTDYNCOLLVAL_PARSING,
+                      () -> format("Failed to parse REST dynamic collection value from %s", urn));
     }
 
     @Override
@@ -79,25 +76,23 @@ public class RestDynCollValSerdeServiceImpl implements RestDynCollValSerdeServic
     }
 
     private RestDynCollLevelVal serializeLevels(DynCollLevelVal dynCollLevelVal) {
-        return new RestDynCollLevelVal(
-            dynCollLevelVal.getDefinition().getStacProperty().getStacPropertyName(),
-            dynCollLevelVal.getDefinition().renderValue(dynCollLevelVal)
-        );
+        return new RestDynCollLevelVal(dynCollLevelVal.getDefinition().getStacProperty().getStacPropertyName(),
+                                       dynCollLevelVal.getDefinition().renderValue(dynCollLevelVal));
     }
 
     @Override
     public Try<DynCollVal> toDomain(DynCollDef def, RestDynCollVal rest) {
         return Try.sequence(rest.getLevels().map(l -> deserializeLevels(def, l)))
-            .map(Seq::toList)
-            .map(levels -> new DynCollVal(def, levels));
+                  .map(Seq::toList)
+                  .map(levels -> new DynCollVal(def, levels));
     }
 
     private Try<DynCollLevelVal> deserializeLevels(DynCollDef def, RestDynCollLevelVal restDynCollLevelVal) {
         String propertyName = restDynCollLevelVal.getPropertyName();
         return def.getLevels()
-            .find(ld -> ld.getStacProperty().getStacPropertyName().equals(propertyName))
-            .toTry()
-            .map(ld -> ld.parseValues(restDynCollLevelVal.getValue()));
+                  .find(ld -> ld.getStacProperty().getStacPropertyName().equals(propertyName))
+                  .toTry()
+                  .map(ld -> ld.parseValues(restDynCollLevelVal.getValue()));
     }
 
 }

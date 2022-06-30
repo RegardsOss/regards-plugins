@@ -38,14 +38,15 @@ import io.vavr.collection.Set;
 public interface PropertyExtractionService {
 
     Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
-            List<StacProperty> stacProperties);
+                                              List<StacProperty> stacProperties);
 
     Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature);
 
     /**
      * Static assets if directly available in the feature with the proper structure
      */
-    Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature, StacProperty stacAssetsProperty);
+    Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature,
+                                           StacProperty stacAssetsProperty);
 
     /**
      * Static links if directly available in the feature with the proper structure
@@ -54,6 +55,7 @@ public interface PropertyExtractionService {
 
     Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties);
 
-    Extent.Temporal extractTemporalExtent(Dataset dataset, StacCollectionProperty lowerTemporalExtent,
-            StacCollectionProperty upperTemporalExtent);
+    Extent.Temporal extractTemporalExtent(Dataset dataset,
+                                          StacCollectionProperty lowerTemporalExtent,
+                                          StacCollectionProperty upperTemporalExtent);
 }

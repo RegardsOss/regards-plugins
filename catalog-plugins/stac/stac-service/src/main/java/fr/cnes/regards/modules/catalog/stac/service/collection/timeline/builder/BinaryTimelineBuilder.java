@@ -83,7 +83,8 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
         // Define STAC properties to extract
         List<StacProperty> datetimeStacProperties = itemStacProperties.filter(p -> p.getStacPropertyName()
                                                                                     .equals(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
-            || p.getStacPropertyName().equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
+                                                                                   || p.getStacPropertyName()
+                                                                                       .equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
 
         // Build timeline
         long requestDuration = buildTimelineByPage(itemCriteria,
@@ -195,7 +196,7 @@ public class BinaryTimelineBuilder extends AbstractTimelineBuilder implements Ti
                                                                            OffsetDateTime itemStart,
                                                                            OffsetDateTime itemEnd) {
         if ((itemEnd.isAfter(timelineStart) || itemEnd.equals(timelineStart)) && (itemStart.isBefore(timelineEnd)
-            || itemStart.equals(timelineEnd))) {
+                                                                                  || itemStart.equals(timelineEnd))) {
             // Return max of start & min of end
             return Option.of(Tuple.of(timelineStart.isAfter(itemStart) ? timelineStart : itemStart,
                                       timelineEnd.isBefore(itemEnd) ? timelineEnd : itemEnd));

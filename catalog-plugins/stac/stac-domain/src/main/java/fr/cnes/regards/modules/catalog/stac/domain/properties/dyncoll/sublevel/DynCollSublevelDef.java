@@ -21,9 +21,8 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.sublevel;
 
 /**
  * Dynamic colection sublevels are under a STAC property.
- *
+ * <p>
  * For instance, a date property can be divided into sublevels of year/month/day/etc.
- *
  */
 public interface DynCollSublevelDef {
 

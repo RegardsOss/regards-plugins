@@ -44,15 +44,15 @@ public interface DynamicCollectionService {
     DynCollDef dynamicCollectionsDefinition(List<StacProperty> properties);
 
     String representDynamicCollectionsValueAsURN(DynCollVal val);
+
     Try<DynCollVal> parseDynamicCollectionsValueFromURN(String urn, ConfigurationAccessor config);
+
     boolean isDynamicCollectionValueURN(String urn);
 
     ItemSearchBody toItemSearchBody(DynCollVal value);
 
-    Try<Collection> buildCollection(
-            DynCollVal dynCollVal,
-            OGCFeatLinkCreator linkCreator,
-            ConfigurationAccessor config
-    );
+    Try<Collection> buildCollection(DynCollVal dynCollVal,
+                                    OGCFeatLinkCreator linkCreator,
+                                    ConfigurationAccessor config);
 
 }

@@ -32,6 +32,7 @@ import lombok.Value;
 public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelDef> {
 
     StacProperty stacProperty;
+
     NumberRangeSublevelDef sublevel;
 
     @Override
@@ -46,10 +47,7 @@ public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelD
 
     @Override
     public String renderValue(DynCollLevelVal value) {
-        return value.getSublevels()
-            .headOption()
-            .map(DynCollSublevelVal::getSublevelValue)
-            .getOrElse(toLabel("?"));
+        return value.getSublevels().headOption().map(DynCollSublevelVal::getSublevelValue).getOrElse(toLabel("?"));
     }
 
     @Override
@@ -58,15 +56,13 @@ public class NumberRangeLevelDef implements DynCollLevelDef<NumberRangeSublevelD
     }
 
     public String toRangeValue(Double from, Double to) {
-        return from == null ? "<" + to
-            : to == null ? ">" + from
-            : from + ";" + to;
+        return from == null ? "<" + to : to == null ? ">" + from : from + ";" + to;
     }
 
     public String toRangeLabel(Double from, Double to) {
         String propName = stacProperty.getStacPropertyName();
-        return from == null ? propName + " < " + to
-            : to == null ? propName + " > " + from
-            : from + " < " + propName + " < " + to;
+        return from == null ?
+            propName + " < " + to :
+            to == null ? propName + " > " + from : from + " < " + propName + " < " + to;
     }
 }

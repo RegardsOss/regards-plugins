@@ -14,13 +14,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package fr.cnes.regards.modules.catalog.stac.testutils.random;
 
+import io.vavr.control.Try;
 import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.randomizers.AbstractRandomizer;
-
-import io.vavr.control.Try;
 
 /**
  * This class provides random generation for vavr Try.
@@ -69,5 +68,6 @@ public class VavrTryRandomizer<T> extends AbstractRandomizer<Try<T>> {
 
     @SuppressWarnings("serial")
     public static final class RandomTryCreationException extends Exception {
+
     }
 }

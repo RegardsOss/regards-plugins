@@ -73,7 +73,7 @@ public class ConversionReport {
      */
     public boolean hasBlockingErrors(int featureIndex) {
         return this.blockingErrors.get(featureIndex)
-            != null; // note: length necessary >= 1 since it could only be added with an initial error (addFeatureConversionError)
+               != null; // note: length necessary >= 1 since it could only be added with an initial error (addFeatureConversionError)
     }
 
     /**

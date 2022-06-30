@@ -52,44 +52,35 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
             String stacPropertyName = definition.getStacProperty().getStacPropertyName();
             if (definition instanceof ExactValueLevelDef) {
                 return Tuple.of(stacPropertyName, exactQueryObject(levelVal));
-            }
-            else if (definition instanceof NumberRangeLevelDef) {
+            } else if (definition instanceof NumberRangeLevelDef) {
                 return Tuple.of(stacPropertyName, numberRangeQueryObject(levelVal));
-            }
-            else if (definition instanceof DatePartsLevelDef) {
+            } else if (definition instanceof DatePartsLevelDef) {
                 return Tuple.of(stacPropertyName, datePartsQueryObject(levelVal));
-            }
-            else if (definition instanceof StringPrefixLevelDef){
-                return Tuple.of(stacPropertyName, stringPrefixQueryObject(levelVal, (StringPrefixLevelDef)definition));
-            }
-            else {
+            } else if (definition instanceof StringPrefixLevelDef) {
+                return Tuple.of(stacPropertyName, stringPrefixQueryObject(levelVal, (StringPrefixLevelDef) definition));
+            } else {
                 throw new NotImplementedException("Unknown level def type: " + definition.getClass().getName());
             }
-        })
-        .onFailure(t -> warn(LOGGER, "Failed to create query object from levelVal: {}", levelVal, t))
-        .toOption();
+        }).onFailure(t -> warn(LOGGER, "Failed to create query object from levelVal: {}", levelVal, t)).toOption();
 
     }
 
-    protected SearchBody.QueryObject stringPrefixQueryObject(
-            DynCollLevelVal levelVal,
-            StringPrefixLevelDef definition
-    ) {
+    protected SearchBody.QueryObject stringPrefixQueryObject(DynCollLevelVal levelVal,
+                                                             StringPrefixLevelDef definition) {
         String startsWith = definition.renderValue(levelVal);
         return SearchBody.StringQueryObject.builder().startsWith(startsWith).build();
     }
 
     protected SearchBody.QueryObject datePartsQueryObject(DynCollLevelVal levelVal) {
-        DynCollSublevelType.DatetimeBased lastLevel = ((DatePartSublevelDef)levelVal.getSublevels().last().getSublevelDefinition()).getType();
+        DynCollSublevelType.DatetimeBased lastLevel = ((DatePartSublevelDef) levelVal.getSublevels()
+                                                                                     .last()
+                                                                                     .getSublevelDefinition()).getType();
         String rendered = levelVal.renderValue();
 
         OffsetDateTime gte = getDateLowerBound(lastLevel, rendered);
         OffsetDateTime lt = getDateHigherBound(lastLevel, gte);
 
-        return SearchBody.DatetimeQueryObject.builder()
-            .gte(gte)
-            .lt(lt)
-            .build();
+        return SearchBody.DatetimeQueryObject.builder().gte(gte).lt(lt).build();
     }
 
     private OffsetDateTime getDateHigherBound(DynCollSublevelType.DatetimeBased lastLevel, OffsetDateTime gte) {
@@ -104,7 +95,8 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
                 return gte.plusHours(1L);
             case MINUTE:
                 return gte.plusMinutes(1L);
-            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
+            default:
+                throw new NotImplementedException("Missing switch case for level " + lastLevel);
         }
     }
 
@@ -120,7 +112,8 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
                 return OffsetDateTime.parse(rendered + ":00:00.000Z");
             case MINUTE:
                 return OffsetDateTime.parse(rendered + ":00.000Z");
-            default: throw new NotImplementedException("Missing switch case for level " + lastLevel);
+            default:
+                throw new NotImplementedException("Missing switch case for level " + lastLevel);
         }
     }
 
@@ -129,17 +122,14 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         if (value.startsWith("<")) {
             double lt = Double.parseDouble(value.replace("<", ""));
             return SearchBody.NumberQueryObject.builder().lt(lt).build();
-        }
-        else if (value.startsWith(">")) {
+        } else if (value.startsWith(">")) {
             double gt = Double.parseDouble(value.replace(">", ""));
             return SearchBody.NumberQueryObject.builder().gt(gt).build();
-        }
-        else if (value.contains(";")) {
+        } else if (value.contains(";")) {
             Double gte = Double.parseDouble(value.replaceFirst(";.*", ""));
             Double lte = Double.parseDouble(value.replaceFirst(".*;", ""));
             return SearchBody.NumberQueryObject.builder().lte(lte).gte(gte).build();
-        }
-        else {
+        } else {
             throw new NotImplementedException("Un-parsable number range level format");
         }
     }
@@ -149,12 +139,17 @@ public class DynCollLevelValToQueryObjectConverterImpl implements DynCollLevelVa
         switch (stacType) {
             case STRING:
                 return SearchBody.StringQueryObject.builder()
-                    .eq(levelVal.getSublevels().head().getSublevelValue())
-                    .build();
-            case NUMBER: case PERCENTAGE: case ANGLE: case LENGTH:
+                                                   .eq(levelVal.getSublevels().head().getSublevelValue())
+                                                   .build();
+            case NUMBER:
+            case PERCENTAGE:
+            case ANGLE:
+            case LENGTH:
                 return SearchBody.NumberQueryObject.builder()
-                    .eq(Double.parseDouble(levelVal.getSublevels().head().getSublevelValue()))
-                    .build();
+                                                   .eq(Double.parseDouble(levelVal.getSublevels()
+                                                                                  .head()
+                                                                                  .getSublevelValue()))
+                                                   .build();
             default:
                 throw new NotImplementedException("Unsupported exact level definition for type " + stacType.name());
         }

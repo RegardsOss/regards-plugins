@@ -114,7 +114,6 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @Autowired(required = false)
     private IProjectsClient projectClient;
 
-
     @Override
     public int getRefreshRate() {
         return refreshRate;
@@ -130,7 +129,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
             FeignSecurityManager.asSystem();
             pageFeatureEntities = getFeatureEntities(cursor);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            throw new DataSourceException(String.format("An error occurred during the searching of feature entities. Cause %s: ", e.getMessage()), e);
+            throw new DataSourceException(String.format(
+                "An error occurred during the searching of feature entities. Cause %s: ",
+                e.getMessage()), e);
         } finally {
             FeignSecurityManager.reset();
         }
@@ -148,7 +149,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
         // set last update date with the most recent feature entity update.
         cursor.setLastEntityDate(dtos.stream()
-                                     .map(entityModel -> Objects.requireNonNull(entityModel.getContent()).getLastUpdate())
+                                     .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
+                                                                .getLastUpdate())
                                      .max(Comparator.comparing(lastUpdate -> lastUpdate))
                                      .orElse(null));
 
@@ -157,6 +159,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     /**
      * Search a page of {@link FeatureEntityDto}s by several criteria
+     *
      * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getPreviousLastEntityDate()}
      * @throws DataSourceException in case featureEntities could not be retrieved
      */

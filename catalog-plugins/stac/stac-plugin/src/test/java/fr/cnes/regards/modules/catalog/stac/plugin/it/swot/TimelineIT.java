@@ -123,7 +123,8 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
+                                                                                                       .collectionId(
+                                                                                                           "SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -160,7 +161,8 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
+                                                                                                       .collectionId(
+                                                                                                           "SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -194,7 +196,8 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
+                                                                                                       .collectionId(
+                                                                                                           "SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -230,7 +233,8 @@ public class TimelineIT extends AbstractStacIT {
 
         Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId("SWOT_L2_HR_Raster_250m_timeline")
+                                                                                                       .collectionId(
+                                                                                                           "SWOT_L2_HR_Raster_250m_timeline")
                                                                                                        .filters(
                                                                                                            collectionItemSearchBody)
                                                                                                        .build();
@@ -267,7 +271,8 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(datasetId)
+                                                                                                       .collectionId(
+                                                                                                           datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -280,11 +285,11 @@ public class TimelineIT extends AbstractStacIT {
                                                                       .mode(TimelineFiltersByCollection.TimelineMode.BINARY_MAP)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
-        ResultActions resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve " + "failed");
+        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                                         + StacApiConstants.COLLECTIONS_TIMELINE,
+                                                         body,
+                                                         customizer,
+                                                         "Timeline retrieve " + "failed");
         // Do assertion
         String json = payload(resultActions);
         java.util.Map<String, Integer> timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -306,11 +311,11 @@ public class TimelineIT extends AbstractStacIT {
                                           .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM_MAP)
                                           .collections(List.of(collectionFilters))
                                           .build();
-        resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve failed");
+        resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                           + StacApiConstants.COLLECTIONS_TIMELINE,
+                                           body,
+                                           customizer,
+                                           "Timeline retrieve failed");
         // Do assertion
         json = payload(resultActions);
         timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -337,7 +342,8 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(datasetId)
+                                                                                                       .collectionId(
+                                                                                                           datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -350,11 +356,11 @@ public class TimelineIT extends AbstractStacIT {
                                                                       .mode(TimelineFiltersByCollection.TimelineMode.BINARY)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
-        ResultActions resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve " + "failed");
+        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                                         + StacApiConstants.COLLECTIONS_TIMELINE,
+                                                         body,
+                                                         customizer,
+                                                         "Timeline retrieve " + "failed");
         // Do assertion
         String json = payload(resultActions);
         java.util.List<Integer> timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -376,11 +382,11 @@ public class TimelineIT extends AbstractStacIT {
                                           .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM)
                                           .collections(List.of(collectionFilters))
                                           .build();
-        resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve failed");
+        resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                           + StacApiConstants.COLLECTIONS_TIMELINE,
+                                           body,
+                                           customizer,
+                                           "Timeline retrieve failed");
         // Do assertion
         json = payload(resultActions);
         timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -407,7 +413,8 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(datasetId)
+                                                                                                       .collectionId(
+                                                                                                           datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())
@@ -420,11 +427,11 @@ public class TimelineIT extends AbstractStacIT {
                                                                       .mode(TimelineFiltersByCollection.TimelineMode.BINARY)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
-        ResultActions resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve " + "failed");
+        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                                         + StacApiConstants.COLLECTIONS_TIMELINE,
+                                                         body,
+                                                         customizer,
+                                                         "Timeline retrieve " + "failed");
         // Do assertion
         String json = payload(resultActions);
         java.util.List<Integer> timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -441,11 +448,11 @@ public class TimelineIT extends AbstractStacIT {
                                           .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM)
                                           .collections(List.of(collectionFilters))
                                           .build();
-        resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve failed");
+        resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                           + StacApiConstants.COLLECTIONS_TIMELINE,
+                                           body,
+                                           customizer,
+                                           "Timeline retrieve failed");
         // Do assertion
         json = payload(resultActions);
         timeline = JsonPath.read(json, "$.timelines[0].timeline");
@@ -468,11 +475,11 @@ public class TimelineIT extends AbstractStacIT {
         // Pass body as pure JSON
         String body = "{\"collections\":[{\"collectionId\":\"" + datasetId + "\",\"correlationId\":\"selection_01\"}]}";
 
-        ResultActions resultActions = performDefaultPost(
-            StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
-            body,
-            customizer,
-            "Timeline retrieve " + "failed");
+        ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
+                                                         + StacApiConstants.COLLECTIONS_TIMELINE,
+                                                         body,
+                                                         customizer,
+                                                         "Timeline retrieve " + "failed");
 
         // Do assertion
         String json = payload(resultActions);
@@ -526,7 +533,7 @@ public class TimelineIT extends AbstractStacIT {
                                          end,
                                          TimelineFiltersByCollection.TimelineMode.BINARY,
                                          true);
-        Assert.assertTrue(String.format("Expected max response time exceeded! %d > 15000",duration), duration < 15000);
+        Assert.assertTrue(String.format("Expected max response time exceeded! %d > 15000", duration), duration < 15000);
 
         // HISTOGRAM test
         duration = performance_test("one-day-data-template.json",
@@ -642,7 +649,8 @@ public class TimelineIT extends AbstractStacIT {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         Dataset dataset = this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
-                                                                                                       .collectionId(datasetId)
+                                                                                                       .collectionId(
+                                                                                                           datasetId)
                                                                                                        .correlationId(
                                                                                                            UUID.randomUUID()
                                                                                                                .toString())

@@ -26,10 +26,14 @@ import lombok.With;
 /**
  * Approximate center point of a geometry.
  */
-@Value @With
+@Value
+@With
 public class Centroid {
 
-    @SerializedName("lon") double longitude;
-    @SerializedName("lat") double lattitude;
+    @SerializedName("lon")
+    double longitude;
+
+    @SerializedName("lat")
+    double lattitude;
 
 }

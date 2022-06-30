@@ -34,13 +34,14 @@ import java.util.Arrays;
 
 /**
  * This handle init ID mapping for all tenants on startup.
- *
+ * <p>
  * {@link Profile} annotation allows to disable this handler for testing. Testing context has to call {@link IdMappingService} directly for building the
  * cache in its own lifecycle.
  */
 @Component
 @Profile("!noStacHandler")
-public class IdMappingUpdateHandler implements IHandler<BroadcastEntityEvent>, ApplicationListener<ApplicationReadyEvent> {
+public class IdMappingUpdateHandler
+    implements IHandler<BroadcastEntityEvent>, ApplicationListener<ApplicationReadyEvent> {
 
     @Autowired
     private IdMappingService idMappingService;
@@ -72,6 +73,9 @@ public class IdMappingUpdateHandler implements IHandler<BroadcastEntityEvent>, A
 
     private boolean isDatasetOrCollectionCreationEvent(BroadcastEntityEvent event) {
         return event.getEventType().equals(EventType.CREATE) && Arrays.stream(event.getAipIds())
-                .anyMatch(urn -> urn.getEntityType().equals(EntityType.DATASET) || urn.getEntityType().equals(EntityType.COLLECTION));
+                                                                      .anyMatch(urn -> urn.getEntityType()
+                                                                                          .equals(EntityType.DATASET)
+                                                                                       || urn.getEntityType()
+                                                                                             .equals(EntityType.COLLECTION));
     }
 }

@@ -82,8 +82,14 @@ public class CollectionSearchBody {
         Map<String, SearchBody.QueryObject> query;
 
         public ItemSearchBody toItemSearchBody() {
-            return ItemSearchBody.builder().bbox(bbox).datetime(datetime).intersects(intersects)
-                    .collections(collections).ids(ids).query(query).build();
+            return ItemSearchBody.builder()
+                                 .bbox(bbox)
+                                 .datetime(datetime)
+                                 .intersects(intersects)
+                                 .collections(collections)
+                                 .ids(ids)
+                                 .query(query)
+                                 .build();
         }
     }
 }

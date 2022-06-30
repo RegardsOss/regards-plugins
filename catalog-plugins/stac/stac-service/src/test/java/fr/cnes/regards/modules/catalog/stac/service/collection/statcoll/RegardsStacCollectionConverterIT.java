@@ -211,10 +211,20 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
         when(linkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root"))
                                                                  .map(uri -> new Link(uri, ROOT, "", "")));
-        when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option.of(uri(
-            "/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
-        when(linkCreator.createItemLink(anyString(), anyString())).thenAnswer(i -> Option.of(new URI(
-            "/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1))).map(uri -> new Link(uri, SELF, "", "")));
+        when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option.of(uri("/collection/"
+                                                                                                       + i.getArgument(0)))
+                                                                                               .map(uri -> new Link(uri,
+                                                                                                                    COLLECTION,
+                                                                                                                    "",
+                                                                                                                    "")));
+        when(linkCreator.createItemLink(anyString(), anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
+                                                                                                     + i.getArgument(0)
+                                                                                                     + "/item/"
+                                                                                                     + i.getArgument(1)))
+                                                                                         .map(uri -> new Link(uri,
+                                                                                                              SELF,
+                                                                                                              "",
+                                                                                                              "")));
         when(linkCreator.createCollectionItemsLinkWithRel(anyString(), anyString())).thenAnswer(i -> Option.of(new URI(
                                                                                                                "/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                                                                                                            .map(uri -> new Link(

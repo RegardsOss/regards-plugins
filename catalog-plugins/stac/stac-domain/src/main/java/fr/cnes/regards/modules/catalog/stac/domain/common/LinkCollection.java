@@ -25,13 +25,14 @@ import io.vavr.collection.Stream;
 
 /**
  * Interface providing utilities to work with links.
- *
+ * <p>
  * As many of the STAC entities have links, this interface helps
  * adding some links easily.
  */
 public interface LinkCollection<T extends LinkCollection<T>> {
 
     List<Link> getLinks();
+
     T withLinks(List<Link> links);
 
     default T addLinks(Link... links) {

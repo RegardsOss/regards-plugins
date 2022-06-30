@@ -34,18 +34,20 @@ import java.net.URL;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/collection-spec.md#provider-object">description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/collection-spec/json-schema/collection.json#L57">json schema</a>
  */
-@Value @With
+@Value
+@With
 public class Provider {
 
     public enum ProviderRole {
-        @SerializedName("licensor") LICENSOR,
-        @SerializedName("producer") PRODUCER,
-        @SerializedName("processor") PROCESSOR,
-        @SerializedName("host") HOST
+        @SerializedName("licensor") LICENSOR, @SerializedName("producer") PRODUCER, @SerializedName(
+            "processor") PROCESSOR, @SerializedName("host") HOST
     }
 
     String name;
+
     String description;
+
     URL url;
+
     List<ProviderRole> roles;
 }

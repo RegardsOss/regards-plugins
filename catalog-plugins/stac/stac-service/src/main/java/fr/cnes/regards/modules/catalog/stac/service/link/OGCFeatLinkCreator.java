@@ -30,33 +30,41 @@ import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.comm
  * Interface providing methods to build links for collections/items.
  */
 public interface OGCFeatLinkCreator extends StacLinkCreator {
+
     Option<Link> createRootLink();
 
     Option<Link> createCollectionsLink();
+
     default Option<Link> createCollectionsLinkWithRel(String rel) {
         return createCollectionsLink().map(rel(rel));
     }
 
     Option<Link> createCollectionLink(String collectionId, String collectionTitle);
+
     default Option<Link> createCollectionLinkWithRel(String collectionId, String collectionTitle, String rel) {
         return createCollectionLink(collectionId, collectionTitle).map(rel(rel));
     }
 
     Option<Link> createCollectionItemsLink(String collectionId);
+
     default Option<Link> createCollectionItemsLinkWithRel(String collectionId, String rel) {
         return createCollectionItemsLink(collectionId).map(rel(rel));
     }
+
     Option<Link> createItemLink(String collectionId, String itemId);
+
     default Option<Link> createItemLinkWithRel(String collectionId, String itemId, String rel) {
         return createItemLink(collectionId, itemId).map(rel(rel));
     }
 
     Option<Link> createCollectionLink(Collection collection);
+
     default Option<Link> createCollectionLinkWithRel(Collection collection, String rel) {
         return createCollectionLink(collection).map(rel(rel));
     }
 
     Option<Link> createItemLink(Item item);
+
     default Option<Link> createItemLinkWithRel(Item item, String rel) {
         return createItemLink(item).map(rel(rel));
     }

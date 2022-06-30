@@ -29,8 +29,6 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
 
 /**
@@ -43,14 +41,17 @@ public class DateIntervalCriterionBuilder implements CriterionBuilder<DateInterv
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, DateInterval datetime) {
         Option<StacProperty> datetimeProperty = datetimeProperty(properties);
 
-        if (datetime == null) { return Option.none(); }
+        if (datetime == null) {
+            return Option.none();
+        }
         return datetimeProperty.map(p -> {
-                    boolean singleDate = datetime.isSingleDate();
-                    return singleDate
-                        ? IFeatureCriterion.eq(p.getRegardsPropertyAccessor().getAttributeModel(), datetime.getFrom())
-                        : IFeatureCriterion.between(p.getRegardsPropertyAccessor().getAttributeModel(), datetime.getFrom(), datetime.getTo());
-                }
-        );
+            boolean singleDate = datetime.isSingleDate();
+            return singleDate ?
+                IFeatureCriterion.eq(p.getRegardsPropertyAccessor().getAttributeModel(), datetime.getFrom()) :
+                IFeatureCriterion.between(p.getRegardsPropertyAccessor().getAttributeModel(),
+                                          datetime.getFrom(),
+                                          datetime.getTo());
+        });
     }
 
     public Option<StacProperty> datetimeProperty(List<StacProperty> properties) {
@@ -58,7 +59,9 @@ public class DateIntervalCriterionBuilder implements CriterionBuilder<DateInterv
     }
 
     @Override
-    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, DateInterval datetime) {
+    public void computeEODagParameters(EODagParameters parameters,
+                                       List<StacProperty> properties,
+                                       DateInterval datetime) {
         if (datetime != null) {
             if (datetime.getFrom() != null) {
                 parameters.setStart(OffsetDateTimeAdapter.format(datetime.getFrom()));

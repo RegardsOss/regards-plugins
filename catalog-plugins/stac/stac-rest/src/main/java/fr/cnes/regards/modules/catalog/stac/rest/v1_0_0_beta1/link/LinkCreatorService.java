@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.framework.security.utils.jwt.JWTService;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
@@ -35,11 +34,13 @@ public interface LinkCreatorService {
 
     OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth);
 
-    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page,
-            ItemSearchBody itemSearchBody);
+    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth,
+                                                    Integer page,
+                                                    ItemSearchBody itemSearchBody);
 
-    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth, Integer page,
-            CollectionSearchBody collectionSearchBody);
+    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth,
+                                                               Integer page,
+                                                               CollectionSearchBody collectionSearchBody);
 
     SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page, String collectionId);
 

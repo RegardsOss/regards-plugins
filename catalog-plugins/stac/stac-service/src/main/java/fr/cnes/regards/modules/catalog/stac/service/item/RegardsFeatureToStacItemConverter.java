@@ -32,7 +32,8 @@ import io.vavr.control.Try;
  */
 public interface RegardsFeatureToStacItemConverter {
 
-    Try<Item> convertFeatureToItem(List<StacProperty> properties, OGCFeatLinkCreator linkCreator,
-            AbstractEntity<? extends EntityFeature> feature);
+    Try<Item> convertFeatureToItem(List<StacProperty> properties,
+                                   OGCFeatLinkCreator linkCreator,
+                                   AbstractEntity<? extends EntityFeature> feature);
 
 }

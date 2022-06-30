@@ -44,11 +44,15 @@ public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObject
     }
 
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, NumberQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr,
+                                             List<StacProperty> properties,
+                                             NumberQueryObject queryObject) {
 
         // Get converter
-        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName).map(StacProperty::getConverter)
-                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties,
+                                                                              stacPropName).map(StacProperty::getConverter)
+                                                                                           .getOrElse(new IdentityPropertyConverter<>(
+                                                                                               StacPropertyType.NUMBER));
 
         if (queryObject.getEq() != null) {
             return extractConvertedValue(converter, queryObject.getEq()).map(v -> eq(attr, v));
@@ -78,7 +82,11 @@ public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObject
         }
     }
 
-    private ICriterion redispatchBetween(AttributeModel attr, Option<Double> lower, boolean lowerInclusive, Option<Double> upper, boolean upperInclusive) {
+    private ICriterion redispatchBetween(AttributeModel attr,
+                                         Option<Double> lower,
+                                         boolean lowerInclusive,
+                                         Option<Double> upper,
+                                         boolean upperInclusive) {
         if (lower.isDefined() && upper.isDefined()) {
             return between(attr, lower.get(), lowerInclusive, upper.get(), upperInclusive);
         } else if (lower.isDefined()) {
@@ -86,7 +94,8 @@ public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObject
         } else if (upper.isDefined()) {
             return upperInclusive ? lte(attr, upper.get()) : lt(attr, upper.get());
         } else {
-            throw new IllegalArgumentException(String.format("At least one criterion must be set for property %s", stacPropName));
+            throw new IllegalArgumentException(String.format("At least one criterion must be set for property %s",
+                                                             stacPropName));
         }
     }
 
@@ -98,7 +107,11 @@ public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObject
 
     protected abstract ICriterion in(AttributeModel attr, List<Double> in);
 
-    protected abstract ICriterion between(AttributeModel attr, Double lower, boolean lowerInclusive, Double upper, boolean upperInclusive);
+    protected abstract ICriterion between(AttributeModel attr,
+                                          Double lower,
+                                          boolean lowerInclusive,
+                                          Double upper,
+                                          boolean upperInclusive);
 
     protected abstract ICriterion gt(AttributeModel attr, Double value);
 
@@ -112,16 +125,22 @@ public abstract class NumberQueryCriterionBuilder<T> extends AbstractQueryObject
         return Option.of(lt).toTry().flatMap(converter::convertStacToRegards).toOption();
     }
 
-    private Option<List<Double>> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter, List<Double> lt) {
+    private Option<List<Double>> extractConvertedValue(AbstractPropertyConverter<Double, Double> converter,
+                                                       List<Double> lt) {
         return Option.of(lt.flatMap(v -> extractConvertedValue(converter, v)).toList());
     }
 
     @Override
-    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, NumberQueryObject queryObject) {
+    public void buildEODagParameters(AttributeModel attr,
+                                     EODagParameters parameters,
+                                     List<StacProperty> properties,
+                                     NumberQueryObject queryObject) {
 
         // Get converter
-        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties, stacPropName).map(StacProperty::getConverter)
-                .getOrElse(new IdentityPropertyConverter<>(StacPropertyType.NUMBER));
+        AbstractPropertyConverter<Double, Double> converter = getStacProperty(properties,
+                                                                              stacPropName).map(StacProperty::getConverter)
+                                                                                           .getOrElse(new IdentityPropertyConverter<>(
+                                                                                               StacPropertyType.NUMBER));
 
         if (queryObject.getEq() != null) {
             parameters.addExtras(stacPropName, attr.getType(), convert(queryObject.getEq()));

@@ -19,8 +19,6 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
-
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.BooleanQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
@@ -30,6 +28,8 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.eq;
 
 /**
  * Criterion builder for a {@link BooleanQueryObject}
@@ -44,13 +44,18 @@ public class BooleanQueryCriterionBuilder extends AbstractQueryObjectCriterionBu
 
     @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, BooleanQueryObject value) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr,
+                                             List<StacProperty> properties,
+                                             BooleanQueryObject value) {
         return andAllPresent(Option.of(value.getEq()).map(eq -> eq(attr, eq)),
                              Option.of(value.getNeq()).map(neq -> eq(attr, !neq)));
     }
 
     @Override
-    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, BooleanQueryObject queryObject) {
+    public void buildEODagParameters(AttributeModel attr,
+                                     EODagParameters parameters,
+                                     List<StacProperty> properties,
+                                     BooleanQueryObject queryObject) {
         if (queryObject.getEq() != null) {
             parameters.addExtras(stacPropName, attr.getType(), queryObject.getEq());
         } else {

@@ -26,11 +26,14 @@ import lombok.With;
 /**
  * Prefix sublevel, at the given position, applicable to alpha/numeric characters.
  */
-@Value @With
+@Value
+@With
 public class StringPrefixSublevelDef implements DynCollSublevelDef {
 
     int position;
+
     boolean alpha;
+
     boolean digits;
 
     @Override
@@ -40,8 +43,7 @@ public class StringPrefixSublevelDef implements DynCollSublevelDef {
 
     public List<String> allowedCharacters() {
         String allowedCharsStr = "" + (alpha ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "") + (digits ? "0123456789" : "");
-        return List.ofAll(allowedCharsStr.toCharArray())
-            .map(c -> "" + c);
+        return List.ofAll(allowedCharsStr.toCharArray()).map(c -> "" + c);
     }
 
 }

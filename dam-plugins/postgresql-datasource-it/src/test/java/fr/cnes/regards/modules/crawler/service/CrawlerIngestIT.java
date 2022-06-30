@@ -66,9 +66,6 @@ import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
-import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
-import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
-import fr.cnes.regards.modules.model.domain.attributes.Fragment;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.model.service.IModelAttrAssocService;
@@ -91,7 +88,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Crawler ingestion tests
@@ -320,11 +316,10 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
     @Requirement("REGARDS_DSL_DAM_CAT_310")
     @Purpose("Le système doit permettre d’ajouter un AIP de données dans un jeu de données à partir de son IP_ID "
-        + "(ajout d'un tag sur l'AIP de données).")
+             + "(ajout d'un tag sur l'AIP de données).")
     @Test
     @Ignore("Don't reactivate this test, it is nearly impossible de manage a multi-thread tests with all this mess")
-    public void test()
-        throws ModuleException, InterruptedException, NotFinishedException, FirstFindException {
+    public void test() throws ModuleException, InterruptedException, NotFinishedException, FirstFindException {
         LOGGER.info("********************* test CrawlerIngestIT ***********************************");
         final String tenant = tenantResolver.getTenant();
         // First delete index if it already exists

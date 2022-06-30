@@ -35,21 +35,24 @@ import lombok.With;
  *
  * @see <a href="https://api.stacspec.org/v1.0.0-beta.1/item-search/#operation/getItemSearch">definition</a>
  */
-@Value @With
+@Value
+@With
 public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
 
     @SerializedName("stac_version")
     String stacVersion = StacSpecConstants.Version.STAC_API_VERSION;
+
     @SerializedName("stac_extensions")
     Set<String> stacExtensions;
 
     enum TypeEnum {
-        @SerializedName("FeatureCollection")
-        FEATURE_COLLECTION
+        @SerializedName("FeatureCollection") FEATURE_COLLECTION
     }
+
     TypeEnum type = TypeEnum.FEATURE_COLLECTION;
 
     List<Item> features;
+
     List<Link> links;
 
     Context context;

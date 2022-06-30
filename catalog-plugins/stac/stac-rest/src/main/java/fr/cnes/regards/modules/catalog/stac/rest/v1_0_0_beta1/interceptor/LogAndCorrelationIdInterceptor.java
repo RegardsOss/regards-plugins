@@ -38,14 +38,16 @@ public class LogAndCorrelationIdInterceptor extends HandlerInterceptorAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAndCorrelationIdInterceptor.class);
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+        throws Exception {
         UUID fresh = StacRequestCorrelationId.fresh();
         info(LOGGER, "STAC | {} {} - correlationId={}", request.getMethod(), request.getRequestURI(), fresh);
         return true;
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+        throws Exception {
         StacRequestCorrelationId.clean();
     }
 }

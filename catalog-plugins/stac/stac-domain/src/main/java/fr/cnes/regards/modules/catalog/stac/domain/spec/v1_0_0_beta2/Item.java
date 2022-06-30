@@ -40,7 +40,8 @@ import lombok.With;
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/item-spec.md">Description</a>
  * @see <a href="https://github.com/radiantearth/stac-spec/blob/v1.0.0-beta.2/item-spec/json-schema/item.json">json schema</a>
  */
-@Value @With
+@Value
+@With
 public class Item implements LinkCollection<Item> {
 
     @SerializedName("stac_version")
@@ -50,20 +51,25 @@ public class Item implements LinkCollection<Item> {
     Set<String> stacExtensions;
 
     String id;
+
     BBox bbox;
+
     IGeometry geometry;
+
     Centroid centroid;
 
     public enum TypeEnum {
-        @SerializedName("Feature")
-        FEATURE
+        @SerializedName("Feature") FEATURE
     }
+
     TypeEnum type = TypeEnum.FEATURE;
 
     String collection;
 
     Map<String, Object> properties;
+
     List<Link> links;
+
     Map<String, Asset> assets;
 
 }

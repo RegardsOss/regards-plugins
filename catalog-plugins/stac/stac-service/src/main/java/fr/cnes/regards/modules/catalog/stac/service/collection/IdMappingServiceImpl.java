@@ -71,7 +71,9 @@ public class IdMappingServiceImpl implements IdMappingService {
 
     @Override
     public List<String> getUrnsByStacIds(List<String> stacIds) {
-        return stacIds == null || stacIds.isEmpty() ? null : stacIds.map(idMappingsByTenant.get(runtimeTenantResolver.getTenant())::get);
+        return stacIds == null || stacIds.isEmpty() ?
+            null :
+            stacIds.map(idMappingsByTenant.get(runtimeTenantResolver.getTenant())::get);
     }
 
     @Override

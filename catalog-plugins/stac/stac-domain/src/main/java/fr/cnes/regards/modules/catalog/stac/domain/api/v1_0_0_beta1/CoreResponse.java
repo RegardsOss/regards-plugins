@@ -28,7 +28,8 @@ import io.vavr.collection.List;
  *
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/v1.0.0-beta.1/core">definition</a>
  */
-@lombok.Value @lombok.With
+@lombok.Value
+@lombok.With
 public class CoreResponse {
 
     @SerializedName("stac_version")
@@ -38,8 +39,11 @@ public class CoreResponse {
     List<String> stacExtensions;
 
     String title;
+
     String id;
+
     String description;
+
     List<Link> links;
 
     List<String> conformsTo;

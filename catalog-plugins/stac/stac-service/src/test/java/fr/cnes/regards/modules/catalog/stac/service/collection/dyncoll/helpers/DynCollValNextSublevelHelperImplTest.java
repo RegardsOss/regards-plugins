@@ -1,27 +1,5 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.DATETIME;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.NUMBER;
-import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.STRING;
-import static java.time.OffsetDateTime.now;
-import static java.time.ZoneOffset.UTC;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.time.OffsetDateTime;
-import java.util.Collection;
-
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.metrics.ParsedStats;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
@@ -43,6 +21,25 @@ import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
 import io.vavr.collection.List;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.metrics.ParsedStats;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.OffsetDateTime;
+import java.util.Collection;
+
+import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType.*;
+import static java.time.OffsetDateTime.now;
+import static java.time.ZoneOffset.UTC;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAccessorAwareTest {
 
@@ -60,30 +57,63 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
 
     ProjectGeoSettings projectGeoSettings = mock(ProjectGeoSettings.class);
 
-    EsAggregationHelper aggregagtionHelper = new EsAggregationHelperImpl(esRepository, tenantResolver, projectGeoSettings);
+    EsAggregationHelper aggregagtionHelper = new EsAggregationHelperImpl(esRepository,
+                                                                         tenantResolver,
+                                                                         projectGeoSettings);
 
     ConfigurationAccessor config = mock(ConfigurationAccessor.class);
 
     ConfigurationAccessorFactory configFactory = () -> config;
 
     DynCollValNextSublevelHelperImpl helper = new DynCollValNextSublevelHelperImpl(levelValToQueryObjectConverter,
-            criterionBuilder, aggregagtionHelper, configFactory);
+                                                                                   criterionBuilder,
+                                                                                   aggregagtionHelper,
+                                                                                   configFactory);
 
-    StacProperty prop1 = new StacProperty(accessor("prop1", NUMBER, 12d), null, "prop1", "", false, 1, "0;10;20", NUMBER,
-            new IdentityPropertyConverter<>(NUMBER), Boolean.FALSE);
+    StacProperty prop1 = new StacProperty(accessor("prop1", NUMBER, 12d),
+                                          null,
+                                          "prop1",
+                                          "",
+                                          false,
+                                          1,
+                                          "0;10;20",
+                                          NUMBER,
+                                          new IdentityPropertyConverter<>(NUMBER),
+                                          Boolean.FALSE);
 
-    StacProperty prop2 = new StacProperty(accessor("prop2", DATETIME, now()), null, "prop2", "", false, 2, "DAY", DATETIME,
-            new IdentityPropertyConverter<>(DATETIME), Boolean.FALSE);
+    StacProperty prop2 = new StacProperty(accessor("prop2", DATETIME, now()),
+                                          null,
+                                          "prop2",
+                                          "",
+                                          false,
+                                          2,
+                                          "DAY",
+                                          DATETIME,
+                                          new IdentityPropertyConverter<>(DATETIME),
+                                          Boolean.FALSE);
 
-    StacProperty prop3 = new StacProperty(accessor("prop3", STRING, ""), null, "prop3", "", false, 3, "PREFIX(2,9)", STRING,
-            new IdentityPropertyConverter<>(STRING), Boolean.FALSE);
+    StacProperty prop3 = new StacProperty(accessor("prop3", STRING, ""),
+                                          null,
+                                          "prop3",
+                                          "",
+                                          false,
+                                          3,
+                                          "PREFIX(2,9)",
+                                          STRING,
+                                          new IdentityPropertyConverter<>(STRING),
+                                          Boolean.FALSE);
 
     NumberRangeLevelDef numberRangeLevelDef = new NumberRangeLevelDef(prop1, new NumberRangeSublevelDef(0, 10, 20));
 
     DatePartsLevelDef datePartsLevelDef = new DatePartsLevelDef(prop2, DynCollSublevelType.DatetimeBased.DAY);
 
     StringPrefixLevelDef stringPrefixLevelDef = new StringPrefixLevelDef(prop3,
-            List.of(new StringPrefixSublevelDef(0, false, true), new StringPrefixSublevelDef(1, false, true)));
+                                                                         List.of(new StringPrefixSublevelDef(0,
+                                                                                                             false,
+                                                                                                             true),
+                                                                                 new StringPrefixSublevelDef(1,
+                                                                                                             false,
+                                                                                                             true)));
 
     DynCollDef def = new DynCollDef(List.of(numberRangeLevelDef, datePartsLevelDef, stringPrefixLevelDef));
 
@@ -92,10 +122,22 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
         when(config.getStacProperties()).thenReturn(List.of(prop1, prop2, prop3));
         when(tenantResolver.getTenant()).thenReturn("theTenant");
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
-        when(esRepository.minDate(any(), any(), anyString()))
-                .thenAnswer(i -> OffsetDateTime.of(2020, 1, 1, 0, 0, 0, 0, UTC));
-        when(esRepository.maxDate(any(), any(), anyString()))
-                .thenAnswer(i -> OffsetDateTime.of(2021, 1, 1, 0, 0, 0, 0, UTC));
+        when(esRepository.minDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2020,
+                                                                                                1,
+                                                                                                1,
+                                                                                                0,
+                                                                                                0,
+                                                                                                0,
+                                                                                                0,
+                                                                                                UTC));
+        when(esRepository.maxDate(any(), any(), anyString())).thenAnswer(i -> OffsetDateTime.of(2021,
+                                                                                                1,
+                                                                                                1,
+                                                                                                0,
+                                                                                                0,
+                                                                                                0,
+                                                                                                0,
+                                                                                                UTC));
     }
 
     @Test
@@ -125,14 +167,16 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
         when(esRepository.getAggregationsFor(any(), any(), any())).thenAnswer(i -> {
             Collection<AggregationBuilder> aggBuilders = i.getArgument(2);
             String path = List.ofAll(aggBuilders).head().getName();
-            ParsedStats result = new MyDateStats(path, OffsetDateTime.of(2020, 1, 2, 0, 0, 0, 0, UTC).toEpochSecond() * 1000,
-                    OffsetDateTime.of(2021, 12, 31, 0, 0, 0, 0, UTC).toEpochSecond() * 1000);
+            ParsedStats result = new MyDateStats(path,
+                                                 OffsetDateTime.of(2020, 1, 2, 0, 0, 0, 0, UTC).toEpochSecond() * 1000,
+                                                 OffsetDateTime.of(2021, 12, 31, 0, 0, 0, 0, UTC).toEpochSecond()
+                                                 * 1000);
             return new Aggregations(List.of(result).toJavaList());
         });
 
         // WHEN
-        List<DynCollVal> actual = helper
-                .nextSublevels(new DynCollVal(def, List.of(numberRangeLevelDef.parseValues("20;30"))));
+        List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"))));
         // THEN
         actual.map(v -> v.toLabel()).forEach(LOGGER::info);
         assertThat(actual).hasSize(2);
@@ -144,7 +188,8 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void nextSublevels_hasNumYear() {
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
-                List.of(numberRangeLevelDef.parseValues("20;30"), datePartsLevelDef.parseValues("2020"))));
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"),
+                                                                              datePartsLevelDef.parseValues("2020"))));
         // THEN
         assertThat(actual).hasSize(12);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(1).getSublevelValue()).isEqualTo("2020-01");
@@ -156,7 +201,8 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void nextSublevels_hasNumYearMonth() {
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
-                List.of(numberRangeLevelDef.parseValues("20;30"), datePartsLevelDef.parseValues("2020-02"))));
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"),
+                                                                              datePartsLevelDef.parseValues("2020-02"))));
         // THEN
         assertThat(actual).hasSize(28);
         assertThat(actual.get(0).getLevels().get(1).getSublevels().get(2).getSublevelValue()).isEqualTo("2020-02-01");
@@ -168,7 +214,8 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void nextSublevels_hasNumYearMonthDay() {
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
-                List.of(numberRangeLevelDef.parseValues("20;30"), datePartsLevelDef.parseValues("2020-02-16"))));
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"),
+                                                                              datePartsLevelDef.parseValues("2020-02-16"))));
         // THEN
         assertThat(actual).hasSize(10);
         assertThat(actual.get(0).getLevels().get(2).getSublevels().get(0).getSublevelValue()).isEqualTo("0");
@@ -180,8 +227,9 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void nextSublevels_hasNumYearMonthDayFst() {
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
-                List.of(numberRangeLevelDef.parseValues("20;30"), datePartsLevelDef.parseValues("2020-02-16"),
-                        stringPrefixLevelDef.parseValues("7"))));
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"),
+                                                                              datePartsLevelDef.parseValues("2020-02-16"),
+                                                                              stringPrefixLevelDef.parseValues("7"))));
         // THEN
         assertThat(actual).hasSize(10);
         assertThat(actual.get(0).getLevels().get(2).getSublevels().get(1).getSublevelValue()).isEqualTo("70");
@@ -193,8 +241,9 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
     public void nextSublevels_full() {
         // WHEN
         List<DynCollVal> actual = helper.nextSublevels(new DynCollVal(def,
-                List.of(numberRangeLevelDef.parseValues("20;30"), datePartsLevelDef.parseValues("2020-02-16"),
-                        stringPrefixLevelDef.parseValues("77"))));
+                                                                      List.of(numberRangeLevelDef.parseValues("20;30"),
+                                                                              datePartsLevelDef.parseValues("2020-02-16"),
+                                                                              stringPrefixLevelDef.parseValues("77"))));
         // THEN
         assertThat(actual).isEmpty();
     }

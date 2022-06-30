@@ -41,15 +41,21 @@ public abstract class AbstractQueryObjectCriterionBuilder<T extends QueryObject>
         this.stacPropName = stacPropName;
     }
 
-    public abstract Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties, T queryObject);
+    public abstract Option<ICriterion> buildCriterion(AttributeModel attr,
+                                                      List<StacProperty> properties,
+                                                      T queryObject);
 
-    public abstract void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, T queryObject);
+    public abstract void buildEODagParameters(AttributeModel attr,
+                                              EODagParameters parameters,
+                                              List<StacProperty> properties,
+                                              T queryObject);
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, T queryObject) {
-        if (queryObject == null) { return Option.none(); }
-        return propertyNameFor(properties, stacPropName)
-                .flatMap(attr -> buildCriterion(attr, properties, queryObject));
+        if (queryObject == null) {
+            return Option.none();
+        }
+        return propertyNameFor(properties, stacPropName).flatMap(attr -> buildCriterion(attr, properties, queryObject));
     }
 
     @Override

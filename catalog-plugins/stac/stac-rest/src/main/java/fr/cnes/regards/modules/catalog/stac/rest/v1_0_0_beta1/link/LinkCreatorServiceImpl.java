@@ -164,29 +164,47 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     // @formatter:on
 
     @Override
-    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth, Integer page,
-            ItemSearchBody itemSearchBody) {
+    public SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth,
+                                                           Integer page,
+                                                           ItemSearchBody itemSearchBody) {
         return new SearchPageLinkCreator() {
 
             @Override
             public Option<URI> searchAll() {
-                return tryOf(() -> WebMvcLinkBuilder
-                        .linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class).simple(null,null,null,null,
-                                                                                              null,null, null, null,
-                                                                                              null)).toUri())
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create search all", t)).toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
+                                                                             .simple(null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null)).toUri()).flatMapTry(
+                                                                                                        uriParamAdder.appendAuthParams(auth))
+                                                                                                    .onFailure(t -> warn(
+                                                                                                        LOGGER,
+                                                                                                        "Failed to create search all",
+                                                                                                        t))
+                                                                                                    .toOption();
             }
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody, JWTAuthentication auth) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
-                                                                                              .otherPage(itemBodyB64, i))
-                                                                                              .toUri())
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth)).flatMapTry(uriParamAdder.appendParams(
-                                HashMap.of(SEARCH_ITEMBODY_QUERY_PARAM, itemBodyB64, PAGE_QUERY_PARAM, "" + i)))
-                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
-                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
+                                                                             .otherPage(itemBodyB64, i))
+                                                    .toUri()).flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .flatMapTry(uriParamAdder.appendParams(HashMap.of(
+                                                                 SEARCH_ITEMBODY_QUERY_PARAM,
+                                                                 itemBodyB64,
+                                                                 PAGE_QUERY_PARAM,
+                                                                 "" + i)))
+                                                             .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                                                             .onFailure(t -> error(LOGGER,
+                                                                                   FAILURE_PATTERN_MESSAGE,
+                                                                                   t.getMessage(),
+                                                                                   t))
+                                                             .toOption();
             }
 
             @Override
@@ -207,8 +225,9 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     }
 
     @Override
-    public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page,
-            String collectionId) {
+    public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth,
+                                                                    Integer page,
+                                                                    String collectionId) {
         return new SearchPageLinkCreator() {
 
             @Override
@@ -218,12 +237,28 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             private Option<URI> createPageLink(int i, JWTAuthentication auth) {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class)
-                                                                             .features(collectionId, i, null, null, null))
-                                                                             .toUri())
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .flatMapTry(uriParamAdder.appendParams(HashMap.of(PAGE_QUERY_PARAM, "" + i)))
-                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
-                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
+                                                                             .features(collectionId,
+                                                                                       i,
+                                                                                       null,
+                                                                                       null,
+                                                                                       null)).toUri()).flatMapTry(
+                                                                                                          uriParamAdder.appendAuthParams(auth))
+                                                                                                      .flatMapTry(
+                                                                                                          uriParamAdder.appendParams(
+                                                                                                              HashMap.of(
+                                                                                                                  PAGE_QUERY_PARAM,
+                                                                                                                  ""
+                                                                                                                  + i)))
+                                                                                                      .onSuccess(u -> debug(
+                                                                                                          LOGGER,
+                                                                                                          URI_PATTERN_MESSAGE,
+                                                                                                          u))
+                                                                                                      .onFailure(t -> error(
+                                                                                                          LOGGER,
+                                                                                                          FAILURE_PATTERN_MESSAGE,
+                                                                                                          t.getMessage(),
+                                                                                                          t))
+                                                                                                      .toOption();
             }
 
             @Override
@@ -244,30 +279,40 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     }
 
     @Override
-    public SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth, Integer page,
-            CollectionSearchBody collectionSearchBody) {
+    public SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth,
+                                                                      Integer page,
+                                                                      CollectionSearchBody collectionSearchBody) {
         return new SearchPageLinkCreator() {
 
             @Override
             public Option<URI> searchAll() {
-                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionSearchController.class).toUri())
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create search all collections", t)).toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionSearchController.class).toUri()).flatMapTry(
+                                                                                                          uriParamAdder.appendAuthParams(auth))
+                                                                                                      .onFailure(t -> warn(
+                                                                                                          LOGGER,
+                                                                                                          "Failed to create search all collections",
+                                                                                                          t))
+                                                                                                      .toOption();
             }
 
-            private Option<URI> createPageLink(int i, CollectionSearchBody collectionSearchBody,
-                    JWTAuthentication auth) {
+            private Option<URI> createPageLink(int i,
+                                               CollectionSearchBody collectionSearchBody,
+                                               JWTAuthentication auth) {
                 String collectionBodyB64 = toBase64(gson.toJson(collectionSearchBody));
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(CollectionSearchController.class)
-                                                        .otherPage(collectionBodyB64, i)).toUri())
-                                                        .flatMapTry(uriParamAdder.appendAuthParams(auth)).flatMapTry(uriParamAdder
-                                                                                                      .appendParams(HashMap.of(
-                                                                                                                      SEARCH_COLLECTIONBODY_QUERY_PARAM,
-                                                                                                                      collectionBodyB64,
-                                                                                                                      PAGE_QUERY_PARAM,
-                                                                                                                      "" + i)))
-                        .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
-                        .onFailure(t -> error(LOGGER, FAILURE_PATTERN_MESSAGE, t.getMessage(), t)).toOption();
+                                                                             .otherPage(collectionBodyB64, i))
+                                                    .toUri()).flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .flatMapTry(uriParamAdder.appendParams(HashMap.of(
+                                                                 SEARCH_COLLECTIONBODY_QUERY_PARAM,
+                                                                 collectionBodyB64,
+                                                                 PAGE_QUERY_PARAM,
+                                                                 "" + i)))
+                                                             .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
+                                                             .onFailure(t -> error(LOGGER,
+                                                                                   FAILURE_PATTERN_MESSAGE,
+                                                                                   t.getMessage(),
+                                                                                   t))
+                                                             .toOption();
             }
 
             @Override
@@ -289,60 +334,85 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     @Override
     public DownloadLinkCreator makeDownloadLinkCreator(JWTAuthentication auth,
-            FeignSecurityManager feignSecurityManager) {
+                                                       FeignSecurityManager feignSecurityManager) {
         return new DownloadLinkCreator() {
 
             private String systemToken = null;
 
             @Override
             public Option<URI> createAllCollectionsDownloadLink(String tinyUrlId) {
-                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).toUri())
-                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create all collections download link", t)).toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).toUri()).flatMapTry(
+                                                                                                            uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                                                                        .flatMapTry(
+                                                                                                            uriParamAdder.appendAuthParams(
+                                                                                                                auth))
+                                                                                                        .onFailure(t -> warn(
+                                                                                                            LOGGER,
+                                                                                                            "Failed to create all collections download link",
+                                                                                                            t))
+                                                                                                        .toOption();
             }
 
             @Override
             public Option<URI> createAllCollectionsScriptLink(String tinyUrlId) {
-                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).slash(STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX)
-                        .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create all collections script download link", t)).toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
+                                                    .slash(STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX)
+                                                    .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create all collections script download link",
+                                                                                  t))
+                                                             .toOption();
 
             }
 
             @Override
             public Option<URI> createSingleCollectionDownloadLink(String collectionId, String tinyUrlId) {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
-                                                     .slash(collectionId)
-                                                     .slash(STAC_DOWNLOAD_AS_ZIP_SUFFIX).toUri())
-                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create single collection download link", t)).toOption();
+                                                    .slash(collectionId)
+                                                    .slash(STAC_DOWNLOAD_AS_ZIP_SUFFIX)
+                                                    .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create single collection download link",
+                                                                                  t))
+                                                             .toOption();
             }
 
             @Override
             public Option<URI> createSingleCollectionSampleDownloadLink(String collectionId, String tinyUrlId) {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
-                                                     .slash(collectionId)
-                                                     .slash(STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX + STAC_DOWNLOAD_AS_ZIP_SUFFIX).toUri())
-                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create single collection sample download link", t)).toOption();
+                                                    .slash(collectionId)
+                                                    .slash(STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX
+                                                           + STAC_DOWNLOAD_AS_ZIP_SUFFIX)
+                                                    .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create single collection sample download link",
+                                                                                  t))
+                                                             .toOption();
             }
 
             @Override
             public Option<URI> createSingleCollectionScriptLink(String collectionId, String tinyUrlId) {
-                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).slash(collectionId).slash(STAC_DOWNLOAD_SCRIPT_SUFFIX).toUri())
-                        .flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                        .flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to create single collection script download link", t)).toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
+                                                    .slash(collectionId)
+                                                    .slash(STAC_DOWNLOAD_SCRIPT_SUFFIX)
+                                                    .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create single collection script download link",
+                                                                                  t))
+                                                             .toOption();
             }
 
             @Override
             public String appendAuthParamsForNginx(String uri) {
                 return tryOf(() -> URI.create(uri)).flatMapTry(uriParamAdder.appendAuthParams(auth))
-                        .onFailure(t -> warn(LOGGER, "Failed to append authentication parameters")).get().toString();
+                                                   .onFailure(t -> warn(LOGGER,
+                                                                        "Failed to append authentication parameters"))
+                                                   .get()
+                                                   .toString();
             }
 
             @Override

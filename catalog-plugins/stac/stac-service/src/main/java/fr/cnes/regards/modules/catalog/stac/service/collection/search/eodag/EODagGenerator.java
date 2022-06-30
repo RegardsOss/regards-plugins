@@ -25,14 +25,11 @@ import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.JinjavaConfig;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
-import fr.cnes.regards.modules.model.dto.properties.PropertyType;
-import org.springframework.data.util.Pair;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Helper class for generating EODag scripts
@@ -41,7 +38,10 @@ public class EODagGenerator {
 
     // JINJA templates
 
-    private static final JinjavaConfig config = JinjavaConfig.newBuilder().withTrimBlocks(true).withLstripBlocks(true).build();
+    private static final JinjavaConfig config = JinjavaConfig.newBuilder()
+                                                             .withTrimBlocks(true)
+                                                             .withLstripBlocks(true)
+                                                             .build();
 
     private static final Jinjava jinjava = new Jinjava(config);
 
@@ -54,7 +54,9 @@ public class EODagGenerator {
     /**
      * Single collection script generation
      */
-    public static void generateFromTemplate(PrintWriter writer, EODagInformation information, EODagParameters parameters) throws StacException {
+    public static void generateFromTemplate(PrintWriter writer,
+                                            EODagInformation information,
+                                            EODagParameters parameters) throws StacException {
         Map<String, Object> context = prepareContext(information, parameters);
         writer.println(jinjava.render(getBaseTemplate(), context));
         writer.println(jinjava.render(getSingleTemplate(), context));
@@ -63,7 +65,9 @@ public class EODagGenerator {
     /**
      * Multi collections script generation
      */
-    public static void generateFromTemplate(PrintWriter writer, EODagInformation information, List<EODagParameters> collectionParameters) throws StacException {
+    public static void generateFromTemplate(PrintWriter writer,
+                                            EODagInformation information,
+                                            List<EODagParameters> collectionParameters) throws StacException {
         Map<String, Object> context = prepareContext(information, collectionParameters);
         writer.println(jinjava.render(getBaseTemplate(), context));
         writer.println(jinjava.render(getMultiTemplate(), context));
@@ -79,7 +83,8 @@ public class EODagGenerator {
         return context;
     }
 
-    private static Map<String, Object> prepareContext(EODagInformation information, List<EODagParameters> collectionParameters) {
+    private static Map<String, Object> prepareContext(EODagInformation information,
+                                                      List<EODagParameters> collectionParameters) {
         Map<String, Object> context = Maps.newHashMap();
         context.put("info", information);
         context.put("parameters", collectionParameters);
@@ -90,7 +95,9 @@ public class EODagGenerator {
         try {
             return Resources.toString(Resources.getResource(BASE_TEMPLATE), Charsets.UTF_8);
         } catch (IOException e) {
-            throw new StacException("Unable to load base template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+            throw new StacException("Unable to load base template of python script",
+                                    e,
+                                    StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
         }
     }
 
@@ -98,7 +105,9 @@ public class EODagGenerator {
         try {
             return Resources.toString(Resources.getResource(SINGLE_TEMPLATE), Charsets.UTF_8);
         } catch (IOException e) {
-            throw new StacException("Unable to load single template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+            throw new StacException("Unable to load single template of python script",
+                                    e,
+                                    StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
         }
     }
 
@@ -106,7 +115,9 @@ public class EODagGenerator {
         try {
             return Resources.toString(Resources.getResource(MULTI_TEMPLATE), Charsets.UTF_8);
         } catch (IOException e) {
-            throw new StacException("Unable to load multi template of python script", e, StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
+            throw new StacException("Unable to load multi template of python script",
+                                    e,
+                                    StacFailureType.JINJA_TEMPLATE_LOADING_FAILURE);
         }
     }
 

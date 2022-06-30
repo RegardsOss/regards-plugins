@@ -33,55 +33,94 @@ public class SearchBody {
 
     @Value
     public static class SortBy {
+
         public enum Direction {
             @SerializedName("asc") ASC, @SerializedName("desc") DESC
         }
+
         String field;
+
         Direction direction;
     }
 
-    @Value @With
+    @Value
+    @With
     public static class Fields {
+
         List<String> includes;
+
         List<String> excludes;
     }
 
-    public interface QueryObject {}
+    public interface QueryObject {
 
-    @Value @Builder
+    }
+
+    @Value
+    @Builder
     public static class BooleanQueryObject implements QueryObject {
+
         Boolean eq;
+
         Boolean neq;
     }
-    @Value @Builder
+
+    @Value
+    @Builder
     public static class NumberQueryObject implements QueryObject {
+
         Double eq;
+
         Double neq;
+
         Double gt;
+
         Double lt;
+
         Double gte;
+
         Double lte;
+
         List<Double> in;
     }
-    @Value @Builder
+
+    @Value
+    @Builder
     public static class DatetimeQueryObject implements QueryObject {
+
         OffsetDateTime eq;
+
         OffsetDateTime neq;
+
         OffsetDateTime gt;
+
         OffsetDateTime lt;
+
         OffsetDateTime gte;
+
         OffsetDateTime lte;
+
         List<OffsetDateTime> in;
     }
-    @Value @Builder
+
+    @Value
+    @Builder
     public static class StringQueryObject implements QueryObject {
+
         String eq;
+
         String neq;
+
         String startsWith;
+
         String endsWith;
+
         String contains;
+
         List<String> containsAll;
+
         List<String> in;
+
         String matchType;
     }
 }

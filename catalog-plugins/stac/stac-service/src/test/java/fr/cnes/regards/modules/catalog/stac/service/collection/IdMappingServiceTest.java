@@ -42,7 +42,8 @@ import org.springframework.test.context.TestPropertySource;
 import java.util.UUID;
 
 @ActiveProfiles({ "test", "feign" })
-@TestPropertySource(locations = { "classpath:test.properties" }, properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+@TestPropertySource(locations = { "classpath:test.properties" },
+    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
 
     public static final String ITEMS_TENANT = "PROJECT";
@@ -72,8 +73,14 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
 
         // Create one collection
 
-        UniformResourceName urnParentCollection = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.COLLECTION, ITEMS_TENANT,
-                                                                            UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5680"), 1, null, null);
+        UniformResourceName urnParentCollection = UniformResourceName.build(OAISIdentifier.AIP.name(),
+                                                                            EntityType.COLLECTION,
+                                                                            ITEMS_TENANT,
+                                                                            UUID.fromString(
+                                                                                "74f2c965-0136-47f0-93e1-4fd098db5680"),
+                                                                            1,
+                                                                            null,
+                                                                            null);
 
         Model model1 = new Model();
         Model collectionModel = new Model();
@@ -82,21 +89,35 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
         collectionModel.setVersion("1");
         collectionModel.setDescription("Test collection model");
         model1.setType(EntityType.COLLECTION);
-        fr.cnes.regards.modules.dam.domain.entities.Collection collection = new fr.cnes.regards.modules.dam.domain.entities.Collection(collectionModel,
-                                                                                                                                       ITEMS_TENANT, "COL",
-                                                                                                                                       "collection");
+        fr.cnes.regards.modules.dam.domain.entities.Collection collection = new fr.cnes.regards.modules.dam.domain.entities.Collection(
+            collectionModel,
+            ITEMS_TENANT,
+            "COL",
+            "collection");
 
         collection.setId(1L);
         collection.setTags(Sets.newHashSet("TEST collection", urnParentCollection.toString()));
         collection.setLabel("toto");
-        UniformResourceName collectionUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.COLLECTION, ITEMS_TENANT,
-                                                                                      UUID.fromString("80282ac5-1b01-4e9d-a356-123456789012"), 1, null, null);
+        UniformResourceName collectionUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(),
+                                                                                      EntityType.COLLECTION,
+                                                                                      ITEMS_TENANT,
+                                                                                      UUID.fromString(
+                                                                                          "80282ac5-1b01-4e9d-a356-123456789012"),
+                                                                                      1,
+                                                                                      null,
+                                                                                      null);
         collection.setIpId(collectionUniformResourceName);
 
         // Create one dataset
 
-        UniformResourceName urnParentDataset = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.DATASET, ITEMS_TENANT,
-                                                                         UUID.fromString("99f2c965-0136-47f0-93e1-4fd098db569"), 1, null, null);
+        UniformResourceName urnParentDataset = UniformResourceName.build(OAISIdentifier.AIP.name(),
+                                                                         EntityType.DATASET,
+                                                                         ITEMS_TENANT,
+                                                                         UUID.fromString(
+                                                                             "99f2c965-0136-47f0-93e1-4fd098db569"),
+                                                                         1,
+                                                                         null,
+                                                                         null);
 
         Model model2 = new Model();
         Model datasetModel = new Model();
@@ -110,8 +131,14 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
         dataset.setId(9L);
         dataset.setTags(Sets.newHashSet("TEST dataset", urnParentDataset.toString()));
         dataset.setLabel("tata");
-        UniformResourceName datasetUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(), EntityType.DATASET, ITEMS_TENANT,
-                                                                                   UUID.fromString("88282ac5-1b01-4e9d-a356-12345678909"), 9, null, null);
+        UniformResourceName datasetUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(),
+                                                                                   EntityType.DATASET,
+                                                                                   ITEMS_TENANT,
+                                                                                   UUID.fromString(
+                                                                                       "88282ac5-1b01-4e9d-a356-12345678909"),
+                                                                                   9,
+                                                                                   null,
+                                                                                   null);
         dataset.setIpId(datasetUniformResourceName);
 
         // Save one collection and one dataset
@@ -133,7 +160,8 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
 
         // WHEN
         String urnCollection = idMappingService.getUrnByStacId("COL");
-        String stacIdDataset = idMappingService.getStacIdByUrn("URN:AIP:DATASET:PROJECT:88282ac5-1b01-4e9d-a356-012345678909:V9");
+        String stacIdDataset = idMappingService.getStacIdByUrn(
+            "URN:AIP:DATASET:PROJECT:88282ac5-1b01-4e9d-a356-012345678909:V9");
         String unknownStacId = idMappingService.getStacIdByUrn("URN");
         String unknownUrn = idMappingService.getUrnByStacId("COL_");
 

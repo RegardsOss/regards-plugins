@@ -39,34 +39,31 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
 
     @Override
     public void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
-        params.randomize(Extent.Temporal.class, () -> new Extent.Temporal(List.range(0, generator.nextInt(10))
-                                                                                  .map(i -> Tuple
-                                                                                          .of(generator.nextBoolean() ?
-                                                                                                      null :
-                                                                                                      generator
-                                                                                                              .nextObject(
-                                                                                                                      OffsetDateTime.class),
-                                                                                              generator.nextBoolean() ?
-                                                                                                      null :
-                                                                                                      generator
-                                                                                                              .nextObject(
-                                                                                                                      OffsetDateTime.class)))))
-                .randomize(SearchBody.QueryObject.class, () -> {
-                    return generator.nextBoolean() ?
-                            generator.nextBoolean() ?
-                                    generator.nextObject(SearchBody.BooleanQueryObject.class) :
-                                    generator.nextObject(SearchBody.NumberQueryObject.class) :
-                            generator.nextObject(SearchBody.StringQueryObject.class);
-                }).randomize(DateInterval.class, () -> {
-            return generator.nextBoolean() ?
-                    DateInterval.single(generator.nextObject(OffsetDateTime.class)) :
-                    generator.nextBoolean() ?
-                            DateInterval.from(generator.nextObject(OffsetDateTime.class)) :
-                            generator.nextBoolean() ?
-                                    DateInterval.to(generator.nextObject(OffsetDateTime.class)) :
-                                    DateInterval.of(generator.nextObject(OffsetDateTime.class),
-                                                    generator.nextObject(OffsetDateTime.class));
-        });
+        params.randomize(Extent.Temporal.class,
+                         () -> new Extent.Temporal(List.range(0, generator.nextInt(10))
+                                                       .map(i -> Tuple.of(generator.nextBoolean() ?
+                                                                              null :
+                                                                              generator.nextObject(OffsetDateTime.class),
+                                                                          generator.nextBoolean() ?
+                                                                              null :
+                                                                              generator.nextObject(OffsetDateTime.class)))))
+              .randomize(SearchBody.QueryObject.class, () -> {
+                  return generator.nextBoolean() ?
+                      generator.nextBoolean() ?
+                          generator.nextObject(SearchBody.BooleanQueryObject.class) :
+                          generator.nextObject(SearchBody.NumberQueryObject.class) :
+                      generator.nextObject(SearchBody.StringQueryObject.class);
+              })
+              .randomize(DateInterval.class, () -> {
+                  return generator.nextBoolean() ?
+                      DateInterval.single(generator.nextObject(OffsetDateTime.class)) :
+                      generator.nextBoolean() ?
+                          DateInterval.from(generator.nextObject(OffsetDateTime.class)) :
+                          generator.nextBoolean() ?
+                              DateInterval.to(generator.nextObject(OffsetDateTime.class)) :
+                              DateInterval.of(generator.nextObject(OffsetDateTime.class),
+                                              generator.nextObject(OffsetDateTime.class));
+              });
     }
 
     @Override

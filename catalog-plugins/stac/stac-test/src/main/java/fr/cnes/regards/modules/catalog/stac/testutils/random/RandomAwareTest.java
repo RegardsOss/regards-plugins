@@ -34,7 +34,8 @@ import java.time.ZoneOffset;
 
 public interface RandomAwareTest {
 
-    default void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {}
+    default void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
+    }
 
     default <T> List<T> randomList(Class<T> type, int num) {
         return randomList(easyRandom(), type, num);
@@ -61,11 +62,11 @@ public interface RandomAwareTest {
         vavrWrappersRegistry.setEasyRandom(generator);
 
         parameters.collectionSizeRange(0, 10)
-                .randomize(Duration.class, () -> Duration.ofSeconds(generator.nextInt(3600 * 24 * 10)))
-                .randomize(IGeometry.class, () -> makeRandomGeometry(generator))
-                .randomize(OffsetDateTime.class, () -> getOffsetDateTime(generator))
-                .randomize(LocalDateTime.class, () -> getLocalDateTime(generator))
-                .randomize(Object.class, () -> generator.nextObject(JsonObject.class));
+                  .randomize(Duration.class, () -> Duration.ofSeconds(generator.nextInt(3600 * 24 * 10)))
+                  .randomize(IGeometry.class, () -> makeRandomGeometry(generator))
+                  .randomize(OffsetDateTime.class, () -> getOffsetDateTime(generator))
+                  .randomize(LocalDateTime.class, () -> getLocalDateTime(generator))
+                  .randomize(Object.class, () -> generator.nextObject(JsonObject.class));
 
         updateRandomParameters(generator, parameters);
         return generator;
@@ -73,19 +74,19 @@ public interface RandomAwareTest {
 
     default IGeometry makeRandomGeometry(EasyRandom generator) {
         if (generator.nextBoolean()) {
-            return IGeometry.polygon(IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[]{
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                    IGeometry.position(generator.nextDouble(), generator.nextDouble())
-            })));
-        }
-        else {
-            return IGeometry.lineString(
-                    generator.nextDouble(), generator.nextDouble(),
-                    generator.nextDouble(), generator.nextDouble(),
-                    generator.nextDouble(), generator.nextDouble());
+            return IGeometry.polygon(IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[] {
+                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
+                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
+                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
+                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
+                IGeometry.position(generator.nextDouble(), generator.nextDouble()) })));
+        } else {
+            return IGeometry.lineString(generator.nextDouble(),
+                                        generator.nextDouble(),
+                                        generator.nextDouble(),
+                                        generator.nextDouble(),
+                                        generator.nextDouble(),
+                                        generator.nextDouble());
         }
     }
 
@@ -94,8 +95,10 @@ public interface RandomAwareTest {
     }
 
     default OffsetDateTime getOffsetDateTime(EasyRandom generator) {
-        return OffsetDateTime.now().withNano(0).minusSeconds(generator.nextInt(3600 * 24 * 10))
-                .withOffsetSameInstant(ZoneOffset.UTC);
+        return OffsetDateTime.now()
+                             .withNano(0)
+                             .minusSeconds(generator.nextInt(3600 * 24 * 10))
+                             .withOffsetSameInstant(ZoneOffset.UTC);
     }
 
 }

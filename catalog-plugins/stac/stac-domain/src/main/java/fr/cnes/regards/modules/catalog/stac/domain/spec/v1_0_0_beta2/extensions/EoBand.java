@@ -28,32 +28,27 @@ import lombok.With;
  *
  * @see <a href="https://github.com/radiantearth/stac-spec/tree/v1.0.0-beta.2/extensions/eo#band-object">description</a>
  */
-@Value @With
+@Value
+@With
 public class EoBand {
 
-    @SerializedName("name") String name;
-    @SerializedName("common_name") CommonBandName commonName;
-    @SerializedName("description") String description;
-    @SerializedName("center_wavelength") Double centerWavelength;
-    @SerializedName("full_width_half_max") Double fullWidthHalfMax;
+    @SerializedName("name")
+    String name;
+
+    @SerializedName("common_name")
+    CommonBandName commonName;
+
+    @SerializedName("description")
+    String description;
+
+    @SerializedName("center_wavelength")
+    Double centerWavelength;
+
+    @SerializedName("full_width_half_max")
+    Double fullWidthHalfMax;
 
     enum CommonBandName {
-        coastal,
-        blue,
-        green,
-        red,
-        yellow,
-        pan,
-        rededge,
-        nir,
-        nir08,
-        nir09,
-        cirrus,
-        swir16,
-        swir22,
-        lwir,
-        lwir11,
-        lwir12,
+        coastal, blue, green, red, yellow, pan, rededge, nir, nir08, nir09, cirrus, swir16, swir22, lwir, lwir11, lwir12,
     }
 
 }

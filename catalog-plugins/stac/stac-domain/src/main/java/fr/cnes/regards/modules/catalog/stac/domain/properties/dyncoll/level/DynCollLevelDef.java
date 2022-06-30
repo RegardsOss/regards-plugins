@@ -33,10 +33,13 @@ import io.vavr.control.Option;
 public interface DynCollLevelDef<T extends DynCollSublevelDef> {
 
     StacProperty getStacProperty();
+
     List<T> getSublevels();
 
     DynCollLevelVal parseValues(String repr);
+
     String renderValue(DynCollLevelVal value);
+
     default String toLabel(String value) {
         return String.format("%s=%s", getStacProperty().getStacPropertyName(), value);
     }

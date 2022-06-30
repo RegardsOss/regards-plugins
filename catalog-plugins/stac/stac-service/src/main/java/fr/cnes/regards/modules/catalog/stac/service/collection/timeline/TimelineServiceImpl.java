@@ -153,19 +153,22 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
     private ICriterion getTimelineCriteria(FiltersByCollection.CollectionFilters collectionFilters,
                                            List<StacProperty> itemStacProperties) {
 
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
-            collectionFilters.getFilters() == null ?
-                CollectionSearchBody.CollectionItemSearchBody.builder().build() :
-                collectionFilters.getFilters();
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = collectionFilters.getFilters()
+                                                                                 == null ?
+            CollectionSearchBody.CollectionItemSearchBody.builder().build() :
+            collectionFilters.getFilters();
 
         String urn_tag = idMappingService.getUrnByStacId(collectionFilters.getCollectionId());
         if (urn_tag == null) {
-            throw new StacException(String.format("Unknown collection identifier %s", collectionFilters.getCollectionId()),
-                                    null, StacFailureType.MAPPING_ID_FAILURE);
+            throw new StacException(String.format("Unknown collection identifier %s",
+                                                  collectionFilters.getCollectionId()),
+                                    null,
+                                    StacFailureType.MAPPING_ID_FAILURE);
         }
 
         return ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS, urn_tag, StringMatchType.KEYWORD),
-                              searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody).getOrElse(ICriterion.all()));
+                              searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
+                                                    .getOrElse(ICriterion.all()));
 
     }
 

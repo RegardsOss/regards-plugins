@@ -103,15 +103,15 @@ public class CollectionSearchController implements TryToResponseEntity {
         @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
         @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + BBOX_QUERY_PARAM, required = false)
-            BBox itemBbox,
+        BBox itemBbox,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + DATETIME_QUERY_PARAM, required = false)
-            String itemDatetime,
+        String itemDatetime,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + COLLECTIONS_QUERY_PARAM, required = false)
-            List<String> itemCollections,
+        List<String> itemCollections,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + IDS_QUERY_PARAM, required = false)
-            List<String> itemIds,
+        List<String> itemIds,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + QUERY_QUERY_PARAM, required = false)
-            String itemQuery) {
+        String itemQuery) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory.parseCollectionSearch(page,
                                                                                                       limit,
@@ -165,10 +165,10 @@ public class CollectionSearchController implements TryToResponseEntity {
                                                                                                             itemSearchBody.getOrNull())));
     }
 
-    @Operation(summary = "continue to next/previous search collection page",
-        description = "Pagination for search in STAC is done through links,"
-            + " this endpoint provides the way to reuse"
-            + " the same search parameters but skip to an offset of results.")
+    @Operation(summary = "continue to next/previous search collection page", description =
+        "Pagination for search in STAC is done through links,"
+        + " this endpoint provides the way to reuse"
+        + " the same search parameters but skip to an offset of results.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
     @ResourceAccess(description = "continue to next/previous search page", role = DefaultRole.PUBLIC)
     @RequestMapping(path = "paginate", method = RequestMethod.GET)

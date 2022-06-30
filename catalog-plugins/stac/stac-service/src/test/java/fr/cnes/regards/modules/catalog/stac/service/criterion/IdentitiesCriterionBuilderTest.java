@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class IdentitiesCriterionBuilderTest {
 
-
     @Test
     public void testBuildCriterionEmpty() {
         // GIVEN
@@ -45,9 +44,9 @@ public class IdentitiesCriterionBuilderTest {
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)criterion.get()).getName()).isEqualTo(ID_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)criterion.get()).getValue()).isEqualTo("id1");
-        assertThat(((StringMatchCriterion)criterion.get()).getType()).isEqualTo(EQUALS);
+        assertThat(((StringMatchCriterion) criterion.get()).getName()).isEqualTo(ID_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) criterion.get()).getValue()).isEqualTo("id1");
+        assertThat(((StringMatchCriterion) criterion.get()).getType()).isEqualTo(EQUALS);
     }
 
     @Test
@@ -66,14 +65,14 @@ public class IdentitiesCriterionBuilderTest {
         assertThat(andCrits).hasSize(2);
 
         assertThat(andCrits.get(0)).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getName()).isEqualTo(ID_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getValue()).isEqualTo("id1");
-        assertThat(((StringMatchCriterion)andCrits.get(0)).getType()).isEqualTo(EQUALS);
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getName()).isEqualTo(ID_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getValue()).isEqualTo("id1");
+        assertThat(((StringMatchCriterion) andCrits.get(0)).getType()).isEqualTo(EQUALS);
 
         assertThat(andCrits.get(1)).isInstanceOf(StringMatchCriterion.class);
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getName()).isEqualTo(ID_PROPERTY_NAME);
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getValue()).isEqualTo("id2");
-        assertThat(((StringMatchCriterion)andCrits.get(1)).getType()).isEqualTo(EQUALS);
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getName()).isEqualTo(ID_PROPERTY_NAME);
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getValue()).isEqualTo("id2");
+        assertThat(((StringMatchCriterion) andCrits.get(1)).getType()).isEqualTo(EQUALS);
     }
 
 }

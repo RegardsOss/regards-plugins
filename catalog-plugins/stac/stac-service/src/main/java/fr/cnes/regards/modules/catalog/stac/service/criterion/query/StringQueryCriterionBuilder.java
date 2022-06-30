@@ -48,28 +48,34 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
 
     @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
-            StringQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr,
+                                             List<StacProperty> properties,
+                                             StringQueryObject queryObject) {
         StringMatchType stringMatchType = IFeatureCriterion.parseStringMatchType(queryObject.getMatchType())
-                .orElse(StringMatchType.FULL_TEXT_SEARCH);
-        return andAllPresent(Option.of(adaptCase(queryObject.getEq(), stringMatchType)).map(eq -> eq(attr, eq, stringMatchType)),
-                             Option.of(adaptCase(queryObject.getNeq(), stringMatchType)).map(neq -> not(eq(attr, neq, stringMatchType))),
+                                                           .orElse(StringMatchType.FULL_TEXT_SEARCH);
+        return andAllPresent(Option.of(adaptCase(queryObject.getEq(), stringMatchType))
+                                   .map(eq -> eq(attr, eq, stringMatchType)),
+                             Option.of(adaptCase(queryObject.getNeq(), stringMatchType))
+                                   .map(neq -> not(eq(attr, neq, stringMatchType))),
                              Option.of(adaptCase(queryObject.getStartsWith(), stringMatchType))
-                                     .map(st -> regexp(attr, toStartRegexp(st), stringMatchType)),
+                                   .map(st -> regexp(attr, toStartRegexp(st), stringMatchType)),
                              Option.of(adaptCase(queryObject.getEndsWith(), stringMatchType))
-                                     .map(en -> regexp(attr, toEndRegexp(en), stringMatchType)),
+                                   .map(en -> regexp(attr, toEndRegexp(en), stringMatchType)),
                              Option.of(adaptCase(queryObject.getContains(), stringMatchType))
-                                     .map(en -> contains(attr, en, stringMatchType)),
-                             Option.of(adaptCase(queryObject.getContainsAll(), stringMatchType)).flatMap(
-                                     in -> in.map(d -> contains(attr, d, stringMatchType))
-                                             .reduceLeftOption(ICriterion::and)),
-                             Option.of(adaptCase(queryObject.getIn(), stringMatchType)).flatMap(
-                                     in -> in.map(d -> eq(attr, d, stringMatchType))
-                                             .reduceLeftOption(ICriterion::or)));
+                                   .map(en -> contains(attr, en, stringMatchType)),
+                             Option.of(adaptCase(queryObject.getContainsAll(), stringMatchType))
+                                   .flatMap(in -> in.map(d -> contains(attr, d, stringMatchType))
+                                                    .reduceLeftOption(ICriterion::and)),
+                             Option.of(adaptCase(queryObject.getIn(), stringMatchType))
+                                   .flatMap(in -> in.map(d -> eq(attr, d, stringMatchType))
+                                                    .reduceLeftOption(ICriterion::or)));
     }
 
     @Override
-    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, StringQueryObject queryObject) {
+    public void buildEODagParameters(AttributeModel attr,
+                                     EODagParameters parameters,
+                                     List<StacProperty> properties,
+                                     StringQueryObject queryObject) {
         if (queryObject.getEq() != null) {
             parameters.addExtras(stacPropName, attr.getType(), queryObject.getEq());
         } else {
@@ -103,9 +109,10 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
 
     private String toCaseInsensitiveRegexp(String pattern) {
         return Stream.ofAll(pattern.toCharArray())
-                .map(chr -> Character.isDigit(chr) ? Character.toString(chr)
-                        : String.format("[%s%s]", Character.toLowerCase(chr), Character.toUpperCase(chr)))
-                .foldLeft("", String::concat);
+                     .map(chr -> Character.isDigit(chr) ?
+                         Character.toString(chr) :
+                         String.format("[%s%s]", Character.toLowerCase(chr), Character.toUpperCase(chr)))
+                     .foldLeft("", String::concat);
     }
 
 }

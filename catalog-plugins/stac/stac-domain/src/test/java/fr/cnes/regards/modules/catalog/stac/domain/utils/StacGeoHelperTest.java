@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StacGeoHelperTest implements GsonAwareTest {
 
     StacGeoHelper helper = new StacGeoHelper(gson());
+
     GeoJSONReader reader = helper.makeGeoJSONReader(helper.updateFactory(true));
 
     @Test
@@ -30,8 +31,8 @@ public class StacGeoHelperTest implements GsonAwareTest {
         System.out.println(result);
         assertThat(result).isNotEmpty();
         assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(0d,0d,3d,3d));
-        assertThat(result.get()._3).isEqualTo(new Centroid(1d,1d));
+        assertThat(result.get()._2).isEqualTo(new BBox(0d, 0d, 3d, 3d));
+        assertThat(result.get()._3).isEqualTo(new Centroid(1d, 1d));
     }
 
     @Test
@@ -41,8 +42,8 @@ public class StacGeoHelperTest implements GsonAwareTest {
         System.out.println(result);
         assertThat(result).isNotEmpty();
         assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(178d,-1d,-178d,1d));
-        assertThat(result.get()._3).isEqualTo(new Centroid(180d,0d));
+        assertThat(result.get()._2).isEqualTo(new BBox(178d, -1d, -178d, 1d));
+        assertThat(result.get()._3).isEqualTo(new Centroid(180d, 0d));
     }
 
     @Test
@@ -52,8 +53,8 @@ public class StacGeoHelperTest implements GsonAwareTest {
         System.out.println(result);
         assertThat(result).isNotEmpty();
         assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(178d,-1d,-178d,1d));
-        assertThat(result.get()._3).isEqualTo(new Centroid(180d,0d));
+        assertThat(result.get()._2).isEqualTo(new BBox(178d, -1d, -178d, 1d));
+        assertThat(result.get()._3).isEqualTo(new Centroid(180d, 0d));
     }
 
 }

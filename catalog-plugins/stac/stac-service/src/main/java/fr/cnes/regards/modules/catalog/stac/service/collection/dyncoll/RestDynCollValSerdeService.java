@@ -31,10 +31,13 @@ import io.vavr.control.Try;
 public interface RestDynCollValSerdeService {
 
     RestDynCollVal fromDomain(DynCollVal domain);
+
     Try<DynCollVal> toDomain(DynCollDef def, RestDynCollVal rest);
 
     String toUrn(RestDynCollVal values);
+
     Try<RestDynCollVal> fromUrn(String repr);
+
     boolean isListOfDynCollLevelValues(String urn);
 
 }

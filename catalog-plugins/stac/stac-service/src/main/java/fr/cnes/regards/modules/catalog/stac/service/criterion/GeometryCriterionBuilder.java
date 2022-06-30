@@ -40,7 +40,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorre
  * Allows building criteria for geometries.
  *
  * <p>
- *   <strong>Notes:</strong>
+ * <strong>Notes:</strong>
  *   <ul>
  *     <li>Geometry criterion is only implemented for polygons and multipolygons.</li>
  *   </ul>
@@ -55,18 +55,18 @@ public class GeometryCriterionBuilder implements CriterionBuilder<IGeometry> {
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, IGeometry geometry) {
-        return Option.of(geometry)
-            .flatMap(g -> {
-                switch (geometry.getType()) {
-                    case GeoJsonType.POLYGON:
-                        return Option.of(ICriterion.intersectsPolygon(((Polygon)geometry).toArray()));
-                    case GeoJsonType.MULTIPOLYGON:
-                        return Option.of(ICriterion.or(Stream.of(((MultiPolygon)geometry).toArray()).map(ICriterion::intersectsPolygon)));
-                    default:
-                        warn(LOGGER, "Unsupported geometry type for STAC search criterion: {}", geometry.getType());
-                        return Option.none();
-                }
-            });
+        return Option.of(geometry).flatMap(g -> {
+            switch (geometry.getType()) {
+                case GeoJsonType.POLYGON:
+                    return Option.of(ICriterion.intersectsPolygon(((Polygon) geometry).toArray()));
+                case GeoJsonType.MULTIPOLYGON:
+                    return Option.of(ICriterion.or(Stream.of(((MultiPolygon) geometry).toArray())
+                                                         .map(ICriterion::intersectsPolygon)));
+                default:
+                    warn(LOGGER, "Unsupported geometry type for STAC search criterion: {}", geometry.getType());
+                    return Option.none();
+            }
+        });
     }
 
     @Override

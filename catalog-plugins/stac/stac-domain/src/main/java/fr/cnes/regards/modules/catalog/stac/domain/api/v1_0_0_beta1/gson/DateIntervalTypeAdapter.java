@@ -39,8 +39,11 @@ public class DateIntervalTypeAdapter extends TypeAdapter<DateInterval> {
 
     @Override
     public void write(JsonWriter out, DateInterval value) throws IOException {
-        if (value == null) { out.nullValue(); }
-        else { out.value(value.repr()); }
+        if (value == null) {
+            out.nullValue();
+        } else {
+            out.value(value.repr());
+        }
     }
 
     @Override
@@ -48,11 +51,10 @@ public class DateIntervalTypeAdapter extends TypeAdapter<DateInterval> {
         if (in.peek() == JsonToken.NULL) {
             in.nextNull();
             return null;
-        }
-        else {
+        } else {
             return DateInterval.parseDateInterval(in.nextString())
-                .getOrElseThrow((Function<Throwable, IOException>) IOException::new)
-                .getOrNull();
+                               .getOrElseThrow((Function<Throwable, IOException>) IOException::new)
+                               .getOrNull();
         }
     }
 

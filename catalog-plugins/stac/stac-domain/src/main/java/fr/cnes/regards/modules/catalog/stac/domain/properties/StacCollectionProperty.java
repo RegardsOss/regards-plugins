@@ -43,7 +43,15 @@ public class StacCollectionProperty {
      * Only used for reverse mapping for collection search parameters and sorting ones.
      */
     public StacProperty toStacProperty() {
-        return new StacProperty(regardsPropertyAccessor, stacPropertyNamespace, stacPropertyName, extension, null, null,
-                                null, null, null, Boolean.FALSE);
+        return new StacProperty(regardsPropertyAccessor,
+                                stacPropertyNamespace,
+                                stacPropertyName,
+                                extension,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                Boolean.FALSE);
     }
 }

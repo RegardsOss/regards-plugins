@@ -31,14 +31,12 @@ import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.OffsetDateTime;
-
 import static fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion.*;
 import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 
 /**
  * Criterion builder for a {@link DatetimeQueryObject}
- *
+ * <p>
  * TODO: convert this class to the same model as for NumberQueryCriterionBuilder, using custom datetime intervals
  */
 public class DatetimeQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<DatetimeQueryObject> {
@@ -51,15 +49,17 @@ public class DatetimeQueryCriterionBuilder extends AbstractQueryObjectCriterionB
 
     @SuppressWarnings("unchecked")
     @Override
-    public Option<ICriterion> buildCriterion(AttributeModel attr, List<StacProperty> properties,
-            DatetimeQueryObject queryObject) {
+    public Option<ICriterion> buildCriterion(AttributeModel attr,
+                                             List<StacProperty> properties,
+                                             DatetimeQueryObject queryObject) {
         return andAllPresent(Option.of(queryObject.getEq()).map(eq -> eq(attr, eq)),
                              Option.of(queryObject.getNeq()).map(neq -> not(eq(attr, neq))),
                              Option.of(queryObject.getLt()).map(lt -> lt(attr, lt)),
                              Option.of(queryObject.getLte()).map(le -> le(attr, le)),
                              Option.of(queryObject.getGt()).map(gt -> gt(attr, gt)),
-                             Option.of(queryObject.getGte()).map(ge -> ge(attr, ge)), Option.of(queryObject.getIn())
-                                     .flatMap(in -> in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or)));
+                             Option.of(queryObject.getGte()).map(ge -> ge(attr, ge)),
+                             Option.of(queryObject.getIn())
+                                   .flatMap(in -> in.map(d -> eq(attr, d)).reduceLeftOption(ICriterion::or)));
     }
 
     /**
@@ -70,9 +70,12 @@ public class DatetimeQueryCriterionBuilder extends AbstractQueryObjectCriterionB
      * - end_datetime > or >= becomes "start"
      */
     @Override
-    public void buildEODagParameters(AttributeModel attr, EODagParameters parameters, List<StacProperty> properties, DatetimeQueryObject queryObject) {
+    public void buildEODagParameters(AttributeModel attr,
+                                     EODagParameters parameters,
+                                     List<StacProperty> properties,
+                                     DatetimeQueryObject queryObject) {
         if (StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME.equals(stacPropName)
-                || StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME.equals(stacPropName)) {
+            || StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME.equals(stacPropName)) {
             if (queryObject.getLt() != null) {
                 parameters.setEnd(OffsetDateTimeAdapter.format(queryObject.getLt()));
             } else if (queryObject.getLte() != null) {

@@ -50,10 +50,9 @@ public class SearchOtherPageItemBodySerdeServiceImpl implements SearchOtherPageI
 
     @Override
     public Try<ItemSearchBody> deserialize(String repr) {
-        return trying(() -> gson.fromJson(fromBase64(repr), ItemSearchBody.class))
-            .mapFailure(
-                    ITEMSEARCHBODY_PARSING,
-                () -> format("Failed to deserialize item search body representation: %s", repr)
-            );
+        return trying(() -> gson.fromJson(fromBase64(repr), ItemSearchBody.class)).mapFailure(ITEMSEARCHBODY_PARSING,
+                                                                                              () -> format(
+                                                                                                  "Failed to deserialize item search body representation: %s",
+                                                                                                  repr));
     }
 }

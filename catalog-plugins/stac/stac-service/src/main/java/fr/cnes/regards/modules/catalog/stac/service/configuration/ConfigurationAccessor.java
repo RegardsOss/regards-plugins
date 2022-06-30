@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.catalog.stac.service.configuration;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagInformation;
 import io.vavr.collection.List;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 
@@ -51,11 +50,14 @@ public interface ConfigurationAccessor {
     GeoJSONReader getGeoJSONReader();
 
     String getTitle();
+
     String getDescription();
 
     String getRootDynamicCollectionName();
+
     String getRootStaticCollectionName();
 
     String getEODAGPortalName();
+
     String getEODAGProvider();
 }

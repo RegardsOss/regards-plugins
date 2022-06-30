@@ -38,13 +38,19 @@ public class CollectionsCriterionBuilder implements CriterionBuilder<List<String
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> collections) {
         // In the index, collections / dataset a feature belongs to is stored in the "tags" attribute.
-        return collections == null || collections.isEmpty() ? Option.none()
-            : collections.size() == 1 ? Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD))
-            : Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME, c, StringMatchType.KEYWORD))));
+        return collections == null || collections.isEmpty() ?
+            Option.none() :
+            collections.size() == 1 ?
+                Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD)) :
+                Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME,
+                                                                                  c,
+                                                                                  StringMatchType.KEYWORD))));
     }
 
     @Override
-    public void computeEODagParameters(EODagParameters parameters, List<StacProperty> properties, List<String> collections) {
+    public void computeEODagParameters(EODagParameters parameters,
+                                       List<StacProperty> properties,
+                                       List<String> collections) {
         // Nothing to do : EODag search is already done in a collection so this parameter should not be useful
     }
 

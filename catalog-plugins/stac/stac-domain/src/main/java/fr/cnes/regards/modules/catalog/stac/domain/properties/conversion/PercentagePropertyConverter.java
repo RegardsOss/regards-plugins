@@ -41,21 +41,29 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
     private static final String MISSING_CASE_MESSAGE = "Missing case for PercentageBase value: ";
 
     public enum PercentageBase {
-        /** Means that the percentage is expressed as a ratio: a number between 0 and 1 */
+        /**
+         * Means that the percentage is expressed as a ratio: a number between 0 and 1
+         */
         ONE,
-        /** Means that the percentage is expressed as percentage points: a number between 0 and 100 ; default value. */
+        /**
+         * Means that the percentage is expressed as percentage points: a number between 0 and 100 ; default value.
+         */
         HUNDRED,
         ;
 
         public static PercentageBase parsePercentageBase(String format) {
-            if (format == null) { return HUNDRED; }
-            return trying(() -> PercentageBase.valueOf(format.trim()))
-                .onFailure(t -> warn(LOGGER, "Failed to parse percentage base: {}", format))
-                .getOrElse(PercentageBase.HUNDRED);
+            if (format == null) {
+                return HUNDRED;
+            }
+            return trying(() -> PercentageBase.valueOf(format.trim())).onFailure(t -> warn(LOGGER,
+                                                                                           "Failed to parse percentage base: {}",
+                                                                                           format))
+                                                                      .getOrElse(PercentageBase.HUNDRED);
         }
     }
 
     private final PercentageBase stacBase;
+
     private final PercentageBase regardsBase;
 
     public PercentagePropertyConverter(PercentageBase stacBase, PercentageBase regardsBase) {
@@ -98,11 +106,8 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
                 default:
                     throw new NotImplementedException(MISSING_CASE_MESSAGE + toBase);
             }
-        })
-        .mapFailure(
-            PERCENTAGE_CONVERSION,
-            () -> format("Failed to convert %f from %s to %s", fromValue, fromBase, toBase)
-        );
+        }).mapFailure(PERCENTAGE_CONVERSION,
+                      () -> format("Failed to convert %f from %s to %s", fromValue, fromBase, toBase));
     }
 
 }

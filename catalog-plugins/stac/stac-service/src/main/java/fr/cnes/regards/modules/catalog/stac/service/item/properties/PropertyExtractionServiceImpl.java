@@ -67,29 +67,33 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
 
     @Override
     public Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
-            List<StacProperty> stacProperties) {
+                                                     List<StacProperty> stacProperties) {
         // Group by namespace (without virtual properties only used for criterion mapping, not for response)
         Map<String, List<StacProperty>> groupedProperties = stacProperties.filter(p -> !p.getVirtual())
-                .groupBy(StacProperty::getStacPropertyNamespace);
+                                                                          .groupBy(StacProperty::getStacPropertyNamespace);
         // Get base map
-        Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature, Option.none(),
+        Map<String, Object> rootMap = extractStacPropertiesByNamespace(feature,
+                                                                       Option.none(),
                                                                        groupedProperties.get(null)
-                                                                               .getOrElse(List.empty()));
+                                                                                        .getOrElse(List.empty()));
 
         // Add properties with namespaces
         return Try.of(() -> rootMap.merge(groupedProperties.filterKeys(Objects::nonNull)
-                                                  .map(ppt -> extractStacPropertiesByNamespace(feature,
-                                                                                               Option.of(ppt._1),
-                                                                                               ppt._2))
-                                                  .reduce((i, j) -> i == null ? j : i.merge(j)))).getOrElse(rootMap);
+                                                           .map(ppt -> extractStacPropertiesByNamespace(feature,
+                                                                                                        Option.of(ppt._1),
+                                                                                                        ppt._2))
+                                                           .reduce((i, j) -> i == null ? j : i.merge(j))))
+                  .getOrElse(rootMap);
     }
 
     private Map<String, Object> extractStacPropertiesByNamespace(AbstractEntity<? extends EntityFeature> feature,
-            Option<String> namespace, List<StacProperty> stacProperties) {
+                                                                 Option<String> namespace,
+                                                                 List<StacProperty> stacProperties) {
         Map<String, Object> result;
         if (namespace.isDefined()) {
-            Map<String, Object> wrapped = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv)
-                    .filterValues(Objects::nonNull);
+            Map<String, Object> wrapped = stacProperties.map(sp -> extractStacProperty(feature, sp))
+                                                        .toMap(kv -> kv)
+                                                        .filterValues(Objects::nonNull);
             result = wrapped.isEmpty() ? HashMap.empty() : HashMap.of(namespace.get(), wrapped);
         } else {
             result = stacProperties.map(sp -> extractStacProperty(feature, sp)).toMap(kv -> kv);
@@ -98,38 +102,50 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
     }
 
     private Tuple2<String, Object> extractStacProperty(AbstractEntity<? extends EntityFeature> feature,
-            StacProperty stacProperty) {
+                                                       StacProperty stacProperty) {
         return Tuple.of(stacProperty.getStacPropertyName(),
-                        stacProperty.getRegardsPropertyAccessor().getGenericExtractValueFn()
-                                                         .apply(feature)
-                                                         .map(val -> convertStacProperty(val, stacProperty))
-                                                         .getOrNull());
+                        stacProperty.getRegardsPropertyAccessor()
+                                    .getGenericExtractValueFn()
+                                    .apply(feature)
+                                    .map(val -> convertStacProperty(val, stacProperty))
+                                    .getOrNull());
     }
 
     @SuppressWarnings("unchecked")
     private Object convertStacProperty(Object value, StacProperty sp) {
-        return sp.getConverter().convertRegardsToStac(value).onFailure(
-                t -> warn(LOGGER, "Could not convert regards property value {} using stac property {} converter", value,
-                          sp.getStacPropertyName())).getOrElse(value);
+        return sp.getConverter()
+                 .convertRegardsToStac(value)
+                 .onFailure(t -> warn(LOGGER,
+                                      "Could not convert regards property value {} using stac property {} converter",
+                                      value,
+                                      sp.getStacPropertyName()))
+                 .getOrElse(value);
     }
 
     @Override
     public Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature) {
         Tuple2<String, String> authParam = uriParamAdder.makeAuthParam();
         Map<String, Asset> nullUnsafe = Stream.ofAll(feature.getFeature().getFiles().entries())
-                .toMap(entry -> extractAsset(entry.getValue(), authParam));
+                                              .toMap(entry -> extractAsset(entry.getValue(), authParam));
         return nullUnsafe.filterKeys(isNotNull());
     }
 
     private Tuple2<String, Asset> extractAsset(DataFile value, Tuple2<String, String> authParam) {
         Tuple2<String, Asset> result = Tuple.of(value.getFilename(),
-                                                new Asset(authdUri(value.asUri(), authParam), value.getFilename(),
-                                                          format("File size: %d bytes" + "\n\nIs reference: %b"
-                                                                         + "\n\nIs online: %b" + "\n\nDatatype: %s"
-                                                                         + "\n\nChecksum %s: %s", value.getFilesize(),
-                                                                 value.isReference(), value.isOnline(),
-                                                                 value.getDataType(), value.getDigestAlgorithm(),
-                                                                 value.getChecksum()), value.getMimeType().toString(),
+                                                new Asset(authdUri(value.asUri(), authParam),
+                                                          value.getFilename(),
+                                                          format("File size: %d bytes"
+                                                                 + "\n\nIs reference: %b"
+                                                                 + "\n\nIs online: %b"
+                                                                 + "\n\nDatatype: %s"
+                                                                 + "\n\nChecksum %s: %s",
+                                                                 value.getFilesize(),
+                                                                 value.isReference(),
+                                                                 value.isOnline(),
+                                                                 value.getDataType(),
+                                                                 value.getDigestAlgorithm(),
+                                                                 value.getChecksum()),
+                                                          value.getMimeType().toString(),
                                                           HashSet.of(assetTypeFromDatatype(value.getDataType()))));
         debug(LOGGER, "Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
         return result;
@@ -140,10 +156,12 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
      */
     @Override
     public Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature,
-            StacProperty stacAssetsProperty) {
+                                                  StacProperty stacAssetsProperty) {
         return Try.of(() -> {
-            Object object = stacAssetsProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
-                    .getOrNull();
+            Object object = stacAssetsProperty.getRegardsPropertyAccessor()
+                                              .getGenericExtractValueFn()
+                                              .apply(feature)
+                                              .getOrNull();
             return HashMap.ofAll(Objects.requireNonNull(extractStaticAssetsFromJson(object)));
         }).getOrElse(HashMap.empty());
     }
@@ -181,10 +199,12 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
      * @return static feature links
      */
     public List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature,
-            StacProperty stacLinksProperty) {
+                                         StacProperty stacLinksProperty) {
         return Try.of(() -> {
-            Object object = stacLinksProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(feature)
-                    .getOrNull();
+            Object object = stacLinksProperty.getRegardsPropertyAccessor()
+                                             .getGenericExtractValueFn()
+                                             .apply(feature)
+                                             .getOrNull();
             return List.ofAll(Objects.requireNonNull(extractStaticLinksFromJson(object)));
         }).getOrElse(List.empty());
     }
@@ -200,16 +220,19 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
 
     @Override
     public Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties) {
-        return Try.of(() -> stacProperties.map(StacProperty::getExtension).filter(e -> e != null && !e.isEmpty()).toSet())
-                .getOrElse(HashSet.empty());
+        return Try.of(() -> stacProperties.map(StacProperty::getExtension)
+                                          .filter(e -> e != null && !e.isEmpty())
+                                          .toSet()).getOrElse(HashSet.empty());
     }
 
     @Override
-    public Extent.Temporal extractTemporalExtent(Dataset dataset, StacCollectionProperty lowerTemporalExtent,
-            StacCollectionProperty upperTemporalExtent) {
-        return new Extent.Temporal(List.of(Tuple.of(
-                getTemporalExtentBound(dataset, lowerTemporalExtent).getOrElse(OffsetDatetimeUtils.lowestBound()),
-                getTemporalExtentBound(dataset, upperTemporalExtent).getOrElse(OffsetDatetimeUtils.uppestBound()))));
+    public Extent.Temporal extractTemporalExtent(Dataset dataset,
+                                                 StacCollectionProperty lowerTemporalExtent,
+                                                 StacCollectionProperty upperTemporalExtent) {
+        return new Extent.Temporal(List.of(Tuple.of(getTemporalExtentBound(dataset, lowerTemporalExtent).getOrElse(
+                                                        OffsetDatetimeUtils.lowestBound()),
+                                                    getTemporalExtentBound(dataset, upperTemporalExtent).getOrElse(
+                                                        OffsetDatetimeUtils.uppestBound()))));
     }
 
     private Try<OffsetDateTime> getTemporalExtentBound(Dataset dataset, StacCollectionProperty temporalExtentBound) {

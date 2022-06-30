@@ -48,14 +48,16 @@ public class AbstractSearchBodyFactoryImpl {
 
     public Try<List<SearchBody.SortBy>> parseSortBy(String repr) {
         return trying(() -> {
-            return Stream.of(Option.of(repr).getOrElse("").split(",")).map(String::trim)
-                    .filter(StringUtils::isNotBlank).<List<SearchBody.SortBy>>foldLeft(List.empty(), (acc, str) -> {
-                        if (str.startsWith("-")) {
-                            return acc.append(new SearchBody.SortBy(str.substring(1), DESC));
-                        } else {
-                            return acc.append(new SearchBody.SortBy(str.replaceFirst("^\\+", ""), ASC));
-                        }
-                    });
+            return Stream.of(Option.of(repr).getOrElse("").split(","))
+                         .map(String::trim)
+                         .filter(StringUtils::isNotBlank)
+                         .<List<SearchBody.SortBy>>foldLeft(List.empty(), (acc, str) -> {
+                             if (str.startsWith("-")) {
+                                 return acc.append(new SearchBody.SortBy(str.substring(1), DESC));
+                             } else {
+                                 return acc.append(new SearchBody.SortBy(str.replaceFirst("^\\+", ""), ASC));
+                             }
+                         });
         }).mapFailure(SORTBY_PARSING, () -> format("Failed to parse sort by: '%s'", repr));
     }
 
@@ -66,14 +68,15 @@ public class AbstractSearchBodyFactoryImpl {
     }
 
     public Try<SearchBody.Fields> parseFields(String repr) {
-        return trying(() -> Stream.of(Option.of(repr).getOrElse("").split(",")).map(String::trim)
-                .filter(StringUtils::isNotBlank)
-                .foldLeft(new SearchBody.Fields(List.empty(), List.empty()), (acc, str) -> {
-                    if (str.startsWith("-")) {
-                        return acc.withExcludes(acc.getExcludes().append(str.substring(1)));
-                    } else {
-                        return acc.withIncludes(acc.getIncludes().append(str));
-                    }
-                })).mapFailure(FIELDS_PARSING, () -> format("Failed to parse fields: '%s'", repr));
+        return trying(() -> Stream.of(Option.of(repr).getOrElse("").split(","))
+                                  .map(String::trim)
+                                  .filter(StringUtils::isNotBlank)
+                                  .foldLeft(new SearchBody.Fields(List.empty(), List.empty()), (acc, str) -> {
+                                      if (str.startsWith("-")) {
+                                          return acc.withExcludes(acc.getExcludes().append(str.substring(1)));
+                                      } else {
+                                          return acc.withIncludes(acc.getIncludes().append(str));
+                                      }
+                                  })).mapFailure(FIELDS_PARSING, () -> format("Failed to parse fields: '%s'", repr));
     }
 }

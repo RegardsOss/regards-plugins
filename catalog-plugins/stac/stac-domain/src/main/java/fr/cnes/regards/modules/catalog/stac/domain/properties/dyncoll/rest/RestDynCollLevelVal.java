@@ -26,11 +26,13 @@ import lombok.With;
 /**
  * REST layer dynamic collection level value, allows to represent levels/sublevels of dynamic collection values.
  */
-@Value @With
+@Value
+@With
 public class RestDynCollLevelVal {
 
     @SerializedName("p")
     String propertyName;
+
     @SerializedName("v")
     String value;
 
