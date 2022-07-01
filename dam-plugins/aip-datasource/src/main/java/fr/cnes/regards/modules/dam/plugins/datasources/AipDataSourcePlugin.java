@@ -330,21 +330,22 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
             // 1) Get all storage locations and aipEntities to process
             PagedModel<EntityModel<AIPEntity>> pageAipEntities = getAipEntities(cursor);
             Collection<EntityModel<AIPEntity>> aipEntities = pageAipEntities.getContent();
-
+            if (aipEntities.isEmpty()) {
+                cursor.setHasNext(false);
+                return Collections.emptyList();
+            }
             // 2) Build dataObjectFeatures only from DATA aipEntities
             List<DataObjectFeature> dataObjects = convertAIPEntitiesToDataObjects(tenant, aipEntities, storages);
 
             // 3) Update cursor for next iteration
             // determine if there is a next page to search after this one
             cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
-
             // set last update date with the most recent aip entity update.
             cursor.setLastEntityDate(aipEntities.stream()
                                                 .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
                                                                            .getLastUpdate())
                                                 .max(Comparator.comparing(lastUpdate -> lastUpdate))
                                                 .orElse(null));
-
             return dataObjects;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException(String.format(
