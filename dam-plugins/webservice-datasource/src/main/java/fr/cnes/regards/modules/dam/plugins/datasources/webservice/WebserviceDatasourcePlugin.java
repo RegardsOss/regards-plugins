@@ -100,6 +100,12 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
     private OpenSearchFetcher fetcher;
 
     /**
+     * Spring bean constructor
+     */
+    public WebserviceDatasourcePlugin() {
+    }
+
+    /**
      * Complete constructor for tests
      *
      * @param webserviceConfiguration -
