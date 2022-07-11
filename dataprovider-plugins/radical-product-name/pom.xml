@@ -22,7 +22,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
-	<artifactId>radical-product-name-plugin</artifactId>
+	<artifactId>radical-product-name</artifactId>
 	<description>Plugin to Compute product name from filename pattern by removing some groups from given regex</description>
 
 	<parent>
