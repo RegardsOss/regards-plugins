@@ -32,7 +32,7 @@ import java.time.OffsetDateTime;
  */
 public interface EsAggregationHelper {
 
-    Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs);
+    Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefs, int limit);
 
     Tuple2<OffsetDateTime, OffsetDateTime> dateRange(ICriterion criterion, String regardsAttributePath);
 

@@ -80,9 +80,9 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
     }
 
     @Override
-    public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefinitions) {
+    public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefinitions, int limit) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
-        return esRepository.getAggregationsFor(searchKey, criterion, aggDefinitions.toJavaList(), 1_000);
+        return esRepository.getAggregationsFor(searchKey, criterion, aggDefinitions.toJavaList(), limit);
     }
 
     @Override
@@ -114,10 +114,8 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
     public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, Long size) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
         AggregationBuilder termsAggBuilder = AggregationBuilders.terms(aggregationName)
-                                                                .field(StaticProperties.FEATURE_TAGS + ".keyword")
-                                                                .size(size.intValue())
-                                                                .includeExclude(DATASET_ONLY);
-        return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder),1_000);
+                .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size.intValue()).includeExclude(DATASET_ONLY);
+        return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder), 1000);
     }
 
     private SimpleSearchKey<AbstractEntity<?>> searchDataKey() {

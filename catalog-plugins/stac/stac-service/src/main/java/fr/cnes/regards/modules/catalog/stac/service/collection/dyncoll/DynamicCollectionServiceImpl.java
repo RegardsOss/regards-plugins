@@ -150,9 +150,9 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
 
             ItemSearchBody itemSearchBody = toItemSearchBody(val);
             ICriterion criterion = criterionBuilder.toCriterion(config.getStacProperties(), itemSearchBody);
-            List<AggregationBuilder> aggDefs = extentSummaryService.extentSummaryAggregationBuilders(config.getDatetimeStacProperty(),
-                                                                                                     config.getStacProperties());
-            List<Aggregation> aggVals = List.ofAll(aggregagtionHelper.getAggregationsFor(criterion, aggDefs).asList());
+            List<AggregationBuilder> aggDefs = extentSummaryService
+                    .extentSummaryAggregationBuilders(config.getDatetimeStacProperty(), config.getStacProperties());
+            List<Aggregation> aggVals = List.ofAll(aggregagtionHelper.getAggregationsFor(criterion, aggDefs, 1000).asList());
             Map<StacProperty, Aggregation> aggsMap = extentSummaryService.toAggregationMap(config.getStacProperties(),
                                                                                            aggVals);
             Extent extent = extentSummaryService.extractExtent(aggsMap);
