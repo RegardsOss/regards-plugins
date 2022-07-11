@@ -36,8 +36,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropert
 import static java.time.OffsetDateTime.now;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -164,7 +163,7 @@ public class DynCollValNextSublevelHelperImplTest implements RegardsPropertyAcce
             }
         }
 
-        when(esRepository.getAggregationsFor(any(), any(), any())).thenAnswer(i -> {
+        when(esRepository.getAggregationsFor(any(), any(), any(), anyInt())).thenAnswer(i -> {
             Collection<AggregationBuilder> aggBuilders = i.getArgument(2);
             String path = List.ofAll(aggBuilders).head().getName();
             ParsedStats result = new MyDateStats(path,

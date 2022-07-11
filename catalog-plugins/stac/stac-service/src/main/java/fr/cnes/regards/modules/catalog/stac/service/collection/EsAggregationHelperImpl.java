@@ -82,7 +82,7 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
     @Override
     public Aggregations getAggregationsFor(ICriterion criterion, List<AggregationBuilder> aggDefinitions) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
-        return esRepository.getAggregationsFor(searchKey, criterion, aggDefinitions.toJavaList());
+        return esRepository.getAggregationsFor(searchKey, criterion, aggDefinitions.toJavaList(), 1_000);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
                                                                 .field(StaticProperties.FEATURE_TAGS + ".keyword")
                                                                 .size(size.intValue())
                                                                 .includeExclude(DATASET_ONLY);
-        return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder));
+        return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder),1_000);
     }
 
     private SimpleSearchKey<AbstractEntity<?>> searchDataKey() {
