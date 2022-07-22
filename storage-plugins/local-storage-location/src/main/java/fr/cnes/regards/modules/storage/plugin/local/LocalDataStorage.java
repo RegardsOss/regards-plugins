@@ -92,15 +92,15 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     private static final String CURRENT_ZIP_NAME = "current";
 
-    private static final Semaphore ZIP_ACCESS_SEMAPHORE = new Semaphore(1, true);
-
     private static final Integer MAX_FILE_IN_ZIP = 1000;
 
     private static final String CREATE_ENV_FS = "create";
 
     private static final String ZIP_PROTOCOL = "jar:file:";
 
-    private static final Long ZIP_ACQUIRE_TIMEOUT = 600L;
+    private static final Long ZIP_ACQUIRE_TIMEOUT = 25L;
+
+    private final Semaphore zipAccessSemaphore = new Semaphore(1, true);
 
     /**
      * Base storage location url
@@ -131,17 +131,17 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
-        return createWorkingSubset(fileReferenceRequests, (requests) -> new FileStorageWorkingSubset((requests)));
+        return createWorkingSubset(fileReferenceRequests, FileStorageWorkingSubset::new);
     }
 
     @Override
     public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
-        return createWorkingSubset(fileDeletionRequests, (requests) -> new FileDeletionWorkingSubset((requests)));
+        return createWorkingSubset(fileDeletionRequests, FileDeletionWorkingSubset::new);
     }
 
     @Override
     public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> fileCacheRequests) {
-        return createWorkingSubset(fileCacheRequests, (requests) -> new FileRestorationWorkingSubset((requests)));
+        return createWorkingSubset(fileCacheRequests, FileRestorationWorkingSubset::new);
     }
 
     /**
@@ -179,7 +179,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fullPathToFile = getStorageLocation(request);
         } catch (IOException ioe) {
             String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                                                request.getMetaInfo().getChecksum(), ioe);
+                                                request.getMetaInfo().getChecksum(),
+                                                ioe);
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, ioe.getMessage());
             return;
@@ -234,7 +235,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
             String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
-                                                request.getMetaInfo().getChecksum(), ioe);
+                                                request.getMetaInfo().getChecksum(),
+                                                ioe);
             LOGGER.error(failureCause, ioe);
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, failureCause);
@@ -251,7 +253,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Path zipDirPath = getStorageLocationForZip(request);
         try {
             LOGGER.trace("[LOCAL STORAGE PLUGIN] Store in zip ....");
-            ZIP_ACCESS_SEMAPHORE.acquire();
+            zipAccessSemaphore.acquire();
             Path zipPath = getCurrentZipPath(zipDirPath);
             // check if file is already in zip
             Map<String, String> env = new HashMap<>(1);
@@ -260,7 +262,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             boolean downloadOk = false;
             try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
                 FileLock zipLock = zipFC.lock();
-                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()), env)) {
+                try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),
+                                                                  env)) {
                     Path pathInZip = zipFs.getPath(request.getMetaInfo().getChecksum());
                     if (Files.exists(pathInZip)) {
                         //if it is, there is nothing to move/copy, we just need to say to the system that the file is stored successfully
@@ -281,10 +284,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
                         if (!downloadOk) {
-                            String failureCause = String.format("Checksum does not match expected one",
-                                                                checksum,
-                                                                pathInZip,
-                                                                zipPath);
+                            String failureCause = String.format(
+                                "Storage of StorageDataFile(%s) failed at the following location: %s, in zip: %s. Its checksum once stored does not match with the expected one",
+                                checksum,
+                                pathInZip,
+                                zipPath);
                             Files.deleteIfExists(pathInZip);
                             progressManager.storageFailed(request, failureCause);
                         }
@@ -307,14 +311,14 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             String failureCause = String.format("Invalid URL creation for file. %s", e.getMessage());
             progressManager.storageFailed(request, failureCause);
         } catch (IOException ioe) {
-            String failureCause = String.format(
-                "Storage of StorageDataFile(%s) failed due to the following IOException: %s",
-                request.getMetaInfo().getChecksum(), ioe);
+            String failureCause = String.format(IOEXCEPTION_ERROR_MESSAGE_FORMAT,
+                                                request.getMetaInfo().getChecksum(),
+                                                ioe);
             LOGGER.error(failureCause, ioe);
             progressManager.storageFailed(request, failureCause);
         } finally {
             LOGGER.trace("[LOCAL STORAGE PLUGIN] Store in zip done in {}ms", System.currentTimeMillis() - start);
-            ZIP_ACCESS_SEMAPHORE.release();
+            zipAccessSemaphore.release();
             file.delete();
         }
     }
@@ -376,7 +380,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                                                    + OffsetDateTime.now()
                                                                    .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
                                                    + ".zip");
-            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()), env)) {
+            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),
+                                                              env)) {
                 // now that zip has been created, lets create the link.
                 Files.createSymbolicLink(linkPath, zipPath);
             }
@@ -459,12 +464,13 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
             if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
                 try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                    ZIP_ACCESS_SEMAPHORE.acquire();
+                    zipAccessSemaphore.acquire();
                     try {
                         FileLock zipLock = zipFC.lock();
                         try {
                             try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
-                                                                                         + zipPath.toAbsolutePath()), env)) {
+                                                                                         + zipPath.toAbsolutePath()),
+                                                                              env)) {
                                 Path pathInZip = zipFs.getPath(checksum);
                                 Files.deleteIfExists(pathInZip);
                                 progressManager.deletionSucceed(request);
@@ -484,7 +490,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                             zipLock.release();
                         }
                     } finally {
-                        ZIP_ACCESS_SEMAPHORE.release();
+                        zipAccessSemaphore.release();
                     }
 
                 } catch (InterruptedException e) {
@@ -541,23 +547,33 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         Map<String, String> env = new HashMap<>(1);
         env.put(CREATE_ENV_FS, "false");
         String checksum = fileRef.getMetaInfo().getChecksum();
-        // Only directly release semaphore if an error occurs.
-        // If no error occurs the semaphore will be released when the returned RegardsIS is closed.
-        boolean releaseSemaphore = false;
+        FileChannel zipFC = null;
+        FileLock zipLock = null;
+        FileSystem zipFs = null;
+        InputStream streamFromZip = null;
         try {
-            if (ZIP_ACCESS_SEMAPHORE.tryAcquire(ZIP_ACQUIRE_TIMEOUT, TimeUnit.SECONDS)) {
+            LOGGER.debug("Attempting to acquire semaphore, available permits : {}",
+                        zipAccessSemaphore.availablePermits());
+            if (zipAccessSemaphore.tryAcquire(ZIP_ACQUIRE_TIMEOUT, TimeUnit.SECONDS)) {
+
+                LOGGER.debug("Semaphore acquired available permits : {}", zipAccessSemaphore.availablePermits());
                 Path zipPath = Paths.get(new URL(fileRef.getLocation().getUrl()).getPath());
                 // File channel and File system are not included into try-finally or try-with-resource because if we do this it does not work.
                 // Instead, they are closed thanks to RegardsIS
                 // Moreover semaphore and lock are released by RegardsIS too
-                FileChannel zipFC = FileChannel.open(zipPath,
-                                                     StandardOpenOption.WRITE,
-                                                     StandardOpenOption.READ); // NOSONAR
-                FileLock zipLock = zipFC.lock();
-                FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),// NOSONAR
-                                                             env); // NOSONAR
+                zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ); // NOSONAR
+                LOGGER.debug("Attempting to get Lock from zip {}", fileRef.getLocation().getUrl());
+                zipLock = zipFC.lock();
+                LOGGER.debug("Lock acquired from zip {}", fileRef.getLocation().getUrl());
+                zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),// NOSONAR
+                                                  env); // NOSONAR
                 Path pathInZip = zipFs.getPath(checksum);
-                return RegardsIS.build(Files.newInputStream(pathInZip), zipFs, zipLock, zipFC, ZIP_ACCESS_SEMAPHORE);
+                streamFromZip = RegardsIS.build(Files.newInputStream(pathInZip),
+                                                zipFs,
+                                                zipLock,
+                                                zipFC,
+                                                zipAccessSemaphore);
+                return streamFromZip;
             } else {
                 String errorMessage = String.format(
                     "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : timeout accessing zip file. Zip file is already locked.",
@@ -568,7 +584,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 throw new ModuleException(errorMessage);
             }
         } catch (InterruptedException e) {
-            releaseSemaphore = true;
             Thread.currentThread().interrupt();
             String errorMessage = String.format(
                 "[LOCAL STORAGE PLUGIN] Retrieve file %s (%s) from zip %s has been interrupted while acquiring semaphore. Cause : %s.",
@@ -579,19 +594,36 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             LOGGER.error(errorMessage, e);
             throw new ModuleException(errorMessage);
         } catch (IOException e) {
-            releaseSemaphore = true;
-            String errorMessage = String.format(
-                "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s",
-                checksum,
-                fileRef.getMetaInfo().getFileName(),
-                fileRef.getLocation().getUrl(),
-                e.getMessage());
-            LOGGER.error(errorMessage, e);
-            throw new ModuleException(errorMessage);
-        } finally {
-            if (releaseSemaphore) {
-                ZIP_ACCESS_SEMAPHORE.release();
+            try {
+                if (streamFromZip != null) {
+                    streamFromZip.close();
+                }
+                if (zipFs != null) {
+                    zipFs.close();
+                }
+                if (zipLock != null) {
+                    zipLock.release();
+                }
+                if (zipFC != null) {
+                    zipFC.close();
+                }
+            } catch (IOException ioE) {
+                LOGGER.error("Error while attempting to close the zip {} you might want to reboot the microservice",
+                             fileRef.getLocation().getUrl(),
+                             e);
+            } finally {
+                zipAccessSemaphore.release();
+                LOGGER.info("Semaphore released");
+                String errorMessage = String.format(
+                    "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s",
+                    checksum,
+                    fileRef.getMetaInfo().getFileName(),
+                    fileRef.getLocation().getUrl(),
+                    e.getMessage());
+                LOGGER.error(errorMessage, e);
+                throw new ModuleException(errorMessage);
             }
+
         }
     }
 
@@ -651,10 +683,15 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         @Override
         public void close() throws IOException {
             source.close();
-            lock.release();
-            semaphore.release();
+            LOGGER.debug("IS closed");
             fs.close();
+            LOGGER.debug("fs closed");
+            lock.release();
+            LOGGER.debug("lock released");
             fc.close();
+            LOGGER.debug("fc released");
+            semaphore.release();
+            LOGGER.debug("Semaphore released");
         }
     }
 
