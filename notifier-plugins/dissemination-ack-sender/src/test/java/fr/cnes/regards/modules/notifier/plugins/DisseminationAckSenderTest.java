@@ -51,6 +51,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Léo Mieulet
@@ -133,7 +134,8 @@ public class DisseminationAckSenderTest {
         // Instantiate plugin
         IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(DisseminationAckSender.class,
                                                                                     UUID.randomUUID().toString(),
-                                                                                    parameters), new HashMap<>());
+                                                                                    parameters),
+                                                          new ConcurrentHashMap<>());
         Assert.assertNotNull(plugin);
 
         // sample requests

@@ -62,6 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test class for {@link WorkerManagerSender}
@@ -242,7 +243,7 @@ public class WorkerManagerSenderIT {
                                                                                              UUID.randomUUID()
                                                                                                  .toString(),
                                                                                              parameters),
-                                                                   new HashMap<>());
+                                                                   new ConcurrentHashMap<>());
         Assert.assertNotNull(workerMngPlugin);
         return workerMngPlugin;
     }
@@ -254,7 +255,7 @@ public class WorkerManagerSenderIT {
                                                                                              UUID.randomUUID()
                                                                                                  .toString(),
                                                                                              parameters),
-                                                                   new HashMap<>());
+                                                                   new ConcurrentHashMap<>());
         Assert.assertNotNull(workerMngPlugin);
         return workerMngPlugin;
     }

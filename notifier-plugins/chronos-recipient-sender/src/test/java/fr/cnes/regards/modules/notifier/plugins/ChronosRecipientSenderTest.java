@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static fr.cnes.regards.modules.notifier.plugins.ChronosRecipientSender.ACTION_KEY;
 import static fr.cnes.regards.modules.notifier.plugins.ChronosRecipientSender.OWNER_KEY;
@@ -260,7 +261,7 @@ public class ChronosRecipientSenderTest {
 
         return PluginUtils.getPlugin(PluginConfiguration.build(ChronosRecipientSender.class,
                                                                UUID.randomUUID().toString(),
-                                                               parameters), new HashMap<>());
+                                                               parameters), new ConcurrentHashMap<>());
     }
 
     private NotificationRequestEvent getEvent(String name) {

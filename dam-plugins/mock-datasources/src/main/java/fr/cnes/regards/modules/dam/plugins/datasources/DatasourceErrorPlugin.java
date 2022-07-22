@@ -33,7 +33,6 @@ import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.model.domain.Model;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,8 +166,8 @@ public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
             DataObjectFeature objectFeature = new DataObjectFeature(urn, id, label);
             objectFeature.setModel(modelName);
             objectFeature.setFiles(HashMultimap.create());
-            objectFeature.setSessionOwner(String.format("sessionOwner-%s", RandomStringUtils.randomAlphabetic(5)));
-            objectFeature.setSession(String.format("session-%s", RandomStringUtils.randomAlphabetic(5)));
+            objectFeature.setSessionOwner("sessionOwner-" + i);
+            objectFeature.setSession("session-" + i);
             objectFeature.setProperties(Set.of());
             objectFeature.setEntityType(EntityType.DATA);
 

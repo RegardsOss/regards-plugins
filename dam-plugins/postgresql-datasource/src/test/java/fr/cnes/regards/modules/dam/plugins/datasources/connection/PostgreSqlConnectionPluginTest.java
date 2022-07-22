@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import com.google.common.collect.Maps;
 import com.zaxxer.hikari.pool.HikariPool;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -44,6 +43,7 @@ import org.springframework.test.context.TestPropertySource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -73,12 +73,13 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     private String dbPassword;
 
     @Before
-    public void setUp() throws SQLException, NotAvailablePluginConfigurationException {
+    public void setUp() throws NotAvailablePluginConfigurationException {
         IDBConnectionPlugin plgConn;
 
         plgConn = PluginUtils.getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class,
                                                                   null,
-                                                                  getPostGreSqlParameters()), Maps.newHashMap());
+                                                                  getPostGreSqlParameters()),
+                                        new ConcurrentHashMap<>());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(plgConn.testConnection());
@@ -91,7 +92,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration.build(
             DefaultPostgreConnectionPlugin.class,
             null,
-            getPostGreSqlParameters()), Maps.newHashMap());
+            getPostGreSqlParameters()), new ConcurrentHashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -100,12 +101,11 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getMaxPoolSizeWithClose()
-        throws InterruptedException, SQLException, NotAvailablePluginConfigurationException {
+    public void getMaxPoolSizeWithClose() throws SQLException, NotAvailablePluginConfigurationException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration.build(
             DefaultPostgreConnectionPlugin.class,
             null,
-            getPostGreSqlParameters()), Maps.newHashMap());
+            getPostGreSqlParameters()), new ConcurrentHashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -116,15 +116,16 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
     }
 
     @Test
-    public void getMaxPoolSizeWithoutClose() throws InterruptedException, NotAvailablePluginConfigurationException {
+    public void getMaxPoolSizeWithoutClose() throws NotAvailablePluginConfigurationException {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration.build(
             DefaultPostgreConnectionPlugin.class,
             null,
-            getPostGreSqlParameters()), Maps.newHashMap());
+            getPostGreSqlParameters()), new ConcurrentHashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
         try (Connection conn1 = sqlConn.getConnection()) {
+            Assert.assertNotNull("Connection successfully established", conn1);
         } catch (SQLException e) {
             LOG.error("unable to get a connection", e);
             Assert.fail();
@@ -139,7 +140,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration.build(
             DefaultPostgreConnectionPlugin.class,
             null,
-            getPostGreSqlParameters()), Maps.newHashMap());
+            getPostGreSqlParameters()), new ConcurrentHashMap<>());
 
         Assert.assertNotNull(sqlConn);
 
@@ -183,10 +184,8 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
         parameters.add(passwordParam);
 
         try {
-            final DefaultPostgreConnectionPlugin sqlConn = PluginUtils.getPlugin(PluginConfiguration.build(
-                DefaultPostgreConnectionPlugin.class,
-                null,
-                parameters), Maps.newHashMap());
+            PluginUtils.getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters),
+                                  new ConcurrentHashMap<>());
         } catch (PluginUtilsRuntimeException e) {
             // we do not rely on expected attribute from Test annotation because we want to be sure the test is successful
             // because we could not create the pool due to bad credential

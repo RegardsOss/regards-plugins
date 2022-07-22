@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -48,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author sbinda
@@ -63,15 +63,14 @@ public class LocalDataStorageTest {
     private LocalDataStorage plugin;
 
     @Before
-    public void init()
-        throws NotAvailablePluginConfigurationException, IOException, NoSuchFieldException, IllegalAccessException {
+    public void init() throws NotAvailablePluginConfigurationException, IOException {
         PluginUtils.setup();
         Set<IPluginParam> params = Sets.newHashSet();
         params.add(IPluginParam.build(LocalDataStorage.BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME, baseStorageLocation));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_DELETE_OPTION, true));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_TOTAL_SPACE, 10_000_000L));
         plugin = PluginUtils.getPlugin(PluginConfiguration.build(LocalDataStorage.class, null, params),
-                                       Maps.newHashMap());
+                                       new ConcurrentHashMap<>());
 
         Mockito.reset(storageProgress);
 
@@ -178,7 +177,7 @@ public class LocalDataStorageTest {
     }
 
     @Test
-    public void store_error_missing_file() throws MalformedURLException {
+    public void store_error_missing_file() {
         Set<FileStorageRequest> files = Sets.newHashSet();
         Path unknownFilePath = Paths.get("src", "test", "resources", "unknown.test");
 
@@ -265,7 +264,7 @@ public class LocalDataStorageTest {
         FileDeletionWorkingSubset ws = new FileDeletionWorkingSubset(files);
         Assert.assertTrue("", Files.exists(zipPath));
 
-        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
         plugin.delete(ws, deletionProgress);
@@ -332,7 +331,7 @@ public class LocalDataStorageTest {
         FileDeletionWorkingSubset fileDeletionWorkingSubset = new FileDeletionWorkingSubset(fileDeletionRequests);
         Assert.assertTrue("", Files.exists(zipPath));
 
-        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
         plugin.delete(fileDeletionWorkingSubset, deletionProgress);
@@ -363,7 +362,7 @@ public class LocalDataStorageTest {
         Files.copy(Paths.get("src/test/resources/file.test"), Paths.get(urlToDelete.getPath()));
         Assert.assertTrue("", Files.exists(Paths.get(urlToDelete.getPath())));
 
-        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
         plugin.delete(ws, deletionProgress);
@@ -391,14 +390,14 @@ public class LocalDataStorageTest {
 
         Assert.assertFalse("", Files.exists(Paths.get(urlToDelete.getPath())));
 
-        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
         plugin.delete(ws, deletionProgress);
         Mockito.verify(deletionProgress, Mockito.times(1)).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
-        //To avoid issues with @After and still have a nice context on other tests, lets create a the base storage directory
+        //To avoid issues with @After and still have a nice context on other tests, lets create the base storage directory
         Files.createDirectories(Paths.get(baseStorageLocation));
     }
 
@@ -425,7 +424,7 @@ public class LocalDataStorageTest {
         Paths.get(urlToDelete.getPath()).getParent().toFile().setWritable(false);
         Assert.assertFalse("", Files.isWritable(Paths.get(urlToDelete.getPath()).getParent()));
 
-        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(Mockito.eq(deletionRequest));
+        Mockito.verify(deletionProgress, Mockito.never()).deletionSucceed(deletionRequest);
         Mockito.verify(deletionProgress, Mockito.never())
                .deletionFailed(Mockito.eq(deletionRequest), Mockito.anyString());
         plugin.delete(ws, deletionProgress);

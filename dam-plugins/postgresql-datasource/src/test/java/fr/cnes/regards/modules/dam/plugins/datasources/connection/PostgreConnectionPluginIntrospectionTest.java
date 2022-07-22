@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
-import com.google.common.collect.Maps;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
@@ -42,6 +41,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Christophe Mertz
@@ -87,7 +87,7 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
         postgreDBConn = PluginUtils.getPlugin(PluginConfiguration.build(DefaultPostgreConnectionPlugin.class,
                                                                         null,
-                                                                        parameters), Maps.newHashMap());
+                                                                        parameters), new ConcurrentHashMap<>());
 
         // Do not launch tests is Database is not available
         Assume.assumeTrue(postgreDBConn.testConnection());
@@ -101,7 +101,7 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
         Map<String, Table> tables = postgreDBConn.getTables(null, null);
         Assert.assertNotNull(tables);
-        Assert.assertTrue(!tables.isEmpty());
+        Assert.assertFalse(tables.isEmpty());
     }
 
     @Test
@@ -113,12 +113,12 @@ public class PostgreConnectionPluginIntrospectionTest extends AbstractRegardsIT 
 
         Map<String, Table> tables = postgreDBConn.getTables(null, null);
         Assert.assertNotNull(tables);
-        Assert.assertTrue(!tables.isEmpty());
+        Assert.assertFalse(tables.isEmpty());
 
         tables.forEach((k, t) -> {
             Assert.assertNotNull(t.getName());
             LOG.info("table={}-{}-{}-{}-{}-{}",
-                     t.toString(),
+                     t,
                      t.getPKey(),
                      t.getName(),
                      t.getTableDefinition(),

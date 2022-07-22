@@ -53,10 +53,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * {@link AipDataSourcePlugin} test class
@@ -80,7 +81,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     private IRuntimeTenantResolver tenantResolver;
 
     @Before
-    public void setUp() throws SQLException, ModuleException, NotAvailablePluginConfigurationException {
+    public void setUp() throws ModuleException, NotAvailablePluginConfigurationException {
         PluginUtils.setup();
         tenantResolver.forceTenant(getDefaultTenant());
         try {
@@ -92,14 +93,14 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         }
         importModel(MODEL_FILE_NAME);
 
-        Map<String, Object> pluginCacheMap = new HashMap<>();
+        ConcurrentMap<String, Object> pluginCacheMap = new ConcurrentHashMap<>();
 
         // Instantiate the data source plugin
         Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DataSourcePluginConstants.BINDING_MAP,
                                                                            PluginParameterTransformer.toJson(
                                                                                createBindingMap())),
                                                         IPluginParam.build(DataSourcePluginConstants.SUBSETTING_TAGS,
-                                                                           PluginParameterTransformer.toJson(Arrays.asList(
+                                                                           PluginParameterTransformer.toJson(List.of(
                                                                                MODEL_NAME))),
                                                         IPluginParam.build(DataSourcePluginConstants.MODEL_NAME_PARAM,
                                                                            MODEL_NAME),

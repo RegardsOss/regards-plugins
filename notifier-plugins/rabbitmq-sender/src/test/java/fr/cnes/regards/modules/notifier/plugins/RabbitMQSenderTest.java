@@ -47,6 +47,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Léo Mieulet
@@ -117,7 +118,8 @@ public class RabbitMQSenderTest {
         // Instantiate plugin
         IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(RabbitMQSender.class,
                                                                                     UUID.randomUUID().toString(),
-                                                                                    parameters), new HashMap<>());
+                                                                                    parameters),
+                                                          new ConcurrentHashMap<>());
         Assert.assertNotNull(plugin);
 
         // Run plugin

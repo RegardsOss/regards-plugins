@@ -52,8 +52,8 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Instantiate S3 plugin to test with local minio deployed server
@@ -114,7 +114,7 @@ public class S3OnlineStorageIT {
                                                                             parameters);
         // Load plugin
         try {
-            s3OnlineStorage = PluginUtils.getPlugin(pluginConfiguration, new HashMap<>());
+            s3OnlineStorage = PluginUtils.getPlugin(pluginConfiguration, new ConcurrentHashMap<>());
         } catch (NotAvailablePluginConfigurationException e) {
             Assert.fail(e.getMessage());
         }
