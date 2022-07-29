@@ -33,7 +33,9 @@ import org.springframework.data.domain.Pageable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link Plugin} to retrieve the data elements from a SQL Database.</br>
@@ -44,14 +46,6 @@ import java.util.List;
 public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMapping implements IDBDataSourcePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDBDataSourcePlugin.class);
-
-    protected static final String SELECT = "SELECT ";
-
-    protected static final String WHERE = " WHERE ";
-
-    protected static final String SELECT_COUNT = "SELECT COUNT(*) ";
-
-    protected static final String LIMIT_CLAUSE = " ORDER BY %s LIMIT %d OFFSET %d";
 
     /**
      * By default, the refresh rate is set to 1 day (in ms)
@@ -64,25 +58,22 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     protected abstract String getFromClause();
 
     protected String getSelectRequest(Pageable pageable, OffsetDateTime sinceData) {
+        String request = RequestHelper.SELECT
+                         + buildColumnClause(columns.toArray(new String[0]))
+                         + getFromClause();
         if ((sinceData != null) && !getLastUpdateAttributeName().isEmpty()) {
-            return SELECT
-                   + buildColumnClause(columns.toArray(new String[0]))
-                   + getFromClause()
-                   + WHERE
-                   + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                   + buildLimitPart(pageable);
-        } else {
-            return SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause() + buildLimitPart(
-                pageable);
+            String additionalWhereClause = RequestHelper.WHERE
+                                           + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
+            request = RequestHelper.mergeWhereClause(request, additionalWhereClause);
         }
+        return request + buildLimitPart(pageable);
     }
 
     protected String getCountRequest(OffsetDateTime sinceDate) {
         if ((sinceDate != null) && !getLastUpdateAttributeName().isEmpty()) {
-            return SELECT_COUNT + getFromClause() + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
-
+            return RequestHelper.mergeWhereClause(RequestHelper.SELECT_COUNT + getFromClause(), RequestHelper.WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD);
         } else {
-            return SELECT_COUNT + getFromClause();
+            return RequestHelper.SELECT_COUNT + getFromClause();
         }
 
     }
@@ -116,7 +107,7 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     protected String buildLimitPart(Pageable pageable) {
         StringBuilder str = new StringBuilder(" ");
         final int offset = pageable.getPageNumber() * pageable.getPageSize();
-        final String limit = String.format(LIMIT_CLAUSE, orderByColumn, pageable.getPageSize(), offset);
+        final String limit = String.format(RequestHelper.LIMIT_CLAUSE, orderByColumn, pageable.getPageSize(), offset);
         str.append(limit);
 
         return str.toString();
