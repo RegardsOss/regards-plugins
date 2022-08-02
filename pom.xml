@@ -326,5 +326,6 @@
         <module>storage-plugins</module>
         <module>ingest-plugins</module>
         <module>notifier-plugins</module>
+        <module>processing-plugins</module>
     </modules>
 </project>
