@@ -62,6 +62,8 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     public static final String UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
 
+    public static final String MULTIPART_PARALLEL_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
+
     private static final Logger LOGGER = getLogger(S3OnlineStorage.class);
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
@@ -97,6 +99,10 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         label = "Multipart threshold in Mb", defaultValue = "5")
     private int multipartThresholdMb;
 
+    @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME, description = "Number of parallel parts to upload",
+        label = "Multipart threshold in Mb", defaultValue = "5")
+    private int nbParallelPartsUpload;
+
     /**
      * Do not use this field, use the getClient getter
      */
@@ -114,7 +120,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         if (clientCache == null) {
             Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
             int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
-            clientCache = new S3HighLevelReactiveClient(scheduler, maxBytesPerPart);
+            clientCache = new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
         }
         return clientCache;
     }
