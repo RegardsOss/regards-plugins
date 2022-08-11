@@ -54,6 +54,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * Instantiate S3 plugin to test with local minio deployed server
@@ -91,6 +92,14 @@ public class S3OnlineStorageIT {
     public void prepare() {
         // Initialize plugin environment
         PluginUtils.setup();
+    }
+
+    @Test
+    public void test() {
+
+        System.out.println("http://toto.com/bucket/path/file".replaceFirst(Pattern.quote("http://toto.com") + "/*", "")
+                                                             .replaceFirst(Pattern.quote("bucket" + "/"), "")
+                                                             .replaceFirst(Pattern.quote("file"), ""));
     }
 
     private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
@@ -195,10 +204,12 @@ public class S3OnlineStorageIT {
 
             @Override
             public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
+                System.out.println("Success");
             }
 
             @Override
             public void deletionFailed(FileDeletionRequest fileDeletionRequest, String s) {
+                System.out.println("error");
             }
         });
 

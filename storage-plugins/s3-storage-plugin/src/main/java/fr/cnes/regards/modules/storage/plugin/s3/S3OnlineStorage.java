@@ -108,12 +108,21 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      */
     private S3HighLevelReactiveClient clientCache;
 
+    private StorageConfig storageConfig;
+
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
 
     @PluginInit
     public void init() {
-        rootPath = rootPath == null ? "" : rootPath;
+        storageConfig = StorageConfig.builder()
+                                     .endpoint(endpoint)
+                                     .bucket(bucket)
+                                     .key(key)
+                                     .secret(secret)
+                                     .region(region)
+                                     .rootPath(rootPath)
+                                     .build();
     }
 
     private S3HighLevelReactiveClient getClient() {
@@ -130,11 +139,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
         StorageCommandID cmdId = new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID());
 
-        StorageConfig storageConfig = buildStorageConfig(getRootPathFromUrl(fileReference));
-
-        String entryKey = storageConfig.entryKey(fileReference.getMetaInfo().getChecksum());
-
-        StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, entryKey);
+        StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, getEntryKey(fileReference));
         return getClient().read(readCmd)
                           .flatMap(readResult -> readResult.matchReadResult(this::toInputStream,
                                                                             unreachable -> Mono.error(new ModuleException(
@@ -162,11 +167,9 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                         request.getFileReference().getLocation().getUrl());
             StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
-            StorageConfig storageConfig = buildStorageConfig(getRootPathFromUrl(request.getFileReference()));
-
-            String entryKey = storageConfig.entryKey(request.getFileReference().getMetaInfo().getChecksum());
-
-            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfig, cmdId, entryKey);
+            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfig,
+                                                                             cmdId,
+                                                                             getEntryKey(request.getFileReference()));
             return getClient().delete(deleteCmd)
                               .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
                                                                                       unreachable -> Mono.error(new RuntimeException(
@@ -213,10 +216,9 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                                        multipartThresholdMb * 1024 * 1024)
                                                       .map(DataBuffer::asByteBuffer);
 
-            StorageConfig storageConfig = buildStorageConfig(makeRootPath(request.getStorageSubDirectory()));
             StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
-            String entryKey = storageConfig.entryKey(request.getMetaInfo().getChecksum());
+            String entryKey = storageConfig.entryKey(getEntryKey(request));
 
             StorageEntry storageEntry = StorageEntry.builder()
                                                     .config(storageConfig)
@@ -250,30 +252,24 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         }));
     }
 
-    private String getRootPathFromUrl(FileReference fileReference) {
-        return fileReference.getLocation()
-                            .getUrl()
-                            .replaceFirst(Pattern.quote(endpoint) + "/*", "")
-                            .replaceFirst(Pattern.quote(bucket), "")
-                            .replaceFirst(Pattern.quote(fileReference.getMetaInfo().getChecksum()), "");
+    private String getEntryKey(FileReference fileReference) {
+        String entryKey = fileReference.getLocation()
+                                       .getUrl()
+                                       .replaceFirst(Pattern.quote(endpoint) + "/*", "")
+                                       .replaceFirst(Pattern.quote(bucket), "")
+                                       .substring(1);
+        return entryKey;
     }
 
-    private String makeRootPath(String subDirectory) {
-        if (subDirectory == null) {
-            return rootPath;
+    private String getEntryKey(FileStorageRequest request) {
+        String entryKey = request.getMetaInfo().getChecksum();
+        if (request.getStorageSubDirectory() != null && !request.getStorageSubDirectory().isEmpty()) {
+            entryKey = Paths.get(request.getStorageSubDirectory(), request.getMetaInfo().getChecksum()).toString();
+            if (entryKey.charAt(0) == '/') {
+                entryKey = entryKey.substring(1);
+            }
         }
-        return Paths.get(rootPath, subDirectory).toString();
-    }
-
-    private StorageConfig buildStorageConfig(String path) {
-        return StorageConfig.builder()
-                            .endpoint(endpoint)
-                            .bucket(bucket)
-                            .key(key)
-                            .secret(secret)
-                            .region(region)
-                            .rootPath(path)
-                            .build();
+        return entryKey;
     }
 
     private Option<Long> entrySize(FileStorageRequest request) {
