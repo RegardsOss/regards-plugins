@@ -100,7 +100,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     private int multipartThresholdMb;
 
     @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME, description = "Number of parallel parts to upload",
-        label = "Multipart threshold in Mb", defaultValue = "5")
+        label = "Number of parallel parts during multipart upload", defaultValue = "5")
     private int nbParallelPartsUpload;
 
     /**
