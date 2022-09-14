@@ -19,7 +19,6 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
 import com.google.gson.reflect.TypeToken;
-import fr.cnes.regards.framework.jpa.multitenant.transactional.MultitenantTransactional;
 import fr.cnes.regards.framework.modules.tinyurl.domain.TinyUrl;
 import fr.cnes.regards.framework.modules.tinyurl.service.TinyUrlService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -67,7 +66,6 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  * @author Marc SORDI
  */
 @Service
-@MultitenantTransactional
 public class CollectionDownloadServiceImpl implements CollectionDownloadService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CollectionDownloadServiceImpl.class);
@@ -389,7 +387,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
      *
      * @param checksum file checksum
      *                 <p>
-     *                                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
+     *                                                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
      */
     private String getStorageLocation(String checksum, DownloadLinkCreator downloadLinkCreator) {
         return String.format(STORAGE_DOWNLOAD_FILE_PATH, nginxPrefix, checksum, downloadLinkCreator.getSystemToken());
