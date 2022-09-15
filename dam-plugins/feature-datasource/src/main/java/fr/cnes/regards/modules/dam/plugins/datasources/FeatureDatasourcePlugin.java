@@ -92,8 +92,26 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @Value("${prefix.path}")
     private String urlPrefix;
 
-    @Value("${regards.feature.datasource.plugin.refreshRate:1000}")
+    /**
+     * Refresh rate in SECOND
+     */
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, label = "Refresh rate",
+        description = "Harvesting refresh rate in second (minimum delay between two consecutive harvesting)",
+        defaultValue = "1000")
     private int refreshRate;
+
+    /**
+     * Overlap in SECOND
+     *
+     * <p>
+     * Explanations: in Feature Manager, paging can cause data loss when it processes the data being acquired. So,
+     * to prevent this, data are harvested since date minus an overlap.
+     * So data may be harvested twice!
+     */
+    @PluginParameter(name = "overlap", label = "Overlap",
+        description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
+        defaultValue = "0")
+    private long overlap;
 
     // -------------------------
     // ------- SERVICES --------
@@ -169,8 +187,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
      */
     private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor)
         throws DataSourceException {
-        // /!\ this sorting is very important as it allows the db to retrieve aipEntities always in the same order, to avoid any entity to be skipped.
-        // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
+        // /!\ this sorting is very important as it allows the db to retrieve features always in the same order, to avoid any feature to be skipped.
+        // Features must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
         ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
@@ -364,4 +382,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
     }
 
+    @Override
+    public long getOverlap() {
+        return overlap;
+    }
 }
