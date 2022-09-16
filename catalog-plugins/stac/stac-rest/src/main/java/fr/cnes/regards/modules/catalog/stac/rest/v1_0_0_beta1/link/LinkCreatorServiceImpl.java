@@ -341,16 +341,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public Option<URI> createAllCollectionsDownloadLink(String tinyUrlId) {
-                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class).toUri()).flatMapTry(
-                                                                                                            uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                                                                        .flatMapTry(
-                                                                                                            uriParamAdder.appendAuthParams(
-                                                                                                                auth))
-                                                                                                        .onFailure(t -> warn(
-                                                                                                            LOGGER,
-                                                                                                            "Failed to create all collections download link",
-                                                                                                            t))
-                                                                                                        .toOption();
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
+                                                    .slash(STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX)
+                                                    .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(auth))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create all collections download link",
+                                                                                  t))
+                                                             .toOption();
             }
 
             @Override
