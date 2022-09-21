@@ -18,7 +18,6 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.service.job;
 
-import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantServiceIT;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -44,7 +43,6 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -79,9 +77,6 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
 
     @Autowired
     protected MultitenantFlattenedAttributeAdapterFactory gsonAttributeFactory;
-
-    @SpyBean
-    protected IPublisher publisher;
 
     @Captor
     protected ArgumentCaptor<List<ISubscribable>> recordsCaptor;
