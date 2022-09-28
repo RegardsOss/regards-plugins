@@ -30,8 +30,6 @@
  */
 @Library('regards/pluginPipeline') _
 pluginPipeline {
-	upstreamProjects = 'regards-oss-backend'
+	upstreamProjects = 'regards-oss-backend-gitlab'
 	COTS = 'rs-elasticsearch:9300 rs-rabbitmq:5672 rs-postgres:5432 rs-s3-minio:9000'
-	TULEAP_REPO_ID = '868'
-	TULEAP_CREDENTIALS='tuleap-ci-oss-plugins'
 }
