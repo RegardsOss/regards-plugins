@@ -8,6 +8,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -136,18 +138,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public InputStream retrieve(FileReference fileReference) {
-
-        StorageCommandID cmdId = new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID());
-
-        StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, getEntryKey(fileReference));
-        return getClient().read(readCmd)
-                          .flatMap(readResult -> readResult.matchReadResult(this::toInputStream,
-                                                                            unreachable -> Mono.error(new ModuleException(
-                                                                                "Unreachable server: "
-                                                                                + unreachable.toString())),
-                                                                            notFound -> Mono.error(new FileNotFoundException(
-                                                                                "Entry not found"))))
-                          .block();
+        return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference), storageConfig, new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID()));
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {

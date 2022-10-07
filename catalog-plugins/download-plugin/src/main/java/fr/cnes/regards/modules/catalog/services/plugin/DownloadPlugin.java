@@ -313,7 +313,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
             zos.putNextEntry(new ZipEntry(fileName));
             if (file.isReference() || (file.getChecksum() == null)) {
                 // Download file through its url
-                ByteStreams.copy(DownloadUtils.getInputStreamThroughProxy(getDataFileURL(file), proxy, noProxyHosts),
+                ByteStreams.copy(DownloadUtils.getInputStreamThroughProxy(getDataFileURL(file), proxy, noProxyHosts, new ArrayList<>()),
                                  zos);
             } else {
                 // Retrieve file from storage by its checksum

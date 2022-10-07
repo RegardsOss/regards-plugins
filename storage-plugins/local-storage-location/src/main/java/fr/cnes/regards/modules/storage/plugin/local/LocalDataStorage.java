@@ -31,8 +31,10 @@ import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.storage.service.download.s3.KnownS3Storages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -124,6 +126,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         defaultValue = "500000000")
     private Long maxZipSize;
 
+    @Autowired
+    KnownS3Storages knownS3Storages;
+
     @Override
     public Optional<Path> getRootPath() {
         return Optional.ofNullable(Paths.get(baseStorageLocationAsString));
@@ -206,7 +211,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
                                                                     fullPathToFile,
                                                                     request.getMetaInfo().getAlgorithm(),
-                                                                    request.getMetaInfo().getChecksum());
+                                                                    request.getMetaInfo().getChecksum(), knownS3Storages.getStorages());
             } catch (IOException e) {
                 throw new ModuleException(String.format("Download error for file %s. Cause : %s",
                                                         request.getOriginUrl(),
@@ -279,7 +284,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                         downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
                                                                             pathInZip,
                                                                             request.getMetaInfo().getAlgorithm(),
-                                                                            checksum);
+                                                                            checksum, knownS3Storages.getStorages());
                         // download issues are handled right here
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
@@ -553,7 +558,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         InputStream streamFromZip = null;
         try {
             LOGGER.debug("Attempting to acquire semaphore, available permits : {}",
-                        zipAccessSemaphore.availablePermits());
+                         zipAccessSemaphore.availablePermits());
             if (zipAccessSemaphore.tryAcquire(ZIP_ACQUIRE_TIMEOUT, TimeUnit.SECONDS)) {
 
                 LOGGER.debug("Semaphore acquired available permits : {}", zipAccessSemaphore.availablePermits());

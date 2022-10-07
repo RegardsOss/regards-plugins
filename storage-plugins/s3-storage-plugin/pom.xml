@@ -44,6 +44,10 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>s3-storage-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>file-utils</artifactId>
+        </dependency>
 
         <!-- Externals -->
         <dependency>
@@ -127,6 +131,7 @@
                                     <include>io.netty:*</include>
                                     <include>com.typesafe.netty:*</include>
                                     <include>fr.cnes.regards.framework.utils:s3-storage-utils</include>
+                                    <include>fr.cnes.regards.framework.utils.file:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

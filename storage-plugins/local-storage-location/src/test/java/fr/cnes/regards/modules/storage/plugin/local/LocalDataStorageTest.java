@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.local;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.s3.domain.S3Server;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.storage.domain.database.FileLocation;
@@ -29,12 +30,16 @@ import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.storage.service.download.s3.KnownS3Storages;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
@@ -60,6 +65,10 @@ public class LocalDataStorageTest {
 
     private final String baseStorageLocation = "target/local-storage";
 
+    @Mock
+    KnownS3Storages knownS3Storages;
+
+    @InjectMocks
     private LocalDataStorage plugin;
 
     @Before
@@ -82,6 +91,8 @@ public class LocalDataStorageTest {
             });
             FileUtils.deleteDirectory(Paths.get("target/local-storage").toFile());
         }
+        MockitoAnnotations.openMocks(this);
+        Mockito.when(knownS3Storages.getStorages()).thenReturn(new ArrayList<S3Server>());
     }
 
     @After

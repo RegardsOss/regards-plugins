@@ -38,6 +38,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>fr.cnes.regards.modules.storage</groupId>
+			<artifactId>storage-service</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>fr.cnes.regards.framework.utils</groupId>
 			<artifactId>file-utils</artifactId>
 			<scope>provided</scope>
@@ -71,6 +76,7 @@
 							<artifactSet>
 								<includes>
 									<include>fr.cnes.regards.framework.modules.locks:*</include>
+									<include>fr.cnes.regards.modules.storage.service.download.s3:*</include>
 								</includes>
 							</artifactSet>
 						</configuration>
