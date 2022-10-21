@@ -86,7 +86,7 @@ public class IdMappingServiceImpl implements IdMappingService {
     @Override
     public void initOrUpdateCache() {
         // Initialize mappings for all tenants
-        for (String tenant : tenantResolver.getAllTenants()) {
+        for (String tenant : tenantResolver.getAllActiveTenants()) {
             initOrUpdateCache(tenant);
         }
     }
