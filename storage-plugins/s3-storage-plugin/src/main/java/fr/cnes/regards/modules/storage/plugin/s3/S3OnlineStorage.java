@@ -1,13 +1,13 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import com.google.common.collect.Maps;
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
@@ -24,16 +24,14 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import software.amazon.awssdk.utils.StringUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -65,6 +63,8 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     public static final String MULTIPART_PARALLEL_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
 
     private static final Logger LOGGER = getLogger(S3OnlineStorage.class);
+
+    public static final int PIPE_SIZE = 1024 * 10;
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
         description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
@@ -135,27 +135,59 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public InputStream retrieve(FileReference fileReference) {
+    public InputStream retrieve(FileReference fileReference) throws FileNotFoundException {
 
         StorageCommandID cmdId = new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID());
 
         StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, getEntryKey(fileReference));
-        return getClient().read(readCmd)
-                          .flatMap(readResult -> readResult.matchReadResult(this::toInputStream,
-                                                                            unreachable -> Mono.error(new ModuleException(
-                                                                                "Unreachable server: "
-                                                                                + unreachable.toString())),
-                                                                            notFound -> Mono.error(new FileNotFoundException(
-                                                                                "Entry not found"))))
-                          .block();
+        try {
+            return getClient().read(readCmd)
+                         .flatMap(readResult -> readResult.matchReadResult(r -> toInputStream(r),
+                                                                           unreachable -> Mono.error(new S3ClientException(
+                                                                               "Unreachable server: "
+                                                                               + unreachable.toString())),
+                                                                           notFound -> Mono.error(new FileNotFoundException(
+                                                                               "Entry not found"))))
+                         .block();
+        } catch (Exception e) {
+            Throwable unwrappedException = Exceptions.unwrap(e);
+            if (unwrappedException instanceof S3ClientException s3ClientException) {
+                throw s3ClientException;
+            }
+            if (unwrappedException instanceof FileNotFoundException fileNotFoundException) {
+                throw fileNotFoundException;
+            }
+            throw e;
+        }
     }
 
-    private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
+    private static Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
         DataBufferFactory dbf = new DefaultDataBufferFactory();
-        return pipe.getEntry()
-                   .flatMap(entry -> DataBufferUtils.join(entry.getData().map(dbf::wrap)))
-                   .map(DataBuffer::asInputStream);
+        Flux<ByteBuffer> buffers = pipe.getEntry().flatMapMany(e -> e.getData());
+        PipedOutputStream outputStream = new PipedOutputStream();
+        PipedInputStream inputStream = new PipedInputStream(PIPE_SIZE);
+        try {
+            inputStream.connect(outputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                "This should never happen, the input stream was created 1 line before we tried connecting it, it cannot be already connected",
+                e);
+        }
+        DataBufferUtils.write(buffers.map(dbf::wrap), outputStream).onErrorResume(throwable -> {
+            try {
+                outputStream.close();
+            } catch (IOException ioe) {
+            }
+            return Flux.error(throwable);
+        }).doOnComplete(() -> {
+            try {
+                outputStream.close();
+            } catch (IOException ioe) {
+            }
+        }).subscribe();
+        return Mono.just(inputStream);
     }
+
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {

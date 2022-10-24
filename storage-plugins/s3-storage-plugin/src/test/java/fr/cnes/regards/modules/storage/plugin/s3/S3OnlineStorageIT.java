@@ -47,6 +47,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MimeType;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -184,7 +185,12 @@ public class S3OnlineStorageIT {
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
         // Get file from as input stream
-        InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
+        InputStream inputStream = null;
+        try {
+            inputStream = s3OnlineStorage.retrieve(fileReference);
+        } catch (IOException e) {
+            Assert.fail();
+        }
         Assert.assertNotNull(inputStream);
 
         // Delete file from S3
