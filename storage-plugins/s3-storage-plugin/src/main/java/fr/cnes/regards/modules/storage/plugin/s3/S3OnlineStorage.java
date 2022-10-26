@@ -1,7 +1,6 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import com.google.common.collect.Maps;
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -35,7 +34,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -137,7 +135,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public InputStream retrieve(FileReference fileReference) {
+    public InputStream retrieve(FileReference fileReference) throws FileNotFoundException {
         return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference), storageConfig, new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID()));
     }
 
