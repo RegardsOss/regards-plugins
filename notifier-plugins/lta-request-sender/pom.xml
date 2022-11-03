@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES This file
-	is part of REGARDS. REGARDS is free software: you can redistribute it and/or
-	modify it under the terms of the GNU General Public License as published
-	by the Free Software Foundation, either version 3 of the License, or (at
-	your option) any later version. REGARDS is distributed in the hope that it
-	will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-	of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-	Public License for more details. You should have received a copy of the GNU
-	General Public License along with REGARDS. If not, see <http://www.gnu.org/licenses/>. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>worker-manager-sender</artifactId>
-    <description>Send processing requests to worker manager</description>
+    <artifactId>lta-request-sender</artifactId>
+    <description>Recipient sender for lta request</description>
 
     <parent>
         <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
@@ -38,8 +29,8 @@
     <developers>
         <developer>
             <name>REGARDS Team</name>
-            <organization>CS Systèmes d'Information</organization>
-            <organizationUrl>http://www.c-s.fr</organizationUrl>
+            <organization>CS Group</organization>
+            <organizationUrl>https://www.csgroup.eu</organizationUrl>
         </developer>
     </developers>
 
@@ -50,18 +41,24 @@
             <artifactId>common-plugins</artifactId>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.workermanager</groupId>
-            <artifactId>worker-manager-dto</artifactId>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ltamanager</groupId>
+            <artifactId>lta-manager-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>gson-regards</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.model</groupId>
+            <artifactId>model-gson</artifactId>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.notifier</groupId>
             <artifactId>notifier-utils</artifactId>
-        </dependency>
-        <!-- External dependencies -->
-        <!-- JsonPath https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -72,11 +69,6 @@
         <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>plugin-utils</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>gson-regards-starter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -96,7 +88,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
-                                    <include>fr.cnes.regards.modules.workermanager:worker-manager-dto</include>
                                     <include>fr.cnes.regards.framework:urn-regards</include>
                                     <include>com.jayway.jsonpath:json-path</include>
                                 </includes>

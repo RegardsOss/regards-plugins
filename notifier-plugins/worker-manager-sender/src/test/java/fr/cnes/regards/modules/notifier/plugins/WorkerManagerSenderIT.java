@@ -32,6 +32,7 @@ import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfi
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
+import fr.cnes.regards.modules.notifier.utils.SessionUtils;
 import fr.cnes.regards.modules.workermanager.dto.events.EventHeadersHelper;
 import fr.cnes.regards.modules.workermanager.dto.events.RawMessageBuilder;
 import org.assertj.core.util.Sets;
@@ -213,7 +214,7 @@ public class WorkerManagerSenderIT {
             String sourceName;
             String sessionName;
             if (overriddenSessionName) {
-                sourceName = WorkerManagerSender.DEFAULT_SESSION_OWNER_TOKEN + TENANT;
+                sourceName = SessionUtils.DEFAULT_SESSION_OWNER_TOKEN + TENANT;
                 sessionName = errorSessionName ?
                     String.format("sessionNamePatternError-%s", currentDate) :
                     String.format("L0A_LR_Packet-%s-swot", currentDate);
@@ -284,10 +285,10 @@ public class WorkerManagerSenderIT {
                                              + "\"type\": \"L0A_LR_Packet\"}}}}").getAsJsonObject());
 
         JsonElement metadata = jsonParser.parse("{\""
-                                                + WorkerManagerSender.SESSION_OWNER_METADATA_PATH
+                                                + SessionUtils.SESSION_OWNER_METADATA_PATH
                                                 + "\":\"testSessionOwner"
                                                 + "\",\""
-                                                + WorkerManagerSender.SESSION_METADATA_PATH
+                                                + SessionUtils.SESSION_METADATA_PATH
                                                 + "\":\"testSession\"}");
         for (JsonObject feature : featuresSamples) {
             notificationRequests.add(new NotificationRequest(feature,

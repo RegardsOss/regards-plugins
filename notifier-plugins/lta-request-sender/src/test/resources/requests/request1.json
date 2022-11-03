@@ -1,0 +1,35 @@
+{
+  "urn": "URN:FEATURE:DATA:test:11111111-aaaa-aaaa-aaaa-111111111111:V1",
+  "entityType": "DATA",
+  "model": "feature-1-model",
+  "history": {
+    "createdBy": "feature1-owner"
+  },
+  "files": [
+    {
+      "locations": [
+        {
+          "storage": null,
+          "url": "file://./file.txt"
+        }
+      ],
+      "attributes": {
+        "dataType": "RAWDATA",
+        "mimeType": "text/plain",
+        "filename": "file.txt",
+        "filesize": 20480,
+        "algorithm": "MD5",
+        "checksum": "824cacd0b51c11594bc91cb9f6eb1114",
+        "crc32": null
+      }
+    }
+  ],
+  "last": false,
+  "id": "feature1-id",
+  "properties": {
+    "stringA": "stringAValue",
+    "integerB": 55,
+    "datatype": "L0A_LR_Packet"
+  },
+  "type": "Feature"
+}

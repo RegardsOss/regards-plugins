@@ -37,5 +37,6 @@
 		<module>rabbitmq-sender</module>
 		<module>worker-manager-sender</module>
 		<module>dissemination-ack-sender</module>
+		<module>lta-request-sender</module>
 	</modules>
 </project>
