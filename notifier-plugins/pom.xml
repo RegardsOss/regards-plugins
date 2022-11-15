@@ -18,25 +18,24 @@
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
-	<artifactId>notifier-plugins</artifactId>
-	<packaging>pom</packaging>
+    <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+    <artifactId>notifier-plugins</artifactId>
+    <packaging>pom</packaging>
 
-	<parent>
-		<groupId>fr.cnes.regards.plugins</groupId>
-		<artifactId>plugins</artifactId>
-		<version>${revision}</version>
-	</parent>
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>plugins</artifactId>
+        <version>${revision}</version>
+    </parent>
 
-	<modules>
-		<module>chronos-recipient-sender</module>
-		<module>common-plugins</module>
-		<module>rabbitmq-sender</module>
-		<module>worker-manager-sender</module>
-		<module>dissemination-ack-sender</module>
-		<module>lta-request-sender</module>
-	</modules>
+    <modules>
+        <module>common-plugins</module>
+        <module>rabbitmq-sender</module>
+        <module>worker-manager-sender</module>
+        <module>dissemination-ack-sender</module>
+        <module>lta-request-sender</module>
+    </modules>
 </project>
