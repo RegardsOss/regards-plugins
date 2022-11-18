@@ -145,7 +145,7 @@ public class IdMappingServiceImpl implements IdMappingService {
 
         while (facetPage.hasNext()) {
             // Retrieves the entities and for each one map the ids.
-            facetPage = searchService.search(simpleSearchKey, PageRequest.of(0, 1000), ICriterion.all(), null);
+            facetPage = searchService.search(simpleSearchKey, facetPage.nextPageable(), ICriterion.all(), null);
             facetPage.forEach(consumer);
         }
         return mappings;
