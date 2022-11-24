@@ -142,13 +142,13 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         StorageCommand.Read readCmd = StorageCommand.read(storageConfig, cmdId, getEntryKey(fileReference));
         try {
             return getClient().read(readCmd)
-                         .flatMap(readResult -> readResult.matchReadResult(r -> toInputStream(r),
-                                                                           unreachable -> Mono.error(new S3ClientException(
-                                                                               "Unreachable server: "
-                                                                               + unreachable.toString())),
-                                                                           notFound -> Mono.error(new FileNotFoundException(
-                                                                               "Entry not found"))))
-                         .block();
+                              .flatMap(readResult -> readResult.matchReadResult(r -> toInputStream(r),
+                                                                                unreachable -> Mono.error(new S3ClientException(
+                                                                                    "Unreachable server: "
+                                                                                    + unreachable.toString())),
+                                                                                notFound -> Mono.error(new FileNotFoundException(
+                                                                                    "Entry not found"))))
+                              .block();
         } catch (Exception e) {
             Throwable unwrappedException = Exceptions.unwrap(e);
             if (unwrappedException instanceof S3ClientException s3ClientException) {
@@ -187,7 +187,6 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         }).subscribe();
         return Mono.just(inputStream);
     }
-
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
@@ -343,28 +342,22 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
-        List<FileStorageWorkingSubset> workingSubsets = Stream.ofAll(fileReferenceRequests)
-                                                              .map(r -> new FileStorageWorkingSubset(Collections.singleton(
-                                                                  r)))
-                                                              .toJavaList();
+        List<FileStorageWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileStorageWorkingSubset(fileReferenceRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
     public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
-        List<FileDeletionWorkingSubset> workingSubsets = Stream.ofAll(fileDeletionRequests)
-                                                               .map(r -> new FileDeletionWorkingSubset(Collections.singleton(
-                                                                   r)))
-                                                               .toJavaList();
+        List<FileDeletionWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileDeletionWorkingSubset(fileDeletionRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
     public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> requests) {
-        List<FileRestorationWorkingSubset> workingSubsets = Stream.ofAll(requests)
-                                                                  .map(r -> new FileRestorationWorkingSubset(Collections.singleton(
-                                                                      r)))
-                                                                  .toJavaList();
+        List<FileRestorationWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileRestorationWorkingSubset(requests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
