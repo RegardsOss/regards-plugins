@@ -300,28 +300,22 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
-        List<FileStorageWorkingSubset> workingSubsets = Stream.ofAll(fileReferenceRequests)
-                                                              .map(r -> new FileStorageWorkingSubset(Collections.singleton(
-                                                                  r)))
-                                                              .toJavaList();
+        List<FileStorageWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileStorageWorkingSubset(fileReferenceRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
     public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
-        List<FileDeletionWorkingSubset> workingSubsets = Stream.ofAll(fileDeletionRequests)
-                                                               .map(r -> new FileDeletionWorkingSubset(Collections.singleton(
-                                                                   r)))
-                                                               .toJavaList();
+        List<FileDeletionWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileDeletionWorkingSubset(fileDeletionRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
     public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> requests) {
-        List<FileRestorationWorkingSubset> workingSubsets = Stream.ofAll(requests)
-                                                                  .map(r -> new FileRestorationWorkingSubset(Collections.singleton(
-                                                                      r)))
-                                                                  .toJavaList();
+        List<FileRestorationWorkingSubset> workingSubsets = new ArrayList<>();
+        workingSubsets.add(new FileRestorationWorkingSubset(requests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
