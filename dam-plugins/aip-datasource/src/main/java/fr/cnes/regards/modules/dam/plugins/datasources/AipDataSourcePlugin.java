@@ -48,6 +48,7 @@ import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPLightParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
@@ -72,6 +73,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
@@ -411,22 +413,22 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(SearchAIPsParameters.build()
-                                                                                                                        .withIpType(
-                                                                                                                            EntityType.DATA)
-                                                                                                                        .withState(
-                                                                                                                            AIPState.STORED)
-                                                                                                                        .withTags(
-                                                                                                                            subsettingTags)
-                                                                                                                        .withCategories(
-                                                                                                                            categories)
-                                                                                                                        .withLastUpdateFrom(
-                                                                                                                            cursor.getPreviousLastEntityDate()),
+        SearchAIPLightParameters filters = new SearchAIPLightParameters()
+            .withAipIpType(Arrays.asList(EntityType.DATA))
+            .withStatesIncluded(Arrays.asList(AIPState.STORED))
+            .withLastUpdateAfter(cursor.getPreviousLastEntityDate());
+        if(!CollectionUtils.isEmpty(subsettingTags)){
+            filters.withTagsIncluded(subsettingTags);
+        }
+        if(!CollectionUtils.isEmpty(categories)){
+            filters.withCategoriesIncluded(categories);
+        }
+        ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(filters,
                                                                                                     cursor.getPosition(),
                                                                                                     cursor.getSize(),
                                                                                                     sorting);
         if (!aipResponseEntity.getStatusCode().is2xxSuccessful() || !aipResponseEntity.hasBody()) {
-            throw new DataSourceException(String.format("Cannot fetch aip entities. (HTTP STATUS: %s, BODY: %s)",
+            throw new DataSourceException(String.format("Cannot fetch AIP entities. (HTTP STATUS: %s, BODY: %s)",
                                                         aipResponseEntity.getStatusCode(),
                                                         aipResponseEntity.getBody()));
         }

@@ -72,7 +72,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     private static final String MODEL_NAME = "model_1";
 
-    private AipDataSourcePlugin dsPlugin;
+    private AipDataSourcePlugin aipDataSourcePlugin;
 
     @Autowired
     private IModelService modelService;
@@ -113,8 +113,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                                                         IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE,
                                                                            "ALTITUDE.SIZE"));
 
-        dsPlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
-                                         pluginCacheMap);
+        aipDataSourcePlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
+                                                    pluginCacheMap);
 
     }
 
@@ -210,7 +210,14 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
     @Test
     public void test() throws DataSourceException {
-        List<DataObjectFeature> dataObjects = dsPlugin.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), null);
+        // Given
+        String tenant = getDefaultTenant();
+        CrawlingCursor crawlingCursor=new CrawlingCursor(0, 10);
+
+        // When
+        List<DataObjectFeature> dataObjects = aipDataSourcePlugin.findAll(tenant, crawlingCursor, null);
+
+        // Then
         Assert.assertNotNull(dataObjects);
         Assert.assertEquals(1, dataObjects.size());
 

@@ -11,6 +11,7 @@ import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPLightParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
 import fr.cnes.regards.modules.ingest.dto.sip.SIP;
@@ -39,6 +40,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -90,10 +92,12 @@ public class AipDataSourcePluginTestConfiguration {
     private class AipClientProxy {
 
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
+        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPLightParameters filters,
                                                                              int page,
                                                                              int size,
                                                                              Sort sort) {
+            Objects.requireNonNull(filters.getAipStates(), "List of states for AIP must not be null");
+
             List<AIPEntity> aipEntities = new ArrayList<>();
 
             for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
@@ -107,6 +111,7 @@ public class AipDataSourcePluginTestConfiguration {
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
                                                     Sets.newHashSet("type1", "type2"));
                 aip.registerContentInformation();
+
                 SIP sip = SIP.build(EntityType.DATA, "sipId");
                 SIPEntity sipEntity = SIPEntity.build("PROJECT1",
                                                       IngestMetadata.build("NASA",
@@ -117,9 +122,7 @@ public class AipDataSourcePluginTestConfiguration {
                                                       sip,
                                                       1,
                                                       SIPState.STORED);
-
-                aipEntities.add(AIPEntity.build(sipEntity, filters.getState(), aip));
-
+                filters.getAipStates().getValues().forEach(aipState -> aipEntities.add(AIPEntity.build(sipEntity, aipState, aip)));
             }
 
             List<EntityModel<AIPEntity>> list = aipEntities.stream().map(EntityModel::of).collect(Collectors.toList());
