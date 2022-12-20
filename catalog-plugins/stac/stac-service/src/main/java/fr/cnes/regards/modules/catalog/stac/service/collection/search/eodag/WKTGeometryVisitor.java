@@ -36,7 +36,7 @@ public class WKTGeometryVisitor implements IGeometryVisitor<String> {
     @Override
     public String visitGeometryCollection(GeometryCollection geometryCollection) {
         // Not supported in search parameter
-        throw null;
+        return null;
     }
 
     @Override
