@@ -18,6 +18,7 @@
         <module>stac-service</module>
         <module>stac-plugin</module>
         <module>stac-test</module>
+        <module>stac-code-coverage</module>
     </modules>
 
     <build>

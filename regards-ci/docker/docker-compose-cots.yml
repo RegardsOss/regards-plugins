@@ -1,0 +1,52 @@
+version: '2'
+services:
+  rs-rabbitmq-first:
+    image: 172.26.46.158/regards-messaging:latest
+    networks:
+      - regards_IT_network
+
+  rs-rabbitmq-second:
+    image: 172.26.46.158/regards-messaging:latest
+    networks:
+      - regards_IT_network
+
+  rs-postgres:
+    image: 172.26.46.158/regards-database:latest
+    environment:
+      - POSTGRES_PASSWORD=azertyuiop123456789
+      - POSTGRES_USER=azertyuiop123456789
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres/postgresql.conf:/etc/postgresql.conf
+    networks:
+      - regards_IT_network
+
+  rs-elasticsearch:
+    image: 172.26.46.158/regards-elasticsearch:7
+    environment:
+      - cluster.name=regards
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms500m -Xmx500m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - regards_IT_network
+  
+  rs-s3-minio:
+    image: 172.26.46.158/regards-s3-minio
+    networks:
+      - regards_IT_network
+
+
+networks:
+  regards_IT_network:
+    external:
+      name: regards_IT_network
