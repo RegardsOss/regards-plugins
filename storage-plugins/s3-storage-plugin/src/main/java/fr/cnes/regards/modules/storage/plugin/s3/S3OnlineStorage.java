@@ -64,6 +64,11 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     public static final String MULTIPART_PARALLEL_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
 
+    /**
+     * Plugin parameter name of the can delete attribute
+     */
+    public static final String S3_ALLOW_DELETION = "S3_Allow_Deletion";
+
     private static final Logger LOGGER = getLogger(S3OnlineStorage.class);
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
@@ -102,6 +107,11 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME, description = "Number of parallel parts to upload",
         label = "Number of parallel parts during multipart upload", defaultValue = "5")
     private int nbParallelPartsUpload;
+
+    @PluginParameter(name = S3_ALLOW_DELETION, defaultValue = "false",
+        label = "Enable effective deletion of files",
+        description = "If deletion is allowed, files are physically deleted else files are only removed from references")
+    private Boolean allowPhysicalDeletion;
 
     /**
      * Do not use this field, use the getClient getter
@@ -295,7 +305,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     @Override
     public boolean allowPhysicalDeletion() {
-        return true;
+        return allowPhysicalDeletion;
     }
 
     @Override
