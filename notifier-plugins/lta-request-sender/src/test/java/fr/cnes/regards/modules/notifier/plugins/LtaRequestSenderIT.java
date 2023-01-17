@@ -34,6 +34,9 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.feature.dto.Feature;
+import fr.cnes.regards.modules.feature.dto.FeatureFile;
+import fr.cnes.regards.modules.feature.dto.FeatureFileAttributes;
+import fr.cnes.regards.modules.feature.dto.FeatureFileLocation;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.ProductFileDto;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.SubmissionRequestDto;
@@ -66,6 +69,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -219,9 +223,11 @@ public class LtaRequestSenderIT {
                                                      "file.txt",
                                                      "824cacd0b51c11594bc91cb9f6eb1114",
                                                      MimeType.valueOf("text/plain")));
-                        expected = new SubmissionRequestDto("feature1-id",
+                        expected = new SubmissionRequestDto(message.getMessageProperties()
+                                                                   .getHeader(EventHeadersHelper.REQUEST_ID_HEADER),
+                                                            "feature1-id",
                                                             "TestDataType",
-                                                            null,
+                                                            IGeometry.point(IGeometry.position(10.0, 20.0)),
                                                             files,
                                                             Collections.emptyList(),
                                                             "URN:FEATURE:DATA:test:11111111-aaaa-aaaa-aaaa-111111111111:V1",
@@ -231,10 +237,18 @@ public class LtaRequestSenderIT {
                                                             false);
                         break;
                     case "feature2-id":
-                        expected = new SubmissionRequestDto("feature2-id",
+                        List<ProductFileDto> files2 = new ArrayList<>();
+                        files2.add(new ProductFileDto(DataType.RAWDATA,
+                                                      "file://./file2.txt",
+                                                      "file2.txt",
+                                                      "824cacd0b51c11594bc91cb9f6eb1114",
+                                                      MimeType.valueOf("text/plain")));
+                        expected = new SubmissionRequestDto(message.getMessageProperties()
+                                                                   .getHeader(EventHeadersHelper.REQUEST_ID_HEADER),
+                                                            "feature2-id",
                                                             "TestDataType",
                                                             IGeometry.simplePolygon(1, 2, 3, 4),
-                                                            Collections.emptyList(),
+                                                            files2,
                                                             Collections.emptyList(),
                                                             "URN:FEATURE:DATA:test:22222222-bbbb-bbbb-bbbb-222222222222:V1",
                                                             new HashMap<>(),
@@ -300,12 +314,17 @@ public class LtaRequestSenderIT {
                                              "URN:FEATURE:DATA:test:22222222-bbbb-bbbb-bbbb-222222222222:V1"),
                                          IGeometry.simplePolygon(1, 2, 3, 4),
                                          EntityType.DATA,
-                                         "feature-2-model");
+                                         "feature-2-model")
+                                  .withFiles(FeatureFile.build(FeatureFileAttributes.build(DataType.RAWDATA,
+                                                                                           MediaType.TEXT_PLAIN,
+                                                                                           "file2.txt",
+                                                                                           20480L,
+                                                                                           "MD5",
+                                                                                           "824cacd0b51c11594bc91cb9f6eb1114"),
+                                                               FeatureFileLocation.build("http://./file2.txt")));
         featuresSamples.add((JsonObject) gson.toJsonTree(request2));
 
-        JsonObject metadata = gson.fromJson("{\""
-                                            + SessionUtils.SESSION_OWNER_METADATA_PATH
-                                            + "\":\"testSessionOwner"
+        JsonObject metadata = gson.fromJson("{\"" + SessionUtils.SESSION_OWNER_METADATA_PATH + "\":\"testSessionOwner"
                                             + "\",\""
                                             + SessionUtils.SESSION_METADATA_PATH
                                             + "\":\"testSession\"}", JsonObject.class);

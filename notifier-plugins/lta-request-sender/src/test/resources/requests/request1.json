@@ -5,6 +5,13 @@
   "history": {
     "createdBy": "feature1-owner"
   },
+  "geometry": {
+    "coordinates": [
+      10.0,
+      20.0
+    ],
+    "type": "Point"
+  },
   "files": [
     {
       "locations": [

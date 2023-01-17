@@ -134,7 +134,8 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
                                                            .collect(Collectors.toMap(IProperty::getName,
                                                                                      IProperty::getValue));
 
-            SubmissionRequestDto payload = new SubmissionRequestDto(payloadFeature.getId(),
+            SubmissionRequestDto payload = new SubmissionRequestDto(notificationRequest.getRequestId(),
+                                                                    payloadFeature.getId(),
                                                                     dataType,
                                                                     payloadFeature.getGeometry(),
                                                                     mapFeatureFilesToProductFilesDtoTo(payloadFeature.getId(),
@@ -147,6 +148,7 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
                                                                     replaceMode);
 
             MessageProperties headers = new MessageProperties();
+            headers.setHeader(EventHeadersHelper.REQUEST_ID_HEADER, notificationRequest.getRequestId());
             headers.setHeader(EventHeadersHelper.TENANT_HEADER, tenantName);
             headers.setHeader(SOURCE_HEADER, sessionNameAndOwner.sessionOwnerName());
             messagesToSend.add(new Message(gson.toJson(payload).getBytes(), headers));
