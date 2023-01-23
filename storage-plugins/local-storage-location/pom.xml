@@ -47,6 +47,11 @@
 			<artifactId>file-utils</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.cnes.regards.framework</groupId>
+			<artifactId>s3-starter</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- TEST dependencies -->
 		<dependency>

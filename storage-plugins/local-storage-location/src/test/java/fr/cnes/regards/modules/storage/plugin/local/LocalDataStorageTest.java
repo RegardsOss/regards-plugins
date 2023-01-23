@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.local;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.domain.S3Server;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -30,7 +31,6 @@ import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
-import fr.cnes.regards.modules.storage.service.download.s3.KnownS3Storages;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -66,7 +66,7 @@ public class LocalDataStorageTest {
     private final String baseStorageLocation = "target/local-storage";
 
     @Mock
-    KnownS3Storages knownS3Storages;
+    private S3StorageConfiguration knownS3Storages;
 
     @InjectMocks
     private LocalDataStorage plugin;

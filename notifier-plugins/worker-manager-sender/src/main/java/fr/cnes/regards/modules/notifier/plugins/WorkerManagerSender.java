@@ -26,7 +26,7 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.utils.SessionNameAndOwner;
 import fr.cnes.regards.modules.notifier.utils.SessionUtils;
-import fr.cnes.regards.modules.workermanager.dto.events.RawMessageBuilder;
+import fr.cnes.regards.modules.workermanager.amqp.events.RawMessageBuilder;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 

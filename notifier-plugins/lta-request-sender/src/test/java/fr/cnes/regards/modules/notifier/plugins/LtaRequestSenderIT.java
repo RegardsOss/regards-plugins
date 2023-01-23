@@ -50,7 +50,7 @@ import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 import fr.cnes.regards.modules.notifier.dto.out.NotificationState;
 import fr.cnes.regards.modules.notifier.utils.SessionUtils;
-import fr.cnes.regards.modules.workermanager.dto.events.EventHeadersHelper;
+import fr.cnes.regards.modules.workermanager.amqp.events.EventHeadersHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

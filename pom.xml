@@ -309,10 +309,14 @@
                 <artifactId>storage-plugins</artifactId>
                 <version>${revision}</version>
             </dependency>
-
             <dependency>
                 <groupId>fr.cnes.regards.framework.utils</groupId>
                 <artifactId>s3-storage-utils</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.framework</groupId>
+                <artifactId>s3-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>
