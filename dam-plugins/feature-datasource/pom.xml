@@ -97,6 +97,7 @@
 									<include>commons-beanutils:commons-beanutils</include>			
 									<include>fr.cnes.regards.modules.feature:feature-client</include>	
 									<include>fr.cnes.regards.modules.feature:feature-dto</include>				
+									<include>fr.cnes.regards.modules.feature:feature-domain</include>
 								</includes>
 							</artifactSet>
 						</configuration>

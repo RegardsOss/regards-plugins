@@ -50,7 +50,6 @@
 		<dependency>
 			<groupId>fr.cnes.regards.framework</groupId>
 			<artifactId>s3-starter</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- TEST dependencies -->
@@ -80,8 +79,7 @@
 							<minimizeJar>true</minimizeJar>
 							<artifactSet>
 								<includes>
-									<include>fr.cnes.regards.framework.modules.locks:*</include>
-									<include>fr.cnes.regards.modules.storage.service.download.s3:*</include>
+									<include>fr.cnes.regards.framework:s3-starter</include>
 								</includes>
 							</artifactSet>
 						</configuration>
