@@ -342,8 +342,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
             // 3) Update cursor for next iteration
             // determine if there is a next page to search after this one
             cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
-            // set last update date with the most recent aip entity update.
-            cursor.setLastEntityDate(aipEntities.stream()
+            // set current last update date with the most recent aip entity update.
+            cursor.setCurrentLastEntityDate(aipEntities.stream()
                                                 .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
                                                                            .getLastUpdate())
                                                 .max(Comparator.comparing(lastUpdate -> lastUpdate))
@@ -405,7 +405,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     /**
      * Search a page of {@link AIPEntity}s by several criteria
      *
-     * @param cursor aipEntities should be retrieved with a lastUpdate >= {@link CrawlingCursor#getPreviousLastEntityDate()}
+     * @param cursor aipEntities should be retrieved with a lastUpdate >= {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case aipEntities could not be retrieved
      */
     private PagedModel<EntityModel<AIPEntity>> getAipEntities(CrawlingCursor cursor) throws DataSourceException {
@@ -416,7 +416,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         SearchAIPLightParameters filters = new SearchAIPLightParameters()
             .withAipIpType(Arrays.asList(EntityType.DATA))
             .withStatesIncluded(Arrays.asList(AIPState.STORED))
-            .withLastUpdateAfter(cursor.getPreviousLastEntityDate());
+            .withLastUpdateAfter(cursor.getLastEntityDate());
         if(!CollectionUtils.isEmpty(subsettingTags)){
             filters.withTagsIncluded(subsettingTags);
         }

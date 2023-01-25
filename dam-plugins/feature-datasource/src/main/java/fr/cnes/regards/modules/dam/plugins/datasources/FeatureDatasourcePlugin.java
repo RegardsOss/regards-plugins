@@ -150,8 +150,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         // determine if there is a next page to search after this one
         cursor.setHasNext(pageFeatureEntities.getNextLink().isPresent());
 
-        // set last update date with the most recent feature entity update.
-        cursor.setLastEntityDate(dtos.stream()
+        // set current last update date with the most recent feature entity update.
+
+        cursor.setCurrentLastEntityDate(dtos.stream()
                                      .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
                                                                 .getLastUpdate())
                                      .max(Comparator.comparing(lastUpdate -> lastUpdate))
@@ -163,7 +164,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     /**
      * Search a page of {@link FeatureEntityDto}s by several criteria
      *
-     * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getPreviousLastEntityDate()}
+     * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case featureEntities could not be retrieved
      */
     private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor)
@@ -173,7 +174,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
         ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
-                                                                                                   cursor.getPreviousLastEntityDate(),
+                                                                                                   cursor.getLastEntityDate(),
                                                                                                    cursor.getPosition(),
                                                                                                    cursor.getSize(),
                                                                                                    sorting);

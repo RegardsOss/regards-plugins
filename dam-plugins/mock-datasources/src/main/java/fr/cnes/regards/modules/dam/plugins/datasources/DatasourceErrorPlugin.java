@@ -123,7 +123,7 @@ public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
         // 3) Update cursor for next iteration
         // set lastUpdate date
         int lastIndex = subListDataObjects.size() - 1;
-        cursor.setLastEntityDate(subListDataObjects.get(lastIndex).getLastUpdate());
+        cursor.setCurrentLastEntityDate(subListDataObjects.get(lastIndex).getLastUpdate());
 
         // compute the total number of pages to process and see if there are still requests to be performed
         int totalNumOfPages = dataObjectsNum == 0 ?
@@ -193,8 +193,8 @@ public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
         int offset = cursor.getPosition() * cursor.getSize();
         int maxSublist = offset + cursor.getSize();
 
-        if (cursor.getPreviousLastEntityDate() != null) {
-            OffsetDateTime previousEntityDate = cursor.getPreviousLastEntityDate();
+        if (cursor.getLastEntityDate() != null) {
+            OffsetDateTime previousEntityDate = cursor.getLastEntityDate();
             LOGGER.info("Searching dataObjects from lastUpdateDate {} and crawling position {}",
                         previousEntityDate,
                         cursor.getPosition());
