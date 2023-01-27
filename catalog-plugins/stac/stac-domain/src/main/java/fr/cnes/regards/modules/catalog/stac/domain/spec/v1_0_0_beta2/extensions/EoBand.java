@@ -42,13 +42,28 @@ public class EoBand {
     String description;
 
     @SerializedName("center_wavelength")
-    Double centerWavelength;
+    Double centerWavelength; //NOSONAR
 
     @SerializedName("full_width_half_max")
-    Double fullWidthHalfMax;
+    Double fullWidthHalfMax; //NOSONAR
 
     enum CommonBandName {
-        coastal, blue, green, red, yellow, pan, rededge, nir, nir08, nir09, cirrus, swir16, swir22, lwir, lwir11, lwir12,
+        coastal,
+        blue,
+        green,
+        red,
+        yellow,
+        pan,
+        rededge,
+        nir,
+        nir08,
+        nir09,
+        cirrus,
+        swir16,
+        swir22,
+        lwir,
+        lwir11,
+        lwir12,
     }
 
 }

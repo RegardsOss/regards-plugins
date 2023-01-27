@@ -34,17 +34,17 @@ public class DownloadPreparationResponse {
     /**
      * Total size in bytes
      */
-    Long totalSize;
+    Long totalSize; //NOSONAR
 
     /**
      * Total number of items
      */
-    Long totalItems;
+    Long totalItems; //NOSONAR
 
     /**
      * Total number of files
      */
-    Long totalFiles;
+    Long totalFiles; //NOSONAR
 
     /**
      * All at once download
@@ -70,17 +70,17 @@ public class DownloadPreparationResponse {
         /**
          * Size in bytes
          */
-        Long size;
+        Long size; //NOSONAR
 
         /**
          * Number of items
          */
-        Long items;
+        Long items; //NOSONAR
 
         /**
          * Number of files
          */
-        Long files;
+        Long files; //NOSONAR
 
         URI download;
 
@@ -104,12 +104,12 @@ public class DownloadPreparationResponse {
         /**
          * Size in bytes
          */
-        Long size;
+        Long size; //NOSONAR
 
         /**
          * Number of files
          */
-        Long files;
+        Long files; //NOSONAR
 
         URI download;
     }

@@ -47,9 +47,9 @@ public class ItemSearchBody {
 
     List<String> ids;
 
-    Integer page;
+    Integer page; //NOSONAR
 
-    Integer limit;
+    Integer limit; //NOSONAR
 
     SearchBody.Fields fields;
 

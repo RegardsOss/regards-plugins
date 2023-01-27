@@ -49,9 +49,9 @@ public class CollectionSearchBody {
 
     List<String> ids;
 
-    Integer page;
+    Integer page; //NOSONAR
 
-    Integer limit;
+    Integer limit; //NOSONAR
 
     SearchBody.Fields fields;
 
