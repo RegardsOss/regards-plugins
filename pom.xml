@@ -37,13 +37,6 @@
     <properties>
         <regards.version>1.12.0-SNAPSHOT</regards.version>
         <revision>${regards.version}</revision>
-        <swagger-annotations.version>2.1.1</swagger-annotations.version>
-        <easy-random-core.version>4.2.0</easy-random-core.version>
-        <easy-random-vavr-extension.version>1.0.0</easy-random-vavr-extension.version>
-        <spring-data-jdbc-repository.version>0.5.0</spring-data-jdbc-repository.version>
-        <noggit.version>0.5</noggit.version>
-        <!-- Test dependency versions -->
-        <assertj-vavr.version>0.2.0</assertj-vavr.version>
     </properties>
 
     <description>REGARDS official plugins repository</description>
@@ -70,66 +63,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--=== Libraries ===-->
-            <!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
-            <dependency>
-                <groupId>cz.jirutka.spring</groupId>
-                <artifactId>spring-data-jdbc-repository</artifactId>
-                <version>${spring-data-jdbc-repository.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${org.springframework.boot.spring-boot-maven-plugin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springdoc</groupId>
-                <artifactId>springdoc-openapi-webmvc-core</artifactId>
-                <version>${springdoc-openapi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-vavr</artifactId>
-                <version>${assertj-vavr.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jeasy</groupId>
-                <artifactId>easy-random-core</artifactId>
-                <version>${easy-random-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.xshadov</groupId>
-                <artifactId>easy-random-vavr-extension</artifactId>
-                <version>${easy-random-vavr-extension.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.vavr</groupId>
-                <artifactId>vavr</artifactId>
-                <version>${vavr.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.vavr</groupId>
-                <artifactId>vavr-gson</artifactId>
-                <version>${vavr.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-annotations</artifactId>
-                <version>${swagger-annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.noggit</groupId>
-                <artifactId>noggit</artifactId>
-                <version>${noggit.version}</version>
-            </dependency>
-
             <!-- Authentication-->
             <!-- Catalog-->
             <dependency>
