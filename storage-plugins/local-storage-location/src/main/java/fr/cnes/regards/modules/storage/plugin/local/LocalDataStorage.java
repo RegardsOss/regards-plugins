@@ -211,7 +211,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
                                                                     fullPathToFile,
                                                                     request.getMetaInfo().getAlgorithm(),
-                                                                    request.getMetaInfo().getChecksum(), knownS3Storages.getStorages());
+                                                                    request.getMetaInfo().getChecksum(),
+                                                                    knownS3Storages.getStorages());
             } catch (IOException e) {
                 throw new ModuleException(String.format("Download error for file %s. Cause : %s",
                                                         request.getOriginUrl(),
@@ -284,7 +285,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                         downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
                                                                             pathInZip,
                                                                             request.getMetaInfo().getAlgorithm(),
-                                                                            checksum, knownS3Storages.getStorages());
+                                                                            checksum,
+                                                                            knownS3Storages.getStorages());
                         // download issues are handled right here
                         // while download success has to be handle after the zip file system has been closed
                         // for zip entries to be detected correctly
@@ -599,10 +601,13 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             LOGGER.error(errorMessage, e);
             throw new ModuleException(errorMessage);
         } catch (IOException e) {
+            String errorMessage = String.format(
+                "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s",
+                checksum,
+                fileRef.getMetaInfo().getFileName(),
+                fileRef.getLocation().getUrl(),
+                e.getMessage());
             try {
-                if (streamFromZip != null) {
-                    streamFromZip.close();
-                }
                 if (zipFs != null) {
                     zipFs.close();
                 }
@@ -612,23 +617,16 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 if (zipFC != null) {
                     zipFC.close();
                 }
+                throw new ModuleException(errorMessage);
             } catch (IOException ioE) {
                 LOGGER.error("Error while attempting to close the zip {} you might want to reboot the microservice",
                              fileRef.getLocation().getUrl(),
                              e);
+                throw new ModuleException(errorMessage);
             } finally {
                 zipAccessSemaphore.release();
-                LOGGER.info("Semaphore released");
-                String errorMessage = String.format(
-                    "[LOCAL STORAGE PLUGIN] Error retrieving file %s (%s) from zip %s. Cause : %s",
-                    checksum,
-                    fileRef.getMetaInfo().getFileName(),
-                    fileRef.getLocation().getUrl(),
-                    e.getMessage());
-                LOGGER.error(errorMessage, e);
-                throw new ModuleException(errorMessage);
+                LOGGER.debug("Semaphore released");
             }
-
         }
     }
 
