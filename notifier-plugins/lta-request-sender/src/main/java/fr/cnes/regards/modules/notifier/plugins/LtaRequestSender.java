@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureFile;
+import fr.cnes.regards.modules.ltamanager.dto.submission.LtaDataType;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.ProductFileDto;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.SubmissionRequestDto;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
@@ -159,7 +160,10 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
     private List<ProductFileDto> mapFeatureFilesToProductFilesDtoTo(String featureId,
                                                                     List<FeatureFile> featureFileList) {
         return featureFileList.stream()
-                              .map(featureFile -> new ProductFileDto(featureFile.getAttributes().getDataType(),
+                              .map(featureFile -> new ProductFileDto(LtaDataType.parse(featureFile.getAttributes()
+                                                                                                  .getDataType()
+                                                                                                  .toString(),
+                                                                                       LtaDataType.RAWDATA),
                                                                      getUrl(featureId, featureFile),
                                                                      featureFile.getAttributes().getFilename(),
                                                                      featureFile.getAttributes().getChecksum(),

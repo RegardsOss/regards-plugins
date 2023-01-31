@@ -38,6 +38,7 @@ import fr.cnes.regards.modules.feature.dto.FeatureFile;
 import fr.cnes.regards.modules.feature.dto.FeatureFileAttributes;
 import fr.cnes.regards.modules.feature.dto.FeatureFileLocation;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
+import fr.cnes.regards.modules.ltamanager.dto.submission.LtaDataType;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.ProductFileDto;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.SubmissionRequestDto;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
@@ -218,7 +219,7 @@ public class LtaRequestSenderIT {
                         properties.put("integerB", 55.0);
                         properties.put("datatype", "L0A_LR_Packet");
                         List<ProductFileDto> files = new ArrayList<>();
-                        files.add(new ProductFileDto(DataType.RAWDATA,
+                        files.add(new ProductFileDto(LtaDataType.RAWDATA,
                                                      "file://./file.txt",
                                                      "file.txt",
                                                      "824cacd0b51c11594bc91cb9f6eb1114",
@@ -238,7 +239,7 @@ public class LtaRequestSenderIT {
                         break;
                     case "feature2-id":
                         List<ProductFileDto> files2 = new ArrayList<>();
-                        files2.add(new ProductFileDto(DataType.RAWDATA,
+                        files2.add(new ProductFileDto(LtaDataType.RAWDATA,
                                                       "file://./file2.txt",
                                                       "file2.txt",
                                                       "824cacd0b51c11594bc91cb9f6eb1114",
@@ -324,7 +325,9 @@ public class LtaRequestSenderIT {
                                                                FeatureFileLocation.build("http://./file2.txt")));
         featuresSamples.add((JsonObject) gson.toJsonTree(request2));
 
-        JsonObject metadata = gson.fromJson("{\"" + SessionUtils.SESSION_OWNER_METADATA_PATH + "\":\"testSessionOwner"
+        JsonObject metadata = gson.fromJson("{\""
+                                            + SessionUtils.SESSION_OWNER_METADATA_PATH
+                                            + "\":\"testSessionOwner"
                                             + "\",\""
                                             + SessionUtils.SESSION_METADATA_PATH
                                             + "\":\"testSession\"}", JsonObject.class);
