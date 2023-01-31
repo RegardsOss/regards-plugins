@@ -5,6 +5,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -43,6 +45,9 @@ import java.util.regex.Pattern;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Main class of plugin of storage(online type) in S3 server
+ */
 @Plugin(author = "REGARDS Team", description = "Plugin handling the storage on S3", id = "S3", version = "1.0",
     contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES", markdown = "S3StoragePlugin.md",
     url = "https://regardsoss.github.io/")
@@ -108,34 +113,52 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         label = "Number of parallel parts during multipart upload", defaultValue = "5")
     private int nbParallelPartsUpload;
 
-    @PluginParameter(name = S3_ALLOW_DELETION, defaultValue = "false",
-        label = "Enable effective deletion of files",
-        description = "If deletion is allowed, files are physically deleted else files are only removed from references")
+    @PluginParameter(name = S3_ALLOW_DELETION, label = "Enable effective deletion of files",
+        description = "If deletion is allowed, files are physically deleted else files are only removed from references",
+        defaultValue = "false")
     private Boolean allowPhysicalDeletion;
 
     /**
-     * Do not use this field, use the getClient getter
+     * Cache for the client S3
+     * (Do not use this field, use the createS3Client)
      */
     private S3HighLevelReactiveClient clientCache;
 
-    private StorageConfig storageConfig;
+    /**
+     * Configuration of S3 server
+     */
+    private StorageConfig storageConfiguration;
 
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
 
+    /**
+     * Settings for the configuration of available S3 server
+     */
+    @Autowired
+    private S3StorageConfiguration s3StorageSettings;
+
+    /**
+     * Initialize the storage configuration of S3 server
+     */
     @PluginInit
     public void init() {
-        storageConfig = StorageConfig.builder()
-                                     .endpoint(endpoint)
-                                     .bucket(bucket)
-                                     .key(key)
-                                     .secret(secret)
-                                     .region(region)
-                                     .rootPath(rootPath)
-                                     .build();
+        storageConfiguration = StorageConfig.builder()
+                                            .endpoint(endpoint)
+                                            .bucket(bucket)
+                                            .key(key)
+                                            .secret(secret)
+                                            .region(region)
+                                            .rootPath(rootPath)
+                                            .build();
     }
 
-    private S3HighLevelReactiveClient getClient() {
+    /**
+     * Create the client S3 in order to communicate with S3 server
+     *
+     * @return the client S3
+     */
+    private S3HighLevelReactiveClient createS3Client() {
         if (clientCache == null) {
             Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
             int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
@@ -144,9 +167,19 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         return clientCache;
     }
 
+    /**
+     * Retrieve a file reference by the downloading in S3 server
+     *
+     * @param fileReference the file reference
+     * @return the input stream of file reference
+     * @throws FileNotFoundException
+     */
     @Override
     public InputStream retrieve(FileReference fileReference) throws FileNotFoundException {
-        return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference), storageConfig, new StorageCommandID(String.format("%d", fileReference.getId()), UUID.randomUUID()));
+        return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
+                                                        storageConfiguration,
+                                                        new StorageCommandID(String.format("%d", fileReference.getId()),
+                                                                             UUID.randomUUID()));
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
@@ -156,6 +189,12 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                    .map(DataBuffer::asInputStream);
     }
 
+    /**
+     * Delete a simple file workingsubsets in S3 server
+     *
+     * @param workingSet      the simple file workingsubsets
+     * @param progressManager the progess manager
+     */
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
         String tenant = runtimeTenantResolver.getTenant();
@@ -166,98 +205,216 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                         request.getFileReference().getLocation().getUrl());
             StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
-            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfig,
+            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
                                                                              cmdId,
                                                                              getEntryKey(request.getFileReference()));
-            return getClient().delete(deleteCmd)
-                              .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
-                                                                                      unreachable -> Mono.error(new RuntimeException(
-                                                                                          "Unreachable endpoint")),
-                                                                                      failure -> Mono.error(new RuntimeException(
-                                                                                          "Delete failure in S3 storage"))))
-                              .doOnError(t -> {
-                                  try {
-                                      runtimeTenantResolver.forceTenant(tenant);
-                                      LOGGER.error("End deleting {} with location {}",
-                                                   request.getFileReference().getMetaInfo().getFileName(),
-                                                   request.getFileReference().getLocation().getUrl(),
-                                                   t);
-                                      progressManager.deletionFailed(request, "Delete failure in S3 storage");
-                                  } finally {
-                                      runtimeTenantResolver.clearTenant();
-                                  }
-                              })
-                              .doOnSuccess(success -> {
-                                  try {
-                                      runtimeTenantResolver.forceTenant(tenant);
-                                      LOGGER.info("End deleting {} with location {}",
-                                                  request.getFileReference().getMetaInfo().getFileName(),
-                                                  request.getFileReference().getLocation().getUrl());
-                                      progressManager.deletionSucceed(request);
-                                  } finally {
-                                      runtimeTenantResolver.clearTenant();
-                                  }
-                              })
-                              .block();
+            return createS3Client().delete(deleteCmd)
+                                   .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
+                                                                                           unreachable -> Mono.error(new RuntimeException(
+                                                                                               "Unreachable endpoint")),
+                                                                                           failure -> Mono.error(new RuntimeException(
+                                                                                               "Delete failure in S3 storage"))))
+                                   .doOnError(t -> {
+                                       try {
+                                           runtimeTenantResolver.forceTenant(tenant);
+                                           LOGGER.error("End deleting {} with location {}",
+                                                        request.getFileReference().getMetaInfo().getFileName(),
+                                                        request.getFileReference().getLocation().getUrl(),
+                                                        t);
+                                           progressManager.deletionFailed(request, "Delete failure in S3 storage");
+                                       } finally {
+                                           runtimeTenantResolver.clearTenant();
+                                       }
+                                   })
+                                   .doOnSuccess(success -> {
+                                       try {
+                                           runtimeTenantResolver.forceTenant(tenant);
+                                           LOGGER.info("End deleting {} with location {}",
+                                                       request.getFileReference().getMetaInfo().getFileName(),
+                                                       request.getFileReference().getLocation().getUrl());
+                                           progressManager.deletionSucceed(request);
+                                       } finally {
+                                           runtimeTenantResolver.clearTenant();
+                                       }
+                                   })
+                                   .block();
         }));
     }
 
+    /**
+     * Store a simple file workingsubsets in S3 server
+     *
+     * @param workingSet      the simple file workingsubsets
+     * @param progressManager the progess manager
+     */
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
+
         Stream.ofAll(workingSet.getFileReferenceRequests()).flatMap(request -> Try.of(() -> {
-            LOGGER.info("Start storing {}", request.getOriginUrl());
+            LOGGER.info("[{}] Start storing {}", request.getJobId(), request.getOriginUrl());
             URL sourceUrl = new URL(request.getOriginUrl());
 
-            request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
-
-            Flux<ByteBuffer> buffers = DataBufferUtils.readInputStream(sourceUrl::openStream,
+            // Download the file from url (File system, S3 server)
+            Flux<ByteBuffer> buffers = DataBufferUtils.readInputStream(() -> DownloadUtils.getInputStream(sourceUrl,
+                                                                                                          s3StorageSettings.getStorages()),
                                                                        new DefaultDataBufferFactory(),
                                                                        multipartThresholdMb * 1024 * 1024)
                                                       .map(DataBuffer::asByteBuffer);
 
-            StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
+            request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
 
-            String entryKey = storageConfig.entryKey(getEntryKey(request));
+            String entryKey = storageConfiguration.entryKey(getEntryKey(request));
 
-            StorageEntry storageEntry = StorageEntry.builder()
-                                                    .config(storageConfig)
-                                                    .fullPath(entryKey)
-                                                    .checksum(entryChecksum(request))
-                                                    .size(entrySize(request))
-                                                    .data(buffers)
-                                                    .build();
+            StorageEntry storageEntry = buildStorageEntry(request, entryKey, buffers);
 
-            StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfig, cmdId, entryKey, storageEntry);
+            StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfiguration,
+                                                                          createStorageCommandID(request.getJobId()),
+                                                                          entryKey,
+                                                                          storageEntry);
 
-            return getClient().write(writeCmd)
-                              .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
-                                                                                   unreachable -> Mono.error(new RuntimeException(
-                                                                                       "Unreachable endpoint")),
-                                                                                   failure -> Mono.error(new RuntimeException(
-                                                                                       "Write failure in S3 storage"))))
-                              .doOnError(t -> {
-                                  LOGGER.error("End storing {}", request.getOriginUrl(), t);
-                                  progressManager.storageFailed(request, "Write failure in S3 storage");
+            StorageCommandResult.WriteResult result = createS3Client().write(writeCmd)
+                                                                      .flatMap(writeResult -> writeResult.matchWriteResult(
+                                                                          Mono::just,
+                                                                          unreachable -> Mono.error(new RuntimeException(
+                                                                              "Unreachable endpoint")),
+                                                                          failure -> Mono.error(new RuntimeException(
+                                                                              "Write failure in S3 storage"))))
+                                                                      .doOnError(t -> {
+                                                                          LOGGER.error("[{}] End storing {}",
+                                                                                       request.getJobId(),
+                                                                                       request.getOriginUrl(),
+                                                                                       t);
+                                                                          progressManager.storageFailed(request,
+                                                                                                        "Write failure in S3 storage");
 
-                              })
-                              .doOnSuccess(success -> {
-                                  LOGGER.info("End storing {}", request.getOriginUrl());
-                                  progressManager.storageSucceed(request,
-                                                                 storageConfig.entryKeyUrl(entryKey.replaceFirst("^/*",
-                                                                                                                 "")),
-                                                                 success.getSize());
-                              })
-                              .block();
+                                                                      })
+                                                                      .doOnSuccess(success -> {
+                                                                          LOGGER.info("[{}] End storing {}",
+                                                                                      request.getJobId(),
+                                                                                      request.getOriginUrl());
+                                                                      })
+                                                                      .block();
+            // Check the checksum of stored file
+            if (isStoredFileValidated(request, entryKey)) {
+                long storedFileSize = 0l;
+                if (result instanceof StorageCommandResult.WriteSuccess resultSuccess) {
+                    storedFileSize = resultSuccess.getSize();
+                }
+                progressManager.storageSucceed(request,
+                                               storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
+                                               storedFileSize);
+            } else {
+                progressManager.storageFailed(request, "Checksum does not match with expected one");
+            }
+            return result;
         }));
     }
 
+    /**
+     * Check if the checksum of stored file is identical with the expected one
+     *
+     * @param request  the request
+     * @param entryKey the entry key for the S3 server
+     * @return true if the 2 checksums are identical; false otherwise
+     */
+    private boolean isStoredFileValidated(FileStorageRequest request, String entryKey) {
+        boolean isValid = true;
+        LOGGER.debug("[{}] Retrieve checksum of file {} from s3 server with endPoint [{}] in bucket [{}].",
+                     request.getJobId(),
+                     entryKey,
+                     storageConfiguration.getEndpoint(),
+                     storageConfiguration.getBucket());
+
+        StorageCommand.Check checkCmd = StorageCommand.check(storageConfiguration,
+                                                             createStorageCommandID(request.getJobId()),
+                                                             entryKey);
+
+        Optional<String> eTag = createS3Client().eTag(checkCmd)
+                                                .doOnError(t -> LOGGER.error(
+                                                    "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
+                                                    request.getJobId(),
+                                                    storageConfiguration.getBucket(),
+                                                    entryKey,
+                                                    storageConfiguration.getEndpoint(),
+                                                    t))
+                                                .doOnSuccess(success -> LOGGER.info(
+                                                    "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
+                                                    request.getJobId(),
+                                                    storageConfiguration.getBucket(),
+                                                    entryKey,
+                                                    storageConfiguration.getEndpoint()))
+                                                .block();
+        String realChecksum = eTag.orElse("");
+
+        String expectedChecksum = request.getMetaInfo().getChecksum();
+        // Check 2 checksums
+        if (realChecksum.equals(expectedChecksum)) {
+            return isValid;
+        }
+        LOGGER.debug(
+            "[{}] The checksum of the stored file [{}] is not the same as the checksum of the input file [{}] to store in the S3 server.",
+            request.getJobId(),
+            realChecksum,
+            expectedChecksum);
+        LOGGER.info(
+            "[{}] Deleting the file {} from the s3 server with endPoint [{}] in bucket [{}] because the checksum does not match the expected one.",
+            request.getJobId(),
+            entryKey,
+            storageConfiguration.getEndpoint(),
+            storageConfiguration.getBucket());
+
+        StorageCommand.Delete deleteCmd = StorageCommand.delete(storageConfiguration,
+                                                                createStorageCommandID(request.getJobId()),
+                                                                storageConfiguration.entryKey(entryKey));
+        createS3Client().delete(deleteCmd)
+                        .flatMap(r -> r.matchDeleteResult(Mono::just,
+                                                          unreachable -> Mono.error(new RuntimeException(String.format(
+                                                              "Unreachable [endpoint: %s] : %s [bucket: %s]",
+                                                              storageConfiguration.getEndpoint(),
+                                                              unreachable.getThrowable().getMessage(),
+                                                              storageConfiguration.getBucket()))),
+                                                          failure -> Mono.error(new RuntimeException(String.format(
+                                                              "Delete failure [bucket: %s] [endpoint: %s]",
+                                                              storageConfiguration.getBucket(),
+                                                              storageConfiguration.getEndpoint())))))
+
+                        .doOnError(t -> LOGGER.error(
+                            "[{}] Failed [bucket: {}] to delete file {} [endpoint: {}] the checksum does not match with the expected one :",
+                            request.getJobId(),
+                            storageConfiguration.getBucket(),
+                            entryKey,
+                            storageConfiguration.getEndpoint(),
+                            t))
+                        .doOnSuccess(success -> LOGGER.info(
+                            "[{}] Success [bucket: {}] end deleting of file {} [endpoint: {}] the checksum does not match with the expected one",
+                            request.getJobId(),
+                            storageConfiguration.getBucket(),
+                            entryKey,
+                            storageConfiguration.getEndpoint()))
+                        .subscribe();
+        return !isValid;
+    }
+
+    private StorageEntry buildStorageEntry(FileStorageRequest request, String entryKey, Flux<ByteBuffer> buffers) {
+        return StorageEntry.builder()
+                           .config(storageConfiguration)
+                           .fullPath(entryKey)
+                           .checksum(entryChecksum(request))
+                           .size(entrySize(request))
+                           .data(buffers)
+                           .build();
+    }
+
+    private StorageCommandID createStorageCommandID(String taskId) {
+        return new StorageCommandID(taskId, UUID.randomUUID());
+    }
+
     private String getEntryKey(FileReference fileReference) {
-        String entryKey = fileReference.getLocation()
-                                       .getUrl()
-                                       .replaceFirst(Pattern.quote(endpoint) + "/*", "")
-                                       .replaceFirst(Pattern.quote(bucket), "")
-                                       .substring(1);
-        return entryKey;
+        return fileReference.getLocation()
+                            .getUrl()
+                            .replaceFirst(Pattern.quote(endpoint) + "/*", "")
+                            .replaceFirst(Pattern.quote(bucket), "")
+                            .substring(1);
     }
 
     private String getEntryKey(FileStorageRequest request) {
@@ -329,6 +486,12 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
+    /**
+     * Get the size of file thanks its url.
+     *
+     * @param sourceUrl the url of file
+     * @return the size of file
+     */
     private long getFileSize(URL sourceUrl) {
         long fileSize = 0l;
         URLConnection urlConnection = null;
@@ -337,8 +500,13 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                 urlConnection = sourceUrl.openConnection();
                 fileSize = urlConnection.getContentLengthLong();
             } finally {
-                if (urlConnection != null)
-                    urlConnection.getInputStream().close();
+                if (urlConnection != null) {
+                    if (urlConnection instanceof HttpURLConnection httpConnection) {
+                        httpConnection.disconnect();
+                    } else {
+                        urlConnection.getInputStream().close();
+                    }
+                }
             }
         } catch (IOException e) {
             LOGGER.error("Failure in the getting of file size : {}", sourceUrl, e);

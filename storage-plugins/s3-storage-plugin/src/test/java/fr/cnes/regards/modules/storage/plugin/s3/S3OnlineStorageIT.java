@@ -22,6 +22,9 @@ import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.framework.s3.S3StorageConfiguration;
+import fr.cnes.regards.framework.s3.domain.S3Server;
+import fr.cnes.regards.framework.s3.test.S3BucketTestUtils;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -34,9 +37,9 @@ import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -48,6 +51,7 @@ import org.springframework.util.MimeType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -57,9 +61,11 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Instantiate S3 plugin to test with local minio deployed server
+ * Instantiate S3 plugin to test with local minio deployed in server.
+ * Simulate the using of 2 minios(S3 server) with 2 different buckets (input, ouput).
  *
- * @author Marc SORDI, Stephane CORTINE
+ * @author Marc SORDI
+ * @author Stephane CORTINE
  */
 @RunWith(RegardsSpringRunner.class)
 @SpringBootTest
@@ -68,30 +74,60 @@ public class S3OnlineStorageIT {
 
     private static final String TENANT = "TENANT";
 
-    @Value("${s3.server}")
-    private String endPointS3;
+    private static final String FILE_NAME = "small.txt";
 
-    @Value("${s3.key}")
+    private static final String MD5_CHECKSUM_FILE = "706126bf6d8553708227dba90694e81c";
+
+    private static final String MD5_ALGORITHM = "MD5";
+
+    @Value("${s3.endPoint:UNKNOWN}")
+    private String endPoint;
+
+    @Value("${s3.key:regards}")
     private String key;
 
-    @Value("${s3.secret}")
+    @Value("${s3.secret:regardspwd}")
     private String secret;
 
-    @Value("${s3.region}")
+    @Value("${s3.region:fr-regards-1}")
     private String region;
 
-    @Value("${s3.bucket}")
-    private String bucket;
+    /**
+     * Bucket used in order to download from this location.
+     */
+    @Value("${s3.bucket.input:bucketinput}")
+    private String bucketInput;
 
-    @Rule
-    public final S3Rule s3Rule = new S3Rule(() -> endPointS3, () -> key, () -> secret, () -> region, () -> bucket);
+    /**
+     * Bucket used in order to store in this location.
+     */
+    @Value("${s3.bucket.output:bucketoutput}")
+    private String bucketOutput;
 
+    /**
+     * Pattern (settings for S3 server) in order to retrieve the bucket if necessary and the filename in the url.
+     */
+    @Value("${s3.pattern:http[s]{0,1}://(?:.*?)/(.*?)/(.*)}")
+    private String s3Pattern;
+
+    /**
+     * Tested class : S3 plugin.
+     */
     private S3OnlineStorage s3OnlineStorage;
 
     @Before
     public void prepare() {
+        S3BucketTestUtils.createBucket(createInputS3Server());
+        S3BucketTestUtils.createBucket(createOutputS3Server());
+
         // Initialize plugin environment
         PluginUtils.setup();
+    }
+
+    @After
+    public void reset() {
+        S3BucketTestUtils.deleteBucket(createInputS3Server());
+        S3BucketTestUtils.deleteBucket(createOutputS3Server());
     }
 
     private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
@@ -111,7 +147,7 @@ public class S3OnlineStorageIT {
                                                                                   rootPath));
 
         PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3OnlineStorage.class,
-                                                                            "S3 plugin",
+                                                                            "S3 Storage configuration plugin",
                                                                             parameters);
         // Load plugin
         try {
@@ -124,108 +160,161 @@ public class S3OnlineStorageIT {
         IRuntimeTenantResolver resolverMock = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(resolverMock.getTenant()).thenReturn(TENANT);
         ReflectionTestUtils.setField(s3OnlineStorage, "runtimeTenantResolver", resolverMock);
+
+        // Settings for all available S3 servers for the downloading
+        S3StorageConfiguration s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
+        Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
+        ReflectionTestUtils.setField(s3OnlineStorage, "s3StorageSettings", s3StorageSettingsMock);
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath() {
-        givenS3_whenReference_thenValidateAndRetrieveFile("/rootPath0/rootPath1/", "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest(""), "/rootPath0/rootPath1/");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPathSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile("/rootPath0", "/dir0/dir1");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "/rootPath0");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile("", "/dir0/dir1");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_only() {
-        givenS3_whenReference_thenValidateAndRetrieveFile("", "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "");
     }
 
-    private void givenS3_whenReference_thenValidateAndRetrieveFile(String rootPath, String subDirectory) {
-        loadPlugin(endPointS3, region, key, secret, bucket, rootPath);
+    @Test
+    public void givenS3_whenReference_from_S3Server_thenValidateAndRetrieveFile_withRootPath() throws IOException {
+        // Given
+        S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
+        //When, then
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server(""),
+                                                          "/rootPath0/rootPath1/");
+    }
 
-        FileStorageRequest fileStorageRequest = createFileStorageRequest(subDirectory);
+    @Test
+    public void givenS3_whenReference_from_S3Server_thenValidateAndRetrieveFile_withRootPathSubDirectory()
+        throws IOException {
+        // Given
+        S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
+        //When, then
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"),
+                                                          "/rootPath0");
+    }
 
-        FileStorageWorkingSubset fileStorageWorkingSubset = new FileStorageWorkingSubset(Collections.singletonList(
-            fileStorageRequest));
-        // Store file to S3
-        s3OnlineStorage.store(fileStorageWorkingSubset, new IStorageProgressManager() {
+    @Test
+    public void givenS3_whenReference_from_S3Server_thenValidateAndRetrieveFile_withSubDirectory() throws IOException {
+        // Given
+        S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
+        //When, then
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"), "");
+    }
 
-            @Override
-            public void storageSucceed(FileStorageRequest fileReferenceRequest, URL storedUrl, Long fileSize) {
-            }
+    @Test
+    public void givenS3_whenReference_from_S3Server_thenValidateAndRetrieveFile_only() throws IOException {
+        // Given
+        S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
+        //When, then
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"), "");
+    }
 
-            @Override
-            public void storageSucceedWithPendingActionRemaining(FileStorageRequest fileReferenceRequest,
-                                                                 URL storedUrl,
-                                                                 Long fileSize,
-                                                                 Boolean notifyAdministrators) {
+    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequest fileStorageRequest,
+                                                                   String rootPath) {
+        // Given
+        loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
 
-            }
+        // When, then
+        // Store file in S3 server
+        s3OnlineStorage.store(new FileStorageWorkingSubset(Collections.singletonList(fileStorageRequest)),
+                              createStorageProgressManager());
 
-            @Override
-            public void storagePendingActionSucceed(String storedUrl) {
-
-            }
-
-            @Override
-            public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
-            }
-        });
-
-        // Retrieve file from S3
+        // Create file reference for S3 server
         FileReference fileReference = createFileReference(fileStorageRequest, rootPath);
-
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
-        // Get file from as input stream
+        // Get file as input stream from S3 server
         try {
             InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
             Assert.assertNotNull(inputStream);
         } catch (FileNotFoundException e) {
-            Assert.fail();
+            Assert.fail("Test Failure : file does not store in S3 server");
         }
 
-        // Delete file from S3
+        // Delete file from S3 server
         FileDeletionRequest fileDeletionRequest = createFileDeletionRequest(fileStorageRequest, rootPath);
-        FileDeletionWorkingSubset fileDeletionWorkingSubset = new FileDeletionWorkingSubset(Collections.singletonList(
-            fileDeletionRequest));
-        s3OnlineStorage.delete(fileDeletionWorkingSubset, new IDeletionProgressManager() {
+        s3OnlineStorage.delete(new FileDeletionWorkingSubset(Collections.singletonList(fileDeletionRequest)),
+                               createDeletionProgressManager());
 
-            @Override
-            public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
-            }
-
-            @Override
-            public void deletionFailed(FileDeletionRequest fileDeletionRequest, String s) {
-            }
-        });
-
-        // Retrieve file from S3
+        // Retrieve file in S3 server
         try {
             s3OnlineStorage.retrieve(fileReference);
 
-            Assert.fail("File always exists");
+            Assert.fail("Test Failure : file always exists");
         } catch (Exception exc) {
+        }
+    }
+
+    @Test
+    public void givenS3_whenReference_from_S3Server_bad_checksum() throws IOException {
+        // Given
+        String rootPath = "";
+        S3BucketTestUtils.store("./src/test/resources/small.txt", rootPath, createInputS3Server());
+
+        loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
+
+        FileStorageRequest fileStorageRequest = createFileStorageRequestFromS3Server("/dir0/dir1");
+        fileStorageRequest.getMetaInfo().setChecksum("badchecksum");
+
+        // When
+        s3OnlineStorage.store(new FileStorageWorkingSubset(Collections.singletonList(fileStorageRequest)),
+                              createStorageProgressManager());
+
+        // Then
+        // Create file reference for S3 server
+        FileReference fileReference = createFileReference(fileStorageRequest, rootPath);
+        // Validate reference
+        Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
+                          s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
+        // Get file as input stream from S3 server
+        try {
+            InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
+            Assert.fail("Test Failure : file does not store in S3 server");
+        } catch (FileNotFoundException e) {
+            // Test Success : the file is deleted because checksum does not match with expected one
         }
     }
 
     private FileStorageRequest createFileStorageRequest(String subDirectory) {
         FileStorageRequest fileStorageRequest = new FileStorageRequest();
-        fileStorageRequest.setOriginUrl("file:./src/test/resources/small.txt");
+        fileStorageRequest.setOriginUrl("file:./src/test/resources/" + FILE_NAME);
         fileStorageRequest.setStorageSubDirectory(subDirectory);
 
         FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName("small.txt");
-        fileReferenceMetaInfo.setAlgorithm("MD5");
+        fileReferenceMetaInfo.setFileName(FILE_NAME);
+        fileReferenceMetaInfo.setAlgorithm(MD5_ALGORITHM);
         fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
-        fileReferenceMetaInfo.setChecksum("706126bf6d8553708227dba90694e81c");
+        fileReferenceMetaInfo.setChecksum(MD5_CHECKSUM_FILE);
+
+        fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
+
+        return fileStorageRequest;
+    }
+
+    private FileStorageRequest createFileStorageRequestFromS3Server(String subDirectory) {
+        FileStorageRequest fileStorageRequest = new FileStorageRequest();
+        fileStorageRequest.setOriginUrl(endPoint + File.separator + bucketInput + File.separator + FILE_NAME);
+        fileStorageRequest.setStorageSubDirectory(subDirectory);
+
+        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
+        fileReferenceMetaInfo.setFileName(FILE_NAME);
+        fileReferenceMetaInfo.setAlgorithm(MD5_ALGORITHM);
+        fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
+        fileReferenceMetaInfo.setChecksum(MD5_CHECKSUM_FILE);
 
         fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
 
@@ -255,7 +344,56 @@ public class S3OnlineStorageIT {
     }
 
     private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
-        return endPointS3 + File.separator + bucket + Paths.get(File.separator, rootPath, fileStorageRequest.getStorageSubDirectory())
-                                                           .resolve(fileStorageRequest.getMetaInfo().getChecksum());
+        return endPoint + File.separator + bucketOutput + Paths.get(File.separator,
+                                                                    rootPath,
+                                                                    fileStorageRequest.getStorageSubDirectory())
+                                                               .resolve(fileStorageRequest.getMetaInfo().getChecksum());
+    }
+
+    private S3Server createInputS3Server() {
+        return new S3Server(endPoint, region, key, secret, bucketInput, s3Pattern);
+    }
+
+    private S3Server createOutputS3Server() {
+        return new S3Server(endPoint, region, key, secret, bucketOutput, "");
+    }
+
+    private IStorageProgressManager createStorageProgressManager() {
+        return new IStorageProgressManager() {
+
+            @Override
+            public void storageSucceed(FileStorageRequest fileReferenceRequest, URL storedUrl, Long fileSize) {
+            }
+
+            @Override
+            public void storageSucceedWithPendingActionRemaining(FileStorageRequest fileReferenceRequest,
+                                                                 URL storedUrl,
+                                                                 Long fileSize,
+                                                                 Boolean notifyAdministrators) {
+
+            }
+
+            @Override
+            public void storagePendingActionSucceed(String storedUrl) {
+
+            }
+
+            @Override
+            public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
+            }
+        };
+    }
+
+    private IDeletionProgressManager createDeletionProgressManager() {
+        return new IDeletionProgressManager() {
+
+            @Override
+            public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
+            }
+
+            @Override
+            public void deletionFailed(FileDeletionRequest fileDeletionRequest, String s) {
+            }
+        };
     }
 }

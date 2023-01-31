@@ -45,6 +45,10 @@
             <artifactId>s3-storage-utils</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>s3-starter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>file-utils</artifactId>
         </dependency>
@@ -81,6 +85,21 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>plugin-utils</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.test</groupId>
+            <artifactId>regards-s3-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>fr.cnes.regards.framework.utils</groupId>
+                    <artifactId>s3-storage-utils</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>fr.cnes.regards.modules.storage</groupId>
+                    <artifactId>storage-domain</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -131,6 +150,7 @@
                                     <include>io.netty:*</include>
                                     <include>com.typesafe.netty:*</include>
                                     <include>fr.cnes.regards.framework.utils:s3-storage-utils</include>
+                                    <include>fr.cnes.regards.framework:s3-starter</include>
                                     <include>fr.cnes.regards.framework.utils.file:*</include>
                                 </includes>
                             </artifactSet>
