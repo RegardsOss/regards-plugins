@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
@@ -247,11 +248,12 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      */
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
+        workingSet.getFileReferenceRequests().forEach(request -> handleStoreRequest(request, progressManager));
+    }
 
-        Stream.ofAll(workingSet.getFileReferenceRequests()).flatMap(request -> Try.of(() -> {
-            LOGGER.info("[{}] Start storing {}", request.getJobId(), request.getOriginUrl());
+    private void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
+        try {
             URL sourceUrl = new URL(request.getOriginUrl());
-
             // Download the file from url (File system, S3 server)
             Flux<ByteBuffer> buffers = DataBufferUtils.readInputStream(() -> DownloadUtils.getInputStream(sourceUrl,
                                                                                                           s3StorageSettings.getStorages()),
@@ -304,8 +306,13 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
             } else {
                 progressManager.storageFailed(request, "Checksum does not match with expected one");
             }
-            return result;
-        }));
+        } catch (MalformedURLException e) {
+            LOGGER.error(e.getMessage(), e);
+            progressManager.storageFailed(request, String.format("Invalid source url %s", request.getOriginUrl()));
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            progressManager.storageFailed(request, String.format("Store failed cause : %s", e.getMessage()));
+        }
     }
 
     /**
@@ -331,7 +338,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
         String expectedChecksum = request.getMetaInfo().getChecksum();
         // Check 2 checksums
-        if (realChecksum.equals(expectedChecksum)) {
+        if (realChecksum.equalsIgnoreCase(expectedChecksum)) {
             return isValid;
         }
         LOGGER.debug(
@@ -383,13 +390,15 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                 .doOnError(t -> LOGGER.error(
                                                     "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
                                                     request.getJobId(),
-                                                    storageConfiguration.getBucket(), entryKey,
+                                                    storageConfiguration.getBucket(),
+                                                    entryKey,
                                                     storageConfiguration.getEndpoint(),
                                                     t))
                                                 .doOnSuccess(success -> LOGGER.info(
                                                     "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
                                                     request.getJobId(),
-                                                    storageConfiguration.getBucket(), entryKey,
+                                                    storageConfiguration.getBucket(),
+                                                    entryKey,
                                                     storageConfiguration.getEndpoint()))
                                                 .block();
         String realChecksum = "";
