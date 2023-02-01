@@ -344,7 +344,10 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                     entryKey,
                                                     storageConfiguration.getEndpoint()))
                                                 .block();
-        String realChecksum = eTag.orElse("");
+        String realChecksum = "";
+        if (eTag != null) {
+            realChecksum = eTag.orElse("");
+        }
 
         String expectedChecksum = request.getMetaInfo().getChecksum();
         // Check 2 checksums
