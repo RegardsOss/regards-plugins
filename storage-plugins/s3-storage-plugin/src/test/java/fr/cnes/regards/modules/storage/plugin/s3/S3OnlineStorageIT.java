@@ -237,6 +237,9 @@ public class S3OnlineStorageIT {
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
+        Assert.assertEquals("Invalid file size",
+                            427L, fileReference.getMetaInfo().getFileSize().longValue());
+
         // Get file as input stream from S3 server
         try {
             InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
@@ -250,7 +253,7 @@ public class S3OnlineStorageIT {
         s3OnlineStorage.delete(new FileDeletionWorkingSubset(Collections.singletonList(fileDeletionRequest)),
                                createDeletionProgressManager());
 
-        // Retrieve file in S3 server
+        // Retrieve file in S3 server but the file does not exist anymore
         try {
             s3OnlineStorage.retrieve(fileReference);
 
@@ -327,6 +330,7 @@ public class S3OnlineStorageIT {
         fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
         fileReferenceMetaInfo.setMimeType(fileStorageRequest.getMetaInfo().getMimeType());
         fileReferenceMetaInfo.setChecksum(fileStorageRequest.getMetaInfo().getChecksum());
+        fileReferenceMetaInfo.setFileSize(fileStorageRequest.getMetaInfo().getFileSize());
 
         FileLocation fileLocation = new FileLocation();
         fileLocation.setUrl(buildFileLocationUrl(fileStorageRequest, rootPath));

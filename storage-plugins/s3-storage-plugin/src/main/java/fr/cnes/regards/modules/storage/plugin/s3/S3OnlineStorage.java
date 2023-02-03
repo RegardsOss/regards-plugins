@@ -35,9 +35,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.*;
@@ -329,25 +327,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                              createStorageCommandID(request.getJobId()),
                                                              entryKey);
 
-        Optional<String> eTag = createS3Client().eTag(checkCmd)
-                                                .doOnError(t -> LOGGER.error(
-                                                    "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
-                                                    request.getJobId(),
-                                                    storageConfiguration.getBucket(),
-                                                    entryKey,
-                                                    storageConfiguration.getEndpoint(),
-                                                    t))
-                                                .doOnSuccess(success -> LOGGER.info(
-                                                    "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
-                                                    request.getJobId(),
-                                                    storageConfiguration.getBucket(),
-                                                    entryKey,
-                                                    storageConfiguration.getEndpoint()))
-                                                .block();
-        String realChecksum = "";
-        if (eTag != null) {
-            realChecksum = eTag.orElse("");
-        }
+        String realChecksum = getRealChecksum(request, entryKey, checkCmd);
 
         String expectedChecksum = request.getMetaInfo().getChecksum();
         // Check 2 checksums
@@ -396,6 +376,27 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                             storageConfiguration.getEndpoint()))
                         .subscribe();
         return !isValid;
+    }
+
+    private String getRealChecksum(FileStorageRequest request, String entryKey, StorageCommand.Check checkCmd) {
+        Optional<String> eTag = createS3Client().eTag(checkCmd)
+                                                .doOnError(t -> LOGGER.error(
+                                                    "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
+                                                    request.getJobId(),
+                                                    storageConfiguration.getBucket(), entryKey,
+                                                    storageConfiguration.getEndpoint(),
+                                                    t))
+                                                .doOnSuccess(success -> LOGGER.info(
+                                                    "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
+                                                    request.getJobId(),
+                                                    storageConfiguration.getBucket(), entryKey,
+                                                    storageConfiguration.getEndpoint()))
+                                                .block();
+        String realChecksum = "";
+        if (eTag != null && eTag.isPresent()) {
+            realChecksum = eTag.get();
+        }
+        return realChecksum;
     }
 
     private StorageEntry buildStorageEntry(FileStorageRequest request, String entryKey, Flux<ByteBuffer> buffers) {
@@ -490,27 +491,15 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     }
 
     /**
-     * Get the size of file thanks its url.
+     * Get the file content length
      *
      * @param sourceUrl the url of file
-     * @return the size of file
+     * @return the size of file, 0 if the file does not exist
      */
     private long getFileSize(URL sourceUrl) {
-        long fileSize = 0l;
-        URLConnection urlConnection = null;
+        long fileSize = 0L;
         try {
-            try {
-                urlConnection = sourceUrl.openConnection();
-                fileSize = urlConnection.getContentLengthLong();
-            } finally {
-                if (urlConnection != null) {
-                    if (urlConnection instanceof HttpURLConnection httpConnection) {
-                        httpConnection.disconnect();
-                    } else {
-                        urlConnection.getInputStream().close();
-                    }
-                }
-            }
+            fileSize = DownloadUtils.getContentLength(sourceUrl, 0, s3StorageSettings.getStorages());
         } catch (IOException e) {
             LOGGER.error("Failure in the getting of file size : {}", sourceUrl, e);
         }
