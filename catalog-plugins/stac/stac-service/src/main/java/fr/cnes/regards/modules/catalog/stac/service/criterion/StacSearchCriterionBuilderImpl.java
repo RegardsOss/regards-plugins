@@ -152,7 +152,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
     public Option<EODagParameters> buildEODagParameters(List<StacProperty> properties,
                                                         String collectionId,
                                                         CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody) {
-        EODagParameters parameters = new EODagParameters(idMappingService.getUrnByStacId(collectionId));
+        EODagParameters parameters = new EODagParameters(collectionId);
         computeEODagParameters(parameters, properties, ItemSearchBody.builder().build());
         bBoxCriterionBuilder.computeEODagParameters(parameters, properties, collectionItemSearchBody.getBbox());
         collectionsCriterionBuilder.computeEODagParameters(parameters,
