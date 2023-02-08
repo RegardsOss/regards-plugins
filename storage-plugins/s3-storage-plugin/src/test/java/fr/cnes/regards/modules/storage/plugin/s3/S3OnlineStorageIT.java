@@ -105,12 +105,6 @@ public class S3OnlineStorageIT {
     private String bucketOutput;
 
     /**
-     * Pattern (settings for S3 server) in order to retrieve the bucket if necessary and the filename in the url.
-     */
-    @Value("${s3.pattern:http[s]{0,1}://(?:.*?)/(.*?)/(.*)}")
-    private String s3Pattern;
-
-    /**
      * Tested class : S3 plugin.
      */
     private S3OnlineStorage s3OnlineStorage;
@@ -237,8 +231,7 @@ public class S3OnlineStorageIT {
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
-        Assert.assertEquals("Invalid file size",
-                            427L, fileReference.getMetaInfo().getFileSize().longValue());
+        Assert.assertEquals("Invalid file size", 427L, fileReference.getMetaInfo().getFileSize().longValue());
 
         // Get file as input stream from S3 server
         try {
@@ -355,7 +348,7 @@ public class S3OnlineStorageIT {
     }
 
     private S3Server createInputS3Server() {
-        return new S3Server(endPoint, region, key, secret, bucketInput, s3Pattern);
+        return new S3Server(endPoint, region, key, secret, bucketInput);
     }
 
     private S3Server createOutputS3Server() {
