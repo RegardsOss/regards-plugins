@@ -47,9 +47,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Main class of plugin of storage(online type) in S3 server
  */
-@Plugin(author = "REGARDS Team", description = "Plugin handling the storage on S3", id = "S3", version = "1.0",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES", markdown = "S3StoragePlugin.md",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Plugin handling the storage on S3",
+        id = "S3",
+        version = "1.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        markdown = "S3StoragePlugin.md",
+        url = "https://regardsoss.github.io/")
 public class S3OnlineStorage implements IOnlineStorageLocation {
 
     public static final String S3_SERVER_ENDPOINT_PARAM_NAME = "S3_Server_Endpoint";
@@ -76,45 +82,55 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     private static final Logger LOGGER = getLogger(S3OnlineStorage.class);
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
-        description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
-        label = "S3 server endpoint")
+                     description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
+                     label = "S3 server endpoint")
     private String endpoint;
 
-    @PluginParameter(name = S3_SERVER_REGION_PARAM_NAME, description = "Region of the S3 server",
-        label = "S3 server region")
+    @PluginParameter(name = S3_SERVER_REGION_PARAM_NAME,
+                     description = "Region of the S3 server",
+                     label = "S3 server region")
     private String region;
 
     @PluginParameter(name = S3_SERVER_KEY_PARAM_NAME, description = "Key of the S3 server", label = "S3 server key")
     private String key;
 
-    @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME, description = "Secret of the S3 server",
-        label = "S3 server secret", sensitive = true)
+    @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME,
+                     description = "Secret of the S3 server",
+                     label = "S3 server secret",
+                     sensitive = true)
     private String secret;
 
-    @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME, description = "Bucket of the S3 server",
-        label = "S3 server bucket")
+    @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME,
+                     description = "Bucket of the S3 server",
+                     label = "S3 server bucket")
     private String bucket;
 
     /**
      * Parameter used for URL validation. Only URL starting with {endpoint}/{bucket}/{root_path} is valid.
      * As a file can be accessible at the root of the bucket, this parameter is optional.
      */
-    @PluginParameter(name = S3_SERVER_ROOT_PATH_PARAM_NAME, description = "Root path of this storage in the S3 server",
-        label = "Storage root path", optional = true)
+    @PluginParameter(name = S3_SERVER_ROOT_PATH_PARAM_NAME,
+                     description = "Root path of this storage in the S3 server",
+                     label = "Storage root path",
+                     optional = true)
     private String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
-        description = "Number of Mb for a file size over which multipart upload is used",
-        label = "Multipart threshold in Mb", defaultValue = "5")
+                     description = "Number of Mb for a file size over which multipart upload is used",
+                     label = "Multipart threshold in Mb",
+                     defaultValue = "5")
     private int multipartThresholdMb;
 
-    @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME, description = "Number of parallel parts to upload",
-        label = "Number of parallel parts during multipart upload", defaultValue = "5")
+    @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME,
+                     description = "Number of parallel parts to upload",
+                     label = "Number of parallel parts during multipart upload",
+                     defaultValue = "5")
     private int nbParallelPartsUpload;
 
-    @PluginParameter(name = S3_ALLOW_DELETION, label = "Enable effective deletion of files",
-        description = "If deletion is allowed, files are physically deleted else files are only removed from references",
-        defaultValue = "false")
+    @PluginParameter(name = S3_ALLOW_DELETION,
+                     label = "Enable effective deletion of files",
+                     description = "If deletion is allowed, files are physically deleted else files are only removed from references",
+                     defaultValue = "false")
     private Boolean allowPhysicalDeletion;
 
     /**
@@ -142,12 +158,8 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      */
     @PluginInit
     public void init() {
-        storageConfiguration = StorageConfig.builder()
-                                            .endpoint(endpoint)
+        storageConfiguration = StorageConfig.builder(endpoint, region, key, secret)
                                             .bucket(bucket)
-                                            .key(key)
-                                            .secret(secret)
-                                            .region(region)
                                             .rootPath(rootPath)
                                             .build();
     }
@@ -171,7 +183,6 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      *
      * @param fileReference the file reference
      * @return the input stream of file reference
-     * @throws FileNotFoundException
      */
     @Override
     public InputStream retrieve(FileReference fileReference) throws FileNotFoundException {
