@@ -27,8 +27,9 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDataSourcePlugin;
  */
 public abstract class AbstractDataSourcePlugin implements IDataSourcePlugin {
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-        description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "model name",
+                     description = "Associated data source model name")
     protected String modelName;
 
     @Override

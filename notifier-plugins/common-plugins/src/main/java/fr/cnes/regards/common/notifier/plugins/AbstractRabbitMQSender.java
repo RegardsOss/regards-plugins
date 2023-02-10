@@ -50,8 +50,9 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     private String queueName;
 
     @PluginParameter(label = "Recipient label (must be unique).",
-        description = " When not specified, the emitter wont know what's the recipient label that should receive its events",
-        name = RECIPIENT_LABEL_PARAM_NAME, optional = true)
+                     description = " When not specified, the emitter wont know what's the recipient label that should receive its events",
+                     name = RECIPIENT_LABEL_PARAM_NAME,
+                     optional = true)
     private String recipientLabel;
 
     public <T> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {

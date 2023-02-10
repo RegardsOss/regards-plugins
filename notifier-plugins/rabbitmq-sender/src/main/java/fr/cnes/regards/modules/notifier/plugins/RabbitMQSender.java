@@ -39,9 +39,14 @@ import java.util.stream.Collectors;
  *
  * @author Kevin Marchois
  */
-@Plugin(author = "REGARDS Team", description = "Default recipient sender", id = RabbitMQSender.PLUGIN_ID,
-    version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Default recipient sender",
+        id = RabbitMQSender.PLUGIN_ID,
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class RabbitMQSender extends AbstractRabbitMQSender {
 
     @Event(target = Target.ONE_PER_MICROSERVICE_TYPE, converter = JsonMessageConverter.GSON)
@@ -78,8 +83,10 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
     @PluginParameter(label = "Recipient acknowledgment",
-        description = "When value is True, the recipient will send back an acknowledgment.",
-        name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
+                     description = "When value is True, the recipient will send back an acknowledgment.",
+                     name = ACK_REQUIRED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
     private boolean ackRequired;
 
     @Override

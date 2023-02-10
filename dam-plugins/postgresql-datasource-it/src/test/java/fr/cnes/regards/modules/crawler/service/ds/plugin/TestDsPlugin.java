@@ -35,9 +35,14 @@ import java.util.List;
 /**
  * @author oroussel
  */
-@Plugin(id = "test-datasource", version = "1.0-SNAPSHOT", description = "Allows invalid data extraction from nothing",
-    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-    url = "https://github.com/RegardsOss")
+@Plugin(id = "test-datasource",
+        version = "1.0-SNAPSHOT",
+        description = "Allows invalid data extraction from nothing",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourcePlugin {
 
     @Override

@@ -39,18 +39,22 @@ public class StacSourcePropertyConfiguration {
 
     public static final String REGARDS_FORMAT_MD = "regardsFormat.md";
 
-    @PluginParameter(name = "sourcePropertyPath", label = "Source model property path", description =
-        "This parameter defines the path to the model attribute and its corresponding "
-        + "source property in a product")
+    @PluginParameter(name = "sourcePropertyPath",
+                     label = "Source model property path",
+                     description = "This parameter defines the path to the model attribute and its corresponding "
+                                   + "source property in a product")
     protected String sourcePropertyPath;
 
-    @PluginParameter(name = "sourceJsonPropertyPath", label = "JSON property path (for a JSON type attribute only)",
-        description = "If the source model attribute is of type JSON, "
-                      + " this parameter defines the path in the JSON structure where to read the value.",
-        optional = true)
+    @PluginParameter(name = "sourceJsonPropertyPath",
+                     label = "JSON property path (for a JSON type attribute only)",
+                     description = "If the source model attribute is of type JSON, "
+                                   + " this parameter defines the path in the JSON structure where to read the value.",
+                     optional = true)
     protected String sourceJsonPropertyPath;
 
-    @PluginParameter(name = REGARDS_FORMAT, label = "Format for the source property value",
-        markdown = REGARDS_FORMAT_MD, optional = true)
+    @PluginParameter(name = REGARDS_FORMAT,
+                     label = "Format for the source property value",
+                     markdown = REGARDS_FORMAT_MD,
+                     optional = true)
     protected String sourcePropertyFormat;
 }

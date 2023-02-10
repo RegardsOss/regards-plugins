@@ -74,12 +74,21 @@ public interface RandomAwareTest {
 
     default IGeometry makeRandomGeometry(EasyRandom generator) {
         if (generator.nextBoolean()) {
-            return IGeometry.polygon(IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[] {
-                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                IGeometry.position(generator.nextDouble(), generator.nextDouble()),
-                IGeometry.position(generator.nextDouble(), generator.nextDouble()) })));
+            return IGeometry.polygon(IGeometry.toPolygonCoordinates(IGeometry.positions(new Position[] { IGeometry.position(
+                generator.nextDouble(),
+                generator.nextDouble()),
+                                                                                                         IGeometry.position(
+                                                                                                             generator.nextDouble(),
+                                                                                                             generator.nextDouble()),
+                                                                                                         IGeometry.position(
+                                                                                                             generator.nextDouble(),
+                                                                                                             generator.nextDouble()),
+                                                                                                         IGeometry.position(
+                                                                                                             generator.nextDouble(),
+                                                                                                             generator.nextDouble()),
+                                                                                                         IGeometry.position(
+                                                                                                             generator.nextDouble(),
+                                                                                                             generator.nextDouble()) })));
         } else {
             return IGeometry.lineString(generator.nextDouble(),
                                         generator.nextDouble(),

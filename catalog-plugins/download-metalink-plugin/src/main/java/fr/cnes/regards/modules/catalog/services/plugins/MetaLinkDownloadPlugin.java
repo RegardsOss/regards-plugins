@@ -63,8 +63,14 @@ import java.util.Optional;
  * @author Sébastien Binda
  */
 @Plugin(description = "Plugin to allow download on multiple data selection by creating a metalink file.",
-    id = "MetaLinkPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3",
-    owner = "CSSI", url = "https://github.com/RegardsOss", markdown = "metalink-download.md")
+        id = "MetaLinkPlugin",
+        version = "1.0.0",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss",
+        markdown = "metalink-download.md")
 @CatalogServicePlugin(applicationModes = { ServiceScope.MANY }, entityTypes = { EntityType.DATA })
 public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin implements IEntitiesServicePlugin {
 
@@ -80,8 +86,8 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     private JWTService jwtService;
 
     @PluginParameter(label = "Download only image files.",
-        description = "If activated, metalink file will only contains image files of the selected products.",
-        defaultValue = "false")
+                     description = "If activated, metalink file will only contains image files of the selected products.",
+                     defaultValue = "false")
     private final Boolean onlyImages = Boolean.FALSE;
 
     private static final String METALINK_FILE_NAME = "regards-download.metalink";
@@ -153,10 +159,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     }
 
     /**
-     * @param content
-     * @param out
-     * @throws XMLStreamException
-     * @throws MalformedURLException
+     *
      */
     private void downloadOrderMetalink(List<DataObject> dataObjects, XMLStreamWriter xtw)
         throws XMLStreamException, MalformedURLException {

@@ -34,18 +34,22 @@ public class GeometryCriterionBuilderTest {
         // THEN
         assertThat(criterion).isNotEmpty();
         assertThat(criterion.get()).isInstanceOf(PolygonCriterion.class);
-        assertThat(((PolygonCriterion) criterion.get()).getCoordinates()).isEqualTo(new double[][][] {
-            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } });
+        assertThat(((PolygonCriterion) criterion.get()).getCoordinates()).isEqualTo(new double[][][] { new double[][] {
+            new double[] { 1, 2 },
+            new double[] { 3, 4 },
+            new double[] { 1, 2 } } });
     }
 
     @Test
     public void testBuildCriterionMultipolygon() {
         // GIVEN
         List<StacProperty> properties = List.of();
-        double[][][] fstPoly = {
-            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } };
-        double[][][] sndPoly = {
-            new double[][] { new double[] { 1, 2 }, new double[] { 3, 4 }, new double[] { 1, 2 } } };
+        double[][][] fstPoly = { new double[][] { new double[] { 1, 2 },
+                                                  new double[] { 3, 4 },
+                                                  new double[] { 1, 2 } } };
+        double[][][] sndPoly = { new double[][] { new double[] { 1, 2 },
+                                                  new double[] { 3, 4 },
+                                                  new double[] { 1, 2 } } };
         IGeometry geom = IGeometry.multiPolygon(PolygonPositions.fromArray(fstPoly),
                                                 PolygonPositions.fromArray(sndPoly));
 

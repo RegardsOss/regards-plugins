@@ -60,7 +60,7 @@ import java.util.ArrayList;
  * @author Marc SORDI
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "regards.tenant=swotv2", "spring.jpa.properties.hibernate.default_schema=swotv2" })
+                    properties = { "regards.tenant=swotv2", "spring.jpa.properties.hibernate.default_schema=swotv2" })
 public class SwotV2EngineControllerIT extends AbstractStacIT {
 
     @Before

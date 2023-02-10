@@ -386,8 +386,6 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
      * Download directly from STORAGE bypassing catalog with access control previously done here
      *
      * @param checksum file checksum
-     *                 <p>
-     *                                                                                                                                                 TODO : check access rights are well respected while searching data before building mod_zip descriptor
      */
     private String getStorageLocation(String checksum, DownloadLinkCreator downloadLinkCreator) {
         return String.format(STORAGE_DOWNLOAD_FILE_PATH, nginxPrefix, checksum, downloadLinkCreator.getSystemToken());

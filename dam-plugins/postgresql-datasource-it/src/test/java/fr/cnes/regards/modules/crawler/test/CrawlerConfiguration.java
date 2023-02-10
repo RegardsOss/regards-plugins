@@ -36,7 +36,7 @@ import org.springframework.http.ResponseEntity;
 @Profile("CrawlerTest")
 @Configuration
 @PropertySource(value = { "classpath:test.properties", "classpath:test_${user.name}.properties" },
-    ignoreResourceNotFound = true)
+                ignoreResourceNotFound = true)
 public class CrawlerConfiguration {
 
     @Bean

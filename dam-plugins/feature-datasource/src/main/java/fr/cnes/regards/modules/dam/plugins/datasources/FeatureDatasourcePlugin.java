@@ -57,9 +57,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Kevin Marchois
  * @author Marc SORDI
  */
-@Plugin(id = "feature-datasource", version = "1.0-SNAPSHOT", description = "Plugin to get data from feature manager",
-    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-    url = "https://github.com/RegardsOss")
+@Plugin(id = "feature-datasource",
+        version = "1.0-SNAPSHOT",
+        description = "Plugin to get data from feature manager",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     private static final String URN_PLACEHOLDER = "{urn}";
@@ -85,8 +90,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     // --- PLUGIN PARAMETERS ---
     // -------------------------
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
-        description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "Model name",
+                     description = "Associated data source model name")
     protected String modelName;
 
     @Value("${prefix.path}")
@@ -95,9 +101,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     /**
      * Refresh rate in SECOND
      */
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, label = "Refresh rate",
-        description = "Harvesting refresh rate in second (minimum delay between two consecutive harvesting)",
-        defaultValue = "1000")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     label = "Refresh rate",
+                     description = "Harvesting refresh rate in second (minimum delay between two consecutive harvesting)",
+                     defaultValue = "1000")
     private int refreshRate;
 
     /**
@@ -108,9 +115,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
      * to prevent this, data are harvested since date minus an overlap.
      * So data may be harvested twice!
      */
-    @PluginParameter(name = "overlap", label = "Overlap",
-        description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
-        defaultValue = "0")
+    @PluginParameter(name = "overlap",
+                     label = "Overlap",
+                     description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
+                     defaultValue = "0")
     private long overlap;
 
     // -------------------------
@@ -171,10 +179,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         // set current last update date with the most recent feature entity update.
 
         cursor.setCurrentLastEntityDate(dtos.stream()
-                                     .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
-                                                                .getLastUpdate())
-                                     .max(Comparator.comparing(lastUpdate -> lastUpdate))
-                                     .orElse(null));
+                                            .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
+                                                                       .getLastUpdate())
+                                            .max(Comparator.comparing(lastUpdate -> lastUpdate))
+                                            .orElse(null));
 
         return dataObjects;
     }

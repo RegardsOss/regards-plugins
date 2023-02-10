@@ -36,27 +36,36 @@ import java.util.List;
  *
  * @author Raphaël Mechali
  */
-@Plugin(id = "webservice-datasource", version = "0.4.0",
-    description = "Extracts data objects from an OpenSearch webservice", author = "REGARDS Team",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+@Plugin(id = "webservice-datasource",
+        version = "0.4.0",
+        description = "Extracts data objects from an OpenSearch webservice",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebserviceDatasourcePlugin.class);
 
-    @PluginParameter(name = "webserviceConfiguration", label = "Webservice configuration",
-        description = "Information about webservice used as data source")
+    @PluginParameter(name = "webserviceConfiguration",
+                     label = "Webservice configuration",
+                     description = "Information about webservice used as data source")
     private WebserviceConfiguration webserviceConfiguration;
 
-    @PluginParameter(name = "conversionConfiguration", label = "Conversion configuration",
-        description = "Information to convert retrieved json results into REGARDS data objects")
+    @PluginParameter(name = "conversionConfiguration",
+                     label = "Conversion configuration",
+                     description = "Information to convert retrieved json results into REGARDS data objects")
     private ConversionConfiguration conversionConfiguration;
 
     /**
      * Indexation refresh rate in seconds
      */
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive indexations)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "86400",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive indexations)")
     private Integer refreshRate;
 
     /**

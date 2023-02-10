@@ -51,10 +51,16 @@ import static fr.cnes.regards.modules.processing.domain.engine.IExecutable.sendE
  *
  * @author gandrieu
  */
-@Plugin(id = SimpleShellProcessPlugin.SIMPLE_SHELL_PROCESS_PLUGIN, version = "1.0.0-SNAPSHOT",
-    description = "Launch a shell script", author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3",
-    owner = "CSSI", url = "https://github.com/RegardsOss", markdown = "SimpleShellProcessPlugin.md",
-    userMarkdown = "SimpleShellProcessPluginUser.md")
+@Plugin(id = SimpleShellProcessPlugin.SIMPLE_SHELL_PROCESS_PLUGIN,
+        version = "1.0.0-SNAPSHOT",
+        description = "Launch a shell script",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss",
+        markdown = "SimpleShellProcessPlugin.md",
+        userMarkdown = "SimpleShellProcessPluginUser.md")
 public class SimpleShellProcessPlugin extends AbstractProcessOrderPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleShellProcessPlugin.class);
@@ -63,14 +69,17 @@ public class SimpleShellProcessPlugin extends AbstractProcessOrderPlugin {
 
     protected static final Pattern KEYVALUE_PATTERN = Pattern.compile("^\\s*(?<name>[^=]+?)\\s*=(?<value>.*?)$");
 
-    @PluginParameter(name = "shellScript", label = "Shell script name or absolute path",
-        description = "The script must be executable and reachable by rs-processing.")
+    @PluginParameter(name = "shellScript",
+                     label = "Shell script name or absolute path",
+                     description = "The script must be executable and reachable by rs-processing.")
     protected String shellScriptName;
 
-    @PluginParameter(name = "envVariables", label = "Environment variables to give to the shell script", description =
-        "List of environment variables needed by the shell script."
-        + " Format as KEY=VALUE separated by '&', for instance:"
-        + " KEY1=value1&KEY2=value2 ", optional = true)
+    @PluginParameter(name = "envVariables",
+                     label = "Environment variables to give to the shell script",
+                     description = "List of environment variables needed by the shell script."
+                                   + " Format as KEY=VALUE separated by '&', for instance:"
+                                   + " KEY1=value1&KEY2=value2 ",
+                     optional = true)
     protected String envVariables;
 
     public void setShellScriptName(String shellScriptName) {

@@ -57,9 +57,14 @@ import java.util.zip.ZipFile;
 /**
  * @author Sylvain Vissiere-Guerinet
  */
-@Plugin(author = "REGARDS Team", description = "Plugin handling the storage on local file system", id = "Local",
-    version = "1.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Plugin handling the storage on local file system",
+        id = "Local",
+        version = "1.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class LocalDataStorage implements IOnlineStorageLocation {
 
     /**
@@ -108,22 +113,26 @@ public class LocalDataStorage implements IOnlineStorageLocation {
      * Base storage location url
      */
     @PluginParameter(name = BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME,
-        description = "Root directory where to store new files on this location", label = "Root directory")
+                     description = "Root directory where to store new files on this location",
+                     label = "Root directory")
     private String baseStorageLocationAsString;
 
-    @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION, defaultValue = "false",
-        label = "Enable physical deletion of files",
-        description = "If deletion is allowed, files are physically deleted else files are only removed from references")
+    @PluginParameter(name = LOCAL_STORAGE_DELETE_OPTION,
+                     defaultValue = "false",
+                     label = "Enable physical deletion of files",
+                     description = "If deletion is allowed, files are physically deleted else files are only removed from references")
     private Boolean allowPhysicalDeletion;
 
-    @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP, label = "Files maximum size for zips (octets)",
-        description = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \\\"small files\\\" in a zip archive. The size is in octets.",
-        defaultValue = "1000")
+    @PluginParameter(name = LOCAL_STORAGE_MAX_FILE_SIZE_FOR_ZIP,
+                     label = "Files maximum size for zips (octets)",
+                     description = "When storing a new file in this location, if the file size is less than this value, so the file is stored with other \\\"small files\\\" in a zip archive. The size is in octets.",
+                     defaultValue = "1000")
     private Long maxFileSizeForZip;
 
-    @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE, label = "Maximum zip size (octets)",
-        description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
-        defaultValue = "500000000")
+    @PluginParameter(name = LOCAL_STORAGE_MAX_ZIP_SIZE,
+                     label = "Maximum zip size (octets)",
+                     description = "When storing a new file in this location, \"small\" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.",
+                     defaultValue = "500000000")
     private Long maxZipSize;
 
     @Autowired
@@ -151,9 +160,6 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     /**
      * Creates working subsets of requests to limit number of requests to handle in a same batch.
-     *
-     * @param requests
-     * @param createSubset
      */
     private <W, R> PreparationResponse createWorkingSubset(Collection<R> requests,
                                                            Function<Collection<R>, W> createSubset) {

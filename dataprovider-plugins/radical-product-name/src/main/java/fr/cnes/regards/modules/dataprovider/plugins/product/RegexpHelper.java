@@ -43,7 +43,6 @@ public final class RegexpHelper {
      * @param pattern  complied pattern as regexp to find groups to remove
      * @param groups   list of groups to remove from fileName matching pattern
      * @return file name with remove groups from pattern
-     * @throws ModuleException
      */
     public static String removeGroups(Path filePath, String pattern, String groups) throws ModuleException {
         try {
@@ -65,7 +64,6 @@ public final class RegexpHelper {
      * @param pattern complied pattern as regexp to find groups to remove
      * @param groups  list of groups to remove from fileName matching pattern
      * @return file name with remove groups from pattern
-     * @throws ModuleException
      */
     public static String removeGroups(String pattern, String source, List<Integer> groups) throws ModuleException {
         return replaceGroups(pattern, source, groups, "");
@@ -78,7 +76,6 @@ public final class RegexpHelper {
      * @param pattern complied pattern as regexp to find groups to remove
      * @param groups  list of groups to remove from fileName matching pattern
      * @return file name with remove groups from pattern
-     * @throws ModuleException
      */
     public static String replaceGroups(String pattern, String source, List<Integer> groups, String replacement)
         throws ModuleException {

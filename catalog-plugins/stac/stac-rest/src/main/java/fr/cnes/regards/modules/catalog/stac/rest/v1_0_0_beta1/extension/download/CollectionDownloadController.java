@@ -78,15 +78,17 @@ public class CollectionDownloadController implements TryToResponseEntity {
     private FeignSecurityManager feignSecurityManager;
 
     @Operation(summary = "Compute information for downloading a set of collections as zip at once or one by one",
-        description =
-            "For each collection and its item query parameters, a download link, the forecast download size and item number are given plus a"
-            + " link to download all at once")
-    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Zip download information prepared",
-        content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = FiltersByCollection.class)) }) })
+               description =
+                   "For each collection and its item query parameters, a download link, the forecast download size and item number are given plus a"
+                   + " link to download all at once")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "Zip download information prepared",
+                                         content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                              schema = @Schema(implementation = FiltersByCollection.class)) }) })
     @ResourceAccess(description = "Prepare information for collection download as zip", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX, method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                    method = RequestMethod.POST,
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DownloadPreparationResponse> prepareZipDownload(
         @RequestBody FiltersByCollection filtersByCollection) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -97,28 +99,30 @@ public class CollectionDownloadController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Download all collections as zip at once",
-        description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of all collections at once")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for all collections") })
+               description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of all collections at once")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for all collections") })
     @ResourceAccess(description = "Download all collections at once", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIPSTREAM_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIPSTREAM_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadAllCollectionsAsZipStream(final HttpServletResponse response,
                                                                                    @RequestParam(name = "tinyurl")
                                                                                    String tinyurl,
                                                                                    @RequestParam(name = "filename",
-                                                                                       defaultValue = "regards.zip")
+                                                                                                 defaultValue = "regards.zip")
                                                                                    String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response, Optional.empty(), tinyurl, filename));
     }
 
     @Operation(summary = "Download all collections as zip at once",
-        description = "Prepare NGINX mod_zip descriptor file to download all items of all collections at once")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for all collections") })
+               description = "Prepare NGINX mod_zip descriptor file to download all items of all collections at once")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for all collections") })
     @ResourceAccess(description = "Download all collections at once", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public void downloadAllCollectionsAsZip(final HttpServletResponse response,
                                             @RequestParam(name = "tinyurl") String tinyurl,
                                             @RequestParam(name = "filename", defaultValue = "regards.zip")
@@ -144,19 +148,20 @@ public class CollectionDownloadController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Download a single collection as zip",
-        description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of a single collection")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+               description = "(Stream) Prepare NGINX mod_zip descriptor file to download all items of a single collection")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for current collection") })
     @ResourceAccess(description = "(Stream) Download by collection", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadSingeCollectionAsZipStream(final HttpServletResponse response,
                                                                                     @PathVariable(name = "collectionId")
                                                                                     String collectionId,
                                                                                     @RequestParam(name = "tinyurl")
                                                                                     String tinyurl,
                                                                                     @RequestParam(name = "filename",
-                                                                                        defaultValue = "regards.zip")
+                                                                                                  defaultValue = "regards.zip")
                                                                                     String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response,
                                                                 Optional.of(collectionId),
@@ -165,22 +170,20 @@ public class CollectionDownloadController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Download a collection sample as zip",
-        description = "(Stream) Prepare NGINX mod_zip descriptor file to download first item of the collection")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+               description = "(Stream) Prepare NGINX mod_zip descriptor file to download first item of the collection")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for current collection") })
     @ResourceAccess(description = "(Stream) Download sample by collection", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIPSTREAM_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<StreamingResponseBody> downloadSingeCollectionSampleAsZipStream(final HttpServletResponse response,
-                                                                                          @PathVariable(
-                                                                                              name = "collectionId")
+                                                                                          @PathVariable(name = "collectionId")
                                                                                           String collectionId,
-                                                                                          @RequestParam(
-                                                                                              name = "tinyurl")
+                                                                                          @RequestParam(name = "tinyurl")
                                                                                           String tinyurl,
-                                                                                          @RequestParam(
-                                                                                              name = "filename",
-                                                                                              defaultValue = "regards.zip")
+                                                                                          @RequestParam(name = "filename",
+                                                                                                        defaultValue = "regards.zip")
                                                                                           String filename) {
         return toResponseEntity(delegateDownloadToNginxAsStream(response,
                                                                 Optional.of(collectionId),
@@ -190,12 +193,13 @@ public class CollectionDownloadController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Download a single collection as zip",
-        description = "Prepare NGINX mod_zip descriptor file to download all items of a single collection")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+               description = "Prepare NGINX mod_zip descriptor file to download all items of a single collection")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for current collection") })
     @ResourceAccess(description = "Download by collection", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_BY_COLLECTION_AS_ZIP_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public void downloadSingeCollectionAsZip(final HttpServletResponse response,
                                              @PathVariable(name = "collectionId") String collectionId,
                                              @RequestParam(name = "tinyurl") String tinyurl,
@@ -223,12 +227,13 @@ public class CollectionDownloadController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Download a collection sample as zip",
-        description = "Prepare NGINX mod_zip descriptor file to download first item of the collection")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "NGINX mod_zip descriptor built for current collection") })
+               description = "Prepare NGINX mod_zip descriptor file to download first item of the collection")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "NGINX mod_zip descriptor built for current collection") })
     @ResourceAccess(description = "Download sample by collection", role = DefaultRole.PUBLIC)
-    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX, method = RequestMethod.GET,
-        produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = STAC_DOWNLOAD_SAMPLE_BY_COLLECTION_AS_ZIP_SUFFIX,
+                    method = RequestMethod.GET,
+                    produces = MediaType.TEXT_PLAIN_VALUE)
     public void downloadSingeCollectionSampleAsZip(final HttpServletResponse response,
                                                    @PathVariable(name = "collectionId") String collectionId,
                                                    @RequestParam(name = "tinyurl") String tinyurl,

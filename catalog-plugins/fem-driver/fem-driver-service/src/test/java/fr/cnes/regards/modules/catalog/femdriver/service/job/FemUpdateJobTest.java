@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutionException;
  * @author Sébastien Binda
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemUpdateJobTest extends AbstractFemJobTest {
 
     @Autowired

@@ -72,8 +72,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Plugin(description = "Plugin to allow download on multiple data selection by creating an archive.",
-    id = "DownloadPlugin", version = "1.0.0", author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3",
-    owner = "CSSI", url = "https://github.com/RegardsOss")
+        id = "DownloadPlugin",
+        version = "1.0.0",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 @CatalogServicePlugin(applicationModes = { ServiceScope.MANY }, entityTypes = { EntityType.DATA })
 public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEntitiesServicePlugin {
 
@@ -104,16 +109,22 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
 
     private final Set<String> noProxyHosts = Sets.newHashSet();
 
-    @PluginParameter(label = "Maximum number of files", name = "maxFilesToDownload", defaultValue = "1000",
-        description = "Maximum number of files that this plugin allow to download.")
+    @PluginParameter(label = "Maximum number of files",
+                     name = "maxFilesToDownload",
+                     defaultValue = "1000",
+                     description = "Maximum number of files that this plugin allow to download.")
     private int maxFilesToDownload;
 
-    @PluginParameter(label = "Maximum total size for download (Mo)", name = "maxFilesSizeToDownload",
-        defaultValue = "100", description = "Maximum total size of selected files for one download.")
+    @PluginParameter(label = "Maximum total size for download (Mo)",
+                     name = "maxFilesSizeToDownload",
+                     defaultValue = "100",
+                     description = "Maximum total size of selected files for one download.")
     private int maxFilesSizeToDownload;
 
-    @PluginParameter(label = "Archive file name", name = "archiveFileName", defaultValue = "download.zip",
-        description = "Name of the archive containing all selected files for download.")
+    @PluginParameter(label = "Archive file name",
+                     name = "archiveFileName",
+                     defaultValue = "download.zip",
+                     description = "Name of the archive containing all selected files for download.")
     private String archiveFileName;
 
     @PluginInit
@@ -313,8 +324,10 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
             zos.putNextEntry(new ZipEntry(fileName));
             if (file.isReference() || (file.getChecksum() == null)) {
                 // Download file through its url
-                ByteStreams.copy(DownloadUtils.getInputStreamThroughProxy(getDataFileURL(file), proxy, noProxyHosts, new ArrayList<>()),
-                                 zos);
+                ByteStreams.copy(DownloadUtils.getInputStreamThroughProxy(getDataFileURL(file),
+                                                                          proxy,
+                                                                          noProxyHosts,
+                                                                          new ArrayList<>()), zos);
             } else {
                 // Retrieve file from storage by its checksum
                 Response response = null;

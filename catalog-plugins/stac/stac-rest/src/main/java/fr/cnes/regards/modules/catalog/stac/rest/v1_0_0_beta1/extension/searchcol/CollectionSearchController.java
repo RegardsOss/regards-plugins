@@ -88,7 +88,7 @@ public class CollectionSearchController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Search collection with simple filtering",
-        description = "Retrieve collection matching filters. Intended as a shorthand API for simple queries.")
+               description = "Retrieve collection matching filters. Intended as a shorthand API for simple queries.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
     @ResourceAccess(description = "Search collection with simple filtering", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
@@ -143,13 +143,14 @@ public class CollectionSearchController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Search collections with complex filtering using both collection and item query parameters",
-        description = "Retrieve collections matching filters. Full-featured query API.")
+               description = "Retrieve collections matching filters. Full-featured query API.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
     @ResourceAccess(description = "Search collection with complex filtering", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<SearchCollectionsResponse> complex(@RequestBody CollectionSearchBody collectionSearchBody,
-                                                             @RequestParam(name = PAGE_QUERY_PARAM, required = false,
-                                                                 defaultValue = "1") Integer page) {
+                                                             @RequestParam(name = PAGE_QUERY_PARAM,
+                                                                           required = false,
+                                                                           defaultValue = "1") Integer page) {
         final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
@@ -165,10 +166,10 @@ public class CollectionSearchController implements TryToResponseEntity {
                                                                                                             itemSearchBody.getOrNull())));
     }
 
-    @Operation(summary = "continue to next/previous search collection page", description =
-        "Pagination for search in STAC is done through links,"
-        + " this endpoint provides the way to reuse"
-        + " the same search parameters but skip to an offset of results.")
+    @Operation(summary = "continue to next/previous search collection page",
+               description = "Pagination for search in STAC is done through links,"
+                             + " this endpoint provides the way to reuse"
+                             + " the same search parameters but skip to an offset of results.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "A set of collections.") })
     @ResourceAccess(description = "continue to next/previous search page", role = DefaultRole.PUBLIC)
     @RequestMapping(path = "paginate", method = RequestMethod.GET)
@@ -186,14 +187,15 @@ public class CollectionSearchController implements TryToResponseEntity {
     }
 
     @Operation(summary = "Return the collections timeline",
-        description = "Search the timeline for each collection located in the request")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "A list of collections with their own timeline associated",
-            content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = @Schema(implementation = FiltersByCollection.class)) }) })
+               description = "Search the timeline for each collection located in the request")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "A list of collections with their own timeline associated",
+                                         content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                              schema = @Schema(implementation = FiltersByCollection.class)) }) })
     @ResourceAccess(description = "", role = DefaultRole.PUBLIC)
-    @RequestMapping(method = RequestMethod.POST, value = COLLECTIONS_TIMELINE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = RequestMethod.POST,
+                    value = COLLECTIONS_TIMELINE,
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TimelineByCollectionResponse> timelineCollections(
         @RequestBody TimelineFiltersByCollection timelineFiltersByCollection) {
         return ResponseEntity.ok(timelineService.buildCollectionsTimeline(timelineFiltersByCollection));

@@ -30,7 +30,7 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected String descriptiveInfoName;
 
     @PluginParameter(label = "Always",
-        description = "Is the information added all the time or only one AIP out of two?")
+                     description = "Is the information added all the time or only one AIP out of two?")
     protected Boolean always;
 
     @Override

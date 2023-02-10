@@ -114,7 +114,9 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
     public Aggregations getDatasetAggregations(String aggregationName, ICriterion itemCriteria, Long size) {
         SimpleSearchKey<AbstractEntity<?>> searchKey = searchDataKey();
         AggregationBuilder termsAggBuilder = AggregationBuilders.terms(aggregationName)
-                .field(StaticProperties.FEATURE_TAGS + ".keyword").size(size.intValue()).includeExclude(DATASET_ONLY);
+                                                                .field(StaticProperties.FEATURE_TAGS + ".keyword")
+                                                                .size(size.intValue())
+                                                                .includeExclude(DATASET_ONLY);
         return esRepository.getAggregationsFor(searchKey, itemCriteria, Lists.newArrayList(termsAggBuilder), 1000);
     }
 

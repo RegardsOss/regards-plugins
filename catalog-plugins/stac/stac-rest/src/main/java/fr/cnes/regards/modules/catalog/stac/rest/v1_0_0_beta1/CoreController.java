@@ -76,12 +76,12 @@ public class CoreController implements TryToResponseEntity {
         this.collectionService = collectionService;
     }
 
-    @Operation(summary = "landing page", description =
-        "Returns the root STAC Catalog or STAC Collection that is the entry "
-        + "point for users to browse with STAC Browser or for search engines to crawl. "
-        + "This can either return a single STAC Collection or more commonly a STAC catalog.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Links to the API definition and Feature Collections") })
+    @Operation(summary = "landing page",
+               description = "Returns the root STAC Catalog or STAC Collection that is the entry "
+                             + "point for users to browse with STAC Browser or for search engines to crawl. "
+                             + "This can either return a single STAC Collection or more commonly a STAC catalog.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "Links to the API definition and Feature Collections") })
     @ResourceAccess(description = "landing page", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CoreResponse> root() throws ModuleException {

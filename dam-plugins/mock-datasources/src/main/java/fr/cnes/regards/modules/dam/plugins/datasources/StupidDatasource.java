@@ -34,23 +34,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.OffsetDateTime;
 import java.util.*;
 
-@Plugin(id = "sutpid-datasource-plugin", version = "1.0-SNAPSHOT",
-    description = "Mock a datasource and always return 3 results at a time for a total of 20 results",
-    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-    url = "https://github.com/RegardsOss")
+@Plugin(id = "sutpid-datasource-plugin",
+        version = "1.0-SNAPSHOT",
+        description = "Mock a datasource and always return 3 results at a time for a total of 20 results",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class StupidDatasource implements IInternalDataSourcePlugin {
 
     private static final int NUMBER_ELEMENT = 20;
 
     private static final int STEP = 3;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
-        description = "Associated data source model name.")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "Model name",
+                     description = "Associated data source model name.")
     protected String modelName;
 
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "10000", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "10000",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private int refreshRate;
 
     @Autowired

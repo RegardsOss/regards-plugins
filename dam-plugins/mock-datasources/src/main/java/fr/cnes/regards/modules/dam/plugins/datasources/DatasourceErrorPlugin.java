@@ -49,38 +49,50 @@ import java.util.UUID;
  * called during the crawling of data.
  * See fr.cnes.regards.modules.crawler.service.CrawlingService from regards-oss-backend to understand the usage of this plugin.
  */
-@Plugin(id = "datasource-error-plugin", version = "1.0-SNAPSHOT", description = "Mock a datasource and triggers errors",
-    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-    url = "https://github.com/RegardsOss")
+@Plugin(id = "datasource-error-plugin",
+        version = "1.0-SNAPSHOT",
+        description = "Mock a datasource and triggers errors",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasourceErrorPlugin.class);
 
-    @PluginParameter(name = "throwDatasourceException", label = "throw DataSourceException",
-        description = "If DataSourceException should be thrown.")
+    @PluginParameter(name = "throwDatasourceException",
+                     label = "throw DataSourceException",
+                     description = "If DataSourceException should be thrown.")
     protected boolean throwDatasourceException;
 
-    @PluginParameter(name = "dataObjectsNum", label = "The number of data objects to generate.",
-        description = "Should be greater than 0.")
+    @PluginParameter(name = "dataObjectsNum",
+                     label = "The number of data objects to generate.",
+                     description = "Should be greater than 0.")
     protected int dataObjectsNum;
 
-    @PluginParameter(name = "cursorErrorPos", label = "The position from which a DataSourceException will be thrown.",
-        description =
-            "Should be greater than 0 and inferior to dataObjectsNum/CrawlerPropertiesConfiguration.maxBulkSize. "
-            + "Only active if throwDataSourceException is true.")
+    @PluginParameter(name = "cursorErrorPos",
+                     label = "The position from which a DataSourceException will be thrown.",
+                     description =
+                         "Should be greater than 0 and inferior to dataObjectsNum/CrawlerPropertiesConfiguration.maxBulkSize. "
+                         + "Only active if throwDataSourceException is true.")
     protected int cursorErrorPos;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "Model name",
-        description = "Associated data source model name.")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "Model name",
+                     description = "Associated data source model name.")
     protected String modelName;
 
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "10000", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "10000",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private int refreshRate;
 
-    @PluginParameter(name = "entityLastUpdate", label = "The date from which the data objects will be generated.",
-        description = "ISO8631 date. Example: 2022-06-17T14:00:00.248127109Z")
+    @PluginParameter(name = "entityLastUpdate",
+                     label = "The date from which the data objects will be generated.",
+                     description = "ISO8631 date. Example: 2022-06-17T14:00:00.248127109Z")
     private String entityLastUpdate;
 
     @Autowired

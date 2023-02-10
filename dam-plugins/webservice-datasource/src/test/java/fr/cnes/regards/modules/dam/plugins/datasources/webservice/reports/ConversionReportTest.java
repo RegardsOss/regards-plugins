@@ -19,7 +19,7 @@ import java.util.SortedMap;
  * @author Raphaël Mechali
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 @RegardsTransactional
 public class ConversionReportTest extends AbstractRegardsServiceTransactionalIT {
 

@@ -13,9 +13,14 @@ import java.util.Set;
  *
  * @author Sylvain VISSIERE-GUERINET
  */
-@Plugin(author = "REGARDS Team", description = "Add string array value to generated AIP",
-    id = "StringArrayEnhancedDescriptiveAipGeneration", version = "1.0.0", contact = "regards@c-s.fr",
-    license = "GPLv3", owner = "CNES", url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Add string array value to generated AIP",
+        id = "StringArrayEnhancedDescriptiveAipGeneration",
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class StringArrayEnhancedDescriptiveAipGeneration extends AbstractEnhancedDescriptiveAipGeneration {
 
     @PluginParameter(label = "Values of the descriptive information to add")

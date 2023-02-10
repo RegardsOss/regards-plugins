@@ -54,11 +54,11 @@ public class ConformanceController implements TryToResponseEntity {
                                                             "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson");
 
     @Operation(summary = "information about specifications that this API conforms to",
-        description = "A list of all conformance classes specified in a standard that the server conforms to.")
+               description = "A list of all conformance classes specified in a standard that the server conforms to.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200",
-        description = "The URIs of all conformance classes supported by the server.") })
+                                         description = "The URIs of all conformance classes supported by the server.") })
     @ResourceAccess(description = "information about specifications that this API conforms to",
-        role = DefaultRole.PUBLIC)
+                    role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<ConformanceResponse> conformance() {
         return toResponseEntity(trying(() -> new ConformanceResponse(CONFORMANCES)).mapFailure(

@@ -67,16 +67,22 @@ public class StacPropertyConfiguration extends StacSimplePropertyConfiguration {
         this.stacDynamicCollectionFormat = stacDynamicCollectionFormat;
     }
 
-    @PluginParameter(name = "stacComputeSummary", label = "Compute summary", description =
-        "Whether a summary should be computed for this property in the collections."
-        + " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'.")
+    @PluginParameter(name = "stacComputeSummary",
+                     label = "Compute summary",
+                     description = "Whether a summary should be computed for this property in the collections."
+                                   + " Only applicable for STAC type value among 'ANGLE', 'LENGTH', 'PERCENTAGE' and 'NUMBER'.")
     private Boolean stacComputeSummary;
 
-    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_LEVEL, label = "STAC dynamic collection level",
-        markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD, defaultValue = "-1", optional = true)
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_LEVEL,
+                     label = "STAC dynamic collection level",
+                     markdown = STAC_DYNAMIC_COLLECTION_LEVEL_MD,
+                     defaultValue = "-1",
+                     optional = true)
     private Integer stacDynamicCollectionLevel;
 
-    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_FORMAT, label = "STAC dynamic collection format",
-        markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD, optional = true)
+    @PluginParameter(name = STAC_DYNAMIC_COLLECTION_FORMAT,
+                     label = "STAC dynamic collection format",
+                     markdown = STAC_DYNAMIC_COLLECTION_FORMAT_MD,
+                     optional = true)
     private String stacDynamicCollectionFormat;
 }

@@ -36,7 +36,7 @@ import java.util.*;
  * Tests features conversion with results files
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 @RegardsTransactional
 public class FeaturesConverterTest extends AbstractRegardsServiceTransactionalIT {
 

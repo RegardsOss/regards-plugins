@@ -50,9 +50,14 @@ import java.util.stream.Collectors;
  *
  * @author Thibaud Michaudel
  */
-@Plugin(author = "REGARDS Team", description = "Default recipient sender", id = LtaRequestSender.PLUGIN_ID,
-    version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Default recipient sender",
+        id = LtaRequestSender.PLUGIN_ID,
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class LtaRequestSender extends AbstractRabbitMQSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LtaRequestSender.class);
@@ -79,39 +84,45 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
     @Autowired
     private Gson gson;
 
-    @PluginParameter(label = "Data Type", description = "Product datatype of the generated DTOs.",
-        name = DATATYPE_PARAM_NAME)
+    @PluginParameter(label = "Data Type",
+                     description = "Product datatype of the generated DTOs.",
+                     name = DATATYPE_PARAM_NAME)
     private String dataType;
 
     @PluginParameter(label = "Pattern to name the session on the dashboard (optional).",
-        name = SESSION_NAME_PATTERN_PARAM_NAME, description =
-        "If the parameter is not filled, the session will be named with the metadata of "
-        + "the requests received. If a value is provided, the session will be named the following way "
-        + "\"{<jsonPathToAccessProductType>}-#day(.*)\""
-        + ", where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
-        + "The RegExp could be for instance : \"{properties.data.type}-#day-foo\". "
-        + "The parameter properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
-        + "formatted current date. Note that any additional parameters can be provided after #day to help "
-        + "identifying the session names on the dashboard. If the pattern is not found, the "
-        + "session will be named with the pattern "
-        + SESSION_NAME_PATTERN_ERROR
-        + ". In that "
-        + "case, check if the path to access the product type is valid and if the regexp match the "
-        + "pattern mentioned before.", optional = true)
+                     name = SESSION_NAME_PATTERN_PARAM_NAME,
+                     description = "If the parameter is not filled, the session will be named with the metadata of "
+                                   + "the requests received. If a value is provided, the session will be named the following way "
+                                   + "\"{<jsonPathToAccessProductType>}-#day(.*)\""
+                                   + ", where the parameter <jsonPathToAccessProductType> has to be replaced with the json path to access the product type. "
+                                   + "The RegExp could be for instance : \"{properties.data.type}-#day-foo\". "
+                                   + "The parameter properties.data.type will be replaced with the corresponding product type and #day with the ISO_LOCAL_DATE "
+                                   + "formatted current date. Note that any additional parameters can be provided after #day to help "
+                                   + "identifying the session names on the dashboard. If the pattern is not found, the "
+                                   + "session will be named with the pattern "
+                                   + SESSION_NAME_PATTERN_ERROR
+                                   + ". In that "
+                                   + "case, check if the path to access the product type is valid and if the regexp match the "
+                                   + "pattern mentioned before.",
+                     optional = true)
     private String sessionNamePattern;
 
-    @PluginParameter(label = "Recipient tenant (optional)", name = RECIPIENT_TENANT_PARAM_NAME,
-        description = "Specify the recipient tenant in case it is different from the one sending the messages.",
-        optional = true)
+    @PluginParameter(label = "Recipient tenant (optional)",
+                     name = RECIPIENT_TENANT_PARAM_NAME,
+                     description = "Specify the recipient tenant in case it is different from the one sending the messages.",
+                     optional = true)
     private String recipientTenant;
 
-    @PluginParameter(label = "Replace Mode", description = "Behaviour when the request already exists",
-        name = REPLACE_MODE_PARAM_NAME)
+    @PluginParameter(label = "Replace Mode",
+                     description = "Behaviour when the request already exists",
+                     name = REPLACE_MODE_PARAM_NAME)
     private boolean replaceMode;
 
     @PluginParameter(label = "Recipient acknowledgment",
-        description = "When value is True, the recipient will send back an acknowledgment.",
-        name = ACK_REQUIRED_PARAM_NAME, optional = true, defaultValue = "false")
+                     description = "When value is True, the recipient will send back an acknowledgment.",
+                     name = ACK_REQUIRED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
     private boolean ackRequired;
 
     @Override

@@ -39,9 +39,13 @@ import java.util.*;
  * @author Iliana Ghazali
  **/
 @Plugin(author = "REGARDS Team",
-    description = "The purpose of this plugin is to send worker manager processing requests.",
-    id = WorkerManagerSender.PLUGIN_ID, version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3",
-    owner = "CNES", url = "https://regardsoss.github.io/")
+        description = "The purpose of this plugin is to send worker manager processing requests.",
+        id = WorkerManagerSender.PLUGIN_ID,
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class WorkerManagerSender extends AbstractRabbitMQSender {
 
     //@formatter:off

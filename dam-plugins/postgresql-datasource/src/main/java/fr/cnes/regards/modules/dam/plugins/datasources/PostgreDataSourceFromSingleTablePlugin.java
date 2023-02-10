@@ -52,9 +52,14 @@ import java.util.List;
  * @author Christophe Mertz
  * @since 1.0-SNAPSHOT
  */
-@Plugin(id = "postgresql-datasource-single-table", version = "2.0-SNAPSHOT",
-    description = "Allows introspection and data extraction to a PostgreSql database", author = "REGARDS Team",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+@Plugin(id = "postgresql-datasource-single-table",
+        version = "2.0-SNAPSHOT",
+        description = "Allows introspection and data extraction to a PostgreSql database",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSourceFromSingleTablePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourceFromSingleTablePlugin.class);
@@ -62,21 +67,27 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
     @PluginParameter(name = DataSourcePluginConstants.CONNECTION_PARAM, label = "Database connection plugin")
     private IDBConnectionPlugin dbConnection;
 
-    @PluginParameter(name = DataSourcePluginConstants.TABLE_PARAM, label = "Table name",
-        description = "Database table name to be requested")
+    @PluginParameter(name = DataSourcePluginConstants.TABLE_PARAM,
+                     label = "Table name",
+                     description = "Database table name to be requested")
     private String tableName;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM, label = "model attributes mapping",
-        description = "Mapping between model and database table (in JSON format)")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                     label = "model attributes mapping",
+                     description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;
 
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "86400",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
-        description = "Common tags to be put on all data objects created by the data source")
+    @PluginParameter(name = DataSourcePluginConstants.TAGS,
+                     label = "data objects common tags",
+                     optional = true,
+                     description = "Common tags to be put on all data objects created by the data source")
     private final List<String> commonTags = Collections.emptyList();
 
     /**

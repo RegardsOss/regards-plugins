@@ -36,18 +36,22 @@ public final class RequestHelper {
 
     public static final String LIMIT_CLAUSE = " ORDER BY %s LIMIT %d OFFSET %d";
 
-
     public static String mergeWhereClause(String request, String additionalWhereClause) {
         if (additionalWhereClause != null && !additionalWhereClause.isEmpty()) {
             Optional<String> firstWhereClause = getWhereClauseFromRequest(request);
             Optional<String> secondWhereClause = getWhereClauseFromRequest(additionalWhereClause);
             if (firstWhereClause.isPresent() && secondWhereClause.isPresent()) {
-                return request.replace(firstWhereClause.get(), String.format("(%s) AND (%s)",firstWhereClause.get(), secondWhereClause.get()));
+                return request.replace(firstWhereClause.get(),
+                                       String.format("(%s) AND (%s)", firstWhereClause.get(), secondWhereClause.get()));
             } else if (firstWhereClause.isPresent()) {
                 return request;
-            } else if (secondWhereClause.isPresent()){
+            } else if (secondWhereClause.isPresent()) {
                 int requestInsertionIndex = getBeforeWhereClauseIndex(request);
-                return String.format("%s%s%s%s", request.substring(0,requestInsertionIndex), WHERE, secondWhereClause.get(), request.substring(requestInsertionIndex));
+                return String.format("%s%s%s%s",
+                                     request.substring(0, requestInsertionIndex),
+                                     WHERE,
+                                     secondWhereClause.get(),
+                                     request.substring(requestInsertionIndex));
             }
         }
         return request;

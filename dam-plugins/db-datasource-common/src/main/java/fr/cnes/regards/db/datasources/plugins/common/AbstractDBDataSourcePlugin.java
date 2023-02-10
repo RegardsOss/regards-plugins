@@ -58,9 +58,7 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
     protected abstract String getFromClause();
 
     protected String getSelectRequest(Pageable pageable, OffsetDateTime sinceData) {
-        String request = RequestHelper.SELECT
-                         + buildColumnClause(columns.toArray(new String[0]))
-                         + getFromClause();
+        String request = RequestHelper.SELECT + buildColumnClause(columns.toArray(new String[0])) + getFromClause();
         if ((sinceData != null) && !getLastUpdateAttributeName().isEmpty()) {
             String additionalWhereClause = RequestHelper.WHERE
                                            + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
@@ -71,7 +69,9 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
 
     protected String getCountRequest(OffsetDateTime sinceDate) {
         if ((sinceDate != null) && !getLastUpdateAttributeName().isEmpty()) {
-            return RequestHelper.mergeWhereClause(RequestHelper.SELECT_COUNT + getFromClause(), RequestHelper.WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD);
+            return RequestHelper.mergeWhereClause(RequestHelper.SELECT_COUNT + getFromClause(),
+                                                  RequestHelper.WHERE
+                                                  + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD);
         } else {
             return RequestHelper.SELECT_COUNT + getFromClause();
         }

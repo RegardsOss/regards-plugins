@@ -44,10 +44,15 @@ import java.util.List;
  *
  * @author Marc SORDI
  */
-@Plugin(id = StacSearchCollectionEngine.PLUGIN_ID, version = "1.0.0",
-    description = "Extend th STAC API for collection search", author = "REGARDS Team",
-    contact = "regards@csgroup.eu.fr", license = "GPLv3", owner = "CS GROUP FRANCE",
-    url = "https://github.com/RegardsOss", markdown = "StacSearchCollectionEngine.md")
+@Plugin(id = StacSearchCollectionEngine.PLUGIN_ID,
+        version = "1.0.0",
+        description = "Extend th STAC API for collection search",
+        author = "REGARDS Team",
+        contact = "regards@csgroup.eu.fr",
+        license = "GPLv3",
+        owner = "CS GROUP FRANCE",
+        url = "https://github.com/RegardsOss",
+        markdown = "StacSearchCollectionEngine.md")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -48,9 +48,14 @@ import java.util.List;
  * @author Christophe Mertz
  * @since 1.0-SNAPSHOT
  */
-@Plugin(id = "postgresql-datasource", version = "2.0-SNAPSHOT",
-    description = "Allows data extraction to a PostgreSql database", author = "REGARDS Team",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+@Plugin(id = "postgresql-datasource",
+        version = "2.0-SNAPSHOT",
+        description = "Allows data extraction to a PostgreSql database",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreDataSourcePlugin.class);
@@ -61,21 +66,27 @@ public class PostgreDataSourcePlugin extends AbstractDBDataSourcePlugin {
     @PluginParameter(name = DataSourcePluginConstants.FROM_CLAUSE, label = "SQL FROM clause")
     private String sqlFromClause;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-        description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "model name",
+                     description = "Associated data source model name")
     private String modelName;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM, label = "model attributes mapping",
-        description = "Mapping between model and database table (in JSON format)")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_MAPPING_PARAM,
+                     label = "model attributes mapping",
+                     description = "Mapping between model and database table (in JSON format)")
     private List<AbstractAttributeMapping> attributesMapping;
 
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "86400",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
-        description = "Common tags to be put on all data objects created by the data source")
+    @PluginParameter(name = DataSourcePluginConstants.TAGS,
+                     label = "data objects common tags",
+                     optional = true,
+                     description = "Common tags to be put on all data objects created by the data source")
     private final Collection<String> commonTags = Collections.emptyList();
 
     /**

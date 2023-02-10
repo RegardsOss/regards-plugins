@@ -25,26 +25,25 @@ import java.util.Optional;
 
 public class RequestHelperTest {
 
-
     @Test
     public void getWhereClauseFromRequestTest() {
         String expectedWhereClause = "titi.first= 'toto' and titi.second = 'titi'";
-        String request = "select toto from titi where "+expectedWhereClause+ " order by titi.third";
+        String request = "select toto from titi where " + expectedWhereClause + " order by titi.third";
         Optional<String> whereClause = RequestHelper.getWhereClauseFromRequest(request);
         Assert.assertTrue(whereClause.isPresent());
         Assert.assertEquals(expectedWhereClause, whereClause.get());
 
-        request = "select toto from titi where "+expectedWhereClause;
+        request = "select toto from titi where " + expectedWhereClause;
         whereClause = RequestHelper.getWhereClauseFromRequest(request);
         Assert.assertTrue(whereClause.isPresent());
         Assert.assertEquals(expectedWhereClause, whereClause.get());
 
-        request = "select toto from titi where "+expectedWhereClause + " group by titi.third;";
+        request = "select toto from titi where " + expectedWhereClause + " group by titi.third;";
         whereClause = RequestHelper.getWhereClauseFromRequest(request);
         Assert.assertTrue(whereClause.isPresent());
         Assert.assertEquals(expectedWhereClause, whereClause.get());
 
-        request = "select toto from titi where "+expectedWhereClause + " group by titi.third order by titi.third;";
+        request = "select toto from titi where " + expectedWhereClause + " group by titi.third order by titi.third;";
         whereClause = RequestHelper.getWhereClauseFromRequest(request);
         Assert.assertTrue(whereClause.isPresent());
         Assert.assertEquals(expectedWhereClause, whereClause.get());
@@ -59,7 +58,7 @@ public class RequestHelperTest {
         String additionalWhereWlause = "date < '2020T0101'";
         String additionalMergeClause = " WHERE " + additionalWhereWlause;
         String firstWhereClause = "titi.first= 'toto' and titi.second = 'titi'";
-        String expectedWhereClause = String.format("(%s) AND (%s)",firstWhereClause, additionalWhereWlause);
+        String expectedWhereClause = String.format("(%s) AND (%s)", firstWhereClause, additionalWhereWlause);
         String requestTemplate = "select toto from titi where %s order by titi.third";
         String request = String.format(requestTemplate, firstWhereClause);
         String mergedRequest = RequestHelper.mergeWhereClause(request, additionalMergeClause);
@@ -85,8 +84,6 @@ public class RequestHelperTest {
         Assert.assertTrue(mergedRequest != null);
         Assert.assertEquals("select toto from titi WHERE date < '2020T0101'", mergedRequest);
 
-
     }
-
 
 }

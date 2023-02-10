@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransactionalIT {
 
     @Autowired

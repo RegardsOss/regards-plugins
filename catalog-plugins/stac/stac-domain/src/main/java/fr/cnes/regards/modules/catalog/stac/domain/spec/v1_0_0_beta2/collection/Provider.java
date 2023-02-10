@@ -39,8 +39,10 @@ import java.net.URL;
 public class Provider {
 
     public enum ProviderRole {
-        @SerializedName("licensor") LICENSOR, @SerializedName("producer") PRODUCER, @SerializedName(
-            "processor") PROCESSOR, @SerializedName("host") HOST
+        @SerializedName("licensor") LICENSOR,
+        @SerializedName("producer") PRODUCER,
+        @SerializedName("processor") PROCESSOR,
+        @SerializedName("host") HOST
     }
 
     String name;

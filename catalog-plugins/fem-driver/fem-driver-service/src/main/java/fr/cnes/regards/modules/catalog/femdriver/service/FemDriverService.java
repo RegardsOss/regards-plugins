@@ -74,7 +74,6 @@ public class FemDriverService {
      *
      * @param request {@link FeatureUpdateRequest}
      * @return {@link JobInfo} of  scheduled job
-     * @throws ModuleException
      */
     public JobInfo scheduleUpdate(FeatureUpdateRequest request) throws ModuleException {
         Set<JobParameter> jobParameters = Sets.newHashSet();
@@ -88,7 +87,6 @@ public class FemDriverService {
      *
      * @param request {@link SearchRequest}
      * @return {@link JobInfo} of  scheduled job
-     * @throws ModuleException
      */
     public JobInfo scheduleDeletion(SearchRequest request) {
         Set<JobParameter> jobParameters = Sets.newHashSet();
@@ -146,7 +144,6 @@ public class FemDriverService {
      *
      * @param request {@link SearchRequest}
      * @return {@link JobInfo} of  scheduled job
-     * @throws ModuleException
      */
     public JobInfo scheduleNotification(SearchRequest request) {
         Set<JobParameter> jobParameters = Sets.newHashSet();

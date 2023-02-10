@@ -35,7 +35,7 @@ import org.springframework.context.annotation.*;
 @Profile("IngesterTest")
 @Configuration
 @PropertySource(value = { "classpath:test2.properties", "classpath:test2_${user.name}.properties" },
-    ignoreResourceNotFound = true)
+                ignoreResourceNotFound = true)
 public class IngesterConfiguration {
 
     @Bean

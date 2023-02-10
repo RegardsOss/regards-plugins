@@ -59,11 +59,10 @@ public class FemDriverController {
     private FemDriverService femDriverService;
 
     @Operation(summary = "Schedule FEM Feature updates",
-        description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
+               description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
-    @ResourceAccess(
-        description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request",
-        role = DefaultRole.EXPLOIT)
+    @ResourceAccess(description = "Schedule feature updates on FEM microserice for each catalog entity matching given search request",
+                    role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_UPDATE_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> updateFeatures(
         @Parameter(description = "Contain feature seach request and feature properties to update") @Valid @RequestBody
@@ -73,11 +72,10 @@ public class FemDriverController {
     }
 
     @Operation(summary = "Schedule FEM Feature deletion",
-        description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
+               description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
-    @ResourceAccess(
-        description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request",
-        role = DefaultRole.EXPLOIT)
+    @ResourceAccess(description = "Schedule feature deletion on FEM microserice for each catalog entity matching given search request",
+                    role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_DELETE_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteFeatures(
         @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
@@ -87,11 +85,10 @@ public class FemDriverController {
     }
 
     @Operation(summary = "Schedule FEM Feature notification",
-        description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
+               description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request")
     @ApiResponses(value = { @ApiResponse(responseCode = "204", description = "No response content") })
-    @ResourceAccess(
-        description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request",
-        role = DefaultRole.EXPLOIT)
+    @ResourceAccess(description = "Schedule feature notification on FEM microserice for each catalog entity matching given search request",
+                    role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> notifyFeatures(
         @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)

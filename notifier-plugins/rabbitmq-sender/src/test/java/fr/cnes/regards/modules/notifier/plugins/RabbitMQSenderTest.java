@@ -57,9 +57,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @ContextConfiguration(classes = { RabbitMQSenderTest.ScanningConfiguration.class })
 @EnableAutoConfiguration(exclude = { JpaRepositoriesAutoConfiguration.class, FlywayAutoConfiguration.class })
 @PropertySource({ "classpath:amqp.properties", "classpath:cloud.properties" })
-@TestPropertySource(
-    properties = { "regards.amqp.enabled=true", "spring.application.name=rs-test", "regards.cipher.iv=1234567812345678",
-        "regards.cipher.keyLocation=src/test/resources/testKey" })
+@TestPropertySource(properties = { "regards.amqp.enabled=true",
+                                   "spring.application.name=rs-test",
+                                   "regards.cipher.iv=1234567812345678",
+                                   "regards.cipher.keyLocation=src/test/resources/testKey" })
 public class RabbitMQSenderTest {
 
     @Configuration

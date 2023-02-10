@@ -55,7 +55,7 @@ import java.util.List;
  * @author Marc SORDI
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
+                    properties = { "regards.tenant=swot", "spring.jpa.properties.hibernate.default_schema=swot" })
 @MultitenantTransactional
 public class SwotEngineControllerIT extends AbstractStacIT {
 

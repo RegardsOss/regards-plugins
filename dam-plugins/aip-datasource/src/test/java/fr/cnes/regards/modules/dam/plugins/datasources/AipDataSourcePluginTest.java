@@ -113,8 +113,9 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                                                         IPluginParam.build(DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE,
                                                                            "ALTITUDE.SIZE"));
 
-        aipDataSourcePlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class, null, parameters),
-                                                    pluginCacheMap);
+        aipDataSourcePlugin = PluginUtils.getPlugin(PluginConfiguration.build(AipDataSourcePlugin.class,
+                                                                              null,
+                                                                              parameters), pluginCacheMap);
 
     }
 
@@ -212,7 +213,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
     public void test() throws DataSourceException {
         // Given
         String tenant = getDefaultTenant();
-        CrawlingCursor crawlingCursor=new CrawlingCursor(0, 10);
+        CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
 
         // When
         List<DataObjectFeature> dataObjects = aipDataSourcePlugin.findAll(tenant, crawlingCursor, null);

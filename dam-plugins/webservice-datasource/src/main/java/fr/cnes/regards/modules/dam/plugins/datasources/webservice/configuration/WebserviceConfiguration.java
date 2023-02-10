@@ -25,38 +25,50 @@ public class WebserviceConfiguration {
     @PluginParameter(name = "opensearchDescriptorURL", label = "Opensearch descriptor URL")
     private String opensearchDescriptorURL;
 
-    @PluginParameter(name = "webserviceParameters", label = "Webservice query parameters", optional = true,
-        description = "Webservice query parameters, restricting results set", keylabel = "parameter name")
+    @PluginParameter(name = "webserviceParameters",
+                     label = "Webservice query parameters",
+                     optional = true,
+                     description = "Webservice query parameters, restricting results set",
+                     keylabel = "parameter name")
     private Map<String, Object> webserviceParameters;
 
-    @PluginParameter(name = "pageIndexParam", label = "Page index parameter",
-        description = "Name of the parameter to use in query in order to specify the page index")
+    @PluginParameter(name = "pageIndexParam",
+                     label = "Page index parameter",
+                     description = "Name of the parameter to use in query in order to specify the page index")
     private String pageIndexParam;
 
-    @PluginParameter(name = "pageSizeParam", label = "Page size parameter",
-        description = "Name of the parameter to use in query in order in order to specify the page size")
+    @PluginParameter(name = "pageSizeParam",
+                     label = "Page size parameter",
+                     description = "Name of the parameter to use in query in order in order to specify the page size")
     private String pageSizeParam;
 
     /**
      * Data updated parameter name, optional as a customer request but omitting that parameter could be leading into performances issues
      */
-    @PluginParameter(name = "lastUpdateParam", label = "Last update parameter", optional = true,
-        description = "Name of the parameter to use in query in order to specify the results last update lower date (others should not be returned)")
+    @PluginParameter(name = "lastUpdateParam",
+                     label = "Last update parameter",
+                     optional = true,
+                     description = "Name of the parameter to use in query in order to specify the results last update lower date (others should not be returned)")
     private String lastUpdateParam;
 
     /**
      * Server start page index (1 when not provided)
      */
-    @PluginParameter(name = "startPageIndex", label = "Start page index", optional = true, defaultValue = "1",
-        description = "Server start page index")
+    @PluginParameter(name = "startPageIndex",
+                     label = "Start page index",
+                     optional = true,
+                     defaultValue = "1",
+                     description = "Server start page index")
     private Integer startPageIndex;
 
     /**
      * Server page size (not mandatory, defaults to crawler provided size). Support for THEIA like servers
      * that send errors when requesting a first page larger than where they expect (twisted behavior...)
      */
-    @PluginParameter(name = "pagesSize", label = "Page sizes", optional = true,
-        description = "Server pages size (for servers sending errors when page size is too large)")
+    @PluginParameter(name = "pagesSize",
+                     label = "Page sizes",
+                     optional = true,
+                     description = "Server pages size (for servers sending errors when page size is too large)")
     private Integer pagesSize;
 
     /**

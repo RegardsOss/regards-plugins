@@ -52,7 +52,7 @@ import java.util.concurrent.Future;
  * @author Christophe Mertz
  */
 @TestPropertySource(locations = { "classpath:datasource-test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSqlConnectionPluginTest.class);

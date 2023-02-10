@@ -51,7 +51,8 @@ import java.util.UUID;
  * @author Marc SORDI
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "regards.tenant=timeline", "spring.jpa.properties.hibernate.default_schema=timeline" })
+                    properties = { "regards.tenant=timeline",
+                                   "spring.jpa.properties.hibernate.default_schema=timeline" })
 public class TimelineIT extends AbstractStacIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TimelineIT.class);

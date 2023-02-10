@@ -122,7 +122,9 @@ public class AipDataSourcePluginTestConfiguration {
                                                       sip,
                                                       1,
                                                       SIPState.STORED);
-                filters.getAipStates().getValues().forEach(aipState -> aipEntities.add(AIPEntity.build(sipEntity, aipState, aip)));
+                filters.getAipStates()
+                       .getValues()
+                       .forEach(aipState -> aipEntities.add(AIPEntity.build(sipEntity, aipState, aip)));
             }
 
             List<EntityModel<AIPEntity>> list = aipEntities.stream().map(EntityModel::of).collect(Collectors.toList());

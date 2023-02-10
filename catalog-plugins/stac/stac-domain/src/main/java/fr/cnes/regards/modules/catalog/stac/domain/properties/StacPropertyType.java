@@ -46,7 +46,8 @@ public enum StacPropertyType {
 
     // REPRESENTED AS STRINGS IN JSON
 
-    DATETIME(true, PropertyType.DATE_ISO8601, OffsetDateTime.class), URL(PropertyType.URL, java.net.URL.class),
+    DATETIME(true, PropertyType.DATE_ISO8601, OffsetDateTime.class),
+    URL(PropertyType.URL, java.net.URL.class),
     /**
      * Default value
      */
@@ -54,12 +55,10 @@ public enum StacPropertyType {
 
     // REPRESENTED AS NUMBERS IN JSON
 
-    ANGLE(true, PropertyType.DOUBLE, Double.class), LENGTH(true, PropertyType.DOUBLE, Double.class), PERCENTAGE(true,
-                                                                                                                PropertyType.DOUBLE,
-                                                                                                                Double.class), NUMBER(
-        true,
-        PropertyType.DOUBLE,
-        Double.class),
+    ANGLE(true, PropertyType.DOUBLE, Double.class),
+    LENGTH(true, PropertyType.DOUBLE, Double.class),
+    PERCENTAGE(true, PropertyType.DOUBLE, Double.class),
+    NUMBER(true, PropertyType.DOUBLE, Double.class),
 
     // REPRESENTED AS BOOLEANS IN JSON
 

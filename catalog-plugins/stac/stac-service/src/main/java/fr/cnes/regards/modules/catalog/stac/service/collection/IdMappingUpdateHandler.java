@@ -64,8 +64,9 @@ public class IdMappingUpdateHandler
     public void handle(String tenant, BroadcastEntityEvent event) {
         try {
             runtimeTenantResolver.forceTenant(tenant);
-            if (isDatasetOrCollectionCreationEvent(event))
+            if (isDatasetOrCollectionCreationEvent(event)) {
                 idMappingService.initOrUpdateCache(tenant);
+            }
         } finally {
             runtimeTenantResolver.clearTenant();
         }

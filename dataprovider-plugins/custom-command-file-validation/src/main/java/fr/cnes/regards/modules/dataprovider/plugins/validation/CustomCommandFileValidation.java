@@ -41,32 +41,44 @@ import java.util.concurrent.TimeUnit;
  *
  * @author sbinda
  */
-@Plugin(id = "CustomCommandFileValidationPlugin", version = "0.4.0",
-    description = "Plugin to validate file to acquire by running a custom command", author = "REGARDS Team",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+@Plugin(id = "CustomCommandFileValidationPlugin",
+        version = "0.4.0",
+        description = "Plugin to validate file to acquire by running a custom command",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class CustomCommandFileValidation implements IValidationPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomCommandFileValidation.class);
 
     @PluginParameter(label = "Initialization command",
-        description = "An optional command to execute before files validation process.", name = "initCommand",
-        optional = true)
+                     description = "An optional command to execute before files validation process.",
+                     name = "initCommand",
+                     optional = true)
     private String initCommand;
 
-    @PluginParameter(label = "File validation command", description = "Custom command to execute to valid each file. "
-                                                                      + "Use token ${file} in your command to add the absolute file path to validate. "
-                                                                      + "Due to implementation limitation, you need to create your own shell script if you need shell processing "
-                                                                      + "features like variable substitution, or chaining multiple commands together",
-        name = "customCommand", optional = false)
+    @PluginParameter(label = "File validation command",
+                     description = "Custom command to execute to valid each file. "
+                                   + "Use token ${file} in your command to add the absolute file path to validate. "
+                                   + "Due to implementation limitation, you need to create your own shell script if you need shell processing "
+                                   + "features like variable substitution, or chaining multiple commands together",
+                     name = "customCommand",
+                     optional = false)
     private String customCommand;
 
     @PluginParameter(label = "Command valid expected result value",
-        description = "Expected result value from the command for valid files", name = "expectedCommandResult",
-        optional = false)
+                     description = "Expected result value from the command for valid files",
+                     name = "expectedCommandResult",
+                     optional = false)
     private final List<Integer> expectedCommandResults = Lists.newArrayList();
 
-    @PluginParameter(label = "Command timeout in ms", description = "Maximum number of ms to wait for command ends",
-        name = "commandTimeout", optional = true, defaultValue = "10000")
+    @PluginParameter(label = "Command timeout in ms",
+                     description = "Maximum number of ms to wait for command ends",
+                     name = "commandTimeout",
+                     optional = true,
+                     defaultValue = "10000")
     private long commandTimeout;
 
     @Autowired

@@ -43,7 +43,7 @@ import java.util.UUID;
 
 @ActiveProfiles({ "test", "feign" })
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
 
     public static final String ITEMS_TENANT = "PROJECT";

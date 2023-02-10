@@ -33,20 +33,28 @@ import java.util.List;
 @NoArgsConstructor
 public class CollectionConfiguration {
 
-    @PluginParameter(name = "datasetUrns", label = "Dataset URNs",
-        description = "URN of the datasets concerned by this collection configuration.", optional = true)
+    @PluginParameter(name = "datasetUrns",
+                     label = "Dataset URNs",
+                     description = "URN of the datasets concerned by this collection configuration.",
+                     optional = true)
     List<String> datasetUrns;
 
-    @PluginParameter(name = "license", label = "License",
-        description = "Which license this collection is released under.", optional = true)
+    @PluginParameter(name = "license",
+                     label = "License",
+                     description = "Which license this collection is released under.",
+                     optional = true)
     String license;
 
-    @PluginParameter(name = "keywords", label = "Keywords",
-        description = "Which keywords this collection corresponds to.", optional = true)
+    @PluginParameter(name = "keywords",
+                     label = "Keywords",
+                     description = "Which keywords this collection corresponds to.",
+                     optional = true)
     List<String> keywords;
 
-    @PluginParameter(name = "providers", label = "Providers", description = "Define providers for dataset URN.",
-        optional = true)
+    @PluginParameter(name = "providers",
+                     label = "Providers",
+                     description = "Define providers for dataset URN.",
+                     optional = true)
     List<ProviderConfiguration> providers;
 
 }

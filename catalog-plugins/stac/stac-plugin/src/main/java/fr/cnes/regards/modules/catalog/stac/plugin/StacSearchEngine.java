@@ -43,9 +43,15 @@ import org.springframework.http.ResponseEntity;
 import java.net.URI;
 import java.util.List;
 
-@Plugin(id = StacSearchEngine.PLUGIN_ID, version = "1.0.0", description = "Allow usage of the STAC API",
-    author = "REGARDS Team", contact = "regards@c-s.fr", license = "GPLv3", owner = "CSSI",
-    url = "https://github.com/RegardsOss", markdown = "StacSearchEngine.md")
+@Plugin(id = StacSearchEngine.PLUGIN_ID,
+        version = "1.0.0",
+        description = "Allow usage of the STAC API",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss",
+        markdown = "StacSearchEngine.md")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -59,25 +65,36 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @Autowired
     private LinkCreatorService linkCreator;
 
-    @PluginParameter(name = "stac-api-title", label = "STAC title", description = "Title for the root STAC catalog.",
-        optional = true)
+    @PluginParameter(name = "stac-api-title",
+                     label = "STAC title",
+                     description = "Title for the root STAC catalog.",
+                     optional = true)
     private String stacTitle;
 
-    @PluginParameter(name = "stac-api-description", label = "STAC description",
-        description = "Description for the root STAC catalog.", optional = true)
+    @PluginParameter(name = "stac-api-description",
+                     label = "STAC description",
+                     description = "Description for the root STAC catalog.",
+                     optional = true)
     private String stacDescription;
 
-    @PluginParameter(name = "stac-api-root-static-collection-title", label = "STAC root static collection title",
-        description = "Displayed label for the static collections root.", defaultValue = "static", optional = true)
+    @PluginParameter(name = "stac-api-root-static-collection-title",
+                     label = "STAC root static collection title",
+                     description = "Displayed label for the static collections root.",
+                     defaultValue = "static",
+                     optional = true)
     private String rootStaticCollectionTitle;
 
-    @PluginParameter(name = "stac-api-root-dynamic-collection-title", label = "STAC root dynamic collection title",
-        description = "Displayed label for the dynamic collections root.", defaultValue = "dynamic", optional = true)
+    @PluginParameter(name = "stac-api-root-dynamic-collection-title",
+                     label = "STAC root dynamic collection title",
+                     description = "Displayed label for the dynamic collections root.",
+                     defaultValue = "dynamic",
+                     optional = true)
     private String rootDynamicCollectionTitle;
 
-    @PluginParameter(name = "stac-api-datetime-property", label = "STAC datetime property", description =
-        "Mandatory configuration for the datetime property, corresponding to the"
-        + " 'temporal' aspect of the STAC spec.")
+    @PluginParameter(name = "stac-api-datetime-property",
+                     label = "STAC datetime property",
+                     description = "Mandatory configuration for the datetime property, corresponding to the"
+                                   + " 'temporal' aspect of the STAC spec.")
     private StacDatetimePropertyConfiguration stacDatetimeProperty;
 
     @PluginParameter(name = "stac-api-links-property", label = "STAC links property", optional = true)
@@ -86,16 +103,21 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     @PluginParameter(name = "stac-api-assets-property", label = "STAC assets property", optional = true)
     private StacSourcePropertyConfiguration stacAssetsProperty;
 
-    @PluginParameter(name = "stac-properties", label = "STAC properties",
-        description = "List of STAC properties to be mapped to product properties.", optional = true)
+    @PluginParameter(name = "stac-properties",
+                     label = "STAC properties",
+                     description = "List of STAC properties to be mapped to product properties.",
+                     optional = true)
     private List<StacPropertyConfiguration> stacExtraProperties = Lists.newArrayList();
 
-    @PluginParameter(name = "stac-collection-dataset-properties", label = "STAC dataset properties",
-        description = "Configure STAC collection properties for selected datasets.")
+    @PluginParameter(name = "stac-collection-dataset-properties",
+                     label = "STAC dataset properties",
+                     description = "Configure STAC collection properties for selected datasets.")
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
-    @PluginParameter(name = "eodag-properties", label = "EODGA properties for STAC script generation",
-        description = "EODAG configuration to be injected in python script template", optional = true)
+    @PluginParameter(name = "eodag-properties",
+                     label = "EODGA properties for STAC script generation",
+                     description = "EODAG configuration to be injected in python script template",
+                     optional = true)
     private EODAGConfiguration eodagConfiguration;
 
     // TODO WIP

@@ -264,10 +264,6 @@ public class ValidationIT {
     // dataSourceModelMapping = new DataSourceModelMapping(dataModel.getId(), attributes);
     // }
 
-    /**
-     * @throws IOException
-     * @throws ModuleException
-     */
     @Test
     public void validationInserts() throws IOException, ModuleException {
         this.initPluginConfForValidation();

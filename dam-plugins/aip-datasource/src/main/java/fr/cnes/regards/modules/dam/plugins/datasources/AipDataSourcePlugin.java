@@ -91,9 +91,14 @@ import java.util.stream.Collectors;
  *
  * @author Simon MILHAU
  */
-@Plugin(id = "aip-storage-datasource", version = "1.0-SNAPSHOT",
-    description = "Allows data extraction from AIP storage", author = "REGARDS Team", contact = "regards@c-s.fr",
-    license = "GPLv3", owner = "CSSI", url = "https://github.com/RegardsOss")
+@Plugin(id = "aip-storage-datasource",
+        version = "1.0-SNAPSHOT",
+        description = "Allows data extraction from AIP storage",
+        author = "REGARDS Team",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CSSI",
+        url = "https://github.com/RegardsOss")
 public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<ProjectUpdateEvent> {
 
     /**
@@ -110,39 +115,49 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     // --- PLUGIN PARAMETERS ---
     // -------------------------
 
-    @PluginParameter(name = DataSourcePluginConstants.TAGS, label = "data objects common tags", optional = true,
-        description = "Common tags to be put on all data objects created by the data source")
+    @PluginParameter(name = DataSourcePluginConstants.TAGS,
+                     label = "data objects common tags",
+                     optional = true,
+                     description = "Common tags to be put on all data objects created by the data source")
     private Set<String> commonTags;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM, label = "model name",
-        description = "Associated data source model name")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
+                     label = "model name",
+                     description = "Associated data source model name")
     protected String modelName;
 
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS, label = "Subsetting tags", optional = true,
-        description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_TAGS,
+                     label = "Subsetting tags",
+                     optional = true,
+                     description = "The plugin will fetch data storage to find AIPs tagged with these specified tags to obtain an AIP subset. If no tag is specified, plugin will fetch all the available AIPs.")
     private Set<String> subsettingTags;
 
-    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_CATEGORIES, label = "Subsetting categories",
-        optional = true,
-        description = "The plugin will fetch data storage to find AIPs with the given catories. If no category is specified, plugin will fetch all the available AIPs.")
+    @PluginParameter(name = DataSourcePluginConstants.SUBSETTING_CATEGORIES,
+                     label = "Subsetting categories",
+                     optional = true,
+                     description = "The plugin will fetch data storage to find AIPs with the given catories. If no category is specified, plugin will fetch all the available AIPs.")
     private Set<String> categories;
 
-    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP, keylabel = "Model property path",
-        label = "AIP property path",
-        description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
+    @PluginParameter(name = DataSourcePluginConstants.BINDING_MAP,
+                     keylabel = "Model property path",
+                     label = "AIP property path",
+                     description = "Binding map between model and AIP (i.e. Property chain from model and its associated property chain from AIP format")
     private Map<String, String> bindingMap;
 
     /**
      * Ingestion refresh rate in seconds
      */
-    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE, defaultValue = "86400", optional = true,
-        label = "refresh rate",
-        description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
+    @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
+                     defaultValue = "86400",
+                     optional = true,
+                     label = "refresh rate",
+                     description = "Ingestion refresh rate in seconds (minimum delay between two consecutive ingestions)")
     private Integer refreshRate;
 
-    @PluginParameter(name = DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE, optional = true,
-        label = "Attribute model for RAW DATA files size",
-        description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
+    @PluginParameter(name = DataSourcePluginConstants.MODEL_ATTR_FILE_SIZE,
+                     optional = true,
+                     label = "Attribute model for RAW DATA files size",
+                     description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
 
     @Value("${prefix.path}")
@@ -344,10 +359,10 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
             cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
             // set current last update date with the most recent aip entity update.
             cursor.setCurrentLastEntityDate(aipEntities.stream()
-                                                .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
-                                                                           .getLastUpdate())
-                                                .max(Comparator.comparing(lastUpdate -> lastUpdate))
-                                                .orElse(null));
+                                                       .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
+                                                                                  .getLastUpdate())
+                                                       .max(Comparator.comparing(lastUpdate -> lastUpdate))
+                                                       .orElse(null));
             return dataObjects;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException(String.format(
@@ -413,14 +428,13 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        SearchAIPLightParameters filters = new SearchAIPLightParameters()
-            .withAipIpType(Arrays.asList(EntityType.DATA))
-            .withStatesIncluded(Arrays.asList(AIPState.STORED))
-            .withLastUpdateAfter(cursor.getLastEntityDate());
-        if(!CollectionUtils.isEmpty(subsettingTags)){
+        SearchAIPLightParameters filters = new SearchAIPLightParameters().withAipIpType(Arrays.asList(EntityType.DATA))
+                                                                         .withStatesIncluded(Arrays.asList(AIPState.STORED))
+                                                                         .withLastUpdateAfter(cursor.getLastEntityDate());
+        if (!CollectionUtils.isEmpty(subsettingTags)) {
             filters.withTagsIncluded(subsettingTags);
         }
-        if(!CollectionUtils.isEmpty(categories)){
+        if (!CollectionUtils.isEmpty(categories)) {
             filters.withCategoriesIncluded(categories);
         }
         ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(filters,

@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 @ActiveProfiles({ "test", "feign" })
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=public", })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=public", })
 public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceIT {
 
     public static final String ITEMSTENANT = "PROJECT";

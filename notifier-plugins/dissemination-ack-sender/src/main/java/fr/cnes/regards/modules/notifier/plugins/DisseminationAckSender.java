@@ -37,9 +37,14 @@ import java.util.*;
  *
  * @author Jacques Chirac
  */
-@Plugin(author = "REGARDS Team", description = "Dissemination ACK sender", id = DisseminationAckSender.PLUGIN_ID,
-    version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Dissemination ACK sender",
+        id = DisseminationAckSender.PLUGIN_ID,
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class DisseminationAckSender extends AbstractRabbitMQSender {
 
     public static final String RECIPIENT_TENANT_PARAM_NAME = "recipientTenant";
@@ -56,8 +61,9 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
     @PluginParameter(label = "Recipient tenant", name = RECIPIENT_TENANT_PARAM_NAME)
     private String recipientTenant;
 
-    @PluginParameter(label = "Sender label", name = SENDER_LABEL_PARAM_NAME,
-        description = "Acknowledge sender label. Used by destination system to identify the current system")
+    @PluginParameter(label = "Sender label",
+                     name = SENDER_LABEL_PARAM_NAME,
+                     description = "Acknowledge sender label. Used by destination system to identify the current system")
     private String senderLabel;
 
     @Override

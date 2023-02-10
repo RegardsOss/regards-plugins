@@ -125,7 +125,9 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         String regardsAttributePath = getFullJsonPath(prop);
 
         String termsAggName = "terms";
-        AggregationBuilder termsAggBuilder = AggregationBuilders.terms(termsAggName).field(regardsAttributePath).size(1_000);
+        AggregationBuilder termsAggBuilder = AggregationBuilders.terms(termsAggName)
+                                                                .field(regardsAttributePath)
+                                                                .size(1_000);
 
         Aggregations aggs = aggregagtionHelper.getAggregationsFor(criterion, List.of(termsAggBuilder), 1000);
         Terms termsAgg = aggs.get(termsAggName);

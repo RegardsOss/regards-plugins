@@ -37,7 +37,7 @@ import java.time.OffsetDateTime;
  */
 @Entity
 @Table(name = "t_test_plugin_data_source",
-    indexes = { @Index(name = "index_test", columnList = "altitude", unique = true) })
+       indexes = { @Index(name = "index_test", columnList = "altitude", unique = true) })
 @SequenceGenerator(name = "testPlgDataSourceSequence", initialValue = 1, sequenceName = "seq_test_plugin")
 public class DataSourceEntity implements IIdentifiable<Long> {
 

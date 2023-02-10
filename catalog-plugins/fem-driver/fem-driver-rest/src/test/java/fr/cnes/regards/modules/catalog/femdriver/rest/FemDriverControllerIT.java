@@ -39,7 +39,7 @@ import java.util.Set;
  * @author sbinda
  */
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=femdriver_rest_it" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=femdriver_rest_it" })
 public class FemDriverControllerIT extends AbstractFemTest {
 
     @Before

@@ -37,13 +37,19 @@ import java.util.Optional;
  *
  * @author Sébastien Binda
  */
-@Plugin(author = "REGARDS Team", description = "Simple plugin to generate AIP with or without simulated errors",
-    id = "AIPGenerationTest", version = "1.0.0", contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Simple plugin to generate AIP with or without simulated errors",
+        id = "AIPGenerationTest",
+        version = "1.0.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        url = "https://regardsoss.github.io/")
 public class AIPGenerationTest implements IAipGeneration {
 
     @PluginParameter(label = "Simulate errors",
-        description = "If true, simulate AIP generation errors for test purpose", defaultValue = "false")
+                     description = "If true, simulate AIP generation errors for test purpose",
+                     defaultValue = "false")
     private Boolean simulateErrors;
 
     @Override

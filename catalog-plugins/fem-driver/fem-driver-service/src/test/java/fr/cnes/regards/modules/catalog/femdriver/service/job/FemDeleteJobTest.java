@@ -49,7 +49,7 @@ import java.util.concurrent.ExecutionException;
  */
 @Ignore // FIXME refactor this test according to new implementation
 @TestPropertySource(locations = { "classpath:test.properties" },
-    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
+                    properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemDeleteJobTest extends AbstractFemJobTest {
 
     @Autowired
