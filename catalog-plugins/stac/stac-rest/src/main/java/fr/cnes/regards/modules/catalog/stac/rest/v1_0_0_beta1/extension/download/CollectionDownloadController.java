@@ -21,7 +21,6 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.downloa
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
@@ -44,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -91,10 +89,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
                     produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DownloadPreparationResponse> prepareZipDownload(
         @RequestBody FiltersByCollection filtersByCollection) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         return toResponseEntity(collectionSearchService.prepareZipDownload(filtersByCollection,
                                                                            linkCreatorService.makeDownloadLinkCreator(
-                                                                               auth,
                                                                                feignSecurityManager)));
     }
 
@@ -137,9 +133,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
     public void getDownloadAllScript(final HttpServletResponse response,
                                      @RequestParam(name = "tinyurl") String tinyurl,
                                      @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(auth,
-                                                                                     1,
+        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(1,
                                                                                      ItemSearchBody.builder().build()),
                                         response,
                                         Optional.empty(),
@@ -216,9 +210,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
                                   @PathVariable(name = "collectionId") String collectionId,
                                   @RequestParam(name = "tinyurl") String tinyurl,
                                   @RequestParam(name = "filename", defaultValue = "regards.py") String filename) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(auth,
-                                                                                     1,
+        generateAndStreamDownloadScript(linkCreatorService.makeSearchPageLinkCreator(1,
                                                                                      ItemSearchBody.builder().build()),
                                         response,
                                         Optional.of(collectionId),
@@ -260,11 +252,9 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Define zip output file name
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
         // Prepare mod_zip descriptor file
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         return collectionDownloadService.prepareDescriptorAsStream(collectionId,
                                                                    tinyurl,
-                                                                   linkCreatorService.makeDownloadLinkCreator(auth,
-                                                                                                              feignSecurityManager),
+                                                                   linkCreatorService.makeDownloadLinkCreator(feignSecurityManager),
                                                                    onlySample);
     }
 
@@ -286,13 +276,11 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Define zip output file name
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
         // Prepare mod_zip descriptor file
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         try {
             collectionDownloadService.prepareDescriptor(response.getOutputStream(),
                                                         collectionId,
                                                         tinyurl,
-                                                        linkCreatorService.makeDownloadLinkCreator(auth,
-                                                                                                   feignSecurityManager),
+                                                        linkCreatorService.makeDownloadLinkCreator(feignSecurityManager),
                                                         onlySample);
             response.getOutputStream().flush();
         } catch (IOException e) {

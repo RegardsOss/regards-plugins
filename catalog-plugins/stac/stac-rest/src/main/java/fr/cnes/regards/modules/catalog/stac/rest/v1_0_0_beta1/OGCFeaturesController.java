@@ -22,17 +22,14 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.CollectionService;
-import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.RestDynCollValSerdeService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
@@ -43,7 +40,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
@@ -58,17 +54,11 @@ import static fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacA
 @RequestMapping(path = STAC_COLLECTIONS_PATH, produces = APPLICATION_JSON)
 public class OGCFeaturesController implements TryToResponseEntity {
 
-    @SuppressWarnings("unused")
-    private final RestDynCollValSerdeService restDynCollValSerdeService;
-
     private final CollectionService collectionService;
 
     private final ConfigurationAccessorFactory configFactory;
 
     private final LinkCreatorService linker;
-
-    @SuppressWarnings("unused")
-    private final ItemSearchBodyFactory itemSearchBodyFactory;
 
     private final ItemSearchService itemSearchService;
 
@@ -76,18 +66,14 @@ public class OGCFeaturesController implements TryToResponseEntity {
 
     @Autowired
     public OGCFeaturesController(
-            RestDynCollValSerdeService restDynCollValSerdeService,
             CollectionService collectionService,
             ConfigurationAccessorFactory configFactory,
             LinkCreatorService linker,
-            ItemSearchBodyFactory itemSearchBodyFactory,
             ItemSearchService itemSearchService
     ) {
-        this.restDynCollValSerdeService = restDynCollValSerdeService;
         this.collectionService = collectionService;
         this.configFactory = configFactory;
         this.linker = linker;
-        this.itemSearchBodyFactory = itemSearchBodyFactory;
         this.itemSearchService = itemSearchService;
     }
 
@@ -102,16 +88,13 @@ public class OGCFeaturesController implements TryToResponseEntity {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CollectionsResponse> collections() throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator();
         return toResponseEntity(collectionService.buildRootCollectionsResponse(linkCreator, config));
     }
 
     /**
      * Get the stac collection from Regards collection
      * @param collectionId this is the urn
-     * @return
-     * @throws ModuleException
      */
     @Operation(summary = "describe the feature collection with id `collectionId`",
             description = "A single Feature Collection for the given if collectionId. " +
@@ -129,9 +112,7 @@ public class OGCFeaturesController implements TryToResponseEntity {
             @PathVariable(COLLECTION_ID_PARAM) String collectionId
     ) throws ModuleException {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
-        // FIXME use IAuthoritiesProvider instead of JWTAuthentication and SecurityContextHolder
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator();
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config));
     }
 
@@ -152,11 +133,10 @@ public class OGCFeaturesController implements TryToResponseEntity {
             @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
             @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
-    ) throws ModuleException {
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+    ) {
         return toResponseEntity(collectionService
-                .getItemsForCollection(collectionId, limit, page, bbox, datetime, linker.makeOGCFeatLinkCreator(auth),
-                                       isb -> linker.makeCollectionItemsPageLinkCreator(auth, page, collectionId)));
+                .getItemsForCollection(collectionId, limit, page, bbox, datetime, linker.makeOGCFeatLinkCreator(),
+                                       isb -> linker.makeCollectionItemsPageLinkCreator(page, collectionId)));
     }
 
     @Operation(summary = "fetch a single feature",
@@ -174,8 +154,7 @@ public class OGCFeaturesController implements TryToResponseEntity {
             @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
             @PathVariable(name = ITEM_ID_PARAM) String featureId
     ) throws ModuleException {
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator();
         Try<Item> result = itemSearchService.searchById(featureId, linkCreator);
         return toResponseEntity(result);
     }

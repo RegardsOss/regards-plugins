@@ -85,10 +85,9 @@ public class CoreController implements TryToResponseEntity {
     @ResourceAccess(description = "landing page", role = DefaultRole.PUBLIC)
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<CoreResponse> root() throws ModuleException {
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         String title = config.getTitle();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(auth);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator();
         return toResponseEntity(trying(() -> new CoreResponse(StacSpecConstants.Version.STAC_API_VERSION,
                                                               List.empty(),
                                                               title,

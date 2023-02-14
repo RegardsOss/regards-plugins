@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.*;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.ConfigurationAccessorFactoryImpl;
@@ -120,13 +119,6 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
                      optional = true)
     private EODAGConfiguration eodagConfiguration;
 
-    // TODO WIP
-    //    @PluginParameter(
-    //            name = "stac-dataset-properties",
-    //            label = "STAC dataset properties",
-    //            description = "Configure STAC dataset properties.")
-    //    private DatasetConfiguration stacDatasetConfiguration;
-
     @Override
     public boolean supports(SearchType searchType) {
         return false;
@@ -140,13 +132,12 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     }
 
     @Override
-    public ICriterion parse(SearchContext context) throws ModuleException {
+    public ICriterion parse(SearchContext context) {
         return null;
     }
 
     @Override
-    public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder)
-        throws ModuleException {
+    public ResponseEntity<Object> getEntity(SearchContext context, IEntityLinkBuilder linkBuilder) {
         return null;
     }
 
@@ -171,11 +162,8 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
      */
     @Override
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
-        JWTAuthentication auth = null; // The link creator will not create token URI params if the given auth is null
-
-        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(auth);
-        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(auth,
-                                                                                            0,
+        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator();
+        SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(0,
                                                                                             ItemSearchBody.builder()
                                                                                                           .limit(100)
                                                                                                           .build());

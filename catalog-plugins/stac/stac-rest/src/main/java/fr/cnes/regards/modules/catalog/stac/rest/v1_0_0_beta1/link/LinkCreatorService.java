@@ -32,17 +32,15 @@ import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
  */
 public interface LinkCreatorService {
 
-    OGCFeatLinkCreator makeOGCFeatLinkCreator(JWTAuthentication auth);
+    OGCFeatLinkCreator makeOGCFeatLinkCreator();
 
-    SearchPageLinkCreator makeSearchPageLinkCreator(JWTAuthentication auth,
-                                                    Integer page,
+    SearchPageLinkCreator makeSearchPageLinkCreator(Integer page,
                                                     ItemSearchBody itemSearchBody);
 
-    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(JWTAuthentication auth,
-                                                               Integer page,
+    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page,
                                                                CollectionSearchBody collectionSearchBody);
 
-    SearchPageLinkCreator makeCollectionItemsPageLinkCreator(JWTAuthentication auth, Integer page, String collectionId);
+    SearchPageLinkCreator makeCollectionItemsPageLinkCreator(Integer page, String collectionId);
 
-    DownloadLinkCreator makeDownloadLinkCreator(JWTAuthentication auth, FeignSecurityManager feignSecurityManager);
+    DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager);
 }

@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.extension.searchc
 
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.*;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
@@ -38,7 +37,6 @@ import io.vavr.collection.List;
 import io.vavr.control.Try;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
@@ -112,7 +110,6 @@ public class CollectionSearchController implements TryToResponseEntity {
         List<String> itemIds,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + QUERY_QUERY_PARAM, required = false)
         String itemQuery) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory.parseCollectionSearch(page,
                                                                                                       limit,
                                                                                                       bbox,
@@ -134,11 +131,9 @@ public class CollectionSearchController implements TryToResponseEntity {
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
                                                                page,
                                                                linkCreatorService.makeSearchCollectionPageLinkCreation(
-                                                                   auth,
                                                                    page,
                                                                    collectionSearchBody),
-                                                               linkCreatorService.makeSearchPageLinkCreator(auth,
-                                                                                                            0,
+                                                               linkCreatorService.makeSearchPageLinkCreator(0,
                                                                                                             itemSearchBody.getOrNull())));
     }
 
@@ -151,18 +146,15 @@ public class CollectionSearchController implements TryToResponseEntity {
                                                              @RequestParam(name = PAGE_QUERY_PARAM,
                                                                            required = false,
                                                                            defaultValue = "1") Integer page) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<ItemSearchBody> itemSearchBody = Try.of(() -> collectionSearchBody.getItem().toItemSearchBody());
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
                                                                collectionSearchBody.getPage() == null ?
                                                                    page :
                                                                    collectionSearchBody.getPage(),
                                                                linkCreatorService.makeSearchCollectionPageLinkCreation(
-                                                                   auth,
                                                                    page,
                                                                    collectionSearchBody),
-                                                               linkCreatorService.makeSearchPageLinkCreator(auth,
-                                                                                                            0,
+                                                               linkCreatorService.makeSearchPageLinkCreator(0,
                                                                                                             itemSearchBody.getOrNull())));
     }
 
@@ -176,14 +168,13 @@ public class CollectionSearchController implements TryToResponseEntity {
     public ResponseEntity<SearchCollectionsResponse> otherPage(
         @RequestParam(name = SEARCH_COLLECTIONBODY_QUERY_PARAM) String collectionBodyBase64,
         @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
         Try<CollectionSearchBody> tryCollectionSearchBody = searchTokenSerde.deserialize(collectionBodyBase64);
         Try<ItemSearchBody> itemSearchBody = tryCollectionSearchBody.map(b -> b.getItem().toItemSearchBody());
         return toResponseEntity(tryCollectionSearchBody.flatMap(collectionSearchBody -> collectionSearchService.search(
             collectionSearchBody,
             page,
-            linkCreatorService.makeSearchCollectionPageLinkCreation(auth, page, collectionSearchBody),
-            linkCreatorService.makeSearchPageLinkCreator(auth, 0, itemSearchBody.getOrNull()))));
+            linkCreatorService.makeSearchCollectionPageLinkCreation(page, collectionSearchBody),
+            linkCreatorService.makeSearchPageLinkCreator(0, itemSearchBody.getOrNull()))));
     }
 
     @Operation(summary = "Return the collections timeline",

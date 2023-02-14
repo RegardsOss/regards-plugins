@@ -19,19 +19,15 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
+import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
+import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
-import fr.cnes.regards.framework.security.utils.jwt.JWTService;
-import fr.cnes.regards.framework.security.utils.jwt.UserDetails;
 import io.vavr.CheckedFunction1;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.Map;
 import io.vavr.control.Try;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -49,23 +45,21 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 @Component
 public class UriParamAdderImpl implements UriParamAdder {
 
-    @SuppressWarnings("unused")
-    private static final Logger LOGGER = LoggerFactory.getLogger(UriParamAdderImpl.class);
+    private final IRuntimeTenantResolver runtimeTenantResolver;
 
-    private final JWTService jwtService;
+    private final IAuthenticationResolver authenticationResolver;
 
     @Autowired
-    public UriParamAdderImpl(JWTService jwtService) {
-        this.jwtService = jwtService;
+    public UriParamAdderImpl(IRuntimeTenantResolver runtimeTenantResolver,
+                             IAuthenticationResolver authenticationResolver) {
+        this.runtimeTenantResolver = runtimeTenantResolver;
+        this.authenticationResolver = authenticationResolver;
     }
 
     @Override
-    public CheckedFunction1<URI, Try<URI>> appendAuthParams(JWTAuthentication auth) {
-        if (auth == null) {
-            return Try::success;
-        }
+    public CheckedFunction1<URI, Try<URI>> appendAuthParams() {
         return uri -> {
-            Tuple2<String, String> authParam = makeAuthParam(auth);
+            Tuple2<String, String> authParam = makeAuthParam();
             return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()).mapFailure(
                 URI_AUTH_PARAM_ADDING,
                 () -> format("Failed to add auth params to URI %s", uri));
@@ -82,26 +76,17 @@ public class UriParamAdderImpl implements UriParamAdder {
 
     @Override
     public CheckedFunction1<URI, Try<URI>> appendTinyUrl(String tinyUrlId) {
-        return uri -> {
-            return trying(() -> fromUri(uri).queryParam("tinyurl", tinyUrlId).build().toUri()).mapFailure(
-                URI_AUTH_PARAM_ADDING,
-                () -> format("Failed to add tiny URL to URI %s", uri));
-        };
-    }
-
-    @Override
-    public Tuple2<String, String> makeAuthParam(JWTAuthentication auth) {
-        String tenant = auth.getTenant();
-        UserDetails user = auth.getUser();
-        String role = user.getRole();
-        return DefaultRole.PUBLIC.name().equals(role) ?
-            Tuple.of("scope", tenant) :
-            Tuple.of("token", jwtService.generateToken(tenant, user.getLogin(), user.getEmail(), role));
+        return uri -> trying(() -> fromUri(uri).queryParam("tinyurl", tinyUrlId).build().toUri()).mapFailure(
+            URI_AUTH_PARAM_ADDING,
+            () -> format("Failed to add tiny URL to URI %s", uri));
     }
 
     @Override
     public Tuple2<String, String> makeAuthParam() {
-        JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        return makeAuthParam(auth);
+        String tenant = runtimeTenantResolver.getTenant();
+        String role = authenticationResolver.getRole();
+        return DefaultRole.PUBLIC.name().equals(role) ?
+            Tuple.of("scope", tenant) :
+            Tuple.of("token", authenticationResolver.getToken());
     }
 }

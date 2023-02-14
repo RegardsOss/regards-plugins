@@ -19,10 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1;
 
-import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
-import fr.cnes.regards.framework.security.utils.jwt.JWTAuthentication;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBodyFactory;
@@ -37,7 +35,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset.MediaType.APPLICATION_JSON;
@@ -90,14 +87,12 @@ public class ItemSearchController implements TryToResponseEntity {
             @RequestParam(name = FIELDS_QUERY_PARAM, required = false) String fields,
             @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
             @RequestParam(name = SORTBY_QUERY_PARAM, required = false) String sortBy
-    ) throws ModuleException {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-
+    ) {
         return toResponseEntity(itemSearchBodyFactory
                 .parseItemSearch(page, limit, bbox, datetime, collections, ids, fields, query, sortBy)
                 .flatMap(itemSearchBody -> itemSearchService
-                        .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(auth),
-                                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody))));
+                        .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(),
+                                linkCreatorService.makeSearchPageLinkCreator(page, itemSearchBody))));
     }
 
     @Operation(summary = "search with complex filtering",
@@ -108,11 +103,10 @@ public class ItemSearchController implements TryToResponseEntity {
     public ResponseEntity<ItemCollectionResponse> complex(
             @RequestBody ItemSearchBody itemSearchBody,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
-    ) throws ModuleException {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
+    ) {
         return toResponseEntity(itemSearchService
-                .search(itemSearchBody, itemSearchBody.getPage() == null ? page : itemSearchBody.getPage(), linkCreatorService.makeOGCFeatLinkCreator(auth),
-                        linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody)));
+                .search(itemSearchBody, itemSearchBody.getPage() == null ? page : itemSearchBody.getPage(), linkCreatorService.makeOGCFeatLinkCreator(),
+                        linkCreatorService.makeSearchPageLinkCreator(page, itemSearchBody)));
     }
 
     @Operation(summary = "continue to next/previous search page",
@@ -124,13 +118,11 @@ public class ItemSearchController implements TryToResponseEntity {
     public ResponseEntity<ItemCollectionResponse> otherPage(
             @RequestParam(name = SEARCH_ITEMBODY_QUERY_PARAM) String itemBodyBase64,
             @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page
-    ) throws ModuleException {
-        final JWTAuthentication auth = (JWTAuthentication) SecurityContextHolder.getContext().getAuthentication();
-
+    ) {
         return toResponseEntity(searchTokenSerde.deserialize(itemBodyBase64)
                 .flatMap(itemSearchBody -> itemSearchService
-                        .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(auth),
-                                linkCreatorService.makeSearchPageLinkCreator(auth, page, itemSearchBody))));
+                        .search(itemSearchBody, page, linkCreatorService.makeOGCFeatLinkCreator(),
+                                linkCreatorService.makeSearchPageLinkCreator(page, itemSearchBody))));
     }
 
 }

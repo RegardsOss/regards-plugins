@@ -32,13 +32,11 @@ import java.net.URI;
  */
 public interface UriParamAdder {
 
-    CheckedFunction1<URI, Try<URI>> appendAuthParams(JWTAuthentication auth);
+    CheckedFunction1<URI, Try<URI>> appendAuthParams();
 
     CheckedFunction1<URI, Try<URI>> appendParams(Map<String, String> params);
 
     CheckedFunction1<URI, Try<URI>> appendTinyUrl(String tinyUrlId);
-
-    Tuple2<String, String> makeAuthParam(JWTAuthentication auth);
 
     Tuple2<String, String> makeAuthParam();
 

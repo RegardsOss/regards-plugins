@@ -308,6 +308,10 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                                                                                   null,
                                                                                   pageable);
             // Extract file from each one
+            LOGGER.debug("{} feature(s) retrieved from page {} with size {}",
+                         facetPage.getNumberOfElements(),
+                         pageable.getPageNumber(),
+                         pageable.getPageSize());
             facetPage.forEach(feature -> printFeatureReferences(downloadLinkCreator, writer, feature));
             // Handle next page if necessary
             if (facetPage.hasNext()) {
@@ -336,6 +340,8 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                                                getCatalogLocation(file.getUri(), downloadLinkCreator),
                                            Optional.of(dir),
                                            file.getFilename()));
+        } else {
+            LOGGER.warn("No {} found for feature {}", DataType.RAWDATA, feature.getProviderId());
         }
     }
 
