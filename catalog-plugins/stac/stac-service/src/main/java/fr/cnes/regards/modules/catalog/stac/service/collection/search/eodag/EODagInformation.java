@@ -48,6 +48,11 @@ public class EODagInformation {
      */
     private String baseUri;
 
+    /**
+     * Downloaded filename
+     */
+    private String filename;
+
     public String getBaseUri() {
         return baseUri;
     }
@@ -86,5 +91,13 @@ public class EODagInformation {
 
     public void setStacSearchApi(String stacSearchApi) {
         this.stacSearchApi = stacSearchApi;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 }

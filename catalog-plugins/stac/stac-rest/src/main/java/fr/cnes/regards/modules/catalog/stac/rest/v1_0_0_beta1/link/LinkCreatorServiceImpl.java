@@ -167,6 +167,23 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         return new SearchPageLinkCreator() {
 
             @Override
+            public Option<URI> searchAllNoCredential() {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
+                                                                             .simple(null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null,
+                                                                                     null))
+                                                    .toUri()).onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create search all",
+                                                                                  t)).toOption();
+            }
+
+            @Override
             public Option<URI> searchAll() {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
                                                                              .simple(null,
@@ -226,6 +243,11 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
         return new SearchPageLinkCreator() {
 
             @Override
+            public Option<URI> searchAllNoCredential() {
+                return Option.none(); // unused when generating collection items page
+            }
+
+            @Override
             public Option<URI> searchAll() {
                 return Option.none(); // unused when generating collection items page
             }
@@ -277,6 +299,14 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     public SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page,
                                                                       CollectionSearchBody collectionSearchBody) {
         return new SearchPageLinkCreator() {
+
+            @Override
+            public Option<URI> searchAllNoCredential() {
+                return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionSearchController.class)
+                                                    .toUri()).onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create search all collections",
+                                                                                  t)).toOption();
+            }
 
             @Override
             public Option<URI> searchAll() {

@@ -58,9 +58,11 @@ public interface CollectionDownloadService {
      * @param outputStream          current output stream for sending file content
      * @param collectionId          optional collection id
      * @param tinyurl               context (store all criteria)
+     * @param filename              filename
      */
     void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator,
                              OutputStream outputStream,
                              Optional<String> collectionId,
-                             final String tinyurl);
+                             final String tinyurl,
+                             final String filename);
 }

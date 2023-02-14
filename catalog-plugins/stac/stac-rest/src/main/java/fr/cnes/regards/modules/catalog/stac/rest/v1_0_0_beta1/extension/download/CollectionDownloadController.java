@@ -299,7 +299,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
             collectionDownloadService.generateEOdagScript(searchPageLinkCreator,
                                                           response.getOutputStream(),
                                                           collectionId,
-                                                          tinyurl);
+                                                          tinyurl,
+                                                          filename);
             response.getOutputStream().flush();
         } catch (IOException e) {
             throw new StacException("Cannot open output stream", e, StacFailureType.DOWNLOAD_IO_EXCEPTION);

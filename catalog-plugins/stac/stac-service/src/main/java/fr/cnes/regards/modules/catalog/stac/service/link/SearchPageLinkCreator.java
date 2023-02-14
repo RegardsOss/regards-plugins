@@ -28,6 +28,8 @@ import java.net.URI;
  */
 public interface SearchPageLinkCreator {
 
+    Option<URI> searchAllNoCredential();
+
     Option<URI> searchAll();
 
     Option<URI> createNextPageLink();

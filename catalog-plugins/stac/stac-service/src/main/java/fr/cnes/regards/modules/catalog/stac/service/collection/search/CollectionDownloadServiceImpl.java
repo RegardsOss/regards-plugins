@@ -145,7 +145,8 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     public void generateEOdagScript(SearchPageLinkCreator searchPageLinkCreator,
                                     OutputStream outputStream,
                                     Optional<String> collectionId,
-                                    String tinyurl) {
+                                    String tinyurl,
+                                    String filename) {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
 
         // Retrieve context from tinyurl
@@ -156,12 +157,13 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
         information.setProjectName(runtimeTenantResolver.getTenant());
         information.setPortalName(config.getEODAGPortalName());
         information.setProvider(config.getEODAGProvider());
-        information.setStacSearchApi(searchPageLinkCreator.searchAll()
+        information.setStacSearchApi(searchPageLinkCreator.searchAllNoCredential()
                                                           .map(uri -> uri.toString())
                                                           .getOrElse("Unknown STAC API URI"));
         information.setBaseUri(searchPageLinkCreator.searchAll()
                                                     .map(uri -> getBaseUri(uri))
                                                     .getOrElse("Unknown host URI"));
+        information.setFilename(filename);
 
         // Route according to multi or single collection
         try {
