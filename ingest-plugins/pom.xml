@@ -34,5 +34,6 @@
     <modules>
         <module>enhanced-descriptive-aip-generation</module>
         <module>ingest-test-plugin</module>
+        <module>send-delete-files-worker-request-plugin</module>
     </modules>
 </project>
