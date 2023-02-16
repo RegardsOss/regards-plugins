@@ -95,6 +95,12 @@
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
                                     <include>fr.cnes.regards.framework:urn-regards</include>
                                     <include>com.jayway.jsonpath:json-path</include>
+                                    <include>fr.cnes.regards.modules.feature:feature-dto</include>
+                                    <include>fr.cnes.regards.modules.notifier:notifier-utils</include>
+                                    <include>fr.cnes.regards.modules.workermanager:worker-manager-amqp</include>
+                                    <include>fr.cnes.regards.modules.ltamanager:lta-manager-dto</include>
+                                    <include>fr.cnes.regards.modules.model:model-gson</include>
+                                    <include>fr.cnes.regards.modules.model:model-dto</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
