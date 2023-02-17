@@ -85,7 +85,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     /**
      * Class logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(CatalogPluginResponseFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugin.class);
 
     @Autowired
     private IServiceHelper serviceHelper;
@@ -167,9 +167,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         }
 
         // Check for maximum number of files limit
-        int nbFiles = toDownloadFilesMap.values().stream().mapToInt(list -> list.size()).sum();
+        int nbFiles = toDownloadFilesMap.values().stream().mapToInt(Set::size).sum();
         // If files number exceed maximum configured, return a JSON message with the error.
-        LOGGER.debug(String.format("Number of files to download : %d", nbFiles));
+        LOGGER.debug("Number of files to download : {}", nbFiles);
         if (nbFiles > maxFilesToDownload) {
             return CatalogPluginResponseFactory.createSuccessResponse(response,
                                                                       CatalogPluginResponseType.JSON,
@@ -188,14 +188,16 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                                                                              0)
                                                                          .sum())
                                                   .sum();
-        LOGGER.debug(String.format("Total size of files to download : %d", filesSizeInBytes));
+        LOGGER.debug("Total size of files to download : {}", filesSizeInBytes);
         // If size exceed maximum configured, return a JSON message with the error.
-        if (filesSizeInBytes > (maxFilesSizeToDownload * 1024 * 1024)) {
+        if (filesSizeInBytes > ((long) maxFilesSizeToDownload * 1024 * 1024)) {
             return CatalogPluginResponseFactory.createSuccessResponse(response,
                                                                       CatalogPluginResponseType.JSON,
                                                                       String.format(
-                                                                          "Total size of selected files exceeded maximum allowed of %d (Mo)",
-                                                                          maxFilesToDownload));
+                                                                          "Total size of selected files, %d Mo, exceeded "
+                                                                          + "maximum allowed of %d Mo",
+                                                                          filesSizeInBytes / 1024 / 1024,
+                                                                          maxFilesSizeToDownload));
         }
 
         // If there is no file downloadable, return a JSON message.
@@ -320,9 +322,9 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                                       List<Pair<DataFile, String>> downloadErrorFiles) {
         String fileName = getDataObjectFileNameForDownload(dataobject, file);
         try {
-            LOGGER.debug(String.format("Adding file %s into ZIP archive", fileName));
+            LOGGER.debug("Adding file {} into ZIP archive", fileName);
             zos.putNextEntry(new ZipEntry(fileName));
-            if (file.isReference() || (file.getChecksum() == null)) {
+            if (Boolean.TRUE.equals(file.isReference()) || (file.getChecksum() == null)) {
                 // Download file through its url
                 ByteStreams.copy(DownloadUtils.getInputStreamThroughProxy(getDataFileURL(file),
                                                                           proxy,
@@ -332,7 +334,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
                 // Retrieve file from storage by its checksum
                 Response response = null;
                 try {
-                    // To download through storage client we must be authenticate as user in order to
+                    // To download through storage client we must be authenticated as user in order to
                     // impact the download quotas, but we upgrade the privileges so that the request passes.
                     FeignSecurityManager.asUser(authResolver.getUser(), DefaultRole.PROJECT_ADMIN.name());
                     response = storageRestClient.downloadFile(file.getChecksum(), false);
