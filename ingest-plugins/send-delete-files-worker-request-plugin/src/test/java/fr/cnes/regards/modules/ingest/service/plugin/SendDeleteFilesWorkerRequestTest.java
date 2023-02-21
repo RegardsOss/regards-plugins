@@ -82,25 +82,23 @@ public class SendDeleteFilesWorkerRequestTest {
         String url3 = "http://where/test/tmp/file2.txt";
         String url4 = "file:///test/tmp/file2.txt";
         Collection<AIPEntity> aipEntities = List.of(initEntity("001", "owner1", "session1", url1),
-                initEntity("002", "owner1", "session1", url2),
-                initEntity("003", "owner1", "session1", url3, url4));
+                                                    initEntity("002", "owner1", "session1", url2),
+                                                    initEntity("003", "owner1", "session1", url3, url4));
 
         // WHEN
         plugin.postprocess(aipEntities);
 
         // THEN
         Mockito.verify(publisher, Mockito.times(1))
-                .basicPublish(Mockito.any(),
-                        Mockito.any(),
-                        Mockito.any(),
-                        messageCaptor.capture());
+               .basicPublish(Mockito.any(), Mockito.any(), Mockito.any(), messageCaptor.capture());
 
-        List<String> urls = deserializeMessages();
-        Assert.assertEquals(4, urls.size());
-        Assert.assertTrue(urls.contains(url1));
-        Assert.assertTrue(urls.contains(url2));
-        Assert.assertTrue(urls.contains(url3));
-        Assert.assertTrue(urls.contains(url4));
+        List<DeleteFilesRequestDTO> deleteFilesRequestDTOs = deserializeMessages();
+        Assert.assertEquals(1, deleteFilesRequestDTOs.size());
+        Assert.assertEquals(4, deleteFilesRequestDTOs.get(0).getUrls().size());
+        Assert.assertTrue(deleteFilesRequestDTOs.get(0).getUrls().contains(url1));
+        Assert.assertTrue(deleteFilesRequestDTOs.get(0).getUrls().contains(url2));
+        Assert.assertTrue(deleteFilesRequestDTOs.get(0).getUrls().contains(url3));
+        Assert.assertTrue(deleteFilesRequestDTOs.get(0).getUrls().contains(url4));
 
     }
 
@@ -113,20 +111,20 @@ public class SendDeleteFilesWorkerRequestTest {
         String url3 = "http://where/test/tmp/file2.txt";
         String url4 = "file:///test/tmp/file2.txt";
         Collection<AIPEntity> aipEntities = List.of(initEntity("001", "owner1", "session1", url1),
-                initEntity("002", "owner1", "session2", url2),
-                initEntity("003", "owner2", "session1", url3, url4));
+                                                    initEntity("002", "owner1", "session2", url2),
+                                                    initEntity("003", "owner2", "session1", url3, url4));
 
         // WHEN
         plugin.postprocess(aipEntities);
 
         // THEN
         Mockito.verify(publisher, Mockito.times(3))
-                .basicPublish(Mockito.any(),
-                        Mockito.any(),
-                        Mockito.any(),
-                        messageCaptor.capture());
+               .basicPublish(Mockito.any(), Mockito.any(), Mockito.any(), messageCaptor.capture());
 
-        List<String> urls = deserializeMessages();
+        List<DeleteFilesRequestDTO> deleteFilesRequestDTOs = deserializeMessages();
+        Assert.assertEquals("One request per session expected.", 3, deleteFilesRequestDTOs.size());
+
+        List<String> urls = deleteFilesRequestDTOs.stream().flatMap(dfr -> dfr.getUrls().stream()).toList();
         Assert.assertEquals(4, urls.size());
         Assert.assertTrue(urls.contains(url1));
         Assert.assertTrue(urls.contains(url2));
@@ -135,11 +133,13 @@ public class SendDeleteFilesWorkerRequestTest {
 
     }
 
-    private List<String> deserializeMessages() {
-        List<String> results = new ArrayList<>();
-        messageCaptor.getAllValues().stream().forEach(message -> results.addAll((List<String>) gson.fromJson(new String(message.getBody(),
-                        StandardCharsets.UTF_8),
-                List.class)));
+    private List<DeleteFilesRequestDTO> deserializeMessages() {
+        List<DeleteFilesRequestDTO> results = new ArrayList<>();
+        messageCaptor.getAllValues()
+                     .stream()
+                     .forEach(message -> results.add(gson.fromJson(new String(message.getBody(),
+                                                                              StandardCharsets.UTF_8),
+                                                                   DeleteFilesRequestDTO.class)));
         return results;
     }
 
@@ -149,9 +149,9 @@ public class SendDeleteFilesWorkerRequestTest {
         SIP sip = SIP.build(EntityType.DATA, providerId);
         InformationPackageProperties ip = InformationPackageProperties.build();
         OAISDataObjectLocation[] locs = Arrays.stream(urls)
-                .map(OAISDataObjectLocation::build)
-                .toList()
-                .toArray(new OAISDataObjectLocation[urls.length]);
+                                              .map(OAISDataObjectLocation::build)
+                                              .toList()
+                                              .toArray(new OAISDataObjectLocation[urls.length]);
         ip.withDataObject(DataType.RAWDATA, "filename", "MD5", "123456789", 12L, locs);
         ip.registerContentInformation();
         sip.setProperties(ip);

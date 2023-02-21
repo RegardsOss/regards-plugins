@@ -50,9 +50,9 @@ import java.util.stream.Stream;
 @Plugin(id = SendDeleteFilesWorkerRequest.PLUGIN_ID,
         version = "1.12.0-SNAPSHOT",
         description = "This ingest post processing plugin send a request to worker manager with all input files"
-                + " urls in the original SIP. This plugin does not delete files itself. The deletion is done by"
-                + " the associated worker so you have to configure the associated worker in the workermanager "
-                + "microservice",
+                      + " urls in the original SIP. This plugin does not delete files itself. The deletion is done by"
+                      + " the associated worker so you have to configure the associated worker in the workermanager "
+                      + "microservice",
         author = "REGARDS Team",
         contact = "regards@c-s.fr",
         license = "GPLv3",
@@ -74,9 +74,9 @@ public class SendDeleteFilesWorkerRequest implements ISipPostprocessing {
     private Gson gson;
 
     @PluginParameter(label = "Content type",
-            description = "Select content type for the request sent to workermanager microservice",
-            optional = true,
-            defaultValue = WORKER_CONTENT_TYPE_DEFAULT)
+                     description = "Select content type for the request sent to workermanager microservice",
+                     optional = true,
+                     defaultValue = WORKER_CONTENT_TYPE_DEFAULT)
     private String contentType = WORKER_CONTENT_TYPE_DEFAULT;
 
     @Override
@@ -86,15 +86,17 @@ public class SendDeleteFilesWorkerRequest implements ISipPostprocessing {
         if (!CollectionUtils.isEmpty(aipEntities)) {
             computeFilesToDeletePerSession(aipEntities).asMap().forEach((session, urls) -> {
                 Message message = RawMessageBuilder.build(runtimeTenantResolver.getTenant(),
-                        contentType,
-                        session.getLeft(),
-                        session.getRight(),
-                        UUID.randomUUID().toString(),
-                        urls,
-                        gson);
+                                                          contentType,
+                                                          session.getLeft(),
+                                                          session.getRight(),
+                                                          UUID.randomUUID().toString(),
+                                                          DeleteFilesRequestDTO.build(urls),
+                                                          gson);
 
-                publisher.basicPublish(runtimeTenantResolver.getTenant(), "regards.broadcast." + RequestEvent.class.getName(),
-                        "", message);
+                publisher.basicPublish(runtimeTenantResolver.getTenant(),
+                                       "regards.broadcast." + RequestEvent.class.getName(),
+                                       "",
+                                       message);
             });
             ppr.buildSuccesses(aipEntities.stream().map(AbstractAIPEntity::getAipId).collect(Collectors.toSet()));
         }
@@ -113,20 +115,20 @@ public class SendDeleteFilesWorkerRequest implements ISipPostprocessing {
 
     private List<String> getUrlsToDelete(AIPEntity aipEntity) {
         return aipEntity.getSip()
-                .getSip()
-                .getProperties()
-                .getContentInformations()
-                .stream()
-                .flatMap(this::getUrlsToDeleteFromDataObject)
-                .toList();
+                        .getSip()
+                        .getProperties()
+                        .getContentInformations()
+                        .stream()
+                        .flatMap(this::getUrlsToDeleteFromDataObject)
+                        .toList();
     }
 
     private Stream<String> getUrlsToDeleteFromDataObject(ContentInformation contentInformation) {
         return contentInformation.getDataObject()
-                .getLocations()
-                .stream()
-                .filter(loc -> loc.getStorage() == null)
-                .map(f -> f.getUrl());
+                                 .getLocations()
+                                 .stream()
+                                 .filter(loc -> loc.getStorage() == null)
+                                 .map(f -> f.getUrl());
     }
 
 }
