@@ -90,6 +90,17 @@
                         </goals>
                         <configuration>
                             <minimizeJar>true</minimizeJar>
+                            <!-- Needs to include manually these adapters otherwise there are removed by minimizeJar -->
+                            <!-- These dependencies allows gson to convert from JSON payload an URN -->
+                            <filters>
+                                <filter>
+                                    <excludeDefaults>false</excludeDefaults>
+                                    <artifact>fr.cnes.regards.modules.feature:feature-dto</artifact>
+                                    <includes>
+                                        <include>fr/cnes/regards/modules/feature/dto/urn/converter/FeatureUrnAdapter</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                             <artifactSet>
                                 <includes>
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>

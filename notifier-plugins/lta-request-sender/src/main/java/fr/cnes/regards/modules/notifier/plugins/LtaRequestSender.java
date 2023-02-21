@@ -18,17 +18,19 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureFile;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.ltamanager.dto.submission.LtaDataType;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.ProductFileDto;
 import fr.cnes.regards.modules.ltamanager.dto.submission.input.SubmissionRequestDto;
-import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.utils.SessionNameAndOwner;
 import fr.cnes.regards.modules.notifier.utils.SessionUtils;
@@ -40,7 +42,6 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Notification sender plugin for Lta Request.
@@ -77,6 +78,14 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
     private static final String SOURCE_HEADER = "source";
+
+    private static final TypeToken<List<FeatureFile>> typeTokenFiles = new TypeToken<>() {
+
+    };
+
+    private static final TypeToken<Map<String, Object>> typeTokenProperties = new TypeToken<>() {
+
+    };
 
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
@@ -139,25 +148,8 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
             SessionNameAndOwner sessionNameAndOwner = SessionUtils.computeSessionNameAndOwner(notificationRequest,
                                                                                               sessionNamePattern,
                                                                                               tenantName);
-            Feature payloadFeature = gson.fromJson(notificationRequest.getPayload(), Feature.class);
 
-            Map<String, Object> properties = payloadFeature.getProperties()
-                                                           .stream()
-                                                           .collect(Collectors.toMap(IProperty::getName,
-                                                                                     IProperty::getValue));
-
-            SubmissionRequestDto payload = new SubmissionRequestDto(notificationRequest.getRequestId(),
-                                                                    payloadFeature.getId(),
-                                                                    dataType,
-                                                                    payloadFeature.getGeometry(),
-                                                                    mapFeatureFilesToProductFilesDtoTo(payloadFeature.getId(),
-                                                                                                       payloadFeature.getFiles()),
-                                                                    Collections.emptyList(),
-                                                                    payloadFeature.getUrn().toString(),
-                                                                    properties,
-                                                                    null,
-                                                                    sessionNameAndOwner.sessionName(),
-                                                                    replaceMode);
+            SubmissionRequestDto payload = buildSubmissionRequestDto(notificationRequest, sessionNameAndOwner);
 
             MessageProperties headers = new MessageProperties();
             headers.setHeader(EventHeadersHelper.REQUEST_ID_HEADER, notificationRequest.getRequestId());
@@ -166,6 +158,32 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
             messagesToSend.add(new Message(gson.toJson(payload).getBytes(), headers));
         }
         return messagesToSend;
+    }
+
+    private SubmissionRequestDto buildSubmissionRequestDto(NotificationRequest notificationRequest,
+                                                           SessionNameAndOwner sessionNameAndOwner) {
+        // Retrieve some information from the notification request
+        JsonObject notificationRequestPayload = notificationRequest.getPayload();
+        String id = gson.fromJson(notificationRequestPayload.get("id"), String.class);
+        FeatureUniformResourceName urn = gson.fromJson(notificationRequestPayload.get("urn"),
+                                                       FeatureUniformResourceName.class);
+        IGeometry geometry = gson.fromJson(notificationRequestPayload.get("geometry"), IGeometry.class);
+        List<FeatureFile> files = gson.fromJson(notificationRequestPayload.get("files"),
+                                                typeTokenFiles.getType());
+        Map<String, Object> properties = gson.fromJson(notificationRequestPayload.get("properties"),
+                                                       typeTokenProperties.getType());
+        // Create the submission request to send
+        return new SubmissionRequestDto(notificationRequest.getRequestId(),
+                                        id,
+                                        dataType,
+                                        geometry,
+                                        mapFeatureFilesToProductFilesDtoTo(id, files),
+                                        Collections.emptyList(),
+                                        urn.toString(),
+                                        properties,
+                                        null,
+                                        sessionNameAndOwner.sessionName(),
+                                        replaceMode);
     }
 
     private List<ProductFileDto> mapFeatureFilesToProductFilesDtoTo(String featureId,
