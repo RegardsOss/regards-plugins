@@ -33,6 +33,7 @@ import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.service.xml.IComputationPluginService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -110,7 +111,14 @@ public class StacTestConfiguration {
 
     @Bean
     public IProjectsClient projectsClient() {
-        return Mockito.mock(IProjectsClient.class);
+        IProjectsClient client = Mockito.mock(IProjectsClient.class);
+        Project project = new Project("desc", null, true, "test-project");
+        project.setHost("http://test.com");
+        EntityModel<Project> resource = EntityModel.of(project);
+        ResponseEntity<EntityModel<Project>> response = new ResponseEntity<EntityModel<Project>>(resource,
+                                                                                                 HttpStatus.OK);
+        Mockito.when(client.retrieveProject(Mockito.anyString())).thenReturn(response);
+        return client;
     }
 
     @Bean

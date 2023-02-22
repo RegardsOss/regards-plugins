@@ -136,7 +136,7 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
                                                                                    ITEMS_TENANT,
                                                                                    UUID.fromString(
                                                                                        "88282ac5-1b01-4e9d-a356-12345678909"),
-                                                                                   9,
+                                                                                   1,
                                                                                    null,
                                                                                    null);
         dataset.setIpId(datasetUniformResourceName);
@@ -161,7 +161,7 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
         // WHEN
         String urnCollection = idMappingService.getUrnByStacId("COL");
         String stacIdDataset = idMappingService.getStacIdByUrn(
-            "URN:AIP:DATASET:PROJECT:88282ac5-1b01-4e9d-a356-012345678909:V9");
+            "URN:AIP:DATASET:PROJECT:88282ac5-1b01-4e9d-a356-012345678909:V1");
         String unknownStacId = idMappingService.getStacIdByUrn("URN");
         String unknownUrn = idMappingService.getUrnByStacId("COL_");
 

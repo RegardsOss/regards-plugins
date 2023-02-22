@@ -36,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 /**
@@ -48,7 +48,7 @@ public class IdMappingServiceImpl implements IdMappingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdMappingServiceImpl.class);
 
-    private final Map<String, BidiMap<String, String>> idMappingsByTenant = new HashMap<>();
+    private final ConcurrentMap<String, BidiMap<String, String>> idMappingsByTenant = new ConcurrentHashMap<>();
 
     @Autowired
     private ISearchService searchService;
@@ -65,7 +65,7 @@ public class IdMappingServiceImpl implements IdMappingService {
     @Override
     public String getUrnByStacId(String stacId) {
         String urn = idMappingsByTenant.get(runtimeTenantResolver.getTenant()).get(stacId);
-        LOGGER.debug("Found URN {} by Stac id: {}", urn, stacId);
+        LOGGER.trace("Found URN {} for STAC ID : {}", urn, stacId);
         return urn;
     }
 
@@ -79,7 +79,15 @@ public class IdMappingServiceImpl implements IdMappingService {
     @Override
     public String getStacIdByUrn(String urn) {
         String stacId = idMappingsByTenant.get(runtimeTenantResolver.getTenant()).getKey(urn);
-        LOGGER.debug("Found Stac id {} by URN: {}", stacId, urn);
+        if (stacId == null) {
+            LOGGER.debug("Cannot found STAC ID for URN: {}", urn);
+            // Refresh cache for current tenant
+            initOrUpdateCache(runtimeTenantResolver.getTenant());
+            // Retry to get STAC ID (do not call current method to avoid infinite loop)
+            // Even if STAC ID should always be retrieved now!
+            stacId = idMappingsByTenant.get(runtimeTenantResolver.getTenant()).getKey(urn);
+        }
+        LOGGER.trace("Found STAC ID {} for URN: {}", stacId, urn);
         return stacId;
     }
 
@@ -98,8 +106,8 @@ public class IdMappingServiceImpl implements IdMappingService {
      */
     @Override
     public void initOrUpdateCache(String tenant) {
-        LOGGER.info("Init or update ID (Collection & Dataset) cache for tenant {}.", tenant);
         try {
+            LOGGER.trace("Init or update ID (Collection & Dataset) cache for tenant {}.", tenant);
             runtimeTenantResolver.forceTenant(tenant);
             // Init tenant mappings
             BidiMap<String, String> idMappings = new DualHashBidiMap<>();
@@ -109,6 +117,10 @@ public class IdMappingServiceImpl implements IdMappingService {
             idMappings.putAll(buildIdMappings(Searches.onSingleEntity(EntityType.DATASET)));
             // Store mappings
             idMappingsByTenant.put(tenant, idMappings);
+            // Print cache values
+            if (LOGGER.isTraceEnabled()) {
+                idMappings.forEach((k, v) -> LOGGER.trace("STAC ID cache for tenant {} : {} <> {}", tenant, k, v));
+            }
         } finally {
             runtimeTenantResolver.clearTenant();
         }
@@ -131,11 +143,11 @@ public class IdMappingServiceImpl implements IdMappingService {
 
         // This consumer map the stacId and the URN.
         Consumer<T> consumer = entity -> {
-            if (entity.getVersion() == 1) {
+            if (entity.getIpId().getVersion() == 1) {
                 // Map first version of provider id with URN without the addition of the latter
                 mappings.put(entity.getProviderId(), entity.getIpId().toString());
             } else {
-                mappings.put(entity.getProviderId() + "_" + entity.getVersion(), entity.getIpId().toString());
+                mappings.put(entity.getProviderId() + "_" + entity.getIpId().getVersion(), entity.getIpId().toString());
             }
         };
 
