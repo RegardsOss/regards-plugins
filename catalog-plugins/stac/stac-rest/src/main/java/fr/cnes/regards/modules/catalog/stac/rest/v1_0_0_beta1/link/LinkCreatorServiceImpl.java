@@ -265,7 +265,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                                               HashMap.of(
                                                                                                                   PAGE_QUERY_PARAM,
                                                                                                                   ""
-                                                                                                                      + i)))
+                                                                                                                  + i)))
                                                                                                       .onSuccess(u -> debug(
                                                                                                           LOGGER,
                                                                                                           URI_PATTERN_MESSAGE,
@@ -403,7 +403,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
                                                     .slash(collectionId)
                                                     .slash(STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX
-                                                               + STAC_DOWNLOAD_AS_ZIP_SUFFIX)
+                                                           + STAC_DOWNLOAD_AS_ZIP_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
                                                              .flatMapTry(uriParamAdder.appendAuthParams())
                                                              .onFailure(t -> warn(LOGGER,

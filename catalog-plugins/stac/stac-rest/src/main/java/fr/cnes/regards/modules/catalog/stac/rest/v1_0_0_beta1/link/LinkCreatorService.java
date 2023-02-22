@@ -34,11 +34,9 @@ public interface LinkCreatorService {
 
     OGCFeatLinkCreator makeOGCFeatLinkCreator();
 
-    SearchPageLinkCreator makeSearchPageLinkCreator(Integer page,
-                                                    ItemSearchBody itemSearchBody);
+    SearchPageLinkCreator makeSearchPageLinkCreator(Integer page, ItemSearchBody itemSearchBody);
 
-    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page,
-                                                               CollectionSearchBody collectionSearchBody);
+    SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page, CollectionSearchBody collectionSearchBody);
 
     SearchPageLinkCreator makeCollectionItemsPageLinkCreator(Integer page, String collectionId);
 

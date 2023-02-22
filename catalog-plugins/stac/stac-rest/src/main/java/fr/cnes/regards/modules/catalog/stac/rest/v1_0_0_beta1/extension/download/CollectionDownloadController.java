@@ -254,7 +254,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Prepare mod_zip descriptor file
         return collectionDownloadService.prepareDescriptorAsStream(collectionId,
                                                                    tinyurl,
-                                                                   linkCreatorService.makeDownloadLinkCreator(feignSecurityManager),
+                                                                   linkCreatorService.makeDownloadLinkCreator(
+                                                                       feignSecurityManager),
                                                                    onlySample);
     }
 

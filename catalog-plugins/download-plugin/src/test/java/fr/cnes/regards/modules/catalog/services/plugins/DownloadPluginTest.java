@@ -67,7 +67,6 @@ public class DownloadPluginTest {
         Assert.assertEquals(169, getBodySize(result.getBody()));
     }
 
-
     @Test
     public void testApplyFilesTooBig() throws ModuleException, IOException {
         // given

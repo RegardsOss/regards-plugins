@@ -168,8 +168,7 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
         FeatureUniformResourceName urn = gson.fromJson(notificationRequestPayload.get("urn"),
                                                        FeatureUniformResourceName.class);
         IGeometry geometry = gson.fromJson(notificationRequestPayload.get("geometry"), IGeometry.class);
-        List<FeatureFile> files = gson.fromJson(notificationRequestPayload.get("files"),
-                                                typeTokenFiles.getType());
+        List<FeatureFile> files = gson.fromJson(notificationRequestPayload.get("files"), typeTokenFiles.getType());
         Map<String, Object> properties = gson.fromJson(notificationRequestPayload.get("properties"),
                                                        typeTokenProperties.getType());
         // Create the submission request to send
