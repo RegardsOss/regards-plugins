@@ -25,24 +25,24 @@ public class ExternalData {
     public ExternalData() {
     }
 
-    public ExternalData(LocalDate pDate) {
-        date = pDate;
+    public ExternalData(LocalDate date) {
+        this.date = date;
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long pId) {
-        id = pId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(LocalDate pDate) {
-        date = pDate;
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 
 }

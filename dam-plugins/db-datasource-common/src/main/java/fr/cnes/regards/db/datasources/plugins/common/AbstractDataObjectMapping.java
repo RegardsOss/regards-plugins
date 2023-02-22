@@ -222,14 +222,14 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
     /**
      * Execute a SQL request to count the number of items
      *
-     * @param pStatement    a {@link Statement} used to execute the SQL request
-     * @param pCountRequest the SQL count request
+     * @param statement    a {@link Statement} used to execute the SQL request
+     * @param countRequest the SQL count request
      * @throws SQLException an SQL error occurred
      */
-    private void countItems(Statement pStatement, String pCountRequest) throws SQLException {
-        if ((pCountRequest != null) && !pCountRequest.isEmpty() && (nbItems == RESET_COUNT)) {
+    private void countItems(Statement statement, String countRequest) throws SQLException {
+        if ((countRequest != null) && !countRequest.isEmpty() && (nbItems == RESET_COUNT)) {
             // Execute the request to count the elements
-            try (ResultSet rsCount = pStatement.executeQuery(pCountRequest)) {
+            try (ResultSet rsCount = statement.executeQuery(countRequest)) {
                 if (rsCount.next()) {
                     nbItems = rsCount.getInt(1);
                 }
@@ -282,8 +282,8 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         //For each name space, add an ObjectAttribute to the list of attribute
-        spaceNames.forEach((pName, pAttrs) -> attributes.add(IProperty.buildObject(pName,
-                                                                                   pAttrs.toArray(new IProperty[0]))));
+        spaceNames.forEach((name, attrs) -> attributes.add(IProperty.buildObject(name,
+                                                                                   attrs.toArray(new IProperty[0]))));
 
         feature.setProperties(attributes);
 

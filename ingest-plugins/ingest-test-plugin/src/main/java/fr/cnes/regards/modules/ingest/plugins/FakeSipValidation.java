@@ -45,28 +45,28 @@ public class FakeSipValidation implements ISipValidation {
     @PluginParameter(label = "Simple string",
                      description = "Simple string description",
                      defaultValue = "default simple string !")
-    private String pString;
+    private String string;
 
     @PluginParameter(label = "Simple byte", description = "Simple byte description", defaultValue = "1")
-    private Byte pByte;
+    private Byte simpleByte;
 
     @PluginParameter(label = "Simple short", description = "Simple short description", defaultValue = "6")
-    private Short pShort;
+    private Short simpleShort;
 
     @PluginParameter(label = "Simple integer", description = "Simple integer description", defaultValue = "69")
-    private Integer pInteger;
+    private Integer simpleInteger;
 
     @PluginParameter(label = "Simple long", description = "Simple long description", defaultValue = "666")
-    private Long pLong;
+    private Long simpleLong;
 
     @PluginParameter(label = "Simple float", description = "Simple float description", defaultValue = "666.69")
-    private Float pFloat;
+    private Float simpleFloat;
 
     @PluginParameter(label = "Simple double", description = "Simple double description", defaultValue = "69.666")
-    private Double pDouble;
+    private Double simpleDouble;
 
     @PluginParameter(label = "Simple boolean", description = "Simple boolean description", defaultValue = "true")
-    private Boolean pBoolean;
+    private Boolean simpleBoolean;
 
     @PluginParameter(label = "List of string", description = "List of string description")
     private List<String> sList;

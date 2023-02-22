@@ -210,17 +210,17 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
     /**
      * Get the primary key name of a database's table
      *
-     * @param pMetaData The {@link DatabaseMetaData} of the database
-     * @param pCatalog  The catalog name
-     * @param pSchema   The database's schema
-     * @param pTable    The table name
+     * @param metaData The {@link DatabaseMetaData} of the database
+     * @param catalog  The catalog name
+     * @param schema   The database's schema
+     * @param table    The table name
      * @return the primary key name
      * @throws SQLException an SQL error occurred
      */
-    private String getPrimaryKey(DatabaseMetaData pMetaData, String pCatalog, String pSchema, String pTable)
+    private String getPrimaryKey(DatabaseMetaData metaData, String catalog, String schema, String table)
         throws SQLException {
         String column = "";
-        ResultSet rs = pMetaData.getPrimaryKeys(pCatalog, pSchema, pTable);
+        ResultSet rs = metaData.getPrimaryKeys(catalog, schema, table);
         if (rs.next()) {
             column = rs.getString(COLUMN_NAME);
             if (LOG.isDebugEnabled()) {
@@ -268,15 +268,15 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
         return cols;
     }
 
-    private String logString(ResultSet pRs, String pParamName) throws SQLException {
-        if (pRs.getString(pParamName) != null) {
-            return pParamName + "=" + pRs.getString(pParamName) + ",";
+    private String logString(ResultSet rs, String paramName) throws SQLException {
+        if (rs.getString(paramName) != null) {
+            return paramName + "=" + rs.getString(paramName) + ",";
         }
         return "";
     }
 
-    private String logInt(ResultSet pRs, String pParamName) throws SQLException {
-        return pParamName + "=" + pRs.getInt(pParamName) + ",";
+    private String logInt(ResultSet rs, String paramName) throws SQLException {
+        return paramName + "=" + rs.getInt(paramName) + ",";
     }
 
 }
