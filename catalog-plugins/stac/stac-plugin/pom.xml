@@ -40,30 +40,30 @@
         </dependency>
 
         <!--=== TEST ===-->
-		<dependency>
-			<groupId>fr.cnes.regards.framework.test</groupId>
-			<artifactId>regards-integration-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.test</groupId>
+            <artifactId>regards-integration-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
             <artifactId>stac-test</artifactId>
             <scope>test</scope>
         </dependency>
-       	<dependency>
-			<groupId>fr.cnes.regards.modules.feature</groupId>
-			<artifactId>feature-dto</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>json-random-starter</artifactId>
             <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>fr.cnes.regards.modules.model</groupId>
-			<artifactId>model-service</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.model</groupId>
+            <artifactId>model-service</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,7 +103,7 @@
                                     <include>fr.cnes.regards.modules.feature:*</include>
                                     <include>fr.cnes.regards.framework.modules:tinyurl</include>
                                     <include>org.apache.commons:commons-collections4</include>
-                                    <include> com.hubspot.jinjava:jinjava</include>
+                                    <include>com.hubspot.jinjava:jinjava</include>
                                     <include>org.jsoup:jsoup</include>
                                     <include>com.google.re2j:re2j</include>
                                     <include>ch.obermuhlner:big-math</include>
@@ -111,7 +111,7 @@
                                 </includes>
                             </artifactSet>
                             <transformers>
-                                <transformer  implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
                                     <resource>META-INF/spring.factories</resource>
                                 </transformer>
                             </transformers>

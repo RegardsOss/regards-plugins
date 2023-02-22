@@ -21,36 +21,36 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>fem-driver-plugin</artifactId>
-	<packaging>jar</packaging>
+    <artifactId>fem-driver-plugin</artifactId>
+    <packaging>jar</packaging>
     <description>Service layer of the Search module</description>
 
-	<parent>
-		<groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-		<artifactId>fem-driver</artifactId>
-		<version>${revision}</version>
-	</parent>
+    <parent>
+        <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
+        <artifactId>fem-driver</artifactId>
+        <version>${revision}</version>
+    </parent>
 
-	<url>https://github.com/RegardsOss/RegardsOss.github.io</url>
-	<inceptionYear>2016</inceptionYear>
-	<licenses>
-		<license>
-			<name>GNU General Public License (GNU GPL)</name>
-			<url>http://www.gnu.org/licenses/gpl.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<organization>
-		<name>CNES</name>
-		<url>https://cnes.fr/fr</url>
-	</organization>
-	<developers>
-		<developer>
-			<name>REGARDS Team</name>
-			<organization>CS Systèmes d'Information</organization>
-			<organizationUrl>http://www.c-s.fr</organizationUrl>
-		</developer>
-	</developers>
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Systèmes d'Information</organization>
+            <organizationUrl>http://www.c-s.fr</organizationUrl>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
@@ -91,7 +91,7 @@
                             </artifactSet>
                             <transformers>
                                 <transformer
-                                        implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                                    implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
                                     <resource>META-INF/spring.factories</resource>
                                 </transformer>
                             </transformers>

@@ -63,7 +63,7 @@
             <artifactId>processing-engine-core</artifactId>
             <scope>provided</scope>
         </dependency>
-       <!-- Test dependencies -->
+        <!-- Test dependencies -->
         <dependency>
             <groupId>fr.cnes.regards.modules.processing</groupId>
             <artifactId>processing-test</artifactId>
