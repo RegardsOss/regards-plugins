@@ -48,7 +48,6 @@ import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
-import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPLightParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
@@ -428,9 +427,9 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        SearchAIPLightParameters filters = new SearchAIPLightParameters().withAipIpType(Arrays.asList(EntityType.DATA))
-                                                                         .withStatesIncluded(Arrays.asList(AIPState.STORED))
-                                                                         .withLastUpdateAfter(cursor.getLastEntityDate());
+        SearchAIPsParameters filters = new SearchAIPsParameters().withAipIpType(Arrays.asList(EntityType.DATA))
+                                                                     .withStatesIncluded(Arrays.asList(AIPState.STORED))
+                                                                     .withLastUpdateAfter(cursor.getLastEntityDate());
         if (!CollectionUtils.isEmpty(subsettingTags)) {
             filters.withTagsIncluded(subsettingTags);
         }

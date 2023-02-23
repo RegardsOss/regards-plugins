@@ -11,7 +11,6 @@ import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
-import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPLightParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
 import fr.cnes.regards.modules.ingest.dto.sip.SIP;
@@ -92,7 +91,7 @@ public class AipDataSourcePluginTestConfiguration {
     private class AipClientProxy {
 
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPLightParameters filters,
+        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
                                                                              int page,
                                                                              int size,
                                                                              Sort sort) {
