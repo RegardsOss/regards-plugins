@@ -428,8 +428,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
         SearchAIPsParameters filters = new SearchAIPsParameters().withAipIpType(Arrays.asList(EntityType.DATA))
-                                                                     .withStatesIncluded(Arrays.asList(AIPState.STORED))
-                                                                     .withLastUpdateAfter(cursor.getLastEntityDate());
+                                                                 .withStatesIncluded(Arrays.asList(AIPState.STORED))
+                                                                 .withLastUpdateAfter(cursor.getLastEntityDate());
         if (!CollectionUtils.isEmpty(subsettingTags)) {
             filters.withTagsIncluded(subsettingTags);
         }
@@ -479,17 +479,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                 }
 
                 String downloadUrl = referenceUrl.orElse(getDownloadUrl(aip.getId(), oaisDo.getChecksum(), tenant));
-                DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(),
-                                                   oaisDo.getFilename(),
-                                                   downloadUrl,
-                                                   ci.getRepresentationInformation().getSyntax().getMimeType(),
-                                                   online,
-                                                   referenceUrl.isPresent());
-                dataFile.setFilesize(oaisDo.getFileSize());
-                dataFile.setDigestAlgorithm(oaisDo.getAlgorithm());
-                dataFile.setChecksum(oaisDo.getChecksum());
-                dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
-                dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
+                DataFile dataFile = buildDataFile(ci, oaisDo, online, referenceUrl, downloadUrl);
                 if ((ci.getRepresentationInformation() != null)
                     && (ci.getRepresentationInformation()
                           .getEnvironmentDescription() != null)
@@ -541,6 +531,13 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
             feature.setGeometry(aip.getGeometry());
         }
 
+        manageFeatureProperties(aip, feature);
+
+        return feature;
+    }
+
+    private void manageFeatureProperties(AIP aip, DataObjectFeature feature)
+        throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Binded properties
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
             String doPropertyPath = entry.getKey();
@@ -576,13 +573,12 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                         try {
                             propAtt = IProperty.forType(attributeType, propName, lowerBound, upperBound);
                         } catch (ClassCastException e) {
-                            String msg = String.format("Cannot map %s and %s to %s (values %s and %s)",
-                                                       lowerBoundPropertyPath,
-                                                       upperBoundPropertyPath,
-                                                       propName,
-                                                       lowerBound,
-                                                       upperBound);
-                            throw new RsRuntimeException(msg, e);
+                            throw new RsRuntimeException(String.format("Cannot map %s and %s to %s (values %s and %s)",
+                                                                       lowerBoundPropertyPath,
+                                                                       upperBoundPropertyPath,
+                                                                       propName,
+                                                                       lowerBound,
+                                                                       upperBound), e);
                         }
                     }
                 } else {
@@ -593,8 +589,10 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                         try {
                             propAtt = IProperty.forType(attributeType, propName, value);
                         } catch (ClassCastException e) {
-                            String msg = String.format("Cannot map %s to %s (value %s)", propertyPath, propName, value);
-                            throw new RsRuntimeException(msg, e);
+                            throw new RsRuntimeException(String.format("Cannot map %s to %s (value %s)",
+                                                                       propertyPath,
+                                                                       propName,
+                                                                       value), e);
                         }
                     }
                 }
@@ -620,8 +618,26 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                 }
             }
         }
+    }
 
-        return feature;
+    private DataFile buildDataFile(ContentInformation ci,
+                                   OAISDataObject oaisDo,
+                                   boolean online,
+                                   Optional<String> referenceUrl,
+                                   String downloadUrl) {
+        DataFile dataFile = DataFile.build(oaisDo.getRegardsDataType(),
+                                           oaisDo.getFilename(),
+                                           downloadUrl,
+                                           ci.getRepresentationInformation().getSyntax().getMimeType(),
+                                           online,
+                                           referenceUrl.isPresent());
+        dataFile.setFilesize(oaisDo.getFileSize());
+        dataFile.setDigestAlgorithm(oaisDo.getAlgorithm());
+        dataFile.setChecksum(oaisDo.getChecksum());
+        dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
+        dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
+
+        return dataFile;
     }
 
     /**

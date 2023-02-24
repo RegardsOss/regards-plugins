@@ -444,7 +444,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     public void delete(FileDeletionWorkingSubset workingSubset, IDeletionProgressManager progressManager) {
         for (FileDeletionRequest request : workingSubset.getFileDeletionRequests()) {
             if (request.getFileReference().getLocation().getUrl().matches(".*regards_.*\\.zip")) {
-                deleteFromZip(request, progressManager);
+                deleteFromZipPath(request, progressManager);
             } else {
                 try {
                     URL url = new URL(request.getFileReference().getLocation().getUrl());
@@ -469,61 +469,61 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void deleteFromZip(FileDeletionRequest request, IDeletionProgressManager progressManager) {
-        Map<String, String> env = new HashMap<>(1);
-        env.put(CREATE_ENV_FS, "false");
-        String checksum = request.getFileReference().getMetaInfo().getChecksum();
+    private void deleteFromZipPath(FileDeletionRequest request, IDeletionProgressManager progressManager) {
         try {
             Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
             if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
-                try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
-                    zipAccessSemaphore.acquire();
-                    try {
-                        FileLock zipLock = zipFC.lock();
-                        try {
-                            try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
-                                                                                         + zipPath.toAbsolutePath()),
-                                                                              env)) {
-                                Path pathInZip = zipFs.getPath(checksum);
-                                Files.deleteIfExists(pathInZip);
-                                progressManager.deletionSucceed(request);
-                            }
-                            try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
-                                if (!zipFile.entries().hasMoreElements()) {
-                                    Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
-                                    // Check if it is the current zip file. If it is, delete the symlink
-                                    if (Files.isSymbolicLink(linkPath)
-                                        && zipPath.equals(Files.readSymbolicLink(linkPath))) {
-                                        Files.delete(linkPath);
-                                    }
-                                    Files.deleteIfExists(zipPath);
-                                }
-                            }
-                        } finally {
-                            zipLock.release();
-                        }
-                    } finally {
-                        zipAccessSemaphore.release();
-                    }
-
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    LOGGER.error(
-                        "[LOCAL STORAGE PLUGIN] Deletion from zip has been interrupted while acquiring semaphore.",
-                        e);
-                }
+                deleteFromZipPath(zipPath, request, progressManager);
             } else {
-                LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file {} but zip file does not exists.",
+                LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file [{}] but zip file does not exist.",
                              zipPath);
                 progressManager.deletionSucceed(request);
             }
         } catch (IOException e) {
             String failureCause = String.format(
-                "Deletion of StorageDataFile(%s) failed due to the following IOException: %s",
+                "Deletion of StorageDataFile(checksum:%s) failed due to the following IOException: %s",
                 request.getFileReference().getMetaInfo().getChecksum(),
                 e.getMessage());
             LOGGER.error(failureCause, e);
             progressManager.deletionFailed(request, failureCause);
+        }
+    }
+
+    private void deleteFromZipPath(Path zipPath, FileDeletionRequest request, IDeletionProgressManager progressManager)
+        throws IOException {
+        Map<String, String> env = new HashMap<>(1);
+        env.put(CREATE_ENV_FS, "false");
+        LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file [{}].", zipPath);
+        try (FileChannel zipFC = FileChannel.open(zipPath, StandardOpenOption.WRITE, StandardOpenOption.READ)) {
+            zipAccessSemaphore.acquire();
+            try {
+                FileLock zipLock = zipFC.lock();
+                try {
+                    try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
+                                                                                 + zipPath.toAbsolutePath()), env)) {
+                        Path pathInZip = zipFs.getPath(request.getFileReference().getMetaInfo().getChecksum());
+                        Files.deleteIfExists(pathInZip);
+                        progressManager.deletionSucceed(request);
+                    }
+                    try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+                        if (!zipFile.entries().hasMoreElements()) {
+                            Path linkPath = zipPath.getParent().resolve(CURRENT_ZIP_NAME);
+                            // Check if it is the current zip file. If it is, delete the symboliclink
+                            if (Files.isSymbolicLink(linkPath) && zipPath.equals(Files.readSymbolicLink(linkPath))) {
+                                Files.delete(linkPath);
+                            }
+                            Files.deleteIfExists(zipPath);
+                        }
+                    }
+                } finally {
+                    zipLock.release();
+                }
+            } finally {
+                zipAccessSemaphore.release();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("[LOCAL STORAGE PLUGIN] Deletion from zip has been interrupted while acquiring semaphore.", e);
         }
     }
 

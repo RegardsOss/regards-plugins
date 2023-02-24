@@ -42,6 +42,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.ISO_
 
 /**
  * Gson type adapter for QueryObject and subclasses.
+ *
+ * @author gandrieu
  */
 @GsonTypeAdapter(adapted = SearchBody.QueryObject.class)
 public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> {
@@ -50,117 +52,129 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
     public void write(JsonWriter out, SearchBody.QueryObject value) throws IOException {
         if (value == null) {
             out.nullValue();
-        } else if (value instanceof SearchBody.BooleanQueryObject) {
-            SearchBody.BooleanQueryObject bqo = (SearchBody.BooleanQueryObject) value;
-            out.beginObject();
-            if (bqo.getEq() != null) {
-                out.name("eq").value(bqo.getEq());
-            }
-            if (bqo.getNeq() != null) {
-                out.name("neq").value(bqo.getNeq());
-            }
-            out.endObject();
-        } else if (value instanceof SearchBody.NumberQueryObject) {
-            SearchBody.NumberQueryObject nqo = (SearchBody.NumberQueryObject) value;
-            out.beginObject();
-            if (nqo.getEq() != null) {
-                out.name("eq").value(nqo.getEq());
-            }
-            if (nqo.getNeq() != null) {
-                out.name("neq").value(nqo.getNeq());
-            }
-            if (nqo.getGt() != null) {
-                out.name("gt").value(nqo.getGt());
-            }
-            if (nqo.getLt() != null) {
-                out.name("lt").value(nqo.getLt());
-            }
-            if (nqo.getGte() != null) {
-                out.name("gte").value(nqo.getGte());
-            }
-            if (nqo.getLte() != null) {
-                out.name("lte").value(nqo.getLte());
-            }
-            if (nqo.getIn() != null) {
-                out.name("in");
-                out.beginArray();
-                for (Double in : nqo.getIn()) {
-                    out.value(in);
-                }
-                out.endArray();
-            }
-            out.endObject();
-        } else if (value instanceof SearchBody.DatetimeQueryObject) {
-            SearchBody.DatetimeQueryObject dqo = (SearchBody.DatetimeQueryObject) value;
-            out.beginObject();
-            if (dqo.getEq() != null) {
-                out.name("eq").value(ISO_DATE_TIME_UTC.format(dqo.getEq()));
-            }
-            if (dqo.getNeq() != null) {
-                out.name("neq").value(ISO_DATE_TIME_UTC.format(dqo.getNeq()));
-            }
-            if (dqo.getGt() != null) {
-                out.name("gt").value(ISO_DATE_TIME_UTC.format(dqo.getGt()));
-            }
-            if (dqo.getLt() != null) {
-                out.name("lt").value(ISO_DATE_TIME_UTC.format(dqo.getLt()));
-            }
-            if (dqo.getGte() != null) {
-                out.name("gte").value(ISO_DATE_TIME_UTC.format(dqo.getGte()));
-            }
-            if (dqo.getLte() != null) {
-                out.name("lte").value(ISO_DATE_TIME_UTC.format(dqo.getLte()));
-            }
-            if (dqo.getIn() != null) {
-                out.name("in");
-                out.beginArray();
-                for (OffsetDateTime in : dqo.getIn()) {
-                    out.value(ISO_DATE_TIME_UTC.format(in));
-                }
-                out.endArray();
-            }
-            out.endObject();
-        } else if (value instanceof SearchBody.StringQueryObject) {
-            SearchBody.StringQueryObject nqo = (SearchBody.StringQueryObject) value;
-            out.beginObject();
-            if (nqo.getEq() != null) {
-                out.name("eq").value((nqo.getEq()));
-            }
-            if (nqo.getNeq() != null) {
-                out.name("neq").value((nqo.getNeq()));
-            }
-            if (nqo.getStartsWith() != null) {
-                out.name("startsWith").value((nqo.getStartsWith()));
-            }
-            if (nqo.getEndsWith() != null) {
-                out.name("endsWith").value((nqo.getEndsWith()));
-            }
-            if (nqo.getContains() != null) {
-                out.name("contains").value((nqo.getContains()));
-            }
-            if (nqo.getContainsAll() != null) {
-                out.name("containsAll");
-                out.beginArray();
-                for (String in : nqo.getContainsAll()) {
-                    out.value((in));
-                }
-                out.endArray();
-            }
-            if (nqo.getIn() != null) {
-                out.name("in");
-                out.beginArray();
-                for (String in : nqo.getIn()) {
-                    out.value((in));
-                }
-                out.endArray();
-            }
-            if (nqo.getMatchType() != null) {
-                out.name("matchType").value(nqo.getMatchType());
-            }
-            out.endObject();
+        } else if (value instanceof SearchBody.BooleanQueryObject bqo) {
+            writeBooleanQueryObject(out, bqo);
+        } else if (value instanceof SearchBody.NumberQueryObject nqo) {
+            writeNumberQueryObject(out, nqo);
+        } else if (value instanceof SearchBody.DatetimeQueryObject dqo) {
+            writeDatetimeQueryObject(out, dqo);
+        } else if (value instanceof SearchBody.StringQueryObject sqo) {
+            writeStringQueryObject(out, sqo);
         } else {
             throw new NotImplementedException("Missing QueryObject adapter for class: " + value.getClass());
         }
+    }
+
+    private void writeBooleanQueryObject(JsonWriter out, SearchBody.BooleanQueryObject bqo) throws IOException {
+        out.beginObject();
+        if (bqo.getEq() != null) {
+            out.name("eq").value(bqo.getEq());
+        }
+        if (bqo.getNeq() != null) {
+            out.name("neq").value(bqo.getNeq());
+        }
+        out.endObject();
+    }
+
+    private void writeNumberQueryObject(JsonWriter out, SearchBody.NumberQueryObject nqo) throws IOException {
+        out.beginObject();
+        if (nqo.getEq() != null) {
+            out.name("eq").value(nqo.getEq());
+        }
+        if (nqo.getNeq() != null) {
+            out.name("neq").value(nqo.getNeq());
+        }
+        if (nqo.getGt() != null) {
+            out.name("gt").value(nqo.getGt());
+        }
+        if (nqo.getLt() != null) {
+            out.name("lt").value(nqo.getLt());
+        }
+        if (nqo.getGte() != null) {
+            out.name("gte").value(nqo.getGte());
+        }
+        if (nqo.getLte() != null) {
+            out.name("lte").value(nqo.getLte());
+        }
+        if (nqo.getIn() != null) {
+            out.name("in");
+            out.beginArray();
+            for (Double in : nqo.getIn()) {
+                out.value(in);
+            }
+            out.endArray();
+        }
+        out.endObject();
+    }
+
+    private void writeDatetimeQueryObject(JsonWriter out, SearchBody.DatetimeQueryObject dqo) throws IOException {
+        out.beginObject();
+        if (dqo.getEq() != null) {
+            out.name("eq").value(ISO_DATE_TIME_UTC.format(dqo.getEq()));
+        }
+        if (dqo.getNeq() != null) {
+            out.name("neq").value(ISO_DATE_TIME_UTC.format(dqo.getNeq()));
+        }
+        if (dqo.getGt() != null) {
+            out.name("gt").value(ISO_DATE_TIME_UTC.format(dqo.getGt()));
+        }
+        if (dqo.getLt() != null) {
+            out.name("lt").value(ISO_DATE_TIME_UTC.format(dqo.getLt()));
+        }
+        if (dqo.getGte() != null) {
+            out.name("gte").value(ISO_DATE_TIME_UTC.format(dqo.getGte()));
+        }
+        if (dqo.getLte() != null) {
+            out.name("lte").value(ISO_DATE_TIME_UTC.format(dqo.getLte()));
+        }
+        if (dqo.getIn() != null) {
+            out.name("in");
+            out.beginArray();
+            for (OffsetDateTime in : dqo.getIn()) {
+                out.value(ISO_DATE_TIME_UTC.format(in));
+            }
+            out.endArray();
+        }
+        out.endObject();
+    }
+
+    private void writeStringQueryObject(JsonWriter out, SearchBody.StringQueryObject sqo) throws IOException {
+        out.beginObject();
+        if (sqo.getEq() != null) {
+            out.name("eq").value(sqo.getEq());
+        }
+        if (sqo.getNeq() != null) {
+            out.name("neq").value(sqo.getNeq());
+        }
+        if (sqo.getStartsWith() != null) {
+            out.name("startsWith").value(sqo.getStartsWith());
+        }
+        if (sqo.getEndsWith() != null) {
+            out.name("endsWith").value(sqo.getEndsWith());
+        }
+        if (sqo.getContains() != null) {
+            out.name("contains").value(sqo.getContains());
+        }
+        if (sqo.getContainsAll() != null) {
+            out.name("containsAll");
+            out.beginArray();
+            for (String in : sqo.getContainsAll()) {
+                out.value((in));
+            }
+            out.endArray();
+        }
+        if (sqo.getIn() != null) {
+            out.name("in");
+            out.beginArray();
+            for (String in : sqo.getIn()) {
+                out.value((in));
+            }
+            out.endArray();
+        }
+        if (sqo.getMatchType() != null) {
+            out.name("matchType").value(sqo.getMatchType());
+        }
+        out.endObject();
     }
 
     private Object findFirstDiscriminantValue(Seq<Object> values) {
@@ -188,54 +202,48 @@ public class QueryObjectTypeAdapter extends TypeAdapter<SearchBody.QueryObject> 
         in.endObject();
         if (inProps.isEmpty()) {
             return SearchBody.BooleanQueryObject.builder().build();
-        } else {
-            try {
-                // Try to find first discriminant value
-                Object head = findFirstDiscriminantValue(inProps.values());
+        }
+        // Try to find first discriminant value
+        Object head = findFirstDiscriminantValue(inProps.values());
 
-                if (head instanceof Boolean) {
-                    return SearchBody.BooleanQueryObject.builder()
-                                                        .eq((Boolean) inProps.get("eq").getOrNull())
-                                                        .neq((Boolean) inProps.get("neq").getOrNull())
-                                                        .build();
-                } else if (head instanceof Double) {
-                    return SearchBody.NumberQueryObject.builder()
-                                                       .eq((Double) inProps.get("eq").getOrNull())
-                                                       .neq((Double) inProps.get("neq").getOrNull())
-                                                       .gt((Double) inProps.get("gt").getOrNull())
-                                                       .lt((Double) inProps.get("lt").getOrNull())
-                                                       .gte((Double) inProps.get("gte").getOrNull())
-                                                       .lte((Double) inProps.get("lte").getOrNull())
-                                                       .in((List<Double>) inProps.get("in").getOrNull())
-                                                       .build();
-                } else if (head instanceof OffsetDateTime) {
-                    return SearchBody.DatetimeQueryObject.builder()
-                                                         .eq((OffsetDateTime) inProps.get("eq").getOrNull())
-                                                         .neq((OffsetDateTime) inProps.get("neq").getOrNull())
-                                                         .gt((OffsetDateTime) inProps.get("gt").getOrNull())
-                                                         .lt((OffsetDateTime) inProps.get("lt").getOrNull())
-                                                         .gte((OffsetDateTime) inProps.get("gte").getOrNull())
-                                                         .lte((OffsetDateTime) inProps.get("lte").getOrNull())
-                                                         .in((List<OffsetDateTime>) inProps.get("in").getOrNull())
-                                                         .build();
-                } else if (head instanceof String) {
-                    return SearchBody.StringQueryObject.builder()
-                                                       .eq((String) inProps.get("eq").getOrNull())
-                                                       .neq((String) inProps.get("neq").getOrNull())
-                                                       .startsWith((String) inProps.get("startsWith").getOrNull())
-                                                       .endsWith((String) inProps.get("endsWith").getOrNull())
-                                                       .contains((String) inProps.get("contains").getOrNull())
-                                                       .containsAll((List<String>) inProps.get("containsAll")
-                                                                                          .getOrNull())
-                                                       .in((List<String>) inProps.get("in").getOrNull())
-                                                       .matchType((String) inProps.get("matchType").getOrNull())
-                                                       .build();
-                } else {
-                    throw new IOException("QueryObject not parsable");
-                }
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+        if (head instanceof Boolean) {
+            return SearchBody.BooleanQueryObject.builder()
+                                                .eq((Boolean) inProps.get("eq").getOrNull())
+                                                .neq((Boolean) inProps.get("neq").getOrNull())
+                                                .build();
+        } else if (head instanceof Double) {
+            return SearchBody.NumberQueryObject.builder()
+                                               .eq((Double) inProps.get("eq").getOrNull())
+                                               .neq((Double) inProps.get("neq").getOrNull())
+                                               .gt((Double) inProps.get("gt").getOrNull())
+                                               .lt((Double) inProps.get("lt").getOrNull())
+                                               .gte((Double) inProps.get("gte").getOrNull())
+                                               .lte((Double) inProps.get("lte").getOrNull())
+                                               .in((List<Double>) inProps.get("in").getOrNull())
+                                               .build();
+        } else if (head instanceof OffsetDateTime) {
+            return SearchBody.DatetimeQueryObject.builder()
+                                                 .eq((OffsetDateTime) inProps.get("eq").getOrNull())
+                                                 .neq((OffsetDateTime) inProps.get("neq").getOrNull())
+                                                 .gt((OffsetDateTime) inProps.get("gt").getOrNull())
+                                                 .lt((OffsetDateTime) inProps.get("lt").getOrNull())
+                                                 .gte((OffsetDateTime) inProps.get("gte").getOrNull())
+                                                 .lte((OffsetDateTime) inProps.get("lte").getOrNull())
+                                                 .in((List<OffsetDateTime>) inProps.get("in").getOrNull())
+                                                 .build();
+        } else if (head instanceof String) {
+            return SearchBody.StringQueryObject.builder()
+                                               .eq((String) inProps.get("eq").getOrNull())
+                                               .neq((String) inProps.get("neq").getOrNull())
+                                               .startsWith((String) inProps.get("startsWith").getOrNull())
+                                               .endsWith((String) inProps.get("endsWith").getOrNull())
+                                               .contains((String) inProps.get("contains").getOrNull())
+                                               .containsAll((List<String>) inProps.get("containsAll").getOrNull())
+                                               .in((List<String>) inProps.get("in").getOrNull())
+                                               .matchType((String) inProps.get("matchType").getOrNull())
+                                               .build();
+        } else {
+            throw new IOException("QueryObject not parsable");
         }
     }
 
