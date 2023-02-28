@@ -24,6 +24,7 @@ import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.IInstancePublisher;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.ISubscriber;
+import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.amqp.event.AbstractRequestEvent;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -193,7 +194,7 @@ public class LtaRequestSenderIT {
         for (Message message : messagesSent) {
             //Common headers
             MessageProperties messageHeaders = message.getMessageProperties();
-            Assert.assertEquals(messageHeaders.getHeader("source"), "REGARDS-" + TENANT);
+            Assert.assertEquals(messageHeaders.getHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER), "REGARDS-" + TENANT);
             Assert.assertEquals(messageHeaders.getHeader(EventHeadersHelper.TENANT_HEADER), TENANT);
 
             //Body

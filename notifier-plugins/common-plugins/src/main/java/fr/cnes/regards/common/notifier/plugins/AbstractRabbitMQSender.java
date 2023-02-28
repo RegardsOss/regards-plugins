@@ -38,6 +38,8 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
 
     public static final String QUEUE_PARAM_NAME = "queueName";
 
+    public static final String QUEUE_DL_ROUTING_KEY_PARAM_NAME = "queueDeadLetterRoutingKey";
+
     public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
 
     @Autowired
@@ -49,6 +51,10 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @PluginParameter(label = "RabbitMQ queue name", name = QUEUE_PARAM_NAME, optional = true)
     private String queueName;
 
+    @PluginParameter(label = "RabbitMQ queue dead letter routing key", name = QUEUE_DL_ROUTING_KEY_PARAM_NAME,
+                     optional = true)
+    private String queueDlRoutingKey;
+
     @PluginParameter(label = "Recipient label (must be unique).",
                      description = " When not specified, the emitter wont know what's the recipient label that should receive its events",
                      name = RECIPIENT_LABEL_PARAM_NAME,
@@ -59,7 +65,7 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     Optional.empty(),
-                                    Optional.empty(),
+                                    Optional.ofNullable(queueDlRoutingKey),
                                     0,
                                     toSend,
                                     headers);

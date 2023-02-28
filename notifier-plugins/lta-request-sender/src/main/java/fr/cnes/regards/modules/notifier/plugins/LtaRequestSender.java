@@ -22,6 +22,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
+import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
@@ -154,7 +155,7 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
             MessageProperties headers = new MessageProperties();
             headers.setHeader(EventHeadersHelper.REQUEST_ID_HEADER, notificationRequest.getRequestId());
             headers.setHeader(EventHeadersHelper.TENANT_HEADER, tenantName);
-            headers.setHeader(SOURCE_HEADER, sessionNameAndOwner.sessionOwnerName());
+            headers.setHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER, sessionNameAndOwner.sessionOwnerName());
             messagesToSend.add(new Message(gson.toJson(payload).getBytes(), headers));
         }
         return messagesToSend;
