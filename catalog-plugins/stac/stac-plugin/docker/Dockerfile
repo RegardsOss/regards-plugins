@@ -1,15 +1,7 @@
-FROM alpine:latest
-ENV REGARDS_HOME /regards
-# Docker volume for plugins
-ENV REGARDS_PLUGINS /regards-plugins
+FROM 172.26.46.158/regards-plugin
 
-# Store STAC JAR
-ADD stac-plugin-*.jar ${REGARDS_HOME}/plugins/stac/
+ENV REGARDS_MS catalog
+ENV PLUGIN_ID stac-plugin
 
-# Testing purpose : CMD [ "/bin/bash" ]
-# first lets create the directory hierarchy if needed (mkdir -p) 
-CMD mkdir -p ${REGARDS_PLUGINS}/catalog/ && \
-	# Remove old STAC plugin
-	rm -f ${REGARDS_PLUGINS}/catalog/stac-plugin-*.jar && \
-	# Copy JAR
-	cp ${REGARDS_HOME}/plugins/stac/*.jar ${REGARDS_PLUGINS}/catalog/
+# Store JAR
+ADD ${PLUGIN_ID}-*.jar ${REGARDS_HOME}/plugins/${REGARDS_MS}/

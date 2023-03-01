@@ -1,15 +1,7 @@
-FROM alpine:latest
-ENV REGARDS_HOME /regards
-# Docker volume for plugins
-ENV REGARDS_PLUGINS /regards-plugins
+FROM 172.26.46.158/regards-plugin
+
+ENV REGARDS_MS storage
+ENV PLUGIN_ID local-storage-location
 
 # Store JAR
-ADD local-storage-location-*.jar ${REGARDS_HOME}/plugins/storage/
-
-# Testing purpose : CMD [ "/bin/bash" ]
-# first lets create the directory hierarchy if needed (mkdir -p) 
-CMD mkdir -p ${REGARDS_PLUGINS}/storage/ && \
-	# Remove old plugin
-	rm -f ${REGARDS_PLUGINS}/storage/local-storage-location-*.jar && \
-	# Copy JAR
-	cp ${REGARDS_HOME}/plugins/storage/*.jar ${REGARDS_PLUGINS}/storage/
+ADD ${PLUGIN_ID}-*.jar ${REGARDS_HOME}/plugins/${REGARDS_MS}/

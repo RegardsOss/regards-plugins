@@ -1,15 +1,7 @@
-FROM alpine:latest
-ENV REGARDS_HOME /regards
-# Docker volume for plugins
-ENV REGARDS_PLUGINS /regards-plugins
+FROM 172.26.46.158/regards-plugin
+
+ENV REGARDS_MS dam
+ENV PLUGIN_ID feature-datasource
 
 # Store JAR
-ADD feature-datasource-*.jar ${REGARDS_HOME}/plugins/dam/
-
-# Testing purpose : CMD [ "/bin/bash" ]
-# first lets create the directory hierarchy if needed (mkdir -p) 
-CMD mkdir -p ${REGARDS_PLUGINS}/dam/ && \
-	# Remove old plugin
-	rm -f ${REGARDS_PLUGINS}/dam/feature-datasource-*.jar && \
-	# Copy JAR
-	cp ${REGARDS_HOME}/plugins/dam/*.jar ${REGARDS_PLUGINS}/dam/
+ADD ${PLUGIN_ID}-*.jar ${REGARDS_HOME}/plugins/${REGARDS_MS}/
