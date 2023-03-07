@@ -24,6 +24,7 @@ import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.IInstancePublisher;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.ISubscriber;
+import fr.cnes.regards.framework.amqp.RawMessageEvent;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.amqp.event.AbstractRequestEvent;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
@@ -149,7 +150,7 @@ public class LtaRequestSenderIT {
     private final List<NotificationRequest> notificationRequests = new ArrayList<>();
 
     @Captor
-    private ArgumentCaptor<Collection<Message>> messagesCaptor;
+    private ArgumentCaptor<Collection<RawMessageEvent>> messagesCaptor;
 
     @Autowired
     protected IPublisher publisher;
@@ -189,12 +190,13 @@ public class LtaRequestSenderIT {
                              messagesCaptor.capture(),
                              Mockito.any());
 
-        List<Message> messagesSent = (List<Message>) messagesCaptor.getValue();
+        List<RawMessageEvent> messagesSent = (List<RawMessageEvent>) messagesCaptor.getValue();
         Assert.assertEquals(messagesSent.size(), notificationRequests.size());
         for (Message message : messagesSent) {
             //Common headers
             MessageProperties messageHeaders = message.getMessageProperties();
-            Assert.assertEquals(messageHeaders.getHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER), "REGARDS-" + TENANT);
+            Assert.assertEquals(messageHeaders.getHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER),
+                                "REGARDS-" + TENANT);
             Assert.assertEquals(messageHeaders.getHeader(EventHeadersHelper.TENANT_HEADER), TENANT);
 
             //Body

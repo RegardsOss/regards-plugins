@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.notifier.plugins;
 import com.google.common.collect.Lists;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.IPublisher;
+import fr.cnes.regards.framework.amqp.RawMessageEvent;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -92,7 +93,7 @@ public class RabbitMQSenderTest {
     private ArgumentCaptor<Integer> priorityCaptor;
 
     @Captor
-    private ArgumentCaptor<Collection<?>> messagesCaptor;
+    private ArgumentCaptor<Collection<RawMessageEvent>> messagesCaptor;
 
     @Captor
     private ArgumentCaptor<Map<String, Object>> headersCaptor;

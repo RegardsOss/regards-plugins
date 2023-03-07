@@ -22,6 +22,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
+import fr.cnes.regards.framework.amqp.RawMessageEvent;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -38,7 +39,6 @@ import fr.cnes.regards.modules.notifier.utils.SessionUtils;
 import fr.cnes.regards.modules.workermanager.amqp.events.EventHeadersHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -137,12 +137,12 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToProcess) {
-        List<Message> messagesToSend = buildLtaRequestSenderMessages(requestsToProcess);
+        List<RawMessageEvent> messagesToSend = buildLtaRequestSenderMessages(requestsToProcess);
         return sendEvents(messagesToSend, new HashMap<>());
     }
 
-    private List<Message> buildLtaRequestSenderMessages(Collection<NotificationRequest> requestsToProcess) {
-        List<Message> messagesToSend = new ArrayList<>();
+    private List<RawMessageEvent> buildLtaRequestSenderMessages(Collection<NotificationRequest> requestsToProcess) {
+        List<RawMessageEvent> messagesToSend = new ArrayList<>();
         String tenantName = recipientTenant == null ? runtimeTenantResolver.getTenant() : recipientTenant;
 
         for (NotificationRequest notificationRequest : requestsToProcess) {
@@ -156,7 +156,7 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
             headers.setHeader(EventHeadersHelper.REQUEST_ID_HEADER, notificationRequest.getRequestId());
             headers.setHeader(EventHeadersHelper.TENANT_HEADER, tenantName);
             headers.setHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER, sessionNameAndOwner.sessionOwnerName());
-            messagesToSend.add(new Message(gson.toJson(payload).getBytes(), headers));
+            messagesToSend.add(new RawMessageEvent(gson.toJson(payload).getBytes(), headers));
         }
         return messagesToSend;
     }

@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.notifier.plugins;
 
 import com.google.gson.JsonObject;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
+import fr.cnes.regards.framework.amqp.RawMessageEvent;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
@@ -27,7 +28,6 @@ import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.utils.SessionNameAndOwner;
 import fr.cnes.regards.modules.notifier.utils.SessionUtils;
 import fr.cnes.regards.modules.workermanager.amqp.events.RawMessageBuilder;
-import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.StandardCharsets;
@@ -105,7 +105,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToProcess) {
-        List<Message> messagesToSend = buildWorkerManagerSenderMessages(requestsToProcess);
+        List<RawMessageEvent> messagesToSend = buildWorkerManagerSenderMessages(requestsToProcess);
         // headers are empty hashmap because they are already contained in Message.messageProperties
         return sendEvents(messagesToSend, new HashMap<>());
     }
@@ -115,8 +115,8 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
         return this.ackRequired;
     }
 
-    private List<Message> buildWorkerManagerSenderMessages(Collection<NotificationRequest> requestsToProcess) {
-        List<Message> messagesToSend = new ArrayList<>();
+    private List<RawMessageEvent> buildWorkerManagerSenderMessages(Collection<NotificationRequest> requestsToProcess) {
+        List<RawMessageEvent> messagesToSend = new ArrayList<>();
         String tenantName = recipientTenant == null ? runtimeTenantResolver.getTenant() : recipientTenant;
 
         for (NotificationRequest notificationRequest : requestsToProcess) {

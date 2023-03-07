@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.cnes.regards.framework.amqp.IPublisher;
+import fr.cnes.regards.framework.amqp.RawMessageEvent;
 import fr.cnes.regards.framework.amqp.event.AbstractRequestEvent;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -102,7 +103,7 @@ public class WorkerManagerSenderIT {
     private IPublisher publisher;
 
     @Captor
-    private ArgumentCaptor<Collection<Message>> messagesCaptor;
+    private ArgumentCaptor<Collection<RawMessageEvent>> messagesCaptor;
 
     private final List<NotificationRequest> notificationRequests = Lists.newArrayList();
 
@@ -202,7 +203,7 @@ public class WorkerManagerSenderIT {
     public void checkNotificationsSent(boolean overriddenSessionName, boolean errorSessionName) {
         // THEN
         // check that X events were sent corresponding to X notification request events
-        List<Message> messagesSent = (List<Message>) messagesCaptor.getValue();
+        List<RawMessageEvent> messagesSent = (List<RawMessageEvent>) messagesCaptor.getValue();
         Assert.assertEquals(String.format("%d messages should have been published", notificationRequests.size()),
                             notificationRequests.size(),
                             messagesSent.size());

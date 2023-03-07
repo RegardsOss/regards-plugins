@@ -19,6 +19,7 @@
 package fr.cnes.regards.common.notifier.plugins;
 
 import fr.cnes.regards.framework.amqp.IPublisher;
+import fr.cnes.regards.framework.amqp.event.IEvent;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
@@ -51,7 +52,8 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @PluginParameter(label = "RabbitMQ queue name", name = QUEUE_PARAM_NAME, optional = true)
     private String queueName;
 
-    @PluginParameter(label = "RabbitMQ queue dead letter routing key", name = QUEUE_DL_ROUTING_KEY_PARAM_NAME,
+    @PluginParameter(label = "RabbitMQ queue dead letter routing key",
+                     name = QUEUE_DL_ROUTING_KEY_PARAM_NAME,
                      optional = true)
     private String queueDlRoutingKey;
 
@@ -61,7 +63,7 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
                      optional = true)
     private String recipientLabel;
 
-    public <T> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
+    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     Optional.empty(),

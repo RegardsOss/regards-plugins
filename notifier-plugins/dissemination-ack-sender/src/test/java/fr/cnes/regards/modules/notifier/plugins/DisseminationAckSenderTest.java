@@ -105,7 +105,7 @@ public class DisseminationAckSenderTest {
     private ArgumentCaptor<Integer> priorityCaptor;
 
     @Captor
-    private ArgumentCaptor<Collection<?>> messagesCaptor;
+    private ArgumentCaptor<Collection<DisseminationAckEvent>> messagesCaptor;
 
     @Captor
     private ArgumentCaptor<Map<String, Object>> headersCaptor;
