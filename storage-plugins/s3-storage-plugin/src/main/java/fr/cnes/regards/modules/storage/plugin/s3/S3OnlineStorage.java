@@ -16,9 +16,7 @@ import fr.cnes.regards.modules.storage.domain.database.request.FileStorageReques
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.collection.Stream;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -207,48 +205,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      */
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
-        String tenant = runtimeTenantResolver.getTenant();
-
-        Stream.ofAll(workingSet.getFileDeletionRequests()).flatMap(request -> Try.of(() -> {
-            LOGGER.info("Start deleting {} with location {}",
-                        request.getFileReference().getMetaInfo().getFileName(),
-                        request.getFileReference().getLocation().getUrl());
-            StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
-
-            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
-                                                                             cmdId,
-                                                                             getEntryKey(request.getFileReference()));
-            return createS3Client().delete(deleteCmd)
-                                   .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
-                                                                                           unreachable -> Mono.error(new RuntimeException(
-                                                                                               "Unreachable endpoint")),
-                                                                                           failure -> Mono.error(new RuntimeException(
-                                                                                               "Delete failure in S3 storage"))))
-                                   .doOnError(t -> {
-                                       try {
-                                           runtimeTenantResolver.forceTenant(tenant);
-                                           LOGGER.error("End deleting {} with location {}",
-                                                        request.getFileReference().getMetaInfo().getFileName(),
-                                                        request.getFileReference().getLocation().getUrl(),
-                                                        t);
-                                           progressManager.deletionFailed(request, "Delete failure in S3 storage");
-                                       } finally {
-                                           runtimeTenantResolver.clearTenant();
-                                       }
-                                   })
-                                   .doOnSuccess(success -> {
-                                       try {
-                                           runtimeTenantResolver.forceTenant(tenant);
-                                           LOGGER.info("End deleting {} with location {}",
-                                                       request.getFileReference().getMetaInfo().getFileName(),
-                                                       request.getFileReference().getLocation().getUrl());
-                                           progressManager.deletionSucceed(request);
-                                       } finally {
-                                           runtimeTenantResolver.clearTenant();
-                                       }
-                                   })
-                                   .block();
-        }));
+        workingSet.getFileDeletionRequests().forEach(r -> handleDeleteRequest(r, progressManager));
     }
 
     /**
@@ -260,6 +217,48 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
         workingSet.getFileReferenceRequests().forEach(request -> handleStoreRequest(request, progressManager));
+    }
+
+    private void handleDeleteRequest(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+        String tenant = runtimeTenantResolver.getTenant();
+        LOGGER.info("Start deleting {} with location {}",
+                    request.getFileReference().getMetaInfo().getFileName(),
+                    request.getFileReference().getLocation().getUrl());
+        StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
+
+        StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
+                                                                         cmdId,
+                                                                         getEntryKey(request.getFileReference()));
+        createS3Client().delete(deleteCmd)
+                        .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
+                                                                                unreachable -> Mono.error(new RuntimeException(
+                                                                                    "Unreachable endpoint")),
+                                                                                failure -> Mono.error(new RuntimeException(
+                                                                                    "Delete failure in S3 storage"))))
+                        .doOnError(t -> {
+                            try {
+                                runtimeTenantResolver.forceTenant(tenant);
+                                LOGGER.error("End deleting {} with location {}",
+                                             request.getFileReference().getMetaInfo().getFileName(),
+                                             request.getFileReference().getLocation().getUrl(),
+                                             t);
+                                progressManager.deletionFailed(request, "Delete failure in S3 storage");
+                            } finally {
+                                runtimeTenantResolver.clearTenant();
+                            }
+                        })
+                        .doOnSuccess(success -> {
+                            try {
+                                runtimeTenantResolver.forceTenant(tenant);
+                                LOGGER.info("End deleting {} with location {}",
+                                            request.getFileReference().getMetaInfo().getFileName(),
+                                            request.getFileReference().getLocation().getUrl());
+                                progressManager.deletionSucceed(request);
+                            } finally {
+                                runtimeTenantResolver.clearTenant();
+                            }
+                        })
+                        .block();
     }
 
     private void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
