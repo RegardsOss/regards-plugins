@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import com.google.gson.JsonPrimitive;
 import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
@@ -26,6 +27,8 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -47,11 +50,21 @@ import java.util.*;
         url = "https://regardsoss.github.io/")
 public class DisseminationAckSender extends AbstractRabbitMQSender {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationAckSender.class);
+
     public static final String RECIPIENT_TENANT_PARAM_NAME = "recipientTenant";
 
     public static final String PLUGIN_ID = "DisseminationAckSender";
 
+    /**
+     * Path to feature origin urn in notification payload (used for GeoJson notified products).
+     */
     public static final String FEATURE_PATH_TO_URN = "urn";
+
+    /**
+     * Path to feature origin urn in notification payload (used for AIP notified products).
+     */
+    public static final String FEATURE_PATH_TO_ORIGIN_URN = "originUrn";
 
     public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
 
@@ -72,7 +85,23 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
         List<DisseminationAckEvent> toSend = new ArrayList<>();
         for (NotificationRequest request : requestsToSend) {
             // Check we can retrieve the URN, and it's valid field
-            String urnAsString = request.getPayload().getAsJsonPrimitive(FEATURE_PATH_TO_URN).getAsString();
+            String urnAsString = null;
+            // The request playload can be :
+            // - A Feature notification from FEM
+            // - An AIP notification from INGEST
+            // Retrieve urn from urn property (from FEM Feature format) or null if notification is not a FEM feature
+            JsonPrimitive featureUrnNode = request.getPayload().getAsJsonPrimitive(FEATURE_PATH_TO_URN);
+            // Retrieve urn from originUrn property (from AIP Feature format) or null if notification is not an
+            // INGEST AIP
+            JsonPrimitive featureOriginUrnNode = request.getPayload().getAsJsonPrimitive(FEATURE_PATH_TO_ORIGIN_URN);
+            if (featureUrnNode != null && featureUrnNode.getAsString() != null) {
+                urnAsString = featureUrnNode.getAsString();
+            } else if (featureOriginUrnNode != null && featureOriginUrnNode.getAsString() != null) {
+                urnAsString = featureOriginUrnNode.getAsString();
+            } else {
+                LOGGER.error("Unable to find urn in provided feature in order to send feature update request.");
+            }
+
             if (FeatureUniformResourceName.isValidUrn(urnAsString)) {
                 toSend.add(new DisseminationAckEvent(urnAsString, senderLabel));
             } else {
