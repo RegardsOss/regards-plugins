@@ -115,6 +115,7 @@ public class AipDataSourcePluginTestConfiguration {
                 SIPEntity sipEntity = SIPEntity.build("PROJECT1",
                                                       IngestMetadata.build("NASA",
                                                                            OffsetDateTime.now().toString(),
+                                                                           null,
                                                                            "defaultChain",
                                                                            Sets.newHashSet("Cat!"),
                                                                            StorageMetadata.build("AWS")),
