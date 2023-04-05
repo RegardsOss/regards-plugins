@@ -69,7 +69,7 @@
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.project</groupId>
-            <artifactId>project-client</artifactId>
+            <artifactId>project-instance-client</artifactId>
             <scope>provided</scope>
         </dependency>
         <!-- Tests -->
