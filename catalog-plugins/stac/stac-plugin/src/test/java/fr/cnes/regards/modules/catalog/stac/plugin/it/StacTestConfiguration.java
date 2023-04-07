@@ -71,7 +71,7 @@ public class StacTestConfiguration {
         mockDataset.setIpId(UniformResourceName.fromString(
             "URN:AIP:DATASET:tenant:27de606c-a6cd-411f-a5ba-bd1b2f29c965:V1"));
         Mockito.when(client.retrieveDataset(Mockito.anyString()))
-               .thenReturn(new ResponseEntity<>(HateoasUtils.wrap(mockDataset), HttpStatus.OK));
+               .thenReturn(new ResponseEntity<>(mockDataset, HttpStatus.OK));
         return client;
     }
 
