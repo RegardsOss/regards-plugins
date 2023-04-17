@@ -70,7 +70,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
     public static final String UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
 
-    public static final String MULTIPART_PARALLEL_PARAM_NAME = "Upload_With_Multipart_Threshold_In_Mb";
+    public static final String MULTIPART_PARALLEL_PARAM_NAME = "Upload_With_Multipart_Parallel_Part_Number";
 
     /**
      * Plugin parameter name of the can delete attribute
