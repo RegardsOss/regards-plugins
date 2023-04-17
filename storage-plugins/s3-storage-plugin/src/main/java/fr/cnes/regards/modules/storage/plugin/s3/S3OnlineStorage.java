@@ -435,7 +435,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     private String getEntryKey(FileReference fileReference) {
         return fileReference.getLocation()
                             .getUrl()
-                            .replaceFirst(Pattern.quote(endpoint) + "/*", "")
+                            .replaceFirst(Pattern.quote(endpoint) + "(:[0-9]*)?/*", "")
                             .replaceFirst(Pattern.quote(bucket), "")
                             .substring(1);
     }
