@@ -56,5 +56,6 @@
     <modules>
         <module>local-storage-location</module>
         <module>s3-storage-plugin</module>
+        <module>s3-glacier-storage-plugin</module>
     </modules>
 </project>

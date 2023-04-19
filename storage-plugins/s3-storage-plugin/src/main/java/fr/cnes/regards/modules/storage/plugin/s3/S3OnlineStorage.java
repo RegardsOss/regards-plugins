@@ -82,26 +82,26 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
                      description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
                      label = "S3 server endpoint")
-    private String endpoint;
+    protected String endpoint;
 
     @PluginParameter(name = S3_SERVER_REGION_PARAM_NAME,
                      description = "Region of the S3 server",
                      label = "S3 server region")
-    private String region;
+    protected String region;
 
     @PluginParameter(name = S3_SERVER_KEY_PARAM_NAME, description = "Key of the S3 server", label = "S3 server key")
-    private String key;
+    protected String key;
 
     @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME,
                      description = "Secret of the S3 server",
                      label = "S3 server secret",
                      sensitive = true)
-    private String secret;
+    protected String secret;
 
     @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME,
                      description = "Bucket of the S3 server",
                      label = "S3 server bucket")
-    private String bucket;
+    protected String bucket;
 
     /**
      * Parameter used for URL validation. Only URL starting with {endpoint}/{bucket}/{root_path} is valid.
@@ -111,25 +111,25 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                      description = "Root path of this storage in the S3 server",
                      label = "Storage root path",
                      optional = true)
-    private String rootPath;
+    protected String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
                      description = "Number of Mb for a file size over which multipart upload is used",
                      label = "Multipart threshold in Mb",
                      defaultValue = "5")
-    private int multipartThresholdMb;
+    protected int multipartThresholdMb;
 
     @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME,
                      description = "Number of parallel parts to upload",
                      label = "Number of parallel parts during multipart upload",
                      defaultValue = "5")
-    private int nbParallelPartsUpload;
+    protected int nbParallelPartsUpload;
 
     @PluginParameter(name = S3_ALLOW_DELETION,
                      label = "Enable effective deletion of files",
                      description = "If deletion is allowed, files are physically deleted else files are only removed from references",
                      defaultValue = "false")
-    private Boolean allowPhysicalDeletion;
+    protected Boolean allowPhysicalDeletion;
 
     /**
      * Cache for the client S3
@@ -140,7 +140,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
     /**
      * Configuration of S3 server
      */
-    private StorageConfig storageConfiguration;
+    public StorageConfig storageConfiguration;
 
     @Autowired
     private IRuntimeTenantResolver runtimeTenantResolver;
@@ -149,7 +149,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      * Settings for the configuration of available S3 server
      */
     @Autowired
-    private S3StorageConfiguration s3StorageSettings;
+    protected S3StorageConfiguration s3StorageSettings;
 
     /**
      * Initialize the storage configuration of S3 server
@@ -167,7 +167,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      *
      * @return the client S3
      */
-    private S3HighLevelReactiveClient createS3Client() {
+    protected S3HighLevelReactiveClient createS3Client() {
         if (clientCache == null) {
             Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
             int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
@@ -219,7 +219,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         workingSet.getFileReferenceRequests().forEach(request -> handleStoreRequest(request, progressManager));
     }
 
-    private void handleDeleteRequest(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+    protected void handleDeleteRequest(FileDeletionRequest request, IDeletionProgressManager progressManager) {
         String tenant = runtimeTenantResolver.getTenant();
         LOGGER.info("Start deleting {} with location {}",
                     request.getFileReference().getMetaInfo().getFileName(),
@@ -261,7 +261,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                         .block();
     }
 
-    private void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
+    protected void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
             // Download the file from url (File system, S3 server)
@@ -333,38 +333,49 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      * @return true if the 2 checksums are identical; false otherwise
      */
     private boolean isStoredFileValidated(FileStorageRequest request, String entryKey) {
+        return isStoredFileValidated(request.getJobId(), request.getMetaInfo().getChecksum(), entryKey);
+    }
+
+    /**
+     * Check if the checksum of stored file is identical with the expected one
+     *
+     * @param jobId            the id of the job for logging purpose
+     * @param expectedChecksum the expectedChecksum to compare with the one in the storage
+     * @param entryKey         the entry key for the S3 server
+     * @return true if the 2 checksums are identical; false otherwise
+     */
+    public boolean isStoredFileValidated(String jobId, String expectedChecksum, String entryKey) {
         boolean isValid = true;
         LOGGER.debug("[{}] Retrieve checksum of file {} from s3 server with endPoint [{}] in bucket [{}].",
-                     request.getJobId(),
+                     jobId,
                      entryKey,
                      storageConfiguration.getEndpoint(),
                      storageConfiguration.getBucket());
 
         StorageCommand.Check checkCmd = StorageCommand.check(storageConfiguration,
-                                                             createStorageCommandID(request.getJobId()),
+                                                             createStorageCommandID(jobId),
                                                              entryKey);
 
-        String realChecksum = getRealChecksum(request, entryKey, checkCmd);
+        String realChecksum = getRealChecksum(jobId, entryKey, checkCmd);
 
-        String expectedChecksum = request.getMetaInfo().getChecksum();
         // Check 2 checksums
         if (realChecksum.equalsIgnoreCase(expectedChecksum)) {
             return isValid;
         }
         LOGGER.debug(
             "[{}] The checksum of the stored file [{}] is not the same as the checksum of the input file [{}] to store in the S3 server.",
-            request.getJobId(),
+            jobId,
             realChecksum,
             expectedChecksum);
         LOGGER.info(
             "[{}] Deleting the file {} from the s3 server with endPoint [{}] in bucket [{}] because the checksum does not match the expected one.",
-            request.getJobId(),
+            jobId,
             entryKey,
             storageConfiguration.getEndpoint(),
             storageConfiguration.getBucket());
 
         StorageCommand.Delete deleteCmd = StorageCommand.delete(storageConfiguration,
-                                                                createStorageCommandID(request.getJobId()),
+                                                                createStorageCommandID(jobId),
                                                                 storageConfiguration.entryKey(entryKey));
         createS3Client().delete(deleteCmd)
                         .flatMap(r -> r.matchDeleteResult(Mono::just,
@@ -380,14 +391,14 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
 
                         .doOnError(t -> LOGGER.error(
                             "[{}] Failed [bucket: {}] to delete file {} [endpoint: {}] the checksum does not match with the expected one :",
-                            request.getJobId(),
+                            jobId,
                             storageConfiguration.getBucket(),
                             entryKey,
                             storageConfiguration.getEndpoint(),
                             t))
                         .doOnSuccess(success -> LOGGER.info(
                             "[{}] Success [bucket: {}] end deleting of file {} [endpoint: {}] the checksum does not match with the expected one",
-                            request.getJobId(),
+                            jobId,
                             storageConfiguration.getBucket(),
                             entryKey,
                             storageConfiguration.getEndpoint()))
@@ -395,18 +406,18 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
         return !isValid;
     }
 
-    private String getRealChecksum(FileStorageRequest request, String entryKey, StorageCommand.Check checkCmd) {
+    protected String getRealChecksum(String jobId, String entryKey, StorageCommand.Check checkCmd) {
         Optional<String> eTag = createS3Client().eTag(checkCmd)
                                                 .doOnError(t -> LOGGER.error(
                                                     "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
-                                                    request.getJobId(),
+                                                    jobId,
                                                     storageConfiguration.getBucket(),
                                                     entryKey,
                                                     storageConfiguration.getEndpoint(),
                                                     t))
                                                 .doOnSuccess(success -> LOGGER.info(
                                                     "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
-                                                    request.getJobId(),
+                                                    jobId,
                                                     storageConfiguration.getBucket(),
                                                     entryKey,
                                                     storageConfiguration.getEndpoint()))
@@ -515,7 +526,7 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
      * @param sourceUrl the url of file
      * @return the size of file, 0 if the file does not exist
      */
-    private long getFileSize(URL sourceUrl) {
+    protected long getFileSize(URL sourceUrl) {
         long fileSize = 0L;
         try {
             fileSize = DownloadUtils.getContentLength(sourceUrl, 0, s3StorageSettings.getStorages());
