@@ -53,7 +53,7 @@ import java.util.*;
  * @author Thibaud Michaudel
  */
 @Plugin(author = "REGARDS Team",
-        description = "Default recipient sender",
+        description = "Lta request sender",
         id = LtaRequestSender.PLUGIN_ID,
         version = "1.0.0",
         contact = "regards@c-s.fr",
@@ -78,7 +78,9 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
 
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    private static final String SOURCE_HEADER = "source";
+    private static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
+
+    public static final String DESCRIPTION_PARAM_NAME = "description";
 
     private static final TypeToken<List<FeatureFile>> typeTokenFiles = new TypeToken<>() {
 
@@ -128,21 +130,35 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
                      name = REPLACE_MODE_PARAM_NAME)
     private boolean replaceMode;
 
-    @PluginParameter(label = "Recipient acknowledgment",
+    @PluginParameter(label = "Recipient acknowledgment required",
                      description = "When value is True, the recipient will send back an acknowledgment.",
                      name = ACK_REQUIRED_PARAM_NAME,
                      optional = true,
                      defaultValue = "false")
     private boolean ackRequired;
 
+    @PluginParameter(label = "Direct notification enabled",
+                     description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
+                     name = DIRECT_NOTIFICATION_ENABLED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
+    private boolean directNotificationEnabled;
+
+    @PluginParameter(label = "Recipient description",
+                     name = DESCRIPTION_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "LTA request sender")
+    private String description;
+
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToProcess) {
-        List<RawMessageEvent> messagesToSend = buildLtaRequestSenderMessages(requestsToProcess);
-        return sendEvents(messagesToSend, new HashMap<>());
+
+        return sendEvents(buildLtaRequestSenderMessages(requestsToProcess), new HashMap<>());
     }
 
     private List<RawMessageEvent> buildLtaRequestSenderMessages(Collection<NotificationRequest> requestsToProcess) {
         List<RawMessageEvent> messagesToSend = new ArrayList<>();
+
         String tenantName = recipientTenant == null ? runtimeTenantResolver.getTenant() : recipientTenant;
 
         for (NotificationRequest notificationRequest : requestsToProcess) {
@@ -156,6 +172,7 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
             headers.setHeader(EventHeadersHelper.REQUEST_ID_HEADER, notificationRequest.getRequestId());
             headers.setHeader(EventHeadersHelper.TENANT_HEADER, tenantName);
             headers.setHeader(AmqpConstants.REGARDS_REQUEST_OWNER_HEADER, sessionNameAndOwner.sessionOwnerName());
+
             messagesToSend.add(new RawMessageEvent(gson.toJson(payload).getBytes(), headers));
         }
         return messagesToSend;
@@ -213,6 +230,16 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
     @Override
     public boolean isAckRequired() {
         return ackRequired;
+    }
+
+    @Override
+    public boolean isDirectNotificationEnabled() {
+        return directNotificationEnabled;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
     }
 
 }

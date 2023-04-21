@@ -23,13 +23,11 @@ import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -52,9 +50,11 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DisseminationAckSender.class);
 
+    public static final String PLUGIN_ID = "DisseminationAckSender";
+
     public static final String RECIPIENT_TENANT_PARAM_NAME = "recipientTenant";
 
-    public static final String PLUGIN_ID = "DisseminationAckSender";
+    public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
 
     /**
      * Path to feature origin urn in notification payload (used for GeoJson notified products).
@@ -65,11 +65,6 @@ public class DisseminationAckSender extends AbstractRabbitMQSender {
      * Path to feature origin urn in notification payload (used for AIP notified products).
      */
     public static final String FEATURE_PATH_TO_ORIGIN_URN = "originUrn";
-
-    public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
-
-    @Autowired
-    private IRuntimeTenantResolver runtimeTenantResolver;
 
     @PluginParameter(label = "Recipient tenant", name = RECIPIENT_TENANT_PARAM_NAME)
     private String recipientTenant;

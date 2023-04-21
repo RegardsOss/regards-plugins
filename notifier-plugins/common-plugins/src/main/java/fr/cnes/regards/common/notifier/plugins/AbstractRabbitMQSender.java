@@ -58,11 +58,11 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     private String queueDlRoutingKey;
 
     @PluginParameter(label = "Recipient label (must be unique).",
-                     description = " When not specified, the emitter wont know what's the recipient label that should receive its events",
+                     description = "When not specified, the emitter wont know what's the recipient label that should receive its events",
                      name = RECIPIENT_LABEL_PARAM_NAME,
                      optional = true)
     private String recipientLabel;
-
+    
     public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
