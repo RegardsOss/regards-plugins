@@ -42,4 +42,11 @@ public class EODAGConfiguration {
                      defaultValue = "eodag_provider",
                      optional = true)
     String provider;
+
+    @PluginParameter(name = "apiKey",
+        label = "EODAG API key",
+        description = "EODAG virtual environment variable for API Key.",
+        defaultValue = "eodag_apikey",
+        optional = true)
+    String apiKey;
 }

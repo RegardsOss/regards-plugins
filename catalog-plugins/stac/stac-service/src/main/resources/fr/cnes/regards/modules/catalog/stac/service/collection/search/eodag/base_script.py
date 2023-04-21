@@ -1,9 +1,13 @@
 help_message = """
-Download products from your project using EODAG https://github.com/CS-SI/eodag
-
+Download products from your {{ info.portalName }} project ({{ info.baseUri }}) using EODAG (https://github.com/CS-SI/eodag)
+This script is an example tuned for your last {{ info.portalName }} project but feel free to adapt it for future requests.
+Follow these steps:
 1. If not already done, install EODAG latest version using `pip install -U eodag` or `conda update eodag`
-2. Copy and paste your API key below
-3. Run this script `python {{ info.filename }}`
+2a. Generate an API-Key from {{ info.portalName }} portal in your user settings
+2b. Carefully store your API-Key
+- either in your eodag configuration file (usually ~/.config/eodag/eodag.yml, automatically generated the first time you use eodag) in auth/credentials/apikey="PLEASE_CHANGE_ME"
+- or in an environment variable `export {{ info.apiKey }}="PLEASE_CHANGE_ME"`
+3. You are all set, run this script `python {{ info.filename }}`
 
 For more information, please refer to EODAG Documentation https://eodag.readthedocs.io
 """
@@ -13,7 +17,7 @@ try:
     from eodag import setup_logging
     from packaging import version
 
-    assert version.parse(eodag_version) > version.parse("2.8.0"), help_message
+    assert version.parse(eodag_version) >= version.parse("2.10.0"), help_message
 except ImportError:
     print(help_message)
     exit(1)
@@ -22,44 +26,28 @@ setup_logging(1)  # 0: nothing, 1: only progress bars, 2: INFO, 3: DEBUG
 
 dag = EODataAccessGateway()
 
-# Please fill in the following string your API Key obtained in your {{ info.baseUri }} user settings
-apikey = "PLEASE_CHANGE_ME"
-
-# This code-block will be removed when {{ info.provider }} is publicly included to EODAG. -----------------------------------
-# You can also append for once the following `{{ info.provider }}_config` string to `~/.eodag/config/eodag.yml`
-#  and remove this code-block. This will also enable {{ info.provider }} provider in EODAG CLI.
-#  Please note that `~/.eodag/config/eodag.yml` is automatically created on EODAG first run.
-{{ info.provider }}_config = """
-{{ info.provider }}:
-    priority: 2 # Set highest priority. Higher value means higher priority (Default max: 1)
-    search:
-        type: StacSearch
-        api_endpoint: {{ info.stacSearchApi }}
-        need_auth: true
-        pagination:
-            max_items_per_page: 10_000
-        metadata_mapping:
-{% raw %}
-            startTimeFromAscendingNode:
-                - '{{"query":{{"end_datetime":{{"gte":"{startTimeFromAscendingNode#to_iso_utc_datetime}"}}}}}}'
-                - '$.properties.start_datetime'
-            completionTimeFromAscendingNode:
-                - '{{"query":{{"start_datetime":{{"lte":"{completionTimeFromAscendingNode#to_iso_utc_datetime}"}}}}}}'
-                - '$.properties.end_datetime'
-{% endraw %}
-    products:
-        GENERIC_PRODUCT_TYPE:
-            productType: '{productType}'
-    download:
-        type: HTTPDownload
-        base_uri: {{ info.baseUri }}
-        flatten_top_dirs: true
-    auth:
-        type: HTTPHeaderAuth
-        headers:
-            X-API-Key: "{apikey}"
-        credentials:
-            apikey: %s
-""" % apikey
-dag.update_providers_config({{ info.provider }}_config)
+# --------------------------------------------------
+# Declare the path where the file will be downloaded
+# path_out = "/tmp"
+#
 # ---------------------------------------------------------------------------------------------------------------------
+# Use this code-block to define your search criteria. It defines a list of query-arguments dictionaries.
+# Each query-arguments dictionary will be used to perform a distinct search, whose results will then be concatenated.
+#   - add/remove collections using the `productType` key (one per query-arguments dictionary)
+#   - add time restrictions using the `start` and `end` keys (e.g. "start": "2020-05-01" , "end": "2020-05-10T00:00:00Z",
+#     UTC ISO8601 format)(one per collection/dictionary)
+#   - add spatial restrictions using the "geom" key (e.g. "geom": "POLYGON ((1 43, 2 43, 2 44, 1 44, 1 43))" WKT string,
+#       a bounding-box list [lonmin, latmin, lonmax, latmax] can also be passed )(one per collection/dictionary)
+#   - more query arguments can be used, see
+#     https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?#Search-parameters
+#     project_query_args = [
+#         {"productType":"SWOT_L2_HR_RASTER_250M_SAMPLE_V1_2","geom":"POLYGON ((-4.17 43.10,12.70 43.10,12.70 49.64,-4.17 49.64,-4.17 43.10))"}]
+#
+# This code-block searches for matching products in {{ info.portalName }} STAC API catalog. No need to modify.
+#     project_search_results = SearchResult([])
+#     for query_args in project_query_args:
+#         project_search_results.extend(dag.search_all(**query_args))
+#
+# This command actually downloads the matching products
+#     downloaded_paths = dag.download_all(project_search_results, outputs_prefix=path_out)
+#     print(f"files successfully downloaded in {downloaded_paths}")

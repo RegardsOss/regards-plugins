@@ -60,4 +60,6 @@ public interface ConfigurationAccessor {
     String getEODAGPortalName();
 
     String getEODAGProvider();
+
+    String getEODAGApiKey();
 }

@@ -164,6 +164,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                                                     .map(uri -> getBaseUri(uri))
                                                     .getOrElse("Unknown host URI"));
         information.setFilename(filename);
+        information.setApiKey(config.getEODAGApiKey());
 
         // Route according to multi or single collection
         try {

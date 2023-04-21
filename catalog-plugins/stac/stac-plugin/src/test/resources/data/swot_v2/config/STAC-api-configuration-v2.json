@@ -231,7 +231,17 @@
             ]
           }
         ]
+      },
+      {
+        "name": "eodag-properties",
+        "type": "POJO",
+        "value": {
+          "portalName": "Hydroweb.next",
+          "provider": "hydroweb_next",
+          "apiKey": "EODAG__HYDROWEB_NEXT__AUTH__CREDENTIALS__APIKEY"
+        }
       }
+
     ]
   }
 }

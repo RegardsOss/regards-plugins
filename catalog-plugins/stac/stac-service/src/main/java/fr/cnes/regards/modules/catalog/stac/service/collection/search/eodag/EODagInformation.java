@@ -49,6 +49,11 @@ public class EODagInformation {
     private String baseUri;
 
     /**
+     * API key
+     */
+    private String apiKey;
+
+    /**
      * Downloaded filename
      */
     private String filename;
@@ -99,5 +104,13 @@ public class EODagInformation {
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 }

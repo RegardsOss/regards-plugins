@@ -190,6 +190,13 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
                              .map(EODAGConfiguration::getProvider)
                              .getOrElse("provider");
             }
+
+            @Override
+            public String getEODAGApiKey() {
+                return plugin.map(StacSearchEngine::getEodagConfiguration)
+                             .map(EODAGConfiguration::getApiKey)
+                             .getOrElse("apiKey");
+            }
         };
     }
 
