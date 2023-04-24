@@ -55,6 +55,7 @@
     <modules>
         <module>download-metalink-plugin</module>
         <module>download-plugin</module>
+        <module>export-csv-plugin</module>
         <module>fem-driver</module>
         <module>stac</module>
     </modules>
