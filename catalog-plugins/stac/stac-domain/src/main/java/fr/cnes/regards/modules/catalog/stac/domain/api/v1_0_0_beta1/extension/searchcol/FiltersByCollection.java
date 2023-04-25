@@ -37,6 +37,8 @@ public class FiltersByCollection {
 
     private List<CollectionFilters> collections;
 
+    private Boolean appendAuthParameters;
+
     @Value
     @With
     @Builder

@@ -91,7 +91,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
         @RequestBody FiltersByCollection filtersByCollection) {
         return toResponseEntity(collectionSearchService.prepareZipDownload(filtersByCollection,
                                                                            linkCreatorService.makeDownloadLinkCreator(
-                                                                               feignSecurityManager)));
+                                                                               feignSecurityManager,
+                                                                               Optional.ofNullable(filtersByCollection.getAppendAuthParameters()).orElse(true))));
     }
 
     @Operation(summary = "Download all collections as zip at once",

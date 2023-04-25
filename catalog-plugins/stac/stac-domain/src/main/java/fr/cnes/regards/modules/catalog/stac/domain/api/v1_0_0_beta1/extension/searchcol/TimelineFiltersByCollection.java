@@ -43,7 +43,7 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
 
     @Builder(builderMethodName = "timelineCollectionFiltersBuilder")
     public TimelineFiltersByCollection(List<CollectionFilters> collections, String from, String to, TimelineMode mode) {
-        super(collections);
+        super(collections, true);
         this.from = from;
         this.to = to;
         this.mode = mode;

@@ -356,6 +356,12 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
     @Override
     public DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager) {
+        return makeDownloadLinkCreator(feignSecurityManager, Boolean.TRUE);
+    }
+
+    @Override
+    public DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager,
+                                                       boolean appendAuthParams) {
         return new DownloadLinkCreator() {
 
             private String systemToken = null;
@@ -365,7 +371,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
                                                     .slash(STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIP_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                             .flatMapTry(uriParamAdder.appendAuthParams())
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create all collections download link",
                                                                                   t))
@@ -377,7 +383,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(CollectionDownloadController.class)
                                                     .slash(STAC_DOWNLOAD_ALL_COLLECTIONS_SCRIPT_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                             .flatMapTry(uriParamAdder.appendAuthParams())
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create all collections script download link",
                                                                                   t))
@@ -391,7 +397,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                     .slash(collectionId)
                                                     .slash(STAC_DOWNLOAD_AS_ZIP_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                             .flatMapTry(uriParamAdder.appendAuthParams())
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create single collection download link",
                                                                                   t))
@@ -405,7 +411,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                     .slash(STAC_DOWNLOAD_SAMPLE_AS_ZIP_SUFFIX
                                                            + STAC_DOWNLOAD_AS_ZIP_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                             .flatMapTry(uriParamAdder.appendAuthParams())
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create single collection sample download link",
                                                                                   t))
@@ -418,7 +424,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                     .slash(collectionId)
                                                     .slash(STAC_DOWNLOAD_SCRIPT_SUFFIX)
                                                     .toUri()).flatMapTry(uriParamAdder.appendTinyUrl(tinyUrlId))
-                                                             .flatMapTry(uriParamAdder.appendAuthParams())
+                                                             .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create single collection script download link",
                                                                                   t))
@@ -427,7 +433,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
 
             @Override
             public String appendAuthParamsForNginx(String uri) {
-                return tryOf(() -> URI.create(uri)).flatMapTry(uriParamAdder.appendAuthParams())
+                return tryOf(() -> URI.create(uri)).flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                    .onFailure(t -> warn(LOGGER,
                                                                         "Failed to append authentication parameters"))
                                                    .get()

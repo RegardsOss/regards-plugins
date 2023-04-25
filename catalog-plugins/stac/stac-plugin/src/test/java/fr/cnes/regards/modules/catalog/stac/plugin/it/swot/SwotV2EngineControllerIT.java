@@ -53,6 +53,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -351,6 +352,55 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     @Test
     public void given_oneCollection_when_prepareDownloadWithoutFilter_then_successfulRequest() {
         prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3);
+    }
+
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithAppendAuthParams_then_token_is_in_download_link() {
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3, true);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAll");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
+
+        // Expect not null token
+        Assert.assertNotNull(token);
+    }
+
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithoutAuthParams_then_token_is_not_in_download_link() {
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3, false);
+
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAll");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String token = null;
+        try {
+            token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
+        } catch (NoSuchElementException exception) {
+            // We want to be sure that no token is present in download links
+        }
+
+        // No token should be found
+        Assert.assertNull(token);
+    }
+
+    @Test
+    public void given_oneCollection_when_prepareDownloadWithNullAuthParams_then_token_is_in_download_link() {
+        ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3, null);
+
+        // We want to be sure that when appendAuthParams is not set by default the token will be present in the
+        // download links
+        // Get tiny url to download all
+        String json = payload(resultActions);
+        String downloadAll = JsonPath.read(json, "$.downloadAll");
+        java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
+        String token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
+
+        // Expect not null token
+        Assert.assertNotNull(token);
     }
 
     /**
@@ -710,6 +760,14 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                           long totalSize,
                                           long totalItems,
                                           long totalFiles) {
+        return prepareDownload(itemSearchBodies, totalSize, totalItems, totalFiles, Boolean.TRUE);
+    }
+
+    private ResultActions prepareDownload(Map<String, CollectionSearchBody.CollectionItemSearchBody> itemSearchBodies,
+                                          long totalSize,
+                                          long totalItems,
+                                          long totalFiles,
+                                          Boolean appendAuthParameters) {
 
         // Search all collections
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
@@ -741,10 +799,17 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
             }
         }
 
-        FiltersByCollection downloadPreparationBody = FiltersByCollection.builder()
-                                                                         .collections(List.ofAll(
-                                                                             downloadCollectionPreparationBodies))
-                                                                         .build();
+        FiltersByCollection downloadPreparationBody = null;
+        if (appendAuthParameters == null) {
+            downloadPreparationBody = FiltersByCollection.builder()
+                                                         .collections(List.ofAll(downloadCollectionPreparationBodies))
+                                                         .build();
+        } else {
+            downloadPreparationBody = FiltersByCollection.builder()
+                                                         .collections(List.ofAll(downloadCollectionPreparationBodies))
+                                                         .appendAuthParameters(appendAuthParameters)
+                                                         .build();
+        }
 
         // Assertions
         customizer = customizer().expectStatusOk();

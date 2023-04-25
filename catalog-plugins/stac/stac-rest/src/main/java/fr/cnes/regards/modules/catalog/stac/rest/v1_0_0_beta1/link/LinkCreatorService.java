@@ -41,4 +41,6 @@ public interface LinkCreatorService {
     SearchPageLinkCreator makeCollectionItemsPageLinkCreator(Integer page, String collectionId);
 
     DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager);
+
+    DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager, boolean appendAuthParams);
 }

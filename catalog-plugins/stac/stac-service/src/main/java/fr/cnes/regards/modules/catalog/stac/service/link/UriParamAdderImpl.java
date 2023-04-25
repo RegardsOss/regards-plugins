@@ -27,6 +27,8 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.Map;
 import io.vavr.control.Try;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -45,6 +47,8 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 @Component
 public class UriParamAdderImpl implements UriParamAdder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UriParamAdderImpl.class);
+    
     private final IRuntimeTenantResolver runtimeTenantResolver;
 
     private final IAuthenticationResolver authenticationResolver;
@@ -58,12 +62,22 @@ public class UriParamAdderImpl implements UriParamAdder {
 
     @Override
     public CheckedFunction1<URI, Try<URI>> appendAuthParams() {
-        return uri -> {
-            Tuple2<String, String> authParam = makeAuthParam();
-            return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()).mapFailure(
-                URI_AUTH_PARAM_ADDING,
-                () -> format("Failed to add auth params to URI %s", uri));
-        };
+        return this.appendAuthParams(true);
+    }
+
+    @Override
+    public CheckedFunction1<URI, Try<URI>> appendAuthParams(boolean appendAuthParams) {
+        LOGGER.trace("Append authentication parameters >>> {}", appendAuthParams);
+        if (appendAuthParams) {
+            return uri -> {
+                Tuple2<String, String> authParam = makeAuthParam();
+                return trying(() -> fromUri(uri).queryParam(authParam._1, authParam._2).build().toUri()).mapFailure(
+                    URI_AUTH_PARAM_ADDING,
+                    () -> format("Failed to add auth params to URI %s", uri));
+            };
+        } else {
+            return uri -> Try.of(() -> uri);
+        }
     }
 
     @Override
