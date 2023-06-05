@@ -96,7 +96,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
     @Autowired
     private IStorageRestClient storageRestClient;
 
-    @Value("${http.proxy.host:null}")
+    @Value("${http.proxy.host:#{null}}")
     private String proxyHost;
 
     @Value("${http.proxy.port:80}")
