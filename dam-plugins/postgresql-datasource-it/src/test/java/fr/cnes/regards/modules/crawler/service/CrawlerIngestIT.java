@@ -341,7 +341,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         dataset.setDataModel(dataModel.getName());
         dataset.setSubsettingClause(ICriterion.all());
         dataset.setLicence("licence");
-        dataset.setDataSource(dataSourcePluginConf);
+        dataset.setPlgConfDataSource(dataSourcePluginConf);
         dataset.setTags(Sets.newHashSet("empty_tag"));
         dataset.setGroups(Sets.newHashSet("group0", "group11"));
         LOGGER.info("Creating dataset....");
