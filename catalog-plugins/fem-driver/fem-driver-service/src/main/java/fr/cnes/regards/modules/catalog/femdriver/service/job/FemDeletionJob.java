@@ -24,7 +24,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterInval
 import fr.cnes.regards.framework.modules.jobs.domain.exception.JobParameterMissingException;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;

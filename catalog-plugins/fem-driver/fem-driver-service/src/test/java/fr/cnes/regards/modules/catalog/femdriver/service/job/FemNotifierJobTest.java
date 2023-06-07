@@ -24,10 +24,11 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.modules.catalog.femdriver.dto.RecipientsSearchRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
 import fr.cnes.regards.modules.feature.dto.event.in.FeatureNotificationRequestEvent;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,21 +67,28 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
 
     @Test
     public void testNotifyJob() throws InterruptedException {
+        // Given
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
+
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
-                                                        null,
-                                                        searchParameters,
-                                                        null,
-                                                        null,
-                                                        null);
-        femDriverService.scheduleNotification(searchRequest);
+        RecipientsSearchRequest recipientsSearchRequest = new RecipientsSearchRequest();
+        recipientsSearchRequest.setSearchRequest(new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                                   null,
+                                                                   searchParameters,
+                                                                   null,
+                                                                   null,
+                                                                   null));
+
+        // When
+        femDriverService.scheduleNotification(recipientsSearchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
             loop++;
             Thread.sleep(100);
         }
+
+        // Then
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
                                                             .stream()
@@ -99,22 +107,28 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
 
     @Test
     public void testNotifyJobWithCrit() throws InterruptedException {
+        // Given
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
-        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
-                                                        null,
-                                                        searchParameters,
-                                                        Sets.newHashSet(datas.get(0).getIpId().toString()),
-                                                        null,
-                                                        null);
 
-        femDriverService.scheduleNotification(searchRequest);
+        RecipientsSearchRequest recipientsSearchRequest = new RecipientsSearchRequest();
+        recipientsSearchRequest.setSearchRequest(new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                                   null,
+                                                                   searchParameters,
+                                                                   Sets.newHashSet(datas.get(0).getIpId().toString()),
+                                                                   null,
+                                                                   null));
+
+        // When
+        femDriverService.scheduleNotification(recipientsSearchRequest);
         int loop = 0;
         while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
             loop++;
             Thread.sleep(100);
         }
+
+        // Then
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
                                                             .stream()

@@ -55,6 +55,10 @@
     <dependencies>
         <dependency>
             <groupId>fr.cnes.regards.modules.search</groupId>
+            <artifactId>search-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.search</groupId>
             <artifactId>search-domain</artifactId>
         </dependency>
     </dependencies>

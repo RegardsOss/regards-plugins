@@ -342,8 +342,7 @@ public class LtaRequestSenderIT {
                                                              AbstractRequestEvent.generateRequestId(),
                                                              this.getClass().getSimpleName(),
                                                              OffsetDateTime.now(),
-                                                             NotificationState.SCHEDULED,
-                                                             new HashSet<>()));
+                                                             NotificationState.SCHEDULED));
         }
     }
 

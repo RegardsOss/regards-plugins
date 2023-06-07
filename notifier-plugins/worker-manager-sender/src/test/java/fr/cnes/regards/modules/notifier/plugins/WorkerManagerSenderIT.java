@@ -63,7 +63,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -298,8 +301,7 @@ public class WorkerManagerSenderIT {
                                                              AbstractRequestEvent.generateRequestId(),
                                                              this.getClass().getSimpleName(),
                                                              OffsetDateTime.now(),
-                                                             NotificationState.SCHEDULED,
-                                                             new HashSet<>()));
+                                                             NotificationState.SCHEDULED));
         }
     }
 }

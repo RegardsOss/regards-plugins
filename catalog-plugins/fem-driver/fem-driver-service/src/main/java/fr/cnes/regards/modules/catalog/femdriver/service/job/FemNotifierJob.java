@@ -29,7 +29,7 @@ import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.feature.client.FeatureClient;
 import fr.cnes.regards.modules.feature.dto.PriorityLevel;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,6 +38,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author sbinda
@@ -45,6 +46,8 @@ import java.util.Map;
 public class FemNotifierJob extends AbstractJob<Void> {
 
     public static final String REQUEST_PARAMETER = "req";
+
+    public static final String RECIPIENTS_PARAMETER = "recipients";
 
     @Autowired
     private IServiceHelper serviceHelper;
@@ -57,41 +60,53 @@ public class FemNotifierJob extends AbstractJob<Void> {
 
     private SearchRequest request;
 
+    /**
+     * List of recipients(business identifiers of plugin configurations
+     * {@link fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration}) for the direct
+     * notification
+     */
+    private Set<String> recipients;
+
     private String jobOwner;
 
     @Override
     public void setParameters(Map<String, JobParameter> parameters)
         throws JobParameterMissingException, JobParameterInvalidException {
-        request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
         jobOwner = jobService.retrieveJob(this.getJobInfoId()).getOwner();
+
+        request = getValue(parameters, REQUEST_PARAMETER, SearchRequest.class);
+        recipients = getValue(parameters, RECIPIENTS_PARAMETER);
     }
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         Pageable page = PageRequest.of(0, 1000);
         Page<DataObject> results = null;
         do {
             try {
                 results = serviceHelper.getDataObjects(request, page.getPageNumber(), page.getPageSize());
                 List<FeatureUniformResourceName> features = Lists.newArrayList();
-                for (DataObject dobj : results.getContent()) {
+                for (DataObject dataObject : results.getContent()) {
                     try {
-                        features.add(FeatureUniformResourceName.fromString(dobj.getIpId().toString()));
+                        features.add(FeatureUniformResourceName.fromString(dataObject.getIpId().toString()));
                     } catch (IllegalArgumentException e) {
                         logger.error(
-                            "Error trying to notify feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
-                            dobj.getIpId().toString(),
+                            "[FEM DRIVER NOTIFICATION JOB] Error trying to notify feature [{}] from FEM microservice. "
+                            + "Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                            dataObject.getIpId().toString(),
                             e.getMessage());
                     }
                 }
-                logger.info("[FEM DRIVER] Sending {} features notify requests.", features.size());
-                featureClient.notifyFeatures(jobOwner, features, PriorityLevel.NORMAL);
+                logger.info("[FEM DRIVER NOTIFICATION JOB] Sending {} features notify requests.", features.size());
+                featureClient.notifyFeatures(jobOwner, features, PriorityLevel.NORMAL, recipients);
                 page = page.next();
             } catch (ModuleException e) {
-                logger.error("Error retrieving catalog objects.", e);
+                logger.error("[FEM DRIVER NOTIFICATION JOB] Error retrieving catalog objects.", e);
                 results = null;
             }
-        } while ((results != null) && results.hasNext());
+        } while (results != null && results.hasNext());
+        logger.info("[FEM DRIVER NOTIFICATION JOB] Handled in {}ms.", System.currentTimeMillis() - start);
     }
 
 }

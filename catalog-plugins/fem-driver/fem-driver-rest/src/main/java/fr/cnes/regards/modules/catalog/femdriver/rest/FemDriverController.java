@@ -22,8 +22,9 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.annotation.ResourceAccess;
 import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
+import fr.cnes.regards.modules.catalog.femdriver.dto.RecipientsSearchRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -91,7 +92,7 @@ public class FemDriverController {
                     role = DefaultRole.EXPLOIT)
     @RequestMapping(path = FEM_DRIVER_NOTIFY_PATH, method = RequestMethod.POST)
     public ResponseEntity<Void> notifyFeatures(
-        @Parameter(description = "Contain feature seach request") @Valid @RequestBody SearchRequest request)
+        @Parameter(description = "Contain feature seach request") @Valid @RequestBody RecipientsSearchRequest request)
         throws ModuleException {
         femDriverService.scheduleNotification(request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

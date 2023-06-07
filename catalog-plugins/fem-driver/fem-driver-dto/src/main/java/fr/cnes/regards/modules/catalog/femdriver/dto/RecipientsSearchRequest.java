@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2023 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -18,53 +18,46 @@
  */
 package fr.cnes.regards.modules.catalog.femdriver.dto;
 
-import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.dto.SearchRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * DTO for update request parameters.
+ * POJO containig the list of recipients for the direct notification with rs-notifier and information to handle a search on catalog
  *
- * @author Sébastien Binda
+ * @author Stephane Cortine
  */
-public class FeatureUpdateRequest {
-
-    private SearchRequest searchRequest;
-
-    private FeatureProperties feature;
-
-    public FeatureUpdateRequest() {
-        super();
-    }
-
-    public static FeatureUpdateRequest build(SearchRequest searchRequest, Set<IProperty<?>> properties) {
-        FeatureUpdateRequest req = new FeatureUpdateRequest();
-        req.searchRequest = searchRequest;
-        req.setFeature(FeatureProperties.build(properties));
-        return req;
-    }
+public class RecipientsSearchRequest {
 
     /**
-     * @return the searchRequest
+     * Search parameters {@link SearchRequest} on the catalog
      */
+    @Schema(description = "Search parameters on the catalog")
+    private SearchRequest searchRequest;
+
+    /**
+     * List of recipients(business identifiers of plugin configurations
+     * {@link fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration}) for the direct
+     * notification
+     */
+    @Schema(description = "List of recipient(business identifiers) for direct notification")
+    private Set<String> recipients = new HashSet<>();
+
     public SearchRequest getSearchRequest() {
         return searchRequest;
     }
 
-    /**
-     * @param searchRequest the searchRequest to set
-     */
     public void setSearchRequest(SearchRequest searchRequest) {
         this.searchRequest = searchRequest;
     }
 
-    public FeatureProperties getFeature() {
-        return feature;
+    public Set<String> getRecipients() {
+        return recipients;
     }
 
-    public void setFeature(FeatureProperties feature) {
-        this.feature = feature;
+    public void setRecipients(Set<String> recipients) {
+        this.recipients = recipients;
     }
-
 }

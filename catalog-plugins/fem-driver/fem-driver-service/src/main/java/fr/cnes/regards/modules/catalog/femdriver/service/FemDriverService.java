@@ -26,6 +26,7 @@ import fr.cnes.regards.framework.modules.jobs.domain.JobInfo;
 import fr.cnes.regards.framework.modules.jobs.domain.JobParameter;
 import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
+import fr.cnes.regards.modules.catalog.femdriver.dto.RecipientsSearchRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FeaturePageDeletionJob;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FemDeletionJob;
 import fr.cnes.regards.modules.catalog.femdriver.service.job.FemNotifierJob;
@@ -33,7 +34,7 @@ import fr.cnes.regards.modules.catalog.femdriver.service.job.FemUpdateJob;
 import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,9 +146,11 @@ public class FemDriverService {
      * @param request {@link SearchRequest}
      * @return {@link JobInfo} of  scheduled job
      */
-    public JobInfo scheduleNotification(SearchRequest request) {
+    public JobInfo scheduleNotification(RecipientsSearchRequest request) {
         Set<JobParameter> jobParameters = Sets.newHashSet();
-        jobParameters.add(new JobParameter(FemNotifierJob.REQUEST_PARAMETER, request));
+        jobParameters.add(new JobParameter(FemNotifierJob.REQUEST_PARAMETER, request.getSearchRequest()));
+        jobParameters.add(new JobParameter(FemNotifierJob.RECIPIENTS_PARAMETER, request.getRecipients()));
+
         JobInfo jobInfo = new JobInfo(false, 0, jobParameters, authResolver.getUser(), FemNotifierJob.class.getName());
         return jobInfoService.createAsQueued(jobInfo);
     }

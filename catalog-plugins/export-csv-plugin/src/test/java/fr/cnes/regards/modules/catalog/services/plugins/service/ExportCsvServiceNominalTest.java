@@ -26,7 +26,7 @@ import fr.cnes.regards.modules.catalog.services.helper.IServiceHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.domain.CsvHeader;
 import fr.cnes.regards.modules.catalog.services.plugins.utils.DataInitHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.utils.StreamHelper;
-import fr.cnes.regards.modules.search.domain.SearchRequest;
+import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
