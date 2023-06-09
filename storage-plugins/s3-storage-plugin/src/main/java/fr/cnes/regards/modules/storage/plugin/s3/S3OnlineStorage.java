@@ -304,18 +304,14 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
                                                                                       request.getOriginUrl());
                                                                       })
                                                                       .block();
-            // Check the checksum of stored file
-            if (isStoredFileValidated(request, entryKey)) {
-                long storedFileSize = 0l;
-                if (result instanceof StorageCommandResult.WriteSuccess resultSuccess) {
-                    storedFileSize = resultSuccess.getSize();
-                }
-                progressManager.storageSucceed(request,
-                                               storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
-                                               storedFileSize);
-            } else {
-                progressManager.storageFailed(request, "Checksum does not match with expected one");
+
+            long storedFileSize = 0l;
+            if (result instanceof StorageCommandResult.WriteSuccess resultSuccess) {
+                storedFileSize = resultSuccess.getSize();
             }
+            progressManager.storageSucceed(request,
+                                           storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
+                                           storedFileSize);
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);
             progressManager.storageFailed(request, String.format("Invalid source url %s", request.getOriginUrl()));
@@ -323,110 +319,6 @@ public class S3OnlineStorage implements IOnlineStorageLocation {
             LOGGER.error(e.getMessage(), e);
             progressManager.storageFailed(request, String.format("Store failed cause : %s", e.getMessage()));
         }
-    }
-
-    /**
-     * Check if the checksum of stored file is identical with the expected one
-     *
-     * @param request  the request
-     * @param entryKey the entry key for the S3 server
-     * @return true if the 2 checksums are identical; false otherwise
-     */
-    private boolean isStoredFileValidated(FileStorageRequest request, String entryKey) {
-        return isStoredFileValidated(request.getJobId(), request.getMetaInfo().getChecksum(), entryKey);
-    }
-
-    /**
-     * Check if the checksum of stored file is identical with the expected one
-     *
-     * @param jobId            the id of the job for logging purpose
-     * @param expectedChecksum the expectedChecksum to compare with the one in the storage
-     * @param entryKey         the entry key for the S3 server
-     * @return true if the 2 checksums are identical; false otherwise
-     */
-    public boolean isStoredFileValidated(String jobId, String expectedChecksum, String entryKey) {
-        boolean isValid = true;
-        LOGGER.debug("[{}] Retrieve checksum of file {} from s3 server with endPoint [{}] in bucket [{}].",
-                     jobId,
-                     entryKey,
-                     storageConfiguration.getEndpoint(),
-                     storageConfiguration.getBucket());
-
-        StorageCommand.Check checkCmd = StorageCommand.check(storageConfiguration,
-                                                             createStorageCommandID(jobId),
-                                                             entryKey);
-
-        String realChecksum = getRealChecksum(jobId, entryKey, checkCmd);
-
-        // Check 2 checksums
-        if (realChecksum.equalsIgnoreCase(expectedChecksum)) {
-            return isValid;
-        }
-        LOGGER.debug(
-            "[{}] The checksum of the stored file [{}] is not the same as the checksum of the input file [{}] to store in the S3 server.",
-            jobId,
-            realChecksum,
-            expectedChecksum);
-        LOGGER.info(
-            "[{}] Deleting the file {} from the s3 server with endPoint [{}] in bucket [{}] because the checksum does not match the expected one.",
-            jobId,
-            entryKey,
-            storageConfiguration.getEndpoint(),
-            storageConfiguration.getBucket());
-
-        StorageCommand.Delete deleteCmd = StorageCommand.delete(storageConfiguration,
-                                                                createStorageCommandID(jobId),
-                                                                storageConfiguration.entryKey(entryKey));
-        createS3Client().delete(deleteCmd)
-                        .flatMap(r -> r.matchDeleteResult(Mono::just,
-                                                          unreachable -> Mono.error(new RuntimeException(String.format(
-                                                              "Unreachable [endpoint: %s] : %s [bucket: %s]",
-                                                              storageConfiguration.getEndpoint(),
-                                                              unreachable.getThrowable().getMessage(),
-                                                              storageConfiguration.getBucket()))),
-                                                          failure -> Mono.error(new RuntimeException(String.format(
-                                                              "Delete failure [bucket: %s] [endpoint: %s]",
-                                                              storageConfiguration.getBucket(),
-                                                              storageConfiguration.getEndpoint())))))
-
-                        .doOnError(t -> LOGGER.error(
-                            "[{}] Failed [bucket: {}] to delete file {} [endpoint: {}] the checksum does not match with the expected one :",
-                            jobId,
-                            storageConfiguration.getBucket(),
-                            entryKey,
-                            storageConfiguration.getEndpoint(),
-                            t))
-                        .doOnSuccess(success -> LOGGER.info(
-                            "[{}] Success [bucket: {}] end deleting of file {} [endpoint: {}] the checksum does not match with the expected one",
-                            jobId,
-                            storageConfiguration.getBucket(),
-                            entryKey,
-                            storageConfiguration.getEndpoint()))
-                        .subscribe();
-        return !isValid;
-    }
-
-    protected String getRealChecksum(String jobId, String entryKey, StorageCommand.Check checkCmd) {
-        Optional<String> eTag = createS3Client().eTag(checkCmd)
-                                                .doOnError(t -> LOGGER.error(
-                                                    "[{}] Failed [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum :",
-                                                    jobId,
-                                                    storageConfiguration.getBucket(),
-                                                    entryKey,
-                                                    storageConfiguration.getEndpoint(),
-                                                    t))
-                                                .doOnSuccess(success -> LOGGER.info(
-                                                    "[{}] Success [bucket: {}] to retrieve checksum of file {} [endpoint: {}] to verify checksum",
-                                                    jobId,
-                                                    storageConfiguration.getBucket(),
-                                                    entryKey,
-                                                    storageConfiguration.getEndpoint()))
-                                                .block();
-        String realChecksum = "";
-        if (eTag != null && eTag.isPresent()) {
-            realChecksum = eTag.get();
-        }
-        return realChecksum;
     }
 
     private StorageEntry buildStorageEntry(FileStorageRequest request, String entryKey, Flux<ByteBuffer> buffers) {

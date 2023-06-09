@@ -322,12 +322,6 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
             // Sending archive
             sendArchive(archiveToCreate, entryKey, storageEntry, taskId);
 
-            // Validating checksum
-            if (!isStoredFileValidated(taskId, checksum, entryKey)) {
-                LOGGER.error("Error while sending created archive, the checksum does not match with the expected one");
-                return false;
-            }
-
             // Saving archive information
             glacierArchiveService.saveGlacierArchive(storageConfiguration.entryKeyUrl(Paths.get(rootPath != null ?
                                                                                                     rootPath :

@@ -255,36 +255,6 @@ public class S3OnlineStorageIT {
         }
     }
 
-    @Test
-    public void givenS3_whenReference_from_S3Server_bad_checksum() throws IOException {
-        // Given
-        String rootPath = "";
-        S3BucketTestUtils.store("./src/test/resources/small.txt", rootPath, createInputS3Server());
-
-        loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
-
-        FileStorageRequest fileStorageRequest = createFileStorageRequestFromS3Server("/dir0/dir1");
-        fileStorageRequest.getMetaInfo().setChecksum("badchecksum");
-
-        // When
-        s3OnlineStorage.store(new FileStorageWorkingSubset(Collections.singletonList(fileStorageRequest)),
-                              createStorageProgressManager());
-
-        // Then
-        // Create file reference for S3 server
-        FileReference fileReference = createFileReference(fileStorageRequest, rootPath);
-        // Validate reference
-        Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
-                          s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
-        // Get file as input stream from S3 server
-        try {
-            InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
-            Assert.fail("Test Failure : file does not store in S3 server");
-        } catch (FileNotFoundException e) {
-            // Test Success : the file is deleted because checksum does not match with expected one
-        }
-    }
-
     private FileStorageRequest createFileStorageRequest(String subDirectory) {
         FileStorageRequest fileStorageRequest = new FileStorageRequest();
         fileStorageRequest.setOriginUrl("file:./src/test/resources/" + FILE_NAME);
