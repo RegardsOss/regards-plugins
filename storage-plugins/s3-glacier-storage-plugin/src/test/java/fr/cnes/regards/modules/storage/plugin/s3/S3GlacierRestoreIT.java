@@ -70,7 +70,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
@@ -101,7 +101,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         copyFileToWorkspace(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX, nodeName, fileName, S3Glacier.ZIP_DIR);
@@ -130,7 +130,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
         copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.TMP_DIR);
@@ -161,7 +161,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
         File file = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI()).toFile();
@@ -198,7 +198,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
 
         // Create the archive that contain the file to retrieve
@@ -235,7 +235,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
@@ -274,7 +274,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
         long fileSize = 22949;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
 
         // Create the archive that contain the file to retrieve

@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;
@@ -101,7 +102,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         loadPlugin(endPoint, region, key, secret, bucket, "root/path");
 
         // When
-        String nodeName = "testnode";
+        String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
 
@@ -129,11 +130,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(1,
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 1 success with pending action");
-        String archiveName = currentDir.getName()
-                                       .substring(0,
-                                                  currentDir.getName().length()
-                                                  - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
-        Assertions.assertEquals(createExpectedURL(nodeName, archiveName, file1Name),
+        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
+        Assertions.assertEquals(createExpectedURL(nodeName, S3GlacierUtils.removePrefix(archiveName), file1Name),
                                 storageProgressManager.getStorageSucceedWithPendingAction().get(0),
                                 "The success url is not the expected one");
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
@@ -146,7 +144,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         // Given
         loadPlugin(endPoint, region, key, secret, bucket, rootPath);
 
-        String nodeName = "testnode";
+        String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         FileStorageRequest request1 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
@@ -202,13 +200,16 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 3 success with pending action");
 
-        String archiveName = currentDir.getName()
-                                       .substring(0,
-                                                  currentDir.getName().length()
-                                                  - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
-        List<URL> expectedUrls = List.of(createExpectedURL(nodeName, archiveName, "smallFile1.txt"),
-                                         createExpectedURL(nodeName, archiveName, "smallFile1_2.txt"),
-                                         createExpectedURL(nodeName, archiveName, "smallFile1_3.txt"));
+        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
+        List<URL> expectedUrls = List.of(createExpectedURL(nodeName,
+                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           "smallFile1.txt"),
+                                         createExpectedURL(nodeName,
+                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           "smallFile1_2.txt"),
+                                         createExpectedURL(nodeName,
+                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           "smallFile1_3.txt"));
         Assertions.assertTrue(storageProgressManager.getStorageSucceedWithPendingAction().containsAll(expectedUrls));
         Assertions.assertTrue(expectedUrls.containsAll(storageProgressManager.getStorageSucceedWithPendingAction()));
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
@@ -223,7 +224,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         // Given
         loadPlugin(endPoint, region, key, secret, bucket, rootPath);
 
-        String nodeName = "testnode";
+        String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         FileStorageRequest request1 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
@@ -269,11 +270,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(1,
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 1 success with pending action");
-        String archiveName = currentDir.getName()
-                                       .substring(0,
-                                                  currentDir.getName().length()
-                                                  - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
-        Assertions.assertEquals(createExpectedURL(nodeName, archiveName, file1Name),
+        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
+        Assertions.assertEquals(createExpectedURL(nodeName, S3GlacierUtils.removePrefix(archiveName), file1Name),
                                 storageProgressManager.getStorageSucceedWithPendingAction().get(0),
                                 "The success url is not the expected one");
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
@@ -286,7 +284,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     public void test_rollover_current_dir() {
         loadPlugin(endPoint, region, key, secret, bucket, rootPath);
 
-        String nodeName = "testnode";
+        String nodeName = "deep/dir/testNode";
         FileStorageRequest request1 = createFileStorageRequest(nodeName,
                                                                "smallFile1.txt",
                                                                "83e93a40da8ad9e6ed0ab9ef852e7e39");

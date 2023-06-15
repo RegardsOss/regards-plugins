@@ -65,7 +65,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
 
         // Create the archive that contain the file to retrieve
@@ -103,7 +103,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
         long fileSize = 22949;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
 
         // Create the archive that contain the file to retrieve
@@ -161,7 +161,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         String fileName2 = "smallFile2.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
         long fileSize = 446L;
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
 
         // Create the archive that contain the file to retrieve
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));

@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.storage.domain.database.request.FileStorageReques
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.StoreSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -105,7 +106,9 @@ public class StoreSmallFileTask implements LockServiceTask {
         // Check if the node directory or the current directory need to be created
         if (!node.toFile().exists()) {
             archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-            localArchiveLocation = node.resolve(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX);
+            localArchiveLocation = node.resolve(S3Glacier.BUILDING_DIRECTORY_PREFIX
+                                                + archiveName
+                                                + S3Glacier.CURRENT_ARCHIVE_SUFFIX);
         } else {
             try (Stream<Path> fileList = Files.list(node)) {
                 Optional<String> currentDateArchiveOptional = fileList.map(Path::getFileName)
@@ -113,10 +116,7 @@ public class StoreSmallFileTask implements LockServiceTask {
                                                                       .filter(dirName -> dirName.endsWith(S3Glacier.CURRENT_ARCHIVE_SUFFIX))
                                                                       .findFirst();
                 if (currentDateArchiveOptional.isPresent()) {
-                    archiveName = currentDateArchiveOptional.get()
-                                                            .substring(0,
-                                                                       currentDateArchiveOptional.get().length()
-                                                                       - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
+                    archiveName = S3GlacierUtils.removePrefixAndSuffix(currentDateArchiveOptional.get());
                     localArchiveLocation = node.resolve(currentDateArchiveOptional.get());
 
                     // The file might be present following a deletion without physical deletion enabled
@@ -127,7 +127,9 @@ public class StoreSmallFileTask implements LockServiceTask {
                 } else {
                     archiveName = OffsetDateTime.now()
                                                 .format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-                    localArchiveLocation = node.resolve(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX);
+                    localArchiveLocation = node.resolve(S3Glacier.BUILDING_DIRECTORY_PREFIX
+                                                        + archiveName
+                                                        + S3Glacier.CURRENT_ARCHIVE_SUFFIX);
                 }
 
             } catch (IOException e) {

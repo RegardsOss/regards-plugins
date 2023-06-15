@@ -23,6 +23,7 @@ import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileLocation;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;
@@ -63,7 +64,8 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
         List<String> files = List.of("smallFile1.txt", "smallFile2.txt", "smallFile3.txt", "smallFile4.txt");
 
         OffsetDateTime now = OffsetDateTime.now();
-        String dirName = now.format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+        String dirName = S3Glacier.BUILDING_DIRECTORY_PREFIX
+                         + now.format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         String nodeName = "testnode1";
 
         TestPeriodicActionProgressManager periodicActionProgressManager = new TestPeriodicActionProgressManager();
@@ -85,7 +87,9 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
                                 "There should 4 success");
         Assertions.assertEquals(0, periodicActionProgressManager.getStoragePendingActionError().size());
         List<String> expectedReport = files.stream()
-                                           .map(f -> createExpectedURL(nodeName, dirName, f).toString())
+                                           .map(f -> createExpectedURL(nodeName,
+                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       f).toString())
                                            .toList();
         Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
                               "The success URL are not the expected ones");
@@ -94,7 +98,9 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
                               "The success URL are not the expected ones");
 
         FileLocation archiveLoc = new FileLocation();
-        archiveLoc.setUrl(createExpectedURL(nodeName, dirName + S3Glacier.ARCHIVE_EXTENSION).toString());
+        archiveLoc.setUrl(createExpectedURL(nodeName,
+                                            S3GlacierUtils.removePrefix(dirName)
+                                            + S3Glacier.ARCHIVE_EXTENSION).toString());
         FileReference archiveRef = new FileReference();
         archiveRef.setId(1L);
         archiveRef.setLocation(archiveLoc);
@@ -126,8 +132,9 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
         List<String> files = List.of("smallFile1.txt", "smallFile2.txt", "smallFile3.txt");
 
         OffsetDateTime now = OffsetDateTime.now();
-        String oldCurrentDirName = now.minusHours(ARCHIVE_DURATION_IN_HOURS + 1)
-                                      .format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT))
+        String oldCurrentDirName = S3Glacier.BUILDING_DIRECTORY_PREFIX
+                                   + now.minusHours(ARCHIVE_DURATION_IN_HOURS + 1)
+                                        .format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT))
                                    + S3Glacier.CURRENT_ARCHIVE_SUFFIX;
         String nodeName = "testnode1";
         for (String file : files) {
@@ -146,14 +153,15 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
 
         Assertions.assertEquals(3,
                                 periodicActionProgressManager.getStoragePendingActionSucceed().size(),
-                                "There should 4 success");
+                                "There should be 4 success");
         Assertions.assertEquals(0, periodicActionProgressManager.getStoragePendingActionError().size());
 
-        String dirName = oldCurrentDirName.substring(0,
-                                                     oldCurrentDirName.length()
-                                                     - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
+        String dirName = S3GlacierUtils.removeSuffix(oldCurrentDirName);
+
         List<String> expectedReport = files.stream()
-                                           .map(f -> createExpectedURL(nodeName, dirName, f).toString())
+                                           .map(f -> createExpectedURL(nodeName,
+                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       f).toString())
                                            .toList();
         Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
                               "The success URL are not the expected ones");
@@ -162,7 +170,9 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
                               "The success URL are not the expected ones");
 
         FileLocation archiveLoc = new FileLocation();
-        archiveLoc.setUrl(createExpectedURL(nodeName, dirName + S3Glacier.ARCHIVE_EXTENSION).toString());
+        archiveLoc.setUrl(createExpectedURL(nodeName,
+                                            S3GlacierUtils.removePrefix(dirName)
+                                            + S3Glacier.ARCHIVE_EXTENSION).toString());
         FileReference archiveRef = new FileReference();
         archiveRef.setId(1L);
         archiveRef.setLocation(archiveLoc);
@@ -192,8 +202,9 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
         loadPlugin(endPoint, region, key, secret, bucket, rootPath);
 
         OffsetDateTime now = OffsetDateTime.now();
-        String oldCurrentDirName = now.minusHours(ARCHIVE_DURATION_IN_HOURS - 1)
-                                      .format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT))
+        String oldCurrentDirName = S3Glacier.BUILDING_DIRECTORY_PREFIX
+                                   + now.minusHours(ARCHIVE_DURATION_IN_HOURS - 1)
+                                        .format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT))
                                    + S3Glacier.CURRENT_ARCHIVE_SUFFIX;
         String nodeName = "testnode1";
         copyFileToWorkspace(oldCurrentDirName, nodeName, "smallFile1.txt", S3Glacier.ZIP_DIR);
@@ -233,7 +244,7 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         String fileName = "smallFile1.txt";
         String fileName2 = "smallFile2.txt";
-        String nodeName = "testNode";
+        String nodeName = "deep/dir/testNode";
         Path fileResourcesPath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
         Path fileResourcesPath2 = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName2).toURI());
         Path nodePath = cachePath.resolve(Path.of(nodeName));
@@ -269,7 +280,7 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         String fileName = "smallFile1.txt";
-        String nodeName = "testNode";
+        String nodeName = "test/deep/node";
         Path fileResourcesPath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
         Path nodePath = cachePath.resolve(Path.of(nodeName));
         Path archivePath = nodePath.resolve(archiveName + S3Glacier.ARCHIVE_EXTENSION);

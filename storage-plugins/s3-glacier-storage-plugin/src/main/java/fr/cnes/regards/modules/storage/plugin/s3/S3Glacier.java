@@ -16,6 +16,7 @@ import fr.cnes.regards.modules.storage.domain.database.request.FileStorageReques
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
 import fr.cnes.regards.modules.storage.plugin.s3.task.*;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
@@ -83,6 +84,8 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
     public static final String TMP_DIR = "tmp";
 
     public static final String ARCHIVE_DATE_FORMAT = "yyyyMMddHHmmssSSS";
+
+    public static final String BUILDING_DIRECTORY_PREFIX = "rs_zip_";
 
     public static final String CURRENT_ARCHIVE_SUFFIX = "_current";
 
@@ -328,9 +331,9 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
         if (!Files.exists(zipWorkspacePath)) {
             return;
         }
-        try (Stream<Path> dirList = Files.walk(zipWorkspacePath, 2)) {
+        try (Stream<Path> dirList = Files.walk(zipWorkspacePath)) {
             // Directory that will be stored are located in /<WORKSPACE>/<ZIP_DIR>/<NODE>/
-            dirList.filter(dir -> !dir.equals(zipWorkspacePath) && !dir.getParent().equals(zipWorkspacePath))
+            dirList.filter(dir -> dir.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX))
                    .forEach(dir -> doSubmitReadyArchive(dir, progressManager));
         } catch (IOException e) {
             LOGGER.error("Error while attempting to access small files archives workspace during periodic "
@@ -361,14 +364,12 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
         }
 
         // Computing relative path of the archive on the storage
+        String archiveName = S3GlacierUtils.removePrefix(finalDirPath.dirPath().getFileName().toString()) + ".zip";
         String archivePathOnStorage = Paths.get(Paths.get(workspacePath, ZIP_DIR)
                                                      .relativize(finalDirPath.dirPath().getParent())
-                                                     .toString(),
-                                                finalDirPath.dirPath().getFileName().toString() + ".zip").toString();
+                                                     .toString(), archiveName).toString();
 
-        Path archiveToCreate = finalDirPath.dirPath()
-                                           .getParent()
-                                           .resolve(finalDirPath.dirPath().getFileName() + ".zip");
+        Path archiveToCreate = finalDirPath.dirPath().getParent().resolve(archiveName);
 
         boolean storageSuccess;
         if (finalDirPath.continueOk()) {
@@ -392,9 +393,10 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
     private PathAndSuccessState renameCurrentIfNeeded(Path dirPath, boolean continueOk) {
         if (dirPath.getFileName().toString().endsWith(CURRENT_ARCHIVE_SUFFIX)) {
             String currentName = dirPath.getFileName().toString();
-            String nameWithoutSuffix = currentName.substring(0, currentName.length() - CURRENT_ARCHIVE_SUFFIX.length());
+            String nameWithoutSuffix = S3GlacierUtils.removeSuffix(currentName);
             try {
-                Instant dirCreationDate = DateUtils.parseDate(nameWithoutSuffix, ARCHIVE_DATE_FORMAT).toInstant();
+                Instant dirCreationDate = DateUtils.parseDate(S3GlacierUtils.removePrefix(nameWithoutSuffix),
+                                                              ARCHIVE_DATE_FORMAT).toInstant();
 
                 if (dirCreationDate.plus(archiveMaxAge, ChronoUnit.HOURS).isAfter(Instant.now())) {
                     // the directory is not old enough, nothing to do

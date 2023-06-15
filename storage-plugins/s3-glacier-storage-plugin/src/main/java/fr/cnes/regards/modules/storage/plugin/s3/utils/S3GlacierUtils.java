@@ -22,6 +22,7 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.task.RetrieveCacheFileTask;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -112,5 +113,30 @@ public class S3GlacierUtils {
             LOGGER.error("Sleep interrupted", e);
         }
         return restorationComplete;
+    }
+
+    /**
+     * Remove the suffix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#CURRENT_ARCHIVE_SUFFIX} from the
+     * given String
+     */
+    public static String removeSuffix(String name) {
+        return name.substring(0, name.length() - S3Glacier.CURRENT_ARCHIVE_SUFFIX.length());
+    }
+
+    /**
+     * Remove the prefix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#BUILDING_DIRECTORY_PREFIX} from the
+     * given String
+     */
+    public static String removePrefix(String name) {
+        return name.substring(S3Glacier.BUILDING_DIRECTORY_PREFIX.length());
+    }
+
+    /**
+     * Remove the prefix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#BUILDING_DIRECTORY_PREFIX} and
+     * the suffix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#CURRENT_ARCHIVE_SUFFIX} from the
+     * given String
+     */
+    public static String removePrefixAndSuffix(String name) {
+        return removePrefix(removeSuffix(name));
     }
 }
