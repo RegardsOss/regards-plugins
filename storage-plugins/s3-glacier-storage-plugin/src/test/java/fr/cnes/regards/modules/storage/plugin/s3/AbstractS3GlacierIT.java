@@ -25,36 +25,63 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
-import fr.cnes.regards.framework.s3.domain.S3Server;
+import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
+import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.s3.test.S3BucketTestUtils;
 import fr.cnes.regards.framework.s3.test.S3FileTestUtils;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
+import fr.cnes.regards.framework.utils.file.ChecksumUtils;
+import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
 import fr.cnes.regards.modules.storage.domain.database.FileLocation;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
+import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
+import io.vavr.Tuple;
+import io.vavr.control.Option;
+import org.awaitility.Awaitility;
+import org.awaitility.Durations;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.MimeType;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
+import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -73,9 +100,13 @@ public abstract class AbstractS3GlacierIT {
 
     private static final String TENANT = "TENANT";
 
+    protected static final String BUCKET_OUTPUT = "bucket-glacier";
+
     public final String rootPath = System.getProperty("user.name") + "_tests";
 
     public static final int ARCHIVE_DURATION_IN_HOURS = 1;
+
+    public static final int CACHE_DURATION_IN_HOURS = 10;
 
     /**
      * Tested class : S3 Glacier plugin.
@@ -108,10 +139,15 @@ public abstract class AbstractS3GlacierIT {
 
     private Random random = new Random();
 
+    private S3StorageConfiguration s3StorageSettingsMock;
+
+    private S3HighLevelReactiveClient s3ClientWithoutRestore;
+
     @Before
     public void init() throws Throwable {
         S3BucketTestUtils.createBucket(createInputS3Server());
         PluginUtils.setup();
+
         runtimeTenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(runtimeTenantResolver.getTenant()).thenReturn(TENANT);
         lockService = Mockito.mock(LockService.class);
@@ -120,7 +156,23 @@ public abstract class AbstractS3GlacierIT {
             task.run();
             return true;
         }).when(lockService).runWithLock(any(), any());
+        Mockito.doAnswer((mock) -> 60000).when(lockService).getTimeToLive();
         glacierArchiveService = Mockito.mock(GlacierArchiveService.class);
+
+        // Settings for download in all available S3 servers
+        s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
+        Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
+
+        // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
+        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
+        s3ClientWithoutRestore = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10) {
+
+            @Override
+            public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
+                LOGGER.debug("Ignoring restore for key {}", key);
+                return Mono.just(RestoreObjectResponse.builder().build());
+            }
+        };
     }
 
     @After
@@ -134,6 +186,16 @@ public abstract class AbstractS3GlacierIT {
                               String secret,
                               String bucket,
                               String rootPath) {
+        loadPlugin(endpoint, region, key, secret, bucket, rootPath, true);
+    }
+
+    protected void loadPlugin(String endpoint,
+                              String region,
+                              String key,
+                              String secret,
+                              String bucket,
+                              String rootPath,
+                              Boolean mockRestore) {
         StringPluginParam secretParam = IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret);
         secretParam.setDecryptedValue(secret);
         // Set plugin configuration
@@ -149,13 +211,13 @@ public abstract class AbstractS3GlacierIT {
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME,
                                                                                   rootPath),
                                                                IPluginParam.build(S3Glacier.GLACIER_LOCAL_WORKSPACE_FILE_LIFETIME_IN_HOURS,
-                                                                                  ARCHIVE_DURATION_IN_HOURS),
+                                                                                  CACHE_DURATION_IN_HOURS),
                                                                IPluginParam.build(S3Glacier.GLACIER_PARALLEL_TASK_NUMBER,
                                                                                   1),
                                                                IPluginParam.build(S3Glacier.GLACIER_WORKSPACE_PATH,
                                                                                   workspace.getRoot().toString()),
                                                                IPluginParam.build(S3Glacier.GLACIER_S3_ACCESS_TRY_TIMEOUT,
-                                                                                  3600),
+                                                                                  4),
                                                                IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
                                                                                   1600),
                                                                IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_MAX_SIZE,
@@ -174,24 +236,169 @@ public abstract class AbstractS3GlacierIT {
         }
         Assert.assertNotNull(s3Glacier);
 
-        // Settings for all available S3 servers for the downloading
-        S3StorageConfiguration s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
-        Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
+        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
+        S3HighLevelReactiveClient s3Client;
+        if (mockRestore) {
+            // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
+            s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10) {
+
+                @Override
+                public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
+                    LOGGER.debug("Ignoring restore for key {}", key);
+                    return Mono.just(RestoreObjectResponse.builder().build());
+                }
+            };
+        } else {
+            s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
+        }
+
+        // Apply mocks to the plugin
         ReflectionTestUtils.setField(s3Glacier, "s3StorageSettings", s3StorageSettingsMock);
+        ReflectionTestUtils.setField(s3Glacier, "clientCache", s3ClientWithoutRestore);
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
         ReflectionTestUtils.setField(s3Glacier, "glacierArchiveService", glacierArchiveService);
+        ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);
+        ReflectionTestUtils.setField(s3Glacier, "clientCache", s3Client);
+
     }
 
     private S3Server createInputS3Server() {
         return new S3Server(endPoint, region, key, secret, bucket);
     }
 
-    protected record FileNameAndChecksum(String filename,
-                                         String checksum) {
+    protected void copyFileToWorkspace(String targetDir, String nodeName, String fileName, String workspaceDir)
+        throws IOException, URISyntaxException {
+        Path targetFile = Paths.get(workspace.getRoot().getAbsolutePath(), workspaceDir, nodeName, targetDir);
+        Files.createDirectories(targetFile);
+        Files.copy(Path.of(S3GlacierPeriodicActionsIT.class.getResource("/files/" + fileName).toURI()),
+                   targetFile.resolve(fileName));
+    }
 
+    protected FileReference createFileReference(String fileName,
+                                                String fileChecksum,
+                                                long fileSize,
+                                                String nodeName,
+                                                String archiveName,
+                                                boolean pendingActionRemaining) {
+        URL storedFileUrl;
+        if (archiveName != null) {
+            storedFileUrl = createExpectedURL(nodeName, archiveName, fileName);
+        } else {
+            storedFileUrl = createExpectedURL(nodeName, fileName);
+        }
+
+        FileReferenceMetaInfo metaInfo = new FileReferenceMetaInfo(fileChecksum,
+                                                                   S3Glacier.MD5_CHECKSUM,
+                                                                   fileName,
+                                                                   fileSize,
+                                                                   MimeType.valueOf("text/plain"));
+
+        FileLocation location = new FileLocation("glacier", storedFileUrl.toString(), pendingActionRemaining);
+        FileReference reference = new FileReference("test-owner", metaInfo, location);
+        reference.setId(random.nextLong());
+        return reference;
+    }
+
+    protected StorageCommand.Write createTestArchiveAndBuildWriteCmd(List<String> filesNames,
+                                                                     String nodeName,
+                                                                     String archiveName)
+        throws URISyntaxException, IOException, NoSuchAlgorithmException {
+        Path testWorkspace = workspace.getRoot().toPath().resolve("test");
+        Path archiveTestPath = createTestArchive(filesNames, nodeName, archiveName, testWorkspace);
+
+        String entryKey = s3Glacier.storageConfiguration.entryKey(testWorkspace.relativize(archiveTestPath).toString());
+        String checksum = ChecksumUtils.computeHexChecksum(archiveTestPath, S3Glacier.MD5_CHECKSUM);
+        Long archiveSize = Files.size(archiveTestPath);
+
+        Flux<ByteBuffer> buffers = DataBufferUtils.read(archiveTestPath,
+                                                        new DefaultDataBufferFactory(),
+                                                        s3Glacier.multipartThresholdMb * 1024 * 1024)
+                                                  .map(DataBuffer::asByteBuffer);
+
+        StorageEntry storageEntry = StorageEntry.builder()
+                                                .config(s3Glacier.storageConfiguration)
+                                                .fullPath(entryKey)
+                                                .checksum(Option.some(Tuple.of(S3Glacier.MD5_CHECKSUM, checksum)))
+                                                .size(Option.some(archiveSize))
+                                                .data(buffers)
+                                                .build();
+        String taskId = "S3GlacierRestore" + archiveName;
+        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.storageConfiguration,
+                                                                      new StorageCommandID(taskId, UUID.randomUUID()),
+                                                                      entryKey,
+                                                                      storageEntry);
+        return writeCmd;
+    }
+
+    protected static Path createTestArchive(List<String> filesNames,
+                                            String nodeName,
+                                            String archiveName,
+                                            Path testWorkspace) throws URISyntaxException, IOException {
+        ArrayList<File> filesList = new ArrayList<File>();
+        for (String fileName : filesNames) {
+            filesList.add(Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI()).toFile());
+        }
+        Path archiveTestPath = testWorkspace.resolve(Path.of(nodeName, archiveName + S3Glacier.ARCHIVE_EXTENSION));
+        Files.createDirectories(archiveTestPath.getParent());
+        ZipUtils.createZipArchive(archiveTestPath.toFile(), filesList);
+        return archiveTestPath;
+    }
+
+    protected FileCacheRequest createFileCacheRequest(Path restorationWorkspace,
+                                                      String fileName,
+                                                      String fileChecksum,
+                                                      long fileSize,
+                                                      String nodeName,
+                                                      String archiveName,
+                                                      boolean pendingActionRemaining) {
+        FileReference reference = createFileReference(fileName,
+                                                      fileChecksum,
+                                                      fileSize,
+                                                      nodeName,
+                                                      archiveName,
+                                                      pendingActionRemaining);
+        FileCacheRequest request = new FileCacheRequest(reference,
+                                                        restorationWorkspace.toString(),
+                                                        OffsetDateTime.now().plusDays(1),
+                                                        "test-group-id");
+        return request;
+    }
+
+    protected void checkDeletionOfOneFileSuccess(TestDeletionProgressManager progressManager,
+                                                 String remainingFile,
+                                                 String fileChecksum,
+                                                 String nodeName,
+                                                 String archiveName) {
+        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1, progressManager.getDeletionSucceed().size(), "There should be one success");
+        Assertions.assertEquals(fileChecksum,
+                                progressManager.getDeletionSucceed()
+                                               .get(0)
+                                               .getFileReference()
+                                               .getMetaInfo()
+                                               .getChecksum(),
+                                "The successful request is not the expected one");
+        Assertions.assertEquals(0, progressManager.getDeletionFailed().size());
+
+        Path buildingDirPath = Path.of(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName, archiveName);
+        Assertions.assertTrue(Files.exists(buildingDirPath), "The building directory should still exists");
+        File buildingDirFile = buildingDirPath.toFile();
+        Assertions.assertEquals(1,
+                                buildingDirFile.list().length,
+                                "There should be only one file remaining in the directory");
+        Assertions.assertEquals(remainingFile,
+                                buildingDirFile.list()[0],
+                                "The remaining file in the directory should be the one that wasn't deleted");
     }
 
     protected FileStorageRequest createFileStorageRequest(String subDirectory, String fileName, String fileChecksum) {
+        return createFileStorageRequest(subDirectory, fileName, null, fileChecksum);
+    }
+
+    protected FileStorageRequest createFileStorageRequest(String subDirectory,
+                                                          String fileName,
+                                                          Long fileSize,
+                                                          String fileChecksum) {
         FileStorageRequest fileStorageRequest = new FileStorageRequest();
         fileStorageRequest.setId(random.nextLong());
         fileStorageRequest.setOriginUrl("file:./src/test/resources/files/" + fileName);
@@ -202,6 +409,7 @@ public abstract class AbstractS3GlacierIT {
         fileReferenceMetaInfo.setAlgorithm("md5");
         fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
         fileReferenceMetaInfo.setChecksum(fileChecksum);
+        fileReferenceMetaInfo.setFileSize(fileSize);
 
         fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
 
@@ -218,8 +426,10 @@ public abstract class AbstractS3GlacierIT {
 
         FileLocation fileLocation = new FileLocation();
         fileLocation.setUrl(buildFileLocationUrl(fileStorageRequest, rootPath));
-
-        return new FileReference("regards", fileReferenceMetaInfo, fileLocation);
+        fileLocation.setStorage("Glacier");
+        FileReference reference = new FileReference("regards", fileReferenceMetaInfo, fileLocation);
+        reference.setId(random.nextLong());
+        return reference;
     }
 
     private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
@@ -250,7 +460,62 @@ public abstract class AbstractS3GlacierIT {
                                  archiveName + S3Glacier.ARCHIVE_EXTENSION + S3Glacier.ARCHIVE_DELIMITER + filename);
     }
 
-    class TestStorageProgressManager implements IStorageProgressManager {
+    protected void saveFileAfterSomeTime(Long timeToWaitInSecond, StorageCommand.Write writeCmd) {
+
+        new java.util.Timer().schedule(new java.util.TimerTask() {
+
+            @Override
+            public void run() {
+                writeFileOnStorage(writeCmd);
+            }
+        }, timeToWaitInSecond * 1000);
+    }
+
+    protected void writeFileOnStorage(StorageCommand.Write writeCmd) {
+        s3Glacier.createS3Client()
+                 .write(writeCmd)
+                 .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                      unreachable -> Mono.error(new RuntimeException(
+                                                                          "Unreachable endpoint")),
+                                                                      failure -> Mono.error(new RuntimeException(
+                                                                          "Write failure in S3 storage"))))
+                 .doOnError(t -> {
+                     LOGGER.error("Storage error", t);
+                     throw new S3ClientException(t);
+                 })
+                 .doOnSuccess(success -> {
+                     LOGGER.info("Storage complete");
+                 })
+                 .block();
+    }
+
+    protected static void checkRestoreSuccess(String fileName,
+                                              String fileChecksum,
+                                              TestRestoreProgressManager progressManager,
+                                              Path restorationWorkspace) throws NoSuchAlgorithmException, IOException {
+        Awaitility.await().atMost(Durations.FOREVER).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1, progressManager.getRestoreSucceed().size(), "There should be one success");
+        Assertions.assertEquals(fileChecksum,
+                                progressManager.getRestoreSucceed().get(0).getChecksum(),
+                                "The successful request is not the expected one");
+        Assertions.assertEquals(0, progressManager.getRestoreFailed().size());
+
+        Assertions.assertTrue(Files.exists(restorationWorkspace) && Files.isDirectory(restorationWorkspace),
+                              "The target directory should be created");
+        File targetDirFile = restorationWorkspace.toFile();
+        Assertions.assertEquals(1, targetDirFile.list().length, "There should be only one file in the target dir");
+        File restoredFile = targetDirFile.listFiles()[0];
+        Assertions.assertEquals(fileName, restoredFile.getName(), "The restored file is not the expected one");
+        Assertions.assertEquals(fileChecksum,
+                                ChecksumUtils.computeHexChecksum(restoredFile.toPath(), S3Glacier.MD5_CHECKSUM),
+                                "The restored file checksum does not match the expected one");
+    }
+
+    protected record FileNameAndChecksum(String filename, String checksum) {
+
+    }
+
+    static class TestStorageProgressManager implements IStorageProgressManager {
 
         List<URL> storageSucceed = new ArrayList<>();
 
@@ -317,7 +582,7 @@ public abstract class AbstractS3GlacierIT {
         }
     }
 
-    class TestPeriodicActionProgressManager implements IPeriodicActionProgressManager {
+    static class TestPeriodicActionProgressManager implements IPeriodicActionProgressManager {
 
         List<String> storagePendingActionSucceed = new ArrayList<>();
 
@@ -345,4 +610,66 @@ public abstract class AbstractS3GlacierIT {
             return storagePendingActionSucceed.size() + storagePendingActionError.size();
         }
     }
+
+    static class TestRestoreProgressManager implements IRestorationProgressManager {
+
+        List<FileCacheRequest> restoreSucceed = new ArrayList<>();
+
+        List<FileCacheRequest> restoreFailed = new ArrayList<>();
+
+        @Override
+        public void restoreSucceed(FileCacheRequest fileRequest, Path restoredFilePath) {
+            restoreSucceed.add(fileRequest);
+        }
+
+        @Override
+        public void restoreFailed(FileCacheRequest fileRequest, String cause) {
+            restoreFailed.add(fileRequest);
+        }
+
+        public List<FileCacheRequest> getRestoreSucceed() {
+            return restoreSucceed;
+        }
+
+        public List<FileCacheRequest> getRestoreFailed() {
+            return restoreFailed;
+        }
+
+        public int countAllReports() {
+            return restoreSucceed.size() + restoreFailed.size();
+        }
+    }
+
+    static class TestDeletionProgressManager implements IDeletionProgressManager {
+
+        List<FileDeletionRequest> deletionSucceed = new ArrayList<>();
+
+        List<FileDeletionRequest> deletionFailed = new ArrayList<>();
+
+        @Override
+        public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
+            deletionSucceed.add(fileDeletionRequest);
+        }
+
+        @Override
+        public void deletionFailed(FileDeletionRequest fileDeletionRequest, String cause) {
+            LOGGER.error("Deletion of {} failed : {}",
+                         fileDeletionRequest.getFileReference().getLocation().getUrl(),
+                         cause);
+            deletionFailed.add(fileDeletionRequest);
+        }
+
+        public List<FileDeletionRequest> getDeletionSucceed() {
+            return deletionSucceed;
+        }
+
+        public List<FileDeletionRequest> getDeletionFailed() {
+            return deletionFailed;
+        }
+
+        public int countAllReports() {
+            return deletionSucceed.size() + deletionFailed.size();
+        }
+    }
+
 }

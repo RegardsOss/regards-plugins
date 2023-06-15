@@ -239,6 +239,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         s3Glacier.store(workingSet2, storageProgressManager);
 
         // Then
+        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 1);
         File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName).toFile();
 
         Assertions.assertEquals(1, nodeDir.list().length, "There should be one directory, the _current");
@@ -252,6 +253,19 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
                                                                  S3Glacier.MD5_CHECKSUM),
                                 "The file checksum should be the one we submitted");
 
+        if (storageProgressManager.getStorageSucceedWithPendingAction().size() != 1) {
+            System.out.println("Success :"
+                               + storageProgressManager.getStorageSucceed().size()
+                               + " ; "
+                               + "Pending : "
+                               + storageProgressManager.getStorageSucceedWithPendingAction().size()
+                               + " ; "
+                               + "FinishedPending : "
+                               + storageProgressManager.getStoragePendingActionSucceed().size()
+                               + " ; "
+                               + "Error : "
+                               + storageProgressManager.getStorageFailed().size());
+        }
         Assertions.assertEquals(1,
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 1 success with pending action");

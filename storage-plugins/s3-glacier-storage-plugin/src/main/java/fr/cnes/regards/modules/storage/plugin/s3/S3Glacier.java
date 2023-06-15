@@ -10,10 +10,12 @@ import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
+import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
-import fr.cnes.regards.modules.storage.plugin.s3.configuration.StoreSmallFileTaskConfiguration;
-import fr.cnes.regards.modules.storage.plugin.s3.task.StoreSmallFileTask;
+import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
+import fr.cnes.regards.modules.storage.plugin.s3.task.*;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
@@ -35,6 +37,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.time.Instant;
@@ -73,6 +76,8 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
 
     public static final String GLACIER_S3_ACCESS_TRY_TIMEOUT = "Glacier_S3_Access_Try_Timeout";
 
+    public static final String GLACIER_S3_RENEW_CALL_DURATION = "Glacier_S3_Renew_Call_Duration";
+
     public static final String ZIP_DIR = "zip";
 
     public static final String TMP_DIR = "tmp";
@@ -92,6 +97,8 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
     public static final String LOCK_PREFIX = "LOCK_";
 
     public static final String LOCK_STORE_SUFFIX = "_STORE";
+
+    public static final String LOCK_RESTORE_SUFFIX = "_RESTORE";
 
     @Autowired
     private LockService lockService;
@@ -135,6 +142,11 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
         description = "Timeout during S3 access after which the job will return an error", label = "S3 Access Timeout",
         defaultValue = "3600")
     private int s3AccessTimeout;
+
+    @PluginParameter(name = GLACIER_S3_RENEW_CALL_DURATION,
+        description = "Upper bound estimation of the time it will take for the renew lock call to be processed",
+        label = "Lock renew call duration", defaultValue = "1000")
+    private int renewCallDuration;
 
     @Override
     @PluginInit
@@ -181,22 +193,141 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
 
     @Override
     public void retrieve(FileRestorationWorkingSubset workingSubset, IRestorationProgressManager progressManager) {
-        //TODO
+        workingSubset.getFileRestorationRequests().forEach(request -> doRetrieve(request, progressManager));
+    }
+
+    private void doRetrieve(FileCacheRequest request, IRestorationProgressManager progressManager) {
+        executorService.submit(() -> {
+            try {
+                Path serverRootPath = getServerWithRootPath();
+                Path node = Path.of(request.getFileReference().getLocation().getUrl())
+                                .getParent()
+                                .relativize(serverRootPath);
+
+                Path fileRelativePath = serverRootPath.relativize(Path.of(request.getFileReference()
+                                                                                 .getLocation()
+                                                                                 .getUrl()));
+                boolean isSmallFile = isASmallFileUrl(request.getFileReference().getLocation().getUrl());
+                if (isSmallFile && request.getFileReference().getLocation().isPendingActionRemaining()) {
+                    // The file has not been saved to S3 yet, it's still in the local archive building workspace
+                    RetrieveLocalSmallFileTaskConfiguration configuration = new RetrieveLocalSmallFileTaskConfiguration(
+                        fileRelativePath,
+                        getArchiveBuildingWorkspacePath());
+                    RetrieveLocalSmallFileTask task = new RetrieveLocalSmallFileTask(configuration,
+                                                                                     request,
+                                                                                     progressManager);
+                    lockService.runWithLock(LOCK_PREFIX + replaceSeparatorInLock(node.toString()) + LOCK_STORE_SUFFIX,
+                                            task);
+                    return;
+                }
+
+                String lockName = LOCK_PREFIX
+                                  + replaceSeparatorInLock(fileRelativePath.toString())
+                                  + LOCK_RESTORE_SUFFIX;
+
+                RetrieveCacheFileTaskConfiguration configuration = new RetrieveCacheFileTaskConfiguration(
+                    fileRelativePath,
+                    getCachePath(),
+                    storageConfiguration,
+                    s3AccessTimeout,
+                    rootPath,
+                    isSmallFile,
+                    createS3Client(),
+                    lockName,
+                    Instant.now(),
+                    renewCallDuration,
+                    lockService);
+                RetrieveCacheFileTask task = new RetrieveCacheFileTask(configuration, request, progressManager);
+
+                lockService.runWithLock(lockName, task);
+
+            } catch (InterruptedException e) {
+                LOGGER.error(e.getMessage(), e);
+                progressManager.restoreFailed(request, "The deletion task was interrupted before completion.");
+            }
+        });
+    }
+
+    private String getArchiveBuildingWorkspacePath() {
+        return workspacePath + File.separator + ZIP_DIR;
+    }
+
+    private String getCachePath() {
+        return workspacePath + File.separator + TMP_DIR;
     }
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
-        //TODO
+        workingSet.getFileDeletionRequests().forEach(request -> doDelete(request, progressManager));
+    }
+
+    private void doDelete(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+        if (!isASmallFileUrl(request.getFileReference().getLocation().getUrl())) {
+            handleDeleteRequest(request, progressManager);
+        } else {
+            try {
+                Path serverRootPath = getServerWithRootPath();
+                Path node = Path.of(request.getFileReference().getLocation().getUrl())
+                                .getParent()
+                                .relativize(serverRootPath);
+                Path fileRelativePath = serverRootPath.relativize(Path.of(request.getFileReference()
+                                                                                 .getLocation()
+                                                                                 .getUrl()));
+
+                if (request.getFileReference().getLocation().isPendingActionRemaining()) {
+                    DeleteLocalSmallFileTaskConfiguration configuration = new DeleteLocalSmallFileTaskConfiguration(
+                        fileRelativePath,
+                        getArchiveBuildingWorkspacePath(),
+                        storageConfiguration,
+                        createS3Client());
+                    DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(configuration,
+                                                                                 request,
+                                                                                 progressManager);
+                    lockService.runWithLock(LOCK_PREFIX + replaceSeparatorInLock(node.toString()) + LOCK_STORE_SUFFIX,
+                                            task);
+
+                } else {
+                    String lockName = LOCK_PREFIX
+                                      + replaceSeparatorInLock(fileRelativePath.toString())
+                                      + LOCK_RESTORE_SUFFIX;
+
+                    RestoreAndDeleteSmallFileTaskConfiguration configuration = new RestoreAndDeleteSmallFileTaskConfiguration(
+                        fileRelativePath,
+                        getCachePath(),
+                        rootPath,
+                        getArchiveBuildingWorkspacePath(),
+                        node,
+                        storageConfiguration,
+                        createS3Client(),
+                        s3AccessTimeout,
+                        lockName,
+                        Instant.now(),
+                        renewCallDuration,
+                        lockService);
+                    RestoreAndDeleteSmallFileTask task = new RestoreAndDeleteSmallFileTask(configuration,
+                                                                                           request,
+                                                                                           progressManager);
+
+                    lockService.runWithLock(lockName, task);
+                }
+            } catch (InterruptedException e) {
+                LOGGER.error(e.getMessage(), e);
+                progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
+            }
+        }
     }
 
     @Override
     public void runPeriodicAction(IPeriodicActionProgressManager progressManager) {
         submitReadyArchives(progressManager);
-        cleanLocalWorkspace(progressManager);
+        cleanLocalWorkspace();
     }
 
     private void submitReadyArchives(IPeriodicActionProgressManager progressManager) {
         Path zipWorkspacePath = Paths.get(workspacePath, ZIP_DIR);
+        if (!Files.exists(zipWorkspacePath)) {
+            return;
+        }
         try (Stream<Path> dirList = Files.walk(zipWorkspacePath, 2)) {
             // Directory that will be stored are located in /<WORKSPACE>/<ZIP_DIR>/<NODE>/
             dirList.filter(dir -> !dir.equals(zipWorkspacePath) && !dir.getParent().equals(zipWorkspacePath))
@@ -422,11 +553,59 @@ public class S3Glacier extends S3OnlineStorage implements INearlineStorageLocati
         }
     }
 
-    private void cleanLocalWorkspace(IPeriodicActionProgressManager progressManager) {
-        //TODO
+    private void cleanLocalWorkspace() {
+        Path cacheWorkspacePath = Paths.get(workspacePath, TMP_DIR);
+        if (!Files.exists(cacheWorkspacePath)) {
+            return;
+        }
+        Instant oldestAgeToKeep = OffsetDateTime.now().minusHours(localWorkspaceFileLifetime).toInstant();
+        try (Stream<Path> dirList = Files.list(cacheWorkspacePath)) {
+            dirList.forEach(path -> cleanDirectoryRec(path, oldestAgeToKeep));
+        } catch (IOException e) {
+            LOGGER.error("Error while accessing cache in {}", cacheWorkspacePath, e);
+        }
+
     }
 
-    private String replaceSeparatorInLock(String lockNameWithSeparator) {
+    private void cleanDirectoryRec(Path dir, Instant oldestAgeToKeep) {
+        try (Stream<Path> dirList = Files.list(dir)) {
+            dirList.forEach(path -> {
+
+                if (Files.isDirectory(path)) {
+                    cleanDirectoryRec(path, oldestAgeToKeep);
+                } else {
+                    try {
+                        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+                        if (attr.lastModifiedTime().toInstant().isBefore(oldestAgeToKeep)) {
+                            Files.delete(path);
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error("Error while deleting file {}", path, e);
+                    }
+                }
+            });
+            try (Stream<Path> entries = Files.list(dir)) {
+                if (entries.findFirst().isEmpty()) { // Dir empty
+                    Files.delete(dir);
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error("Error while cleaning directory {}", dir, e);
+        }
+    }
+
+    public static String replaceSeparatorInLock(String lockNameWithSeparator) {
         return lockNameWithSeparator.replace(File.separator, "_");
+    }
+
+    private Path getServerWithRootPath() {
+        return Path.of((rootPath != null ?
+            Paths.get(endpoint, bucket, rootPath) :
+            Paths.get(endpoint, bucket)).toString());
+    }
+
+    private boolean isASmallFileUrl(String url) {
+        String resourceName = url.substring(url.lastIndexOf("/"));
+        return resourceName.contains(ARCHIVE_DELIMITER);
     }
 }

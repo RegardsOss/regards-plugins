@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.ingest.domain.exception.AIPGenerationException;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
+import fr.cnes.regards.modules.ingest.domain.request.IngestErrorType;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
@@ -55,7 +56,8 @@ public class AIPGenerationTest implements IAipGeneration {
     @Override
     public List<AIP> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
         if (simulateErrors) {
-            throw new AIPGenerationException(String.format("Simulated AIP generation error for sip %s",
+            throw new AIPGenerationException(IngestErrorType.GENERATION,
+                                             String.format("Simulated AIP generation error" + " for sip %s",
                                                            sip.getProviderId()));
         } else {
             List<AIP> aips = new ArrayList<>();
