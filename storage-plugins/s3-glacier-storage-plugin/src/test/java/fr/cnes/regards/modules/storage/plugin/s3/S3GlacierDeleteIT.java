@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -56,7 +57,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file present in the archive building workspace is correctly deleted")
     public void test_delete_small_file_local_build() throws IOException, URISyntaxException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
         String fileName = "smallFile1.txt";
@@ -66,8 +67,16 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
-        copyFileToWorkspace(archiveName, nodeName, fileName2, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName2,
+                            S3Glacier.ZIP_DIR);
 
         // When
         FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
@@ -80,7 +89,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
-        checkDeletionOfOneFileSuccess(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
 
     @Test
@@ -88,7 +97,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
              + "correctly deleted and that the directory is also deleted")
     public void test_delete_only_small_file_local_build() throws IOException, URISyntaxException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         // When
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
@@ -98,7 +107,11 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
 
         FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
 
@@ -111,9 +124,11 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
 
         //Then
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
-        Assertions.assertEquals(1, progressManager.getDeletionSucceed().size(), "There should be one success");
+        Assertions.assertEquals(1,
+                                progressManager.getDeletionSucceedWithPendingAction().size(),
+                                "There should be one success");
         Assertions.assertEquals(fileChecksum,
-                                progressManager.getDeletionSucceed()
+                                progressManager.getDeletionSucceedWithPendingAction()
                                                .get(0)
                                                .getFileReference()
                                                .getMetaInfo()
@@ -130,7 +145,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file present in the archive building workspace current directory is correctly deleted")
     public void test_delete_small_file_local_build_current() throws IOException, URISyntaxException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         // When
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
@@ -141,8 +156,16 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX, nodeName, fileName, S3Glacier.ZIP_DIR);
-        copyFileToWorkspace(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX, nodeName, fileName2, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX,
+                            nodeName,
+                            fileName2,
+                            S3Glacier.ZIP_DIR);
 
         FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
 
@@ -165,7 +188,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     @Purpose("Test that a big file is correctly deleted")
     public void test_delete_big_file() throws URISyntaxException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
@@ -179,7 +202,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         FileReference reference = createFileReference(createFileStorageRequest(nodeName,
                                                                                fileName,
                                                                                fileSize,
-                                                                               fileChecksum), rootPath);
+                                                                               fileChecksum), ROOT_PATH);
 
         FileDeletionRequest request = new FileDeletionRequest(reference,
                                                               "groupIdTest",
@@ -208,7 +231,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file archived is correctly restored, then extracted and the file is then deleted")
     public void test_restore_then_delete_small_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
         String fileName = "smallFile1.txt";
@@ -237,14 +260,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
-        checkDeletionOfOneFileSuccess(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
 
     @Test
     @Purpose("Test that a small file archived is correctly restored, then extracted and the file is then deleted")
     public void test_copy_then_delete_small_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
         String fileName = "smallFile1.txt";
@@ -257,11 +280,11 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
         Path archiveTestPath = createTestArchive(List.of(fileName, fileName2),
-                                                 nodeName,
+                                                 ROOT_PATH + File.separator + nodeName,
                                                  archiveName,
                                                  workspace.getRoot().toPath().resolve("test"));
 
-        Path cacheNodePath = Path.of(workspace.getRoot().toString(), S3Glacier.TMP_DIR, nodeName);
+        Path cacheNodePath = Path.of(workspace.getRoot().toString(), S3Glacier.TMP_DIR, ROOT_PATH, nodeName);
         Files.createDirectories(cacheNodePath);
         Files.copy(archiveTestPath, cacheNodePath.resolve(archiveTestPath.getFileName().toString()));
 
@@ -276,7 +299,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
-        checkDeletionOfOneFileSuccess(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
 
     @Test
@@ -284,7 +307,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
              + "correctly deleted")
     public void test_delete_small_file_local_build_with_pending_false() throws IOException, URISyntaxException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
         String fileName = "smallFile1.txt";
@@ -294,8 +317,16 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
-        copyFileToWorkspace(archiveName, nodeName, fileName2, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName2,
+                            S3Glacier.ZIP_DIR);
 
         // When
         FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
@@ -308,6 +339,6 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
-        checkDeletionOfOneFileSuccess(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
 }

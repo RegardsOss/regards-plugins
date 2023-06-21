@@ -57,7 +57,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a big file is correctly stored on the S3 server when sent through the plugin")
     public void test_submit_big_file() {
         // Given
-        loadPlugin(endPoint, region, key, secret, bucket, rootPath);
+        loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         // When
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
@@ -77,7 +77,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
 
         // Create file reference for S3 server
-        FileReference fileReference = createFileReference(request1, rootPath);
+        FileReference fileReference = createFileReference(request1, ROOT_PATH);
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3Glacier.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
@@ -85,7 +85,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
 
         // Get file as input stream from S3 server
         try {
-            InputStream inputStream = s3Glacier.retrieve(fileReference);
+            InputStream inputStream = downloadFromS3(fileReference.getLocation().getUrl());
             Assert.assertNotNull(inputStream);
             inputStream.close();
         } catch (FileNotFoundException e) {
@@ -99,7 +99,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file is correctly stored in the the zip building workspace when sent through the plugin")
     public void test_submit_small_file() throws NoSuchAlgorithmException, IOException {
         // Given
-        loadPlugin(endPoint, region, key, secret, bucket, "root/path");
+        String rootPath = ROOT_PATH + File.separator + "deep/node";
+        loadPlugin(endPoint, region, key, secret, bucket, rootPath);
 
         // When
         String nodeName = "deep/dir/testNode";
@@ -114,7 +115,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         //Then
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 1);
 
-        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName).toFile();
+        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, rootPath, nodeName).toFile();
 
         Assertions.assertEquals(1, nodeDir.list().length, "There should be one directory, the _current");
         File currentDir = nodeDir.listFiles()[0];
@@ -142,7 +143,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file is correctly stored in the the zip building workspace when sent through the plugin")
     public void test_submit_small_file_already_exists() {
         // Given
-        loadPlugin(endPoint, region, key, secret, bucket, rootPath);
+        loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
@@ -171,7 +172,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 3);
 
         // Then
-        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName).toFile();
+        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, ROOT_PATH, nodeName)
+                            .toFile();
 
         Assertions.assertEquals(1, nodeDir.list().length, "There should be one directory, the _current");
         File currentDir = nodeDir.listFiles()[0];
@@ -222,7 +224,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     public void test_submit_small_file_already_exists_different_checksum()
         throws NoSuchAlgorithmException, IOException {
         // Given
-        loadPlugin(endPoint, region, key, secret, bucket, rootPath);
+        loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
@@ -241,7 +243,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
 
         // Then
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 1);
-        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName).toFile();
+        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, ROOT_PATH, nodeName)
+                            .toFile();
 
         Assertions.assertEquals(1, nodeDir.list().length, "There should be one directory, the _current");
         File currentDir = nodeDir.listFiles()[0];
@@ -282,7 +285,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
     @Test
     @Purpose("Test that the _current folder is correctly rolled over when it reach the max size")
     public void test_rollover_current_dir() {
-        loadPlugin(endPoint, region, key, secret, bucket, rootPath);
+        loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         String nodeName = "deep/dir/testNode";
         FileStorageRequest request1 = createFileStorageRequest(nodeName,
@@ -309,7 +312,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         s3Glacier.store(workingSet, storageProgressManager);
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 5);
 
-        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName).toFile();
+        File nodeDir = Paths.get(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, ROOT_PATH, nodeName)
+                            .toFile();
         Assertions.assertEquals(2,
                                 nodeDir.list().length,
                                 "There should be two directories in the node, one _current and one that got rolled over");

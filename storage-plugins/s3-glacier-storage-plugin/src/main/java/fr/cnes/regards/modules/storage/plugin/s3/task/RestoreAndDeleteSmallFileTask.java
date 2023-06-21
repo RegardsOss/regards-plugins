@@ -26,22 +26,30 @@ import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
+ * Restore a small file contained in an archive then delete it :
+ * <ul>
+ * <li>First check that the file is not already present in the building workspace, this happens when the small file
+ * is not the first one from the archive to be deleted since the last periodic actions execution
+ * </li>
+ * <li>If needed restore the archive if its not already present in the archive cache</li>
+ * <li>If needed extract the archive in the building workspace</li>
+ * <li>Launch a {@link DeleteLocalSmallFileTask} that will handle deletion of the file</li>
+ * </ul>
+ *
  * @author Thibaud Michaudel
  **/
-public class RestoreAndDeleteSmallFileTask implements LockServiceTask {
+public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
 
-    private static final Logger LOGGER = getLogger(RestoreAndDeleteSmallFileTaskConfiguration.class);
+    private static final Logger LOGGER = getLogger(RestoreAndDeleteSmallFileTask.class);
 
     private final RestoreAndDeleteSmallFileTaskConfiguration configuration;
 
@@ -58,62 +66,99 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask {
     }
 
     @Override
-    public void run() {
+    public Void run() {
+        LOGGER.info("Starting RestoreAndDeleteSmallFileTask on {}", configuration.fileRelativePath());
+        long start = System.currentTimeMillis();
+        //Full relative path with archive delimiter : /subdir/archive.zip?filename
         String fileRelativePathAsString = configuration.fileRelativePath().toString();
-        String directoryName = fileRelativePathAsString.substring(0,
-                                                                  fileRelativePathAsString.indexOf(S3Glacier.ARCHIVE_EXTENSION));
-        Path buildingWorkspaceDirectoryName = Path.of(configuration.archiveBuildingWorkspacePath())
-                                                  .resolve(directoryName);
 
-        if (!Files.exists(buildingWorkspaceDirectoryName)) {
-            String archivePathAsString = directoryName + S3Glacier.ARCHIVE_EXTENSION;
-            Path cacheWorkspaceArchive = Path.of(configuration.cachePath()).resolve(archivePathAsString);
-            if (!Files.exists(cacheWorkspaceArchive)) {
-                String key = StringUtils.isNotBlank(configuration.rootPath()) ?
-                    configuration.rootPath() + File.separator + directoryName + S3Glacier.ARCHIVE_EXTENSION :
-                    archivePathAsString;
+        //Archive relative path : /subdir/archive.zip
+        S3GlacierUtils.S3GlacierUrl fileInfos = S3GlacierUtils.dispatchS3FilePath(fileRelativePathAsString);
+        String archiveRelativePathAsString = fileInfos.archiveFilePath();
+        Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
-                // Restore
-                configuration.s3Client()
-                             .restore(configuration.storageConfiguration(), key)
-                             .doOnError(e -> LOGGER.warn(
-                                 "The file to delete {} is present but its storage class is not "
-                                 + "the expected one, the deletion process will continue as if.",
-                                 request.getFileReference().getLocation().getUrl()))
-                             .onErrorReturn(RestoreObjectResponse.builder().build())
-                             .block();
-                boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
-                                                                                              archivePathAsString),
-                                                                                      key,
-                                                                                      configuration.storageConfiguration(),
-                                                                                      configuration.s3AccessTimeout(),
-                                                                                      configuration.lockName(),
-                                                                                      configuration.lockCreationDate(),
-                                                                                      configuration.renewDuration(),
-                                                                                      configuration.lockService());
-                if (!restorationComplete) {
-                    progressManager.deletionFailed(request,
-                                                   String.format("Unable to restore the archive %s containing the "
-                                                                 + "file to delete : timeout exceeded", key));
-                    return;
+        if (smallFileName.isPresent()) {
+
+            Path archiveRelativePath = Path.of(archiveRelativePathAsString);
+            String archiveName = archiveRelativePath.getFileName().toString();
+            String directoryName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName.substring(0,
+                                                                                               archiveName.indexOf(
+                                                                                                   S3Glacier.ARCHIVE_EXTENSION));
+            //Relative directory path : /subdir/rs_zip_archive
+            Path relativeDirectoryPath = archiveRelativePath.getParent().resolve(directoryName);
+
+            // Archive path in cache : storages.../glacier/workspace/zip/subdir/archive.zip
+            Path archivePathInCache = Path.of(configuration.cachePath()).resolve(archiveRelativePath);
+
+            // Dir path in building workspace : storages.../glacier/workspace/tmp/subdir/rs_zip_archive
+            Path dirInWorkspacePath = Path.of(configuration.archiveBuildingWorkspacePath())
+                                          .resolve(relativeDirectoryPath);
+
+            if (!Files.exists(dirInWorkspacePath)) {
+                if (!Files.exists(archivePathInCache)) {
+
+                    // Restore
+                    S3GlacierUtils.restore(configuration.s3Client(),
+                                           configuration.storageConfiguration(),
+                                           archiveRelativePathAsString);
+
+                    // Launch check restoration process
+                    boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(archivePathInCache,
+                                                                                          archiveRelativePathAsString,
+                                                                                          configuration.storageConfiguration(),
+                                                                                          configuration.s3AccessTimeout(),
+                                                                                          configuration.lockName(),
+                                                                                          configuration.lockCreationDate(),
+                                                                                          configuration.renewDuration(),
+                                                                                          configuration.lockService());
+                    if (!restorationComplete) {
+                        progressManager.deletionFailed(request,
+                                                       String.format("Unable to restore the archive %s containing the "
+                                                                     + "file to delete", archiveRelativePathAsString));
+                        return null;
+                    }
                 }
+                // Unzip the restored archive in the building directory
+                ZipUtils.unzip(archivePathInCache, dirInWorkspacePath);
             }
-            // Unzip the restored archive in the building directory
-            ZipUtils.unzip(cacheWorkspaceArchive, buildingWorkspaceDirectoryName);
+            DeleteLocalSmallFileTaskConfiguration subTaskConfiguration = new DeleteLocalSmallFileTaskConfiguration(
+                configuration.fileRelativePath(),
+                configuration.archiveBuildingWorkspacePath(),
+                configuration.storageName(),
+                configuration.storageConfiguration(),
+                configuration.s3Client(),
+                configuration.glacierArchiveService());
+            DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(subTaskConfiguration,
+                                                                         request,
+                                                                         progressManager);
+            try {
+                LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask in RestoreAndDeleteSmallFileTask with lock",
+                             Thread.currentThread().getName());
+                configuration.lockService()
+                             .runWithLock(S3GlacierUtils.getLockName(configuration.rootPath(),
+                                                                     configuration.fileRelativePath().getParent()
+                                                                     != null ?
+                                                                         configuration.fileRelativePath()
+                                                                                      .getParent()
+                                                                                      .toString() :
+                                                                         "",
+                                                                     S3Glacier.LOCK_STORE_SUFFIX), task);
+            } catch (InterruptedException e) {
+                LOGGER.error(e.getMessage(), e);
+                progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
+                Thread.currentThread().interrupt();
+            }
+        } else {
+            progressManager.deletionFailed(request,
+                                           String.format("Error while trying to delete small file %s. Url "
+                                                         + "does not match a smallFile url with %s parameter",
+                                                         S3Glacier.SMALL_FILE_PARAMETER_NAME,
+                                                         fileRelativePathAsString));
         }
-        DeleteLocalSmallFileTaskConfiguration subTaskConfiguration = new DeleteLocalSmallFileTaskConfiguration(
-            configuration.fileRelativePath(),
-            configuration.archiveBuildingWorkspacePath(),
-            configuration.storageConfiguration(),
-            configuration.s3Client());
-        DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(subTaskConfiguration, request, progressManager);
-        try {
-            configuration.lockService()
-                         .runWithLock(S3Glacier.LOCK_PREFIX
-                                      + S3Glacier.replaceSeparatorInLock(fileRelativePathAsString), task);
-        } catch (InterruptedException e) {
-            LOGGER.error(e.getMessage(), e);
-            progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
-        }
+
+        LOGGER.info("End of RestoreAndDeleteSmallFileTask on {} after {} ms",
+                    configuration.fileRelativePath(),
+                    System.currentTimeMillis() - start);
+        return null;
     }
 }

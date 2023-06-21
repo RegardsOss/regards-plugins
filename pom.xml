@@ -247,6 +247,11 @@
                 <artifactId>s3-storage-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-storage-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

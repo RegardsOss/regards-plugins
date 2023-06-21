@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
+import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceResponse;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
@@ -32,6 +33,7 @@ import fr.cnes.regards.framework.s3.test.S3BucketTestUtils;
 import fr.cnes.regards.framework.s3.test.S3FileTestUtils;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
+import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -45,9 +47,11 @@ import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
+import org.apache.http.client.utils.URIBuilder;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.After;
@@ -71,8 +75,11 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -84,8 +91,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -102,11 +110,15 @@ public abstract class AbstractS3GlacierIT {
 
     protected static final String BUCKET_OUTPUT = "bucket-glacier";
 
-    public final String rootPath = System.getProperty("user.name") + "_tests";
+    public static final String ROOT_PATH = System.getProperty("user.name") + "_tests";
 
     public static final int ARCHIVE_DURATION_IN_HOURS = 1;
 
     public static final int CACHE_DURATION_IN_HOURS = 10;
+
+    public static final int MULTIPART_PARALLEL_PART = 5;
+
+    public static final int UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB = 5;
 
     /**
      * Tested class : S3 Glacier plugin.
@@ -127,6 +139,8 @@ public abstract class AbstractS3GlacierIT {
 
     @Value("${s3.bucket:bucket-glacier}")
     protected String bucket;
+
+    private String rootPath;
 
     @Rule
     public TemporaryFolder workspace = new TemporaryFolder();
@@ -150,12 +164,16 @@ public abstract class AbstractS3GlacierIT {
 
         runtimeTenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(runtimeTenantResolver.getTenant()).thenReturn(TENANT);
+        Mockito.doNothing().when(runtimeTenantResolver).forceTenant(anyString());
         lockService = Mockito.mock(LockService.class);
         Mockito.doAnswer((mock) -> {
             LockServiceTask task = mock.getArgument(1);
-            task.run();
-            return true;
+            return new LockServiceResponse<>(true, task.run());
         }).when(lockService).runWithLock(any(), any());
+        Mockito.doAnswer((mock) -> {
+            LockServiceTask task = mock.getArgument(1);
+            return new LockServiceResponse<>(true, task.run());
+        }).when(lockService).tryRunWithLock(any(), any(), anyInt(), any());
         Mockito.doAnswer((mock) -> 60000).when(lockService).getTimeToLive();
         glacierArchiveService = Mockito.mock(GlacierArchiveService.class);
 
@@ -177,7 +195,7 @@ public abstract class AbstractS3GlacierIT {
 
     @After
     public void cleanBucket() {
-        S3FileTestUtils.deleteAllFilesFromRoot(s3Glacier.storageConfiguration, s3Glacier.rootPath);
+        S3FileTestUtils.deleteAllFilesFromRoot(s3Glacier.storageConfiguration, rootPath);
     }
 
     protected void loadPlugin(String endpoint,
@@ -196,21 +214,22 @@ public abstract class AbstractS3GlacierIT {
                               String bucket,
                               String rootPath,
                               Boolean mockRestore) {
-        StringPluginParam secretParam = IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret);
+        this.rootPath = rootPath;
+        StringPluginParam secretParam = IPluginParam.build(AbstractS3Storage.S3_SERVER_SECRET_PARAM_NAME, secret);
         secretParam.setDecryptedValue(secret);
         // Set plugin configuration
-        Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(S3OnlineStorage.S3_SERVER_ENDPOINT_PARAM_NAME,
+        Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(AbstractS3Storage.S3_SERVER_ENDPOINT_PARAM_NAME,
                                                                                   endpoint),
-                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_REGION_PARAM_NAME,
+                                                               IPluginParam.build(AbstractS3Storage.S3_SERVER_REGION_PARAM_NAME,
                                                                                   region),
-                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_KEY_PARAM_NAME,
+                                                               IPluginParam.build(AbstractS3Storage.S3_SERVER_KEY_PARAM_NAME,
                                                                                   key),
                                                                secretParam,
-                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_BUCKET_PARAM_NAME,
+                                                               IPluginParam.build(AbstractS3Storage.S3_SERVER_BUCKET_PARAM_NAME,
                                                                                   bucket),
-                                                               IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME,
+                                                               IPluginParam.build(AbstractS3Storage.S3_SERVER_ROOT_PATH_PARAM_NAME,
                                                                                   rootPath),
-                                                               IPluginParam.build(S3Glacier.GLACIER_LOCAL_WORKSPACE_FILE_LIFETIME_IN_HOURS,
+                                                               IPluginParam.build(S3Glacier.GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
                                                                                   CACHE_DURATION_IN_HOURS),
                                                                IPluginParam.build(S3Glacier.GLACIER_PARALLEL_TASK_NUMBER,
                                                                                   1),
@@ -223,7 +242,11 @@ public abstract class AbstractS3GlacierIT {
                                                                IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_MAX_SIZE,
                                                                                   500),
                                                                IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_ARCHIVE_DURATION_IN_HOURS,
-                                                                                  ARCHIVE_DURATION_IN_HOURS));
+                                                                                  ARCHIVE_DURATION_IN_HOURS),
+                                                               IPluginParam.build(S3Glacier.UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
+                                                                                  UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB),
+                                                               IPluginParam.build(S3Glacier.MULTIPART_PARALLEL_PARAM_NAME,
+                                                                                  MULTIPART_PARALLEL_PART));
 
         PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3Glacier.class,
                                                                             "S3 Glacier configuration plugin",
@@ -266,9 +289,12 @@ public abstract class AbstractS3GlacierIT {
         return new S3Server(endPoint, region, key, secret, bucket);
     }
 
-    protected void copyFileToWorkspace(String targetDir, String nodeName, String fileName, String workspaceDir)
-        throws IOException, URISyntaxException {
-        Path targetFile = Paths.get(workspace.getRoot().getAbsolutePath(), workspaceDir, nodeName, targetDir);
+    protected void copyFileToWorkspace(String rootPath,
+                                       String targetDir,
+                                       String nodeName,
+                                       String fileName,
+                                       String workspaceDir) throws IOException, URISyntaxException {
+        Path targetFile = Paths.get(workspace.getRoot().getAbsolutePath(), workspaceDir, rootPath, nodeName, targetDir);
         Files.createDirectories(targetFile);
         Files.copy(Path.of(S3GlacierPeriodicActionsIT.class.getResource("/files/" + fileName).toURI()),
                    targetFile.resolve(fileName));
@@ -312,7 +338,7 @@ public abstract class AbstractS3GlacierIT {
 
         Flux<ByteBuffer> buffers = DataBufferUtils.read(archiveTestPath,
                                                         new DefaultDataBufferFactory(),
-                                                        s3Glacier.multipartThresholdMb * 1024 * 1024)
+                                                        MULTIPART_PARALLEL_PART * 1024 * 1024)
                                                   .map(DataBuffer::asByteBuffer);
 
         StorageEntry storageEntry = StorageEntry.builder()
@@ -364,6 +390,39 @@ public abstract class AbstractS3GlacierIT {
         return request;
     }
 
+    protected void checkDeletionOfOneFileSuccessWithPending(TestDeletionProgressManager progressManager,
+                                                            String remainingFile,
+                                                            String fileChecksum,
+                                                            String nodeName,
+                                                            String archiveName) {
+        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1,
+                                progressManager.getDeletionSucceedWithPendingAction().size(),
+                                "There should be one success");
+        Assertions.assertEquals(fileChecksum,
+                                progressManager.getDeletionSucceedWithPendingAction()
+                                               .get(0)
+                                               .getFileReference()
+                                               .getMetaInfo()
+                                               .getChecksum(),
+                                "The successful request is not the expected one");
+        Assertions.assertEquals(0, progressManager.getDeletionFailed().size());
+
+        Path buildingDirPath = Path.of(workspace.getRoot().getAbsolutePath(),
+                                       S3Glacier.ZIP_DIR,
+                                       rootPath,
+                                       nodeName,
+                                       S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
+        Assertions.assertTrue(Files.exists(buildingDirPath), "The building directory should still exists");
+        File buildingDirFile = buildingDirPath.toFile();
+        Assertions.assertEquals(1,
+                                buildingDirFile.list().length,
+                                "There should be only one file remaining in the directory");
+        Assertions.assertEquals(remainingFile,
+                                buildingDirFile.list()[0],
+                                "The remaining file in the directory should be the one that wasn't deleted");
+    }
+
     protected void checkDeletionOfOneFileSuccess(TestDeletionProgressManager progressManager,
                                                  String remainingFile,
                                                  String fileChecksum,
@@ -380,7 +439,11 @@ public abstract class AbstractS3GlacierIT {
                                 "The successful request is not the expected one");
         Assertions.assertEquals(0, progressManager.getDeletionFailed().size());
 
-        Path buildingDirPath = Path.of(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName, archiveName);
+        Path buildingDirPath = Path.of(workspace.getRoot().getAbsolutePath(),
+                                       S3Glacier.ZIP_DIR,
+                                       rootPath,
+                                       nodeName,
+                                       S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
         Assertions.assertTrue(Files.exists(buildingDirPath), "The building directory should still exists");
         File buildingDirFile = buildingDirPath.toFile();
         Assertions.assertEquals(1,
@@ -433,31 +496,40 @@ public abstract class AbstractS3GlacierIT {
     }
 
     private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
-        return endPoint + File.separator + s3Glacier.bucket + Paths.get(File.separator,
-                                                                        rootPath,
-                                                                        fileStorageRequest.getStorageSubDirectory())
-                                                                   .resolve(fileStorageRequest.getMetaInfo()
-                                                                                              .getChecksum());
+        return endPoint + File.separator + bucket + Paths.get(File.separator,
+                                                              rootPath,
+                                                              fileStorageRequest.getStorageSubDirectory() != null ?
+                                                                  fileStorageRequest.getStorageSubDirectory() :
+                                                                  "")
+                                                         .resolve(fileStorageRequest.getMetaInfo().getChecksum());
     }
 
-    protected URL createExpectedURL(String filename) {
+    protected URL createExpectedURLWithParameter(String filePath, @Nullable String smallFileName) {
         try {
-            return new URL(endPoint + File.separator + bucket + (s3Glacier.rootPath != null
-                                                                 && !s3Glacier.rootPath.equals("") ?
-                File.separator + s3Glacier.rootPath :
-                "") + File.separator + filename);
-        } catch (MalformedURLException e) {
+            URIBuilder builder = new URIBuilder(endPoint + File.separator + bucket + (rootPath != null
+                                                                                      && !ROOT_PATH.equals("") ?
+                File.separator + rootPath :
+                "") + File.separator + filePath);
+            if (smallFileName != null) {
+                builder.addParameter(S3Glacier.SMALL_FILE_PARAMETER_NAME, smallFileName);
+            }
+            return builder.build().toURL();
+        } catch (MalformedURLException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
 
+    protected URL createExpectedURL(String filename) {
+        return createExpectedURLWithParameter(filename, null);
+    }
+
     protected URL createExpectedURL(String node, String filename) {
-        return createExpectedURL(node + File.separator + filename);
+        return createExpectedURLWithParameter(node + File.separator + filename, null);
     }
 
     protected URL createExpectedURL(String node, String archiveName, String filename) {
-        return createExpectedURL(node,
-                                 archiveName + S3Glacier.ARCHIVE_EXTENSION + S3Glacier.ARCHIVE_DELIMITER + filename);
+        return createExpectedURLWithParameter(node + File.separator + archiveName + S3Glacier.ARCHIVE_EXTENSION,
+                                              filename);
     }
 
     protected void saveFileAfterSomeTime(Long timeToWaitInSecond, StorageCommand.Write writeCmd) {
@@ -472,21 +544,20 @@ public abstract class AbstractS3GlacierIT {
     }
 
     protected void writeFileOnStorage(StorageCommand.Write writeCmd) {
-        s3Glacier.createS3Client()
-                 .write(writeCmd)
-                 .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
-                                                                      unreachable -> Mono.error(new RuntimeException(
-                                                                          "Unreachable endpoint")),
-                                                                      failure -> Mono.error(new RuntimeException(
-                                                                          "Write failure in S3 storage"))))
-                 .doOnError(t -> {
-                     LOGGER.error("Storage error", t);
-                     throw new S3ClientException(t);
-                 })
-                 .doOnSuccess(success -> {
-                     LOGGER.info("Storage complete");
-                 })
-                 .block();
+        createS3Client().write(writeCmd)
+                        .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                             unreachable -> Mono.error(new RuntimeException(
+                                                                                 "Unreachable endpoint")),
+                                                                             failure -> Mono.error(new RuntimeException(
+                                                                                 "Write failure in S3 storage"))))
+                        .doOnError(t -> {
+                            LOGGER.error("Storage error", t);
+                            throw new S3ClientException(t);
+                        })
+                        .doOnSuccess(success -> {
+                            LOGGER.info("Storage complete");
+                        })
+                        .block();
     }
 
     protected static void checkRestoreSuccess(String fileName,
@@ -511,8 +582,32 @@ public abstract class AbstractS3GlacierIT {
                                 "The restored file checksum does not match the expected one");
     }
 
-    protected record FileNameAndChecksum(String filename, String checksum) {
+    protected record FileNameAndChecksum(String filename,
+                                         String checksum) {
 
+    }
+
+    protected S3HighLevelReactiveClient createS3Client() {
+        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
+        int maxBytesPerPart = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB * 1024 * 1024;
+        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, MULTIPART_PARALLEL_PART);
+    }
+
+    protected InputStream downloadFromS3(String url) throws FileNotFoundException {
+        StorageConfig.builder(endPoint, region, key, secret);
+        return DownloadUtils.getInputStreamFromS3Source(getEntryKey(url),
+                                                        StorageConfig.builder(new S3Server(endPoint,
+                                                                                           region,
+                                                                                           key,
+                                                                                           secret,
+                                                                                           bucket)).build(),
+                                                        new StorageCommandID("downloadTest", UUID.randomUUID()));
+    }
+
+    protected String getEntryKey(String url) {
+        return url.replaceFirst(Pattern.quote(endPoint) + "(:[0-9]*)?/*", "")
+                  .replaceFirst(Pattern.quote(bucket), "")
+                  .substring(1);
     }
 
     static class TestStorageProgressManager implements IStorageProgressManager {
@@ -588,9 +683,16 @@ public abstract class AbstractS3GlacierIT {
 
         List<Path> storagePendingActionError = new ArrayList<>();
 
+        List<String> storageAllPendingActionSucceed = new ArrayList<>();
+
         @Override
         public void storagePendingActionSucceed(String pendingActionSucceedUrl) {
             storagePendingActionSucceed.add(pendingActionSucceedUrl);
+        }
+
+        @Override
+        public void allPendingActionSucceed(String storageLocationName) {
+            storageAllPendingActionSucceed.add(storageLocationName);
         }
 
         @Override
@@ -604,6 +706,10 @@ public abstract class AbstractS3GlacierIT {
 
         public List<Path> getStoragePendingActionError() {
             return storagePendingActionError;
+        }
+
+        public List<String> getStorageAllPendingActionSucceed() {
+            return storageAllPendingActionSucceed;
         }
 
         public int countAllReports() {
@@ -644,6 +750,8 @@ public abstract class AbstractS3GlacierIT {
 
         List<FileDeletionRequest> deletionSucceed = new ArrayList<>();
 
+        List<FileDeletionRequest> deletionSucceedWithPendingAction = new ArrayList<>();
+
         List<FileDeletionRequest> deletionFailed = new ArrayList<>();
 
         @Override
@@ -659,6 +767,11 @@ public abstract class AbstractS3GlacierIT {
             deletionFailed.add(fileDeletionRequest);
         }
 
+        @Override
+        public void deletionSucceedWithPendingAction(FileDeletionRequest fileDeletionRequest) {
+            deletionSucceedWithPendingAction.add(fileDeletionRequest);
+        }
+
         public List<FileDeletionRequest> getDeletionSucceed() {
             return deletionSucceed;
         }
@@ -667,8 +780,12 @@ public abstract class AbstractS3GlacierIT {
             return deletionFailed;
         }
 
+        public List<FileDeletionRequest> getDeletionSucceedWithPendingAction() {
+            return deletionSucceedWithPendingAction;
+        }
+
         public int countAllReports() {
-            return deletionSucceed.size() + deletionFailed.size();
+            return deletionSucceed.size() + deletionFailed.size() + deletionSucceedWithPendingAction.size();
         }
     }
 

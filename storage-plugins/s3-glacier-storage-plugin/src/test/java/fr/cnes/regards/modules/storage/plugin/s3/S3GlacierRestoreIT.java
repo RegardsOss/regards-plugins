@@ -62,7 +62,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a file present in the archive building workspace is correctly restored")
     public void test_restore_local_build() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         // When
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
@@ -73,7 +73,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH, archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
         FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
                                                           fileName,
                                                           fileChecksum,
@@ -93,7 +93,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a file present in the current building archive is correctly restored")
     public void test_restore_local_build_current() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         // When
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
@@ -104,7 +104,11 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX, nodeName, fileName, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
         FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
                                                           fileName,
                                                           fileChecksum,
@@ -124,7 +128,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a file present in the archive building workspace is correctly restored")
     public void test_restore_local_cache_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         String fileName = "smallFile1.txt";
@@ -133,7 +137,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
-        copyFileToWorkspace(archiveName, nodeName, fileName, S3Glacier.TMP_DIR);
+        copyFileToWorkspace(ROOT_PATH, archiveName, nodeName, fileName, S3Glacier.TMP_DIR);
 
         // When
         FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
@@ -155,7 +159,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that a file present in an archive in the archive building workspace is correctly restored")
     public void test_restore_local_cache_archive() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         String fileName = "smallFile1.txt";
@@ -167,6 +171,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         File file = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI()).toFile();
         Path archivePath = Path.of(workspace.getRoot().toString(),
                                    S3Glacier.TMP_DIR,
+                                   ROOT_PATH,
                                    nodeName,
                                    archiveName + S3Glacier.ARCHIVE_EXTENSION);
         Files.createDirectories(archivePath.getParent());
@@ -193,7 +198,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
              + "restored")
     public void test_small_restore_glacier() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
@@ -230,7 +235,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Purpose("Test that after the progress manager is correctly notified when the restoring of a file fail")
     public void test_small_restore_glacier_failure() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
@@ -269,7 +274,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
              + "restored")
     public void test_big_restore_glacier() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
@@ -285,7 +290,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath,
                                                         new DefaultDataBufferFactory(),
-                                                        s3Glacier.multipartThresholdMb * 1024 * 1024)
+                                                        UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB * 1024 * 1024)
                                                   .map(DataBuffer::asByteBuffer);
 
         StorageEntry storageEntry = StorageEntry.builder()

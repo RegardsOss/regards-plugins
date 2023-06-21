@@ -30,9 +30,11 @@ import java.nio.file.Path;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
+ * Base class for retrieve tasks
+ *
  * @author Thibaud Michaudel
  **/
-public abstract class AbstractRetrieveFileTask implements LockServiceTask {
+public abstract class AbstractRetrieveFileTask implements LockServiceTask<Void> {
 
     private static final Logger LOGGER = getLogger(AbstractRetrieveFileTask.class);
 
@@ -40,7 +42,7 @@ public abstract class AbstractRetrieveFileTask implements LockServiceTask {
 
     protected IRestorationProgressManager progressManager;
 
-    public AbstractRetrieveFileTask(FileCacheRequest request, IRestorationProgressManager progressManager) {
+    protected AbstractRetrieveFileTask(FileCacheRequest request, IRestorationProgressManager progressManager) {
         this.request = request;
         this.progressManager = progressManager;
     }

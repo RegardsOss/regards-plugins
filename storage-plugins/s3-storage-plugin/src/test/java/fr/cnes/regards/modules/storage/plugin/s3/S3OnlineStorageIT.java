@@ -359,6 +359,11 @@ public class S3OnlineStorageIT {
             }
 
             @Override
+            public void deletionSucceedWithPendingAction(FileDeletionRequest fileDeletionRequest) {
+
+            }
+
+            @Override
             public void deletionFailed(FileDeletionRequest fileDeletionRequest, String s) {
             }
         };

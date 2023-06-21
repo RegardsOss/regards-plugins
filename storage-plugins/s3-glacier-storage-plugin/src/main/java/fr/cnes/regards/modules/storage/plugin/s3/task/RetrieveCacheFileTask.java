@@ -24,15 +24,12 @@ import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RetrieveCacheFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -59,7 +56,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
     public static final int INITIAL_DELAY = 1000;
 
-    private RetrieveCacheFileTaskConfiguration configuration;
+    private final RetrieveCacheFileTaskConfiguration configuration;
 
     public RetrieveCacheFileTask(RetrieveCacheFileTaskConfiguration configuration,
                                  FileCacheRequest request,
@@ -69,87 +66,87 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     }
 
     @Override
-    public void run() {
+    public Void run() {
+        LOGGER.info("Starting RetrieveCacheFileTask on {}", configuration.fileRelativePath());
+        long start = System.currentTimeMillis();
         if (configuration.isSmallFile()) {
             retrieveSmallFile();
         } else {
             retrieveBigFile();
         }
+        LOGGER.info("End of RetrieveCacheFileTask on {} after {} ms",
+                    configuration.fileRelativePath(),
+                    System.currentTimeMillis() - start);
+        return null;
     }
 
     private void retrieveSmallFile() {
-        Path fileCachePathWithArchiveDelimiter = Path.of(configuration.cachePath())
-                                                     .resolve(configuration.fileRelativePath());
-        String[] split = fileCachePathWithArchiveDelimiter.getFileName()
-                                                          .toString()
-                                                          .split(Pattern.quote(S3Glacier.ARCHIVE_DELIMITER));
-        String archiveName = split[0];
-        String dirName = archiveName.substring(0, archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
-        Path localPath = fileCachePathWithArchiveDelimiter.getParent().resolve(dirName).resolve(split[1]);
-        if (Files.exists(localPath)) {
-            copyFileAndHandleSuccess(localPath);
-            return;
-        }
-        // Also check if the archive already exists
-        Path archivePath = fileCachePathWithArchiveDelimiter.getParent().resolve(archiveName);
-        if (Files.exists(archivePath)) {
-            extractThenCopyFileAndHandleSuccess(localPath, archivePath);
-            return;
-        }
 
-        String filePathWithArchive = configuration.fileRelativePath().toString();
-        String archiveRelativePath = filePathWithArchive.substring(0,
-                                                                   filePathWithArchive.indexOf(S3Glacier.ARCHIVE_DELIMITER));
-        String key = StringUtils.isNotBlank(configuration.rootPath()) ?
-            configuration.rootPath() + File.separator + archiveRelativePath :
-            archiveRelativePath;
+        S3GlacierUtils.S3GlacierUrl fileInfos = S3GlacierUtils.dispatchS3FilePath(configuration.fileRelativePath()
+                                                                                               .toString());
 
-        // Restore
-        configuration.s3Client()
-                     .restore(configuration.s3Configuration(), key)
-                     .doOnError(e -> LOGGER.warn("The requested file {} is present but its storage class is not "
-                                                 + "the expected one, the restoration process will continue as if"
-                                                 + ".", request.getFileReference().getLocation().getUrl()))
-                     .onErrorReturn(RestoreObjectResponse.builder().build())
-                     .block();
+        String relativeArchivePath = fileInfos.archiveFilePath();
+        Path archiveCachePath = Path.of(configuration.cachePath(), relativeArchivePath);
+        String archiveName = archiveCachePath.getFileName().toString();
+        Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
-        // Launch check restoration process
-        boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
-                                                                                      archiveRelativePath),
-                                                                              key,
-                                                                              configuration.s3Configuration(),
-                                                                              configuration.s3AccessTimeout(),
-                                                                              configuration.lockName(),
-                                                                              configuration.lockCreationDate(),
-                                                                              configuration.renewDuration(),
-                                                                              configuration.lockService());
+        if (smallFileName.isPresent()) {
 
-        if (restorationComplete) {
-            extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+            String dirName = archiveName.substring(0, archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
+            Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
+            if (Files.exists(localPath)) {
+                copyFileAndHandleSuccess(localPath);
+                return;
+            }
+            // Also check if the archive already exists
+            Path archivePath = archiveCachePath.getParent().resolve(archiveName);
+            if (Files.exists(archivePath)) {
+                extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+                return;
+            }
+
+            // Restore
+            LOGGER.info("Restoring {}", relativeArchivePath);
+            S3GlacierUtils.restore(configuration.s3Client(), configuration.s3Configuration(), relativeArchivePath);
+
+            // Launch check restoration process
+            boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
+                                                                                          relativeArchivePath),
+                                                                                  relativeArchivePath,
+                                                                                  configuration.s3Configuration(),
+                                                                                  configuration.s3AccessTimeout(),
+                                                                                  configuration.lockName(),
+                                                                                  configuration.lockCreationDate(),
+                                                                                  configuration.renewDuration(),
+                                                                                  configuration.lockService());
+
+            if (restorationComplete) {
+                extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+            } else {
+                progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
+            }
         } else {
-            progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
+            progressManager.restoreFailed(request,
+                                          String.format("Error while trying to restore file %s. Url "
+                                                        + "does not match a smallFile url with %s parameter",
+                                                        S3Glacier.SMALL_FILE_PARAMETER_NAME,
+                                                        configuration.fileRelativePath()));
         }
     }
 
     private void retrieveBigFile() {
-        String key = StringUtils.isNotBlank(configuration.rootPath()) ?
-            configuration.rootPath() + File.separator + configuration.fileRelativePath().toString() :
-            configuration.fileRelativePath().toString();
 
         // Restore
-        configuration.s3Client()
-                     .restore(configuration.s3Configuration(), key)
-                     .doOnError(e -> LOGGER.warn("The requested file {} is present but its storage class is not "
-                                                 + "the expected one, the restoration process will continue as if"
-                                                 + ".", request.getFileReference().getLocation().getUrl()))
-                     .onErrorReturn(RestoreObjectResponse.builder().build())
-                     .block();
+        S3GlacierUtils.restore(configuration.s3Client(),
+                               configuration.s3Configuration(),
+                               configuration.fileRelativePath().toString());
 
         // Launch check restoration process
         Path targetPath = Path.of(request.getRestorationDirectory(),
                                   configuration.fileRelativePath().getFileName().toString());
         boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(targetPath,
-                                                                              key,
+                                                                              configuration.fileRelativePath()
+                                                                                           .toString(),
                                                                               configuration.s3Configuration(),
                                                                               configuration.s3AccessTimeout(),
                                                                               configuration.lockName(),

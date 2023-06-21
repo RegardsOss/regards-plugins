@@ -1,4 +1,4 @@
-/*
+package fr.cnes.regards.modules.storage.plugin.s3.configuration;/*
  * Copyright 2017-2023 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
@@ -16,22 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.storage.plugin.s3.configuration;
-
-import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 
 import java.nio.file.Path;
+import java.time.Instant;
 
 /**
  * @author Thibaud Michaudel
  **/
-public record DeleteLocalSmallFileTaskConfiguration(Path fileRelativePath,
-                                                    String archiveBuildingWorkspacePath,
-                                                    String storageName,
-                                                    StorageConfig storageConfiguration,
-                                                    S3HighLevelReactiveClient s3Client,
-                                                    GlacierArchiveService glacierArchiveService) {
+public record CleanDirectoryTaskConfiguration(Path directoryPath,
+                                              Instant oldestAgeToKeep) {
 
 }

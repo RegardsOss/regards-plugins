@@ -60,7 +60,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file on tier 2 storage is retrieved even if the restore method is called")
     public void test_small_restore_glacier() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath, false);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
@@ -98,7 +98,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     @Purpose("Test that a big file on tier 2 storage is retrieved even if the restore method is called")
     public void test_big_restore_tier2() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath, false);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false);
 
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
@@ -114,7 +114,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
 
         Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath,
                                                         new DefaultDataBufferFactory(),
-                                                        s3Glacier.multipartThresholdMb * 1024 * 1024)
+                                                        MULTIPART_PARALLEL_PART * 1024 * 1024)
                                                   .map(DataBuffer::asByteBuffer);
 
         StorageEntry storageEntry = StorageEntry.builder()
@@ -154,7 +154,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file on tier 2 storage is restored then deleted even if the restore method is called")
     public void test_restore_then_delete_small_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, rootPath);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
         String fileName = "smallFile1.txt";
@@ -183,6 +183,6 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
-        checkDeletionOfOneFileSuccess(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
 }

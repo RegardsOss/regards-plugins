@@ -62,15 +62,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author Thibaud Michaudel
  **/
-public class StoreSmallFileTask implements LockServiceTask {
+public class StoreSmallFileTask implements LockServiceTask<Void> {
 
     private static final Logger LOGGER = getLogger(StoreSmallFileTask.class);
 
     private final StoreSmallFileTaskConfiguration configuration;
 
-    private FileStorageRequest request;
+    private final FileStorageRequest request;
 
-    private IStorageProgressManager progressManager;
+    private final IStorageProgressManager progressManager;
 
     public StoreSmallFileTask(StoreSmallFileTaskConfiguration storeSmallFileTaskConfiguration,
                               FileStorageRequest request,
@@ -81,15 +81,21 @@ public class StoreSmallFileTask implements LockServiceTask {
     }
 
     @Override
-    public void run() {
+    public Void run() {
+        LOGGER.info("Starting StoreSmallFileTask on {}", request.getMetaInfo().getFileName());
+        long start = System.currentTimeMillis();
         // Local path of the node
-        Path node = Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR, request.getStorageSubDirectory());
-        ArchiveInfo archiveInfo = createArchiveInfo(node);
-        if (archiveInfo == null) {
-            //The file is already stored
-            return;
-        }
-        saveLocalSmallFile(archiveInfo);
+        Path node = Paths.get(configuration.workspacePath(),
+                              S3Glacier.ZIP_DIR,
+                              configuration.rootPath(),
+                              request.getStorageSubDirectory() != null ? request.getStorageSubDirectory() : "");
+        Optional<ArchiveInfo> optionalArchiveInfo = createArchiveInfo(node);
+        // Save the file only if it is valid and not already saved
+        optionalArchiveInfo.ifPresent(this::saveLocalSmallFile);
+        LOGGER.info("Ending StoreSmallFileTask on {} after {}",
+                    request.getMetaInfo().getFileName(),
+                    System.currentTimeMillis() - start);
+        return null;
     }
 
     /**
@@ -99,8 +105,10 @@ public class StoreSmallFileTask implements LockServiceTask {
      *   <li>Archive directory exists or need ot be created</li>
      *   <li>Filename already exists</li>
      * </ul>
+     *
+     * @return Optional {@link ArchiveInfo} : Empty if there is nothing to do on the given path.
      */
-    private ArchiveInfo createArchiveInfo(Path node) {
+    private Optional<ArchiveInfo> createArchiveInfo(Path node) {
         Path localArchiveLocation;
         String archiveName;
         // Check if the node directory or the current directory need to be created
@@ -122,7 +130,8 @@ public class StoreSmallFileTask implements LockServiceTask {
                     // The file might be present following a deletion without physical deletion enabled
                     boolean fileAlreadyExists = handleFileAlreadyExists(localArchiveLocation, archiveName);
                     if (fileAlreadyExists) {
-                        return null;
+                        // The same file already exists, nothing to do
+                        return Optional.empty();
                     }
                 } else {
                     archiveName = OffsetDateTime.now()
@@ -135,16 +144,16 @@ public class StoreSmallFileTask implements LockServiceTask {
             } catch (IOException e) {
                 LOGGER.error(e.getMessage(), e);
                 progressManager.storageFailed(request, "Error while opening workspace zip directory");
-                return null;
+                return Optional.empty();
             } catch (NoSuchAlgorithmException e) {
                 LOGGER.error(e.getMessage(), e);
                 progressManager.storageFailed(request,
                                               String.format("Unknown checksum algorithm %s ", S3Glacier.MD5_CHECKSUM));
-                return null;
+                return Optional.empty();
             }
         }
         ArchiveInfo archiveInfo = new ArchiveInfo(localArchiveLocation, archiveName);
-        return archiveInfo;
+        return Optional.of(archiveInfo);
     }
 
     /**
@@ -258,21 +267,23 @@ public class StoreSmallFileTask implements LockServiceTask {
     private void handleStorageSucceedWithPendingAction(FileStorageRequest request,
                                                        IStorageProgressManager progressManager,
                                                        String archiveName,
-                                                       long realFileSize) throws IOException {
-        String storedFilePath = Paths.get(configuration.rootPath() != null ? configuration.rootPath() : "",
-                                          request.getStorageSubDirectory(),
-                                          archiveName
-                                          + S3Glacier.ARCHIVE_EXTENSION
-                                          + S3Glacier.ARCHIVE_DELIMITER
-                                          + request.getMetaInfo().getFileName()).toString();
+                                                       long realFileSize) {
+        String storedArchivePath = Paths.get(configuration.rootPath() != null ? configuration.rootPath() : "",
+                                             request.getStorageSubDirectory() != null ?
+                                                 request.getStorageSubDirectory() :
+                                                 "",
+                                             archiveName + S3Glacier.ARCHIVE_EXTENSION).toString();
+        String storedSmallFilePath = S3GlacierUtils.createSmallFilePath(storedArchivePath,
+                                                                        request.getMetaInfo().getFileName());
         progressManager.storageSucceedWithPendingActionRemaining(request,
                                                                  configuration.s3Configuration()
-                                                                              .entryKeyUrl(storedFilePath),
+                                                                              .entryKeyUrl(storedSmallFilePath),
                                                                  realFileSize,
                                                                  false);
     }
 
-    private record ArchiveInfo(Path localArchiveLocation, String archiveName) {
+    private record ArchiveInfo(Path localArchiveLocation,
+                               String archiveName) {
 
     }
 }
