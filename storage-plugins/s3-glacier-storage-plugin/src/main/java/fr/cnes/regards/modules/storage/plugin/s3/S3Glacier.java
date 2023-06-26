@@ -557,6 +557,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
      */
     private void cleanArchiveCache() {
         Path cacheWorkspacePath = Paths.get(workspacePath, S3Glacier.TMP_DIR);
+        String tenant = runtimeTenantResolver.getTenant();
         if (!Files.exists(cacheWorkspacePath)) {
             return;
         }
@@ -567,7 +568,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             executorService.invokeAll(directoriesWithFiles.stream()
                                                           .map(dirToProcess -> doCleanDirectory(cacheWorkspacePath,
                                                                                                 dirToProcess,
-                                                                                                oldestAgeToKeep))
+                                                                                                oldestAgeToKeep,
+                                                                                                tenant))
                                                           .toList());
         } catch (InterruptedException e) {
             LOGGER.error("Clean archive cache process interrupted");
@@ -576,8 +578,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private Callable<LockServiceResponse<Void>> doCleanDirectory(Path cacheWorkspacePath,
                                                                  Path dirPath,
-                                                                 Instant oldestAgeToKeep) {
+                                                                 Instant oldestAgeToKeep,
+                                                                 String tenant) {
         return () -> {
+            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+            runtimeTenantResolver.forceTenant(tenant);
             CleanDirectoryTaskConfiguration cleanDirectoryTaskConfiguration = new CleanDirectoryTaskConfiguration(
                 dirPath,
                 oldestAgeToKeep);
