@@ -73,7 +73,11 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(ROOT_PATH, archiveName, nodeName, fileName, S3Glacier.ZIP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.ZIP_DIR);
         FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
                                                           fileName,
                                                           fileChecksum,
@@ -105,7 +109,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
         copyFileToWorkspace(ROOT_PATH,
-                            archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX,
                             nodeName,
                             fileName,
                             S3Glacier.ZIP_DIR);
