@@ -114,44 +114,53 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
             return false;
         }
         if (filesList.isEmpty()) {
-            handleEmptyDir(finalDirPath.dirPath());
-        }
-        // Computing relative path of the archive on the storage
-        String archiveName = S3GlacierUtils.removePrefix(finalDirPath.dirPath().getFileName().toString()) + ".zip";
-        String archivePathOnStorage = Paths.get(Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
-                                                     .relativize(finalDirPath.dirPath().getParent())
-                                                     .toString(), archiveName).toString();
+            boolean deletionSuccess = handleEmptyDir(finalDirPath.dirPath());
 
-        Path archiveToCreate = finalDirPath.dirPath().getParent().resolve(archiveName);
-
-        boolean storageSuccess;
-        if (finalDirPath.continueOk()) {
-            // Creating and sending archive
-            storageSuccess = createAndSendArchive(filesList, archivePathOnStorage, archiveToCreate);
+            LOGGER.info("End of SubmitReadyArchiveTask on {} after {} ms",
+                        configuration.dirPath(),
+                        System.currentTimeMillis() - start);
+            return deletionSuccess;
         } else {
-            storageSuccess = false;
+            // Computing relative path of the archive on the storage
+            String archiveName = S3GlacierUtils.removePrefix(finalDirPath.dirPath().getFileName().toString()) + ".zip";
+            String archivePathOnStorage = Paths.get(Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
+                                                         .relativize(finalDirPath.dirPath().getParent())
+                                                         .toString(), archiveName).toString();
+
+            Path archiveToCreate = finalDirPath.dirPath().getParent().resolve(archiveName);
+
+            boolean storageSuccess;
+            if (finalDirPath.continueOk()) {
+                // Creating and sending archive
+                storageSuccess = createAndSendArchive(filesList, archivePathOnStorage, archiveToCreate);
+            } else {
+                storageSuccess = false;
+            }
+
+            // Sending storageSuccess or error to progressManager
+            handleEndSubmit(progressManager, filesList, archivePathOnStorage, storageSuccess);
+
+            // Cleaning
+            cleanBuildingArchive(finalDirPath.dirPath(), filesList, archiveToCreate, storageSuccess);
+
+            LOGGER.info("End of SubmitReadyArchiveTask on {} after {} ms",
+                        configuration.dirPath(),
+                        System.currentTimeMillis() - start);
+            return storageSuccess;
         }
 
-        // Sending storageSuccess of error to progressManager
-        handleEndSubmit(progressManager, filesList, archivePathOnStorage, storageSuccess);
-
-        // Cleaning
-        cleanBuildingArchive(finalDirPath.dirPath(), filesList, archiveToCreate, storageSuccess);
-        LOGGER.info("End of CleanDirectoryTask on {} after {} ms",
-                    configuration.dirPath(),
-                    System.currentTimeMillis() - start);
-        return storageSuccess;
     }
 
-    private void handleEmptyDir(Path dirPath) {
+    private boolean handleEmptyDir(Path dirPath) {
         // The directory is now empty, we can't be sure it's present on the server, but it should be in
         // 99% of use cases. We won't check for presence before deleting it for performances gain.
         String taskId = "S3DeleteArchive" + dirPath.getFileName();
-        String entryKey = configuration.storageConfiguration()
-                                       .entryKey(Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
-                                                      .relativize(dirPath)
-                                                      .getParent()
-                                                      .toString());
+        String entryKey = Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
+                               .relativize(dirPath)
+                               .getParent()
+                               .resolve(S3GlacierUtils.removePrefix(dirPath.getFileName().toString()
+                                                                    + S3Glacier.ARCHIVE_EXTENSION))
+                               .toString();
 
         StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(configuration.storageConfiguration(),
                                                                          new StorageCommandID(taskId,
@@ -170,12 +179,15 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
 
             // Deleting local dir
             Files.delete(dirPath);
+            return true;
         } catch (S3ClientException e) {
             LOGGER.error("Error while deleting empty archive in S3 Storage", e);
+            return false;
         } catch (IOException e) {
             LOGGER.error("Error while deleting local directory {}, but the "
                          + "corresponding directory in the S3 Storage was "
                          + "successfully deleted", dirPath, e);
+            return false;
         }
     }
 

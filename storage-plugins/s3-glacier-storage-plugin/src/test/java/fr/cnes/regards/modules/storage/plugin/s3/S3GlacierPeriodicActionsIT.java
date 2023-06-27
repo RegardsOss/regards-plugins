@@ -18,7 +18,9 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
+import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.awaitility.Awaitility;
@@ -38,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -314,6 +317,53 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
             perms.add(PosixFilePermission.OTHERS_WRITE);
             Files.setPosixFilePermissions(nodePath, perms);
         }
+    }
+
+    @Test
+    @Purpose("Test that the archive and the directory are correctly deleted when the archive is empty")
+    public void test_last_file_deletion() throws URISyntaxException, IOException, NoSuchAlgorithmException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
+
+        TestPeriodicActionProgressManager progressManager = new TestPeriodicActionProgressManager();
+
+        String fileName = "smallFile1.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+
+        // Create the archive that contain the file to retrieve
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        StorageCommand.Write writeCmd = createTestArchiveAndBuildWriteCmd(List.of(fileName), nodeName, archiveName);
+        writeFileOnStorage(writeCmd);
+
+        // Create the empty dir to simulate a building dir with no file left
+        Path emptyDirPath = Path.of(workspace.getRoot().toString(),
+                                    S3Glacier.ZIP_DIR,
+                                    ROOT_PATH,
+                                    nodeName,
+                                    S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
+        Files.createDirectories(emptyDirPath);
+        Assertions.assertTrue(Files.exists(emptyDirPath), "The building directory should exist");
+        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName,
+                                                                          archiveName + S3Glacier.ARCHIVE_EXTENSION)
+                                                                      .toString());
+        Assertions.assertTrue(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
+                              "The archive should exist on the server");
+
+        // When
+        s3Glacier.runPeriodicAction(progressManager);
+
+        Awaitility.await()
+                  .atMost(Durations.TEN_SECONDS)
+                  .until(() -> progressManager.getStorageAllPendingActionSucceed().size() == 1);
+
+        Assertions.assertFalse(Files.exists(emptyDirPath),
+                               "The building directory should have been deleted as it is now empty");
+        Assertions.assertFalse(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
+                               "The archive should have been deleted from the server");
+
     }
 
     @Test
