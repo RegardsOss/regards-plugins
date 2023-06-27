@@ -91,7 +91,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
     }
 
     @Test

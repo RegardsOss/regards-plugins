@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -48,10 +49,13 @@ public abstract class AbstractRetrieveFileTask implements LockServiceTask<Void> 
     }
 
     protected void copyFileAndHandleSuccess(Path localFilePath) {
-        Path targetPath = Path.of(request.getRestorationDirectory()).resolve(localFilePath.getFileName());
+        Path targetPath = Path.of(request.getRestorationDirectory()).resolve(request.getChecksum());
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(localFilePath, targetPath);
+            progressManager.restoreSucceed(request, targetPath);
+        } catch (FileAlreadyExistsException e) { //NOSONAR
+            LOGGER.warn("The restored file {} already exists in the target location {}", localFilePath, targetPath);
             progressManager.restoreSucceed(request, targetPath);
         } catch (IOException e) {
             LOGGER.error("Error while copying {} to {}", localFilePath, targetPath, e);

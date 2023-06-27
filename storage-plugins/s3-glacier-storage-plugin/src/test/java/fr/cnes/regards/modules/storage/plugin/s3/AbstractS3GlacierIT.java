@@ -582,6 +582,12 @@ public abstract class AbstractS3GlacierIT {
                                 "The restored file checksum does not match the expected one");
     }
 
+    protected static void checkRestoreSuccess(String fileChecksum,
+                                              TestRestoreProgressManager progressManager,
+                                              Path restorationWorkspace) throws NoSuchAlgorithmException, IOException {
+        checkRestoreSuccess(fileChecksum, fileChecksum, progressManager, restorationWorkspace);
+    }
+
     protected record FileNameAndChecksum(String filename,
                                          String checksum) {
 

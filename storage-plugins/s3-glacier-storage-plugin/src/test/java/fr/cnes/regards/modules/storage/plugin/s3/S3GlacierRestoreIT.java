@@ -89,7 +89,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
 
     }
 
@@ -124,7 +124,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
 
     }
 
@@ -155,7 +155,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
 
     }
 
@@ -193,7 +193,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
 
     }
 
@@ -232,7 +232,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
-        checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+        checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
     }
 
     @Test
