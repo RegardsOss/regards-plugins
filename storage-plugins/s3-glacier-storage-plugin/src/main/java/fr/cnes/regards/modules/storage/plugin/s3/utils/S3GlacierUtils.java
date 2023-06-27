@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
-import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,17 +67,23 @@ public class S3GlacierUtils {
      * @param config   configuration of the s3 storage
      * @param key      s3 key of the file to restore
      */
-    public static void restore(S3HighLevelReactiveClient s3Client, StorageConfig config, String key) {
-        s3Client.restore(config, key)
-                .onErrorResume(InvalidObjectStateException.class, error -> {
-                    LOGGER.warn("The requested file {} is present but its storage class is not "
-                                + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
-                                + " The restoration process will continue as if.", key);
-                    return Mono.empty();
-                })
-                .doOnError(e -> LOGGER.error("Error while attempting to restore key {}", key, e))
-                .onErrorReturn(RestoreObjectResponse.builder().build())
-                .block();
+    public static RestoreResponse restore(S3HighLevelReactiveClient s3Client, StorageConfig config, String key) {
+        RestoreResponse response = s3Client.restore(config, key)
+                                           .map(result -> {
+                                               return RestoreResponse.SUCCESS;
+                                           })
+                                           .onErrorResume(InvalidObjectStateException.class,
+                                                          error -> Mono.just(RestoreResponse.WRONG_STORAGE_CLASS))
+                                           .onErrorResume(NoSuchKeyException.class,
+                                                          error -> Mono.just(RestoreResponse.KEY_NOT_FOUND))
+                                           .block();
+        if (response.equals(RestoreResponse.WRONG_STORAGE_CLASS)) {
+            LOGGER.warn("The requested file {} is present but its storage class is not "
+                        + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
+                        + " The restoration process will continue as if.", key);
+            return RestoreResponse.SUCCESS;
+        }
+        return response;
     }
 
     /**

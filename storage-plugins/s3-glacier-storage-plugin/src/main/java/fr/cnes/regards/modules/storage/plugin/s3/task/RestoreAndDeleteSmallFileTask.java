@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
@@ -98,9 +99,15 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                 if (!Files.exists(archivePathInCache)) {
 
                     // Restore
-                    S3GlacierUtils.restore(configuration.s3Client(),
-                                           configuration.storageConfiguration(),
-                                           archiveRelativePathAsString);
+                    RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
+                                                                             configuration.storageConfiguration(),
+                                                                             archiveRelativePathAsString);
+                    if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+                        LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
+                                    + "considered successful", request.getFileReference().getLocation().getUrl());
+                        progressManager.deletionSucceed(request);
+                        return null;
+                    }
 
                     // Launch check restoration process
                     boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(archivePathInCache,

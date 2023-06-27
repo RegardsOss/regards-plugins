@@ -29,7 +29,10 @@ import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
+import org.awaitility.Awaitility;
+import org.awaitility.Durations;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -92,6 +95,44 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
 
         // Then
         checkRestoreSuccess(fileChecksum, progressManager, restorationWorkspace);
+    }
+
+    @Test
+    @Purpose("Test that the restoration fail if the given key doesn't exist")
+    public void test_small_restore_no_such_key_glacier()
+        throws IOException, URISyntaxException, NoSuchAlgorithmException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false);
+
+        String fileName = "smallFile1.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+        TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
+
+        // Create the archive that contain the file to retrieve
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
+
+        // When
+        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
+                                                          fileName,
+                                                          fileChecksum,
+                                                          fileSize,
+                                                          nodeName,
+                                                          archiveName,
+                                                          false);
+
+        FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
+
+        s3Glacier.retrieve(workingSubset, progressManager);
+
+        // Then
+        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1,
+                                progressManager.getRestoreFailed().size(),
+                                "There should be a restoration failed because the key does not exist");
     }
 
     @Test

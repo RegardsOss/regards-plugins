@@ -215,6 +215,36 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     }
 
     @Test
+    @Purpose("Test that there is no error when a file to delete is not on the server")
+    public void test_delete_small_file_no_such_key() {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false);
+        TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
+
+        String fileName = "smallFile1.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+
+        // Create the archive that contain the file to retrieve
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        // When
+        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+
+        FileDeletionRequest request = new FileDeletionRequest(reference,
+                                                              "groupIdTest",
+                                                              "sessionOwnerTest",
+                                                              "sessionTest");
+        FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
+        s3Glacier.delete(workingSubset, progressManager);
+
+        //Then
+        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1, progressManager.getDeletionSucceed().size(), "There should be one success");
+    }
+
+    @Test
     @Purpose("Test that a small file archived is correctly restored, then extracted and the file is then deleted")
     public void test_copy_then_delete_small_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
