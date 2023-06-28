@@ -268,7 +268,7 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
                                                        IStorageProgressManager progressManager,
                                                        String archiveName,
                                                        long realFileSize) {
-        String storedArchivePath = Paths.get(configuration.rootPath() != null ? configuration.rootPath() : "",
+        String storedArchivePath = Paths.get(configuration.rootPath(),
                                              request.getStorageSubDirectory() != null ?
                                                  request.getStorageSubDirectory() :
                                                  "",

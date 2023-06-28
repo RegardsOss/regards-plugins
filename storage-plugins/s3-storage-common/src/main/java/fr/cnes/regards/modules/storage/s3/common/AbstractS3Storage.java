@@ -89,45 +89,57 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     private static final Logger LOGGER = getLogger(AbstractS3Storage.class);
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
-        description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
-        label = "S3 server endpoint")
+                     description = "Endpoint of the S3 server (format: http://{ip or server name}:{port})",
+                     label = "S3 server endpoint")
     protected String endpoint;
 
-    @PluginParameter(name = S3_SERVER_REGION_PARAM_NAME, description = "Region of the S3 server",
-        label = "S3 server region")
+    @PluginParameter(name = S3_SERVER_REGION_PARAM_NAME,
+                     description = "Region of the S3 server",
+                     label = "S3 server region")
     protected String region;
 
     @PluginParameter(name = S3_SERVER_KEY_PARAM_NAME, description = "Key of the S3 server", label = "S3 server key")
     protected String key;
 
-    @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME, description = "Secret of the S3 server",
-        label = "S3 server secret", sensitive = true)
+    @PluginParameter(name = S3_SERVER_SECRET_PARAM_NAME,
+                     description = "Secret of the S3 server",
+                     label = "S3 server secret",
+                     sensitive = true)
     protected String secret;
 
-    @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME, description = "Bucket of the S3 server",
-        label = "S3 server bucket")
+    @PluginParameter(name = S3_SERVER_BUCKET_PARAM_NAME,
+                     description = "Bucket of the S3 server",
+                     label = "S3 server bucket")
     protected String bucket;
 
     /**
      * Parameter used for URL validation. Only URL starting with {endpoint}/{bucket}/{root_path} is valid.
      * As a file can be accessible at the root of the bucket, this parameter is optional.
      */
-    @PluginParameter(name = S3_SERVER_ROOT_PATH_PARAM_NAME, description = "Root path of this storage in the S3 server",
-        label = "Storage root path", optional = true)
+    @PluginParameter(name = S3_SERVER_ROOT_PATH_PARAM_NAME,
+                     description = "Root path of this storage in the S3 server",
+                     label = "Storage root path",
+                     optional = true)
+    private String rawRootPath;
+
     protected String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
-        description = "Number of Mb for a file size over which multipart upload is used",
-        label = "Multipart threshold in Mb", defaultValue = "5")
+                     description = "Number of Mb for a file size over which multipart upload is used",
+                     label = "Multipart threshold in Mb",
+                     defaultValue = "5")
     protected int multipartThresholdMb;
 
-    @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME, description = "Number of parallel parts to upload",
-        label = "Number of parallel parts during multipart upload", defaultValue = "5")
+    @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME,
+                     description = "Number of parallel parts to upload",
+                     label = "Number of parallel parts during multipart upload",
+                     defaultValue = "5")
     protected int nbParallelPartsUpload;
 
-    @PluginParameter(name = S3_ALLOW_DELETION, label = "Enable effective deletion of files",
-        description = "If deletion is allowed, files are physically deleted else files are only removed from references",
-        defaultValue = "false")
+    @PluginParameter(name = S3_ALLOW_DELETION,
+                     label = "Enable effective deletion of files",
+                     description = "If deletion is allowed, files are physically deleted else files are only removed from references",
+                     defaultValue = "false")
     protected Boolean allowPhysicalDeletion;
 
     /**
@@ -155,6 +167,17 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     @PluginInit
     public void init() {
+        if (rawRootPath == null) {
+            rootPath = "";
+        } else {
+            rootPath = rawRootPath;
+            if (rootPath.startsWith("/")) {
+                rootPath = rootPath.substring(1);
+            }
+            if (rootPath.endsWith("/")) {
+                rootPath = rootPath.substring(0, rootPath.length() - 1);
+            }
+        }
         storageConfiguration = StorageConfig.builder(endpoint, region, key, secret)
                                             .bucket(bucket)
                                             .rootPath(rootPath)

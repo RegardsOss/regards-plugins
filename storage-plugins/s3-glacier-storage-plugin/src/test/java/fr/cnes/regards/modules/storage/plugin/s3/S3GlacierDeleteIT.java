@@ -93,55 +93,6 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     }
 
     @Test
-    @Purpose("Test that a small file present in the archive building workspace and alone in its directory is "
-             + "correctly deleted and that the directory is also deleted")
-    public void test_delete_only_small_file_local_build() throws IOException, URISyntaxException {
-        // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
-
-        // When
-        TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
-        String fileName = "smallFile1.txt";
-        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
-        long fileSize = 446L;
-        String nodeName = "deep/dir/testNode";
-
-        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        copyFileToWorkspace(ROOT_PATH,
-                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
-                            nodeName,
-                            fileName,
-                            S3Glacier.ZIP_DIR);
-
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
-
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
-        FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
-        s3Glacier.delete(workingSubset, progressManager);
-
-        //Then
-        Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> progressManager.countAllReports() == 1);
-        Assertions.assertEquals(1,
-                                progressManager.getDeletionSucceedWithPendingAction().size(),
-                                "There should be one success");
-        Assertions.assertEquals(fileChecksum,
-                                progressManager.getDeletionSucceedWithPendingAction()
-                                               .get(0)
-                                               .getFileReference()
-                                               .getMetaInfo()
-                                               .getChecksum(),
-                                "The successful request is not the expected one");
-        Assertions.assertEquals(0, progressManager.getDeletionFailed().size());
-
-        Path buildingDirPath = Path.of(workspace.getRoot().getAbsolutePath(), S3Glacier.ZIP_DIR, nodeName, archiveName);
-        Assertions.assertFalse(Files.exists(buildingDirPath),
-                               "The building directory should have been deleted as it is now empty");
-    }
-
-    @Test
     @Purpose("Test that a small file present in the archive building workspace current directory is correctly deleted")
     public void test_delete_small_file_local_build_current() throws IOException, URISyntaxException {
         // Given

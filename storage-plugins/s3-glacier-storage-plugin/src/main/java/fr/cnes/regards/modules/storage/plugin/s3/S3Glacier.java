@@ -472,6 +472,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private void submitReadyArchives(IPeriodicActionProgressManager progressManager) {
         Path zipWorkspacePath = Paths.get(workspacePath, S3Glacier.ZIP_DIR);
+        String tenant = runtimeTenantResolver.getTenant();
         if (!Files.exists(zipWorkspacePath)) {
             return;
         }
@@ -484,7 +485,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             List<Future<Boolean>> res = executorService.invokeAll(dirToProcessList.stream()
                                                                                   .map(dirToProcess -> doSubmitReadyArchive(
                                                                                       dirToProcess,
-                                                                                      progressManager))
+                                                                                      progressManager,
+                                                                                      tenant))
                                                                                   .toList());
             boolean success = res.stream().allMatch(futureRes -> {
                 try {
@@ -519,8 +521,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
      *     archiveMaxAge, in which case it has the _current suffix and will be renamed to remove it</li>
      * </ul>
      */
-    private Callable<Boolean> doSubmitReadyArchive(Path dirPath, IPeriodicActionProgressManager progressManager) {
+    private Callable<Boolean> doSubmitReadyArchive(Path dirPath,
+                                                   IPeriodicActionProgressManager progressManager,
+                                                   String tenant) {
         return () -> {
+            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+            runtimeTenantResolver.forceTenant(tenant);
             SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
                 dirPath,
                 workspacePath,

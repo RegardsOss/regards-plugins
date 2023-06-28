@@ -29,6 +29,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
@@ -187,7 +188,8 @@ public class S3GlacierUtils {
      * @return the lock name
      */
     public static String getLockName(String rootPath, String node, String suffix) {
-        return S3Glacier.LOCK_PREFIX + Path.of(node != null ? node : "", rootPath != null ? rootPath : "") + suffix;
+        Assert.notNull(rootPath, "The Root Path can be empty but cannot be null");
+        return S3Glacier.LOCK_PREFIX + Path.of(rootPath, node != null ? node : "") + suffix;
     }
 
     /**
