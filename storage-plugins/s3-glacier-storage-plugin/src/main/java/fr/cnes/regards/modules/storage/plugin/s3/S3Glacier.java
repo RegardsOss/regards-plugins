@@ -563,7 +563,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
         Instant oldestAgeToKeep = OffsetDateTime.now().minusHours(archiveCacheLifetime).toInstant();
         List<Path> directoriesWithFiles = new ArrayList<>();
-        getDirectoriesWithFilesTooOld(directoriesWithFiles, cacheWorkspacePath, oldestAgeToKeep);
+        getDirectoriesWithFilesToDelete(directoriesWithFiles,
+                                        cacheWorkspacePath,
+                                        oldestAgeToKeep,
+                                        cacheWorkspacePath,
+                                        Paths.get(workspacePath, S3Glacier.ZIP_DIR));
         try {
             executorService.invokeAll(directoriesWithFiles.stream()
                                                           .map(dirToProcess -> doCleanDirectory(cacheWorkspacePath,
@@ -603,21 +607,45 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         };
     }
 
-    private void getDirectoriesWithFilesTooOld(List<Path> directoriesWithFiles,
-                                               Path directoryPath,
-                                               Instant oldestAgeToKeep) {
+    /**
+     * A directory need to be deleted if it fulfills the following :
+     * <ul>
+     *     <li>It has the rs_zip_ prefix</li>
+     *     <li>It is NOT used to update an archive following a deletion, this means there is no symbolic link in
+     *     the building workspace to this directory</li>
+     *     <li>It is older than the oldest age to keep</li>
+     * </ul>
+     */
+    private void getDirectoriesWithFilesToDelete(List<Path> directoriesWithFiles,
+                                                 Path directoryPath,
+                                                 Instant oldestAgeToKeep,
+                                                 Path cachePath,
+                                                 Path buildingPath) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath)) {
             for (Path path : stream) {
                 if (Files.isDirectory(path)) {
-                    if (hasFilesTooOld(path, oldestAgeToKeep)) {
+                    if (path.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX)
+                        && hasFilesTooOld(path,
+                                          oldestAgeToKeep)
+                        && !hasSymLink(path, cachePath, buildingPath)) {
                         directoriesWithFiles.add(path);
+                    } else {
+                        getDirectoriesWithFilesToDelete(directoriesWithFiles,
+                                                        path,
+                                                        oldestAgeToKeep,
+                                                        cachePath,
+                                                        buildingPath);
                     }
-                    getDirectoriesWithFilesTooOld(directoriesWithFiles, path, oldestAgeToKeep);
                 }
             }
         } catch (IOException e) {
             LOGGER.error("Error while getting directories to clean", e);
         }
+    }
+
+    private boolean hasSymLink(Path path, Path cachePath, Path buildingPath) {
+        Path pathInBuildingWorkspace = buildingPath.resolve(cachePath.relativize(path));
+        return Files.isSymbolicLink(pathInBuildingWorkspace);
     }
 
     private boolean hasFilesTooOld(Path directoryPath, Instant oldestAgeToKeep) throws IOException {

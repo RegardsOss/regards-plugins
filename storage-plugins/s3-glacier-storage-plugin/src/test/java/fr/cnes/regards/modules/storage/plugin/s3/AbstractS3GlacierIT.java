@@ -296,7 +296,7 @@ public abstract class AbstractS3GlacierIT {
                                        String workspaceDir) throws IOException, URISyntaxException {
         Path targetFile = Paths.get(workspace.getRoot().getAbsolutePath(), workspaceDir, rootPath, nodeName, targetDir);
         Files.createDirectories(targetFile);
-        Files.copy(Path.of(S3GlacierPeriodicActionsIT.class.getResource("/files/" + fileName).toURI()),
+        Files.copy(Path.of(S3GlacierSendArchiveIT.class.getResource("/files/" + fileName).toURI()),
                    targetFile.resolve(fileName));
     }
 

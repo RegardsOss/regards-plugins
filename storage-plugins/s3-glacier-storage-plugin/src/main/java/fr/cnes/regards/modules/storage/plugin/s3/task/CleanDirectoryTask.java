@@ -49,14 +49,19 @@ public class CleanDirectoryTask implements LockServiceTask<Void> {
     public Void run() {
         LOGGER.info("Starting CleanDirectoryTask on {}", configuration.directoryPath());
         long start = System.currentTimeMillis();
+        boolean emptyDir = true;
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(configuration.directoryPath())) {
             for (Path path : stream) {
                 BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-                if (Files.isRegularFile(path) && attr.lastModifiedTime()
-                                                     .toInstant()
-                                                     .isBefore(configuration.oldestAgeToKeep())) {
+                if (attr.lastModifiedTime().toInstant().isBefore(configuration.oldestAgeToKeep())) {
+                    //Delete the file only if it's too old
                     Files.delete(path);
+                } else {
+                    emptyDir = false;
                 }
+            }
+            if (emptyDir) {
+                Files.delete(configuration.directoryPath());
             }
         } catch (IOException e) {
             LOGGER.error("Error while deleting file {}", configuration.directoryPath(), e);

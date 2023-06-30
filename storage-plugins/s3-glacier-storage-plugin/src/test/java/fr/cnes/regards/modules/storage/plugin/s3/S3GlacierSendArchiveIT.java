@@ -38,7 +38,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
@@ -52,12 +51,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * Test class for {@link  S3Glacier#runPeriodicAction(IPeriodicActionProgressManager)}
+ * Test class from send archive actions from {@link  S3Glacier#runPeriodicAction(IPeriodicActionProgressManager)}
  *
  * @author Thibaud Michaudel
  **/
 @SpringBootTest
-public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
+public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
 
     @Test
     @Purpose("Test that an archive is correctly sent when it is closed (not _current)")
@@ -260,6 +259,120 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
     }
 
     @Test
+    @Purpose("Test that an archive is correctly sent when it is closed (not _current) and created from a file "
+             + "deletion (the directory is then a symLink)")
+    public void test_periodic_save_archive_following_deletion() throws IOException, URISyntaxException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
+
+        List<String> files = List.of("smallFile1.txt", "smallFile2.txt", "smallFile3.txt", "smallFile4.txt");
+
+        OffsetDateTime now = OffsetDateTime.now();
+        String dirName = S3Glacier.BUILDING_DIRECTORY_PREFIX
+                         + now.format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+        String nodeName = "testnode1";
+
+        TestPeriodicActionProgressManager periodicActionProgressManager = new TestPeriodicActionProgressManager();
+
+        for (String file : files) {
+            copyFileToWorkspace(ROOT_PATH, dirName, nodeName, file, S3Glacier.TMP_DIR);
+        }
+        Path dirInWorkspacePath = Path.of(workspace.getRoot().toString(),
+                                          S3Glacier.ZIP_DIR,
+                                          ROOT_PATH,
+                                          nodeName,
+                                          dirName);
+        Files.createDirectories(dirInWorkspacePath.getParent());
+        Files.createSymbolicLink(dirInWorkspacePath,
+                                 Path.of(workspace.getRoot().toString(),
+                                         S3Glacier.TMP_DIR,
+                                         ROOT_PATH,
+                                         nodeName,
+                                         dirName));
+
+        // Check that the symlink exists
+        Assertions.assertTrue(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                   S3Glacier.ZIP_DIR,
+                                                   ROOT_PATH,
+                                                   nodeName,
+                                                   dirName)), "The symlink should exist");
+
+        // Check that the directory exists
+        Assertions.assertTrue(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                   S3Glacier.TMP_DIR,
+                                                   ROOT_PATH,
+                                                   nodeName,
+                                                   dirName)), "The directory should exist");
+
+        // When
+        s3Glacier.runPeriodicAction(periodicActionProgressManager);
+
+        // Then
+        Awaitility.await()
+                  .atMost(Durations.TEN_SECONDS)
+                  .until(() -> periodicActionProgressManager.countAllReports() == 4);
+
+        Assertions.assertEquals(4,
+                                periodicActionProgressManager.getStoragePendingActionSucceed().size(),
+                                "There should 4 success");
+        Assertions.assertEquals(0, periodicActionProgressManager.getStoragePendingActionError().size());
+        Assertions.assertEquals(1,
+                                periodicActionProgressManager.getStorageAllPendingActionSucceed().size(),
+                                "there should have been a AllPendingActionSucceed sent to the progress manager");
+        List<String> expectedReport = files.stream()
+                                           .map(f -> createExpectedURL(nodeName,
+                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       f).toString())
+                                           .toList();
+        Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
+                              "The success URL are not the expected ones");
+        Assertions.assertTrue(periodicActionProgressManager.getStoragePendingActionSucceed()
+                                                           .containsAll(expectedReport),
+                              "The success URL are not the expected ones");
+
+        // Get file as input stream from S3 server
+        try {
+            List<String> savedFiles = new ArrayList<>();
+            InputStream inputStream = downloadFromS3(createExpectedURL(nodeName,
+                                                                       S3GlacierUtils.removePrefix(dirName)
+                                                                       + S3Glacier.ARCHIVE_EXTENSION).toString());
+            Assert.assertNotNull(inputStream);
+            ZipInputStream zipStream = new ZipInputStream(inputStream);
+            ZipEntry entry;
+            while ((entry = zipStream.getNextEntry()) != null) {
+                savedFiles.add(entry.getName());
+            }
+            Assertions.assertTrue(files.containsAll(savedFiles), "The stored files are not the expected ones");
+            Assertions.assertTrue(savedFiles.containsAll(files), "The stored files are not the expected ones");
+
+        } catch (FileNotFoundException e) {
+            Assertions.fail("Test Failure : file isn't stored in the S3 server");
+        }
+
+        // Check that the symlink has been deleted
+        Assertions.assertFalse(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                    S3Glacier.ZIP_DIR,
+                                                    ROOT_PATH,
+                                                    nodeName,
+                                                    dirName)), "The symlink should have been deleted");
+
+        // Check that the directory has not been deleted as it's in the cache workspace
+        Assertions.assertTrue(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                   S3Glacier.TMP_DIR,
+                                                   ROOT_PATH,
+                                                   nodeName,
+                                                   dirName)), "The directory should not have been deleted");
+
+        // Check that the zip has been deleted
+        Assertions.assertFalse(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                    S3Glacier.TMP_DIR,
+                                                    ROOT_PATH,
+                                                    nodeName,
+                                                    dirName + S3Glacier.ARCHIVE_EXTENSION)),
+                               "The archive should have been deleted");
+    }
+
+    @Test
     @Purpose("Test that the files are not deleted when the archive creation fails")
     public void test_zip_error() throws IOException, URISyntaxException {
         // Given
@@ -328,8 +441,6 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
         TestPeriodicActionProgressManager progressManager = new TestPeriodicActionProgressManager();
 
         String fileName = "smallFile1.txt";
-        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
-        long fileSize = 446L;
         String nodeName = "deep/dir/testNode";
 
         // Create the archive that contain the file to retrieve
@@ -363,41 +474,6 @@ public class S3GlacierPeriodicActionsIT extends AbstractS3GlacierIT {
                                "The building directory should have been deleted as it is now empty");
         Assertions.assertFalse(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
                                "The archive should have been deleted from the server");
-
-    }
-
-    @Test
-    @Purpose("Test that a file is correctly deleted when it is too old")
-    public void test_periodic_clean_file() throws URISyntaxException, IOException {
-        // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
-        FileTime tooOld = FileTime.from(OffsetDateTime.now().minusHours(CACHE_DURATION_IN_HOURS + 1).toInstant());
-
-        Path cachePath = Path.of(workspace.getRoot().toString(), S3Glacier.TMP_DIR);
-
-        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
-        String fileName = "smallFile1.txt";
-        String fileName2 = "smallFile2.txt";
-        String nodeName = "deep/dir/testNode";
-        Path fileResourcesPath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
-        Path fileResourcesPath2 = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName2).toURI());
-
-        Path fileCachePath = cachePath.resolve(Path.of(nodeName, fileName));
-        Path fileCachePath2 = cachePath.resolve(Path.of(nodeName, fileName2));
-        Files.createDirectories(fileCachePath.getParent());
-        Files.copy(fileResourcesPath, fileCachePath);
-        Files.copy(fileResourcesPath2, fileCachePath2);
-
-        Files.setLastModifiedTime(fileCachePath, tooOld);
-
-        // When
-        s3Glacier.runPeriodicAction(new TestPeriodicActionProgressManager());
-
-        // Then
-        Assertions.assertFalse(Files.exists(fileCachePath),
-                               "The file smallFile1 should have been deleted as it is too old");
-        Assertions.assertTrue(Files.exists(fileCachePath2),
-                              "The file smallFile2 should not have been deleted as it isn't too old");
 
     }
 }

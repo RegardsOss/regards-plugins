@@ -88,7 +88,12 @@ public class DeleteLocalSmallFileTask implements LockServiceTask<Void> {
             if (Files.exists(localPath)) {
                 try {
                     Files.delete(localPath);
-                    progressManager.deletionSucceedWithPendingAction(request);
+                    if (request.getFileReference().getLocation().isPendingActionRemaining()) {
+                        // The file was not yet sent to the server
+                        progressManager.deletionSucceed(request);
+                    } else {
+                        progressManager.deletionSucceedWithPendingAction(request);
+                    }
                     // Deleting archive info as it doesn't exist anymore
                     configuration.glacierArchiveService()
                                  .deleteGlacierArchive(configuration.storageName(),

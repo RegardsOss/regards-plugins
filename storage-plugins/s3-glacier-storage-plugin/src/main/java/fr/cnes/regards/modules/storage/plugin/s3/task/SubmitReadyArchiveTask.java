@@ -330,17 +330,23 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
                                              Path archiveToCreate,
                                              boolean storageSuccess) {
         if (storageSuccess) {
-            // Delete files only if the storage succeeded
-            filesList.forEach(file -> {
-                try {
-                    Files.delete(file.toPath());
-                } catch (IOException e) {
-                    LOGGER.error("Error while deleting {}", file.getName(), e);
-                }
-            });
-            // Delete the directory
             try {
-                Files.delete(dirPath);
+                // Delete files only if the storage succeeded
+                if (Files.isSymbolicLink(dirPath)) {
+                    //If the directory is a symbolic link to the archive cache workspace, delete only
+                    //the link as the real directory will be deleted when the cache will be cleaned
+                    Files.delete(dirPath);
+                } else {
+                    //If it's a real directory, delete both the files and the directory
+                    filesList.forEach(file -> {
+                        try {
+                            Files.delete(file.toPath());
+                        } catch (IOException e) {
+                            LOGGER.error("Error while deleting {}", file.getName(), e);
+                        }
+                    });
+                    Files.delete(dirPath);
+                }
             } catch (DirectoryNotEmptyException e) {
                 LOGGER.error("Could not delete {} as it is not empty", dirPath.getFileName(), e);
             } catch (IOException e) {
