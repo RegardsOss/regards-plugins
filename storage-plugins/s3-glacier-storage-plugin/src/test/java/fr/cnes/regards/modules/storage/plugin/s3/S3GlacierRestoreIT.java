@@ -141,7 +141,11 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
-        copyFileToWorkspace(ROOT_PATH, archiveName, nodeName, fileName, S3Glacier.TMP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.TMP_DIR);
 
         // When
         FileCacheRequest request = createFileCacheRequest(restorationWorkspace,

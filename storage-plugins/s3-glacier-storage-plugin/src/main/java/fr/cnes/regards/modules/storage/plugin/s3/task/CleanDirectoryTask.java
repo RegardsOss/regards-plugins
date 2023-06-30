@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.task;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.CleanDirectoryTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -47,10 +48,11 @@ public class CleanDirectoryTask implements LockServiceTask<Void> {
 
     @Override
     public Void run() {
-        LOGGER.info("Starting CleanDirectoryTask on {}", configuration.directoryPath());
+        Path directoryToClean = configuration.directoryPath();
+        LOGGER.info("Starting CleanDirectoryTask on {}", directoryToClean);
         long start = System.currentTimeMillis();
         boolean emptyDir = true;
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(configuration.directoryPath())) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryToClean)) {
             for (Path path : stream) {
                 BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
                 if (attr.lastModifiedTime().toInstant().isBefore(configuration.oldestAgeToKeep())) {
@@ -61,13 +63,17 @@ public class CleanDirectoryTask implements LockServiceTask<Void> {
                 }
             }
             if (emptyDir) {
-                Files.delete(configuration.directoryPath());
+                Files.delete(directoryToClean);
+                // Delete associated zip if any
+                String dirName = S3GlacierUtils.createArchiveNameFromBuildingDir(directoryToClean.getFileName()
+                                                                                                 .toString());
+                Files.deleteIfExists(directoryToClean.getParent().resolve(dirName));
             }
         } catch (IOException e) {
-            LOGGER.error("Error while deleting file {}", configuration.directoryPath(), e);
+            LOGGER.error("Error while deleting file {}", directoryToClean, e);
         }
         LOGGER.info("End of CleanDirectoryTask on {} after {} ms",
-                    configuration.directoryPath(),
+                    directoryToClean,
                     System.currentTimeMillis() - start);
         return null;
     }

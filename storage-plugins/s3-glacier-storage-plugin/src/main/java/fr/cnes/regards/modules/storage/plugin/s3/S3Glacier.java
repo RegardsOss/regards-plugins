@@ -16,6 +16,7 @@ import fr.cnes.regards.modules.storage.plugin.s3.task.*;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -625,12 +626,18 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath)) {
             for (Path path : stream) {
                 if (Files.isDirectory(path)) {
-                    if (path.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX)
-                        && hasFilesTooOld(path,
-                                          oldestAgeToKeep)
-                        && !hasSymLink(path, cachePath, buildingPath)) {
+                    // Check directory with conditions :
+                    // - directory is a building directory like rs_zip_*
+                    // - directory contains at least one file to expired or directory is empty
+                    // - directory is not associated to a current building archive so no symbolic link exists in
+                    // building directory.
+                    if (path.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX) && (hasFilesTooOld(path,
+                                                                                                               oldestAgeToKeep)
+                                                                                                || FileUtils.isEmptyDirectory(
+                        path.toFile())) && !hasSymLink(path, cachePath, buildingPath)) {
                         directoriesWithFiles.add(path);
                     } else {
+                        // Else handle recursive subdirectories
                         getDirectoriesWithFilesToDelete(directoriesWithFiles,
                                                         path,
                                                         oldestAgeToKeep,

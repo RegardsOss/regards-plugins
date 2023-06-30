@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.task;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
+import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
@@ -122,7 +123,9 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
             return deletionSuccess;
         } else {
             // Computing relative path of the archive on the storage
-            String archiveName = S3GlacierUtils.removePrefix(finalDirPath.dirPath().getFileName().toString()) + ".zip";
+            String archiveName = S3GlacierUtils.createArchiveNameFromBuildingDir(finalDirPath.dirPath()
+                                                                                             .getFileName()
+                                                                                             .toString());
             String archivePathOnStorage = Paths.get(Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
                                                          .relativize(finalDirPath.dirPath().getParent())
                                                          .toString(), archiveName).toString();
@@ -158,8 +161,8 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
         String entryKey = Paths.get(configuration.workspacePath(), S3Glacier.ZIP_DIR)
                                .relativize(dirPath)
                                .getParent()
-                               .resolve(S3GlacierUtils.removePrefix(dirPath.getFileName().toString()
-                                                                    + S3Glacier.ARCHIVE_EXTENSION))
+                               .resolve(S3GlacierUtils.createArchiveNameFromBuildingDir(dirPath.getFileName()
+                                                                                               .toString()))
                                .toString();
 
         StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(configuration.storageConfiguration(),
@@ -167,22 +170,56 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
                                                                                               UUID.randomUUID()),
                                                                          entryKey);
         try {
-            configuration.s3client()
-                         .delete(deleteCmd)
-                         .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
-                                                                                 unreachable -> Mono.error(new RuntimeException(
-                                                                                     "Unreachable endpoint")),
-                                                                                 failure -> Mono.error(new RuntimeException(
-                                                                                     "Delete failure in S3 storage"))))
-                         .onErrorResume(e -> Mono.error(new S3ClientException(e)))
-                         .block();
-
-            // Deleting local dir
-            Files.delete(dirPath);
-            return true;
+            StorageCommandResult.DeleteSuccess result = configuration.s3client()
+                                                                     .delete(deleteCmd)
+                                                                     .flatMap(deleteResult -> deleteResult.matchDeleteResult(
+                                                                         Mono::just,
+                                                                         unreachable -> Mono.error(new RuntimeException(
+                                                                             "Unreachable endpoint")),
+                                                                         failure -> Mono.error(new RuntimeException(
+                                                                             "Delete failure in S3 storage"))))
+                                                                     .onErrorResume(e -> Mono.error(new S3ClientException(
+                                                                         e)))
+                                                                     .block();
+            if (result != null) {
+                String archiveUrl = configuration.storageConfiguration().entryKeyUrl(entryKey).toString();
+                return result.matchDeleteResult(r -> this.onDeleteSuccess(r, dirPath, archiveUrl),
+                                                r -> this.onStorageUnreachable(r, archiveUrl),
+                                                r -> this.onDeleteFailure(r, archiveUrl));
+            } else {
+                return false;
+            }
         } catch (S3ClientException e) {
             LOGGER.error("Error while deleting empty archive in S3 Storage", e);
             return false;
+        }
+    }
+
+    private Boolean onDeleteFailure(StorageCommandResult.DeleteFailure deleteFailure, String archiveUrl) {
+        LOGGER.error("Deletion failure for archive {}", archiveUrl);
+        return false;
+    }
+
+    private Boolean onStorageUnreachable(StorageCommandResult.UnreachableStorage unreachableStorage,
+                                         String archiveUrl) {
+        LOGGER.error("Deletion failure for archive {}", archiveUrl);
+        LOGGER.error(unreachableStorage.getThrowable().getMessage(), unreachableStorage.getThrowable());
+        return false;
+    }
+
+    public Boolean onDeleteSuccess(StorageCommandResult.DeleteSuccess success, Path dirPath, String archiveUrl) {
+        try {
+            LOGGER.info(
+                "Archive {} successfully deleted from remote S3 storage. Deleting local archive {} and reference in database.",
+                archiveUrl,
+                dirPath);
+            // Deleting local dir
+            Files.delete(dirPath);
+            // Deleting archive info as it doesn't exist anymore
+            S3GlacierUtils.S3GlacierUrl s3FileInfo = S3GlacierUtils.dispatchS3FilePath(archiveUrl);
+            configuration.glacierArchiveService()
+                         .deleteGlacierArchive(configuration.storageName(), s3FileInfo.archiveFilePath());
+            return true;
         } catch (IOException e) {
             LOGGER.error("Error while deleting local directory {}, but the "
                          + "corresponding directory in the S3 Storage was "

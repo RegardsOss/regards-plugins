@@ -75,8 +75,7 @@ public class DeleteLocalSmallFileTask implements LockServiceTask<Void> {
         if (smallFileName.isPresent()) {
 
             // Name of the directory
-            String dirName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName.substring(0,
-                                                                                         archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
+            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
             // Path of the directory in the workspace containing the file to delete if it's not the current directory
             Path localPath = localPathWithArchiveDelimiter.getParent().resolve(dirName).resolve(smallFileName.get());
 
@@ -94,10 +93,6 @@ public class DeleteLocalSmallFileTask implements LockServiceTask<Void> {
                     } else {
                         progressManager.deletionSucceedWithPendingAction(request);
                     }
-                    // Deleting archive info as it doesn't exist anymore
-                    configuration.glacierArchiveService()
-                                 .deleteGlacierArchive(configuration.storageName(),
-                                                       request.getFileReference().getLocation().getUrl());
                 } catch (IOException e) {
                     LOGGER.error("Error while trying to delete {}", localPath, e);
                     progressManager.deletionFailed(request,

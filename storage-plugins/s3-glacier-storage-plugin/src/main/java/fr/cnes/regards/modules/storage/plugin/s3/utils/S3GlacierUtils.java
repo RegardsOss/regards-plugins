@@ -178,6 +178,23 @@ public class S3GlacierUtils {
     }
 
     /**
+     * Creates temporary extraction directory dir from archive file name.
+     * If archive file name is <b>date.zip</b> so temp dir is <b>rs_zip_date</b>
+     */
+    public static String createBuildDirectoryFromArchiveName(String archiveName) {
+        return S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName.substring(0,
+                                                                           archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
+    }
+
+    /**
+     * Creates zip archive file name from its associated temporary extraction directory name.
+     * If temp_dir name is <b>rs_zip_date</b> so zip archive name is <b>date.zip</b>
+     */
+    public static String createArchiveNameFromBuildingDir(String buildingDirectoryName) {
+        return S3GlacierUtils.removePrefix(buildingDirectoryName) + S3Glacier.ARCHIVE_EXTENSION;
+    }
+
+    /**
      * Remove the prefix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#BUILDING_DIRECTORY_PREFIX} and
      * the suffix {@link fr.cnes.regards.modules.storage.plugin.s3.S3Glacier#CURRENT_ARCHIVE_SUFFIX} from the
      * given String

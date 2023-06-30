@@ -92,8 +92,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
         if (smallFileName.isPresent()) {
-
-            String dirName = archiveName.substring(0, archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
+            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
             Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
             if (Files.exists(localPath)) {
                 copyFileAndHandleSuccess(localPath);
