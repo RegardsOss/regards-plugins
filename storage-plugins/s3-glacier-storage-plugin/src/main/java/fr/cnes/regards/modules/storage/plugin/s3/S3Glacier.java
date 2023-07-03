@@ -111,14 +111,15 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String workspacePath;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_MAX_SIZE,
-                     description = "Maximum size of a file for it treated as a small file and stored in group",
-                     label = "Small file max size",
+                     description = "Threshold under which files are categorized as small files, in bytes.",
+                     label = "Small file max size in bytes.",
                      defaultValue = "1048576")
     private int smallFileMaxSize;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
-                     description = "Determines when the small files archive is considered full and should be closed",
-                     label = "Archive max size",
+                     description = "Threshold beyond which a small files archive is considered as full and closed, in" 
+                                   + " bytes.",
+                     label = "Archive max size in bytes.",
                      defaultValue = "10485760")
     private int archiveMaxSize;
 
