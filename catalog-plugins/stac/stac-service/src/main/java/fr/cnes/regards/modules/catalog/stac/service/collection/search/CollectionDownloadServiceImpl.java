@@ -349,7 +349,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
     }
 
     private Path getFeatureDirectory(DataObjectFeature feature) {
-        return Paths.get("/", feature.getProviderId().replaceAll("[\\W]", "_"));
+        return Paths.get(feature.getProviderId().replaceAll("[\\W]", "_"));
     }
 
     /**
