@@ -25,9 +25,11 @@ import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -81,36 +83,37 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
 
             Path archiveRelativePath = Path.of(archiveRelativePathAsString);
             String archiveName = archiveRelativePath.getFileName().toString();
-            String directoryName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName.substring(0,
-                                                                                               archiveName.indexOf(
-                                                                                                   S3Glacier.ARCHIVE_EXTENSION));
+            String directoryName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
             //Relative directory path : /subdir/rs_zip_archive
             Path relativeDirectoryPath = archiveRelativePath.getParent().resolve(directoryName);
 
-            // Archive path in cache : storages.../glacier/workspace/zip/subdir/archive.zip
+            // Archive path in cache : storages.../glacier/workspace/tmp/subdir/archive.zip
             Path archivePathInCache = Path.of(configuration.cachePath()).resolve(archiveRelativePath);
 
-            // Dir path in building workspace : storages.../glacier/workspace/tmp/subdir/rs_zip_archive
+            // Dir path in building workspace : storages.../glacier/workspace/zip/subdir/rs_zip_archive
             Path dirInWorkspacePath = Path.of(configuration.archiveBuildingWorkspacePath())
                                           .resolve(relativeDirectoryPath);
+
+            // Dir path in cache workspace : storages.../glacier/workspace/tmp/subdir/rs_zip_archive
+            Path dirInCachePath = Path.of(configuration.cachePath()).resolve(relativeDirectoryPath);
 
             if (!Files.exists(dirInWorkspacePath)) {
                 if (!Files.exists(archivePathInCache)) {
 
                     // Restore
-                    S3GlacierUtils.restore(configuration.s3Client(),
-                                           configuration.storageConfiguration(),
-                                           archiveRelativePathAsString);
+                    RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
+                                                                             configuration.storageConfiguration(),
+                                                                             archiveRelativePathAsString);
+                    if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+                        LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
+                                    + "considered successful", request.getFileReference().getLocation().getUrl());
+                        progressManager.deletionSucceed(request);
+                        return null;
+                    }
 
                     // Launch check restoration process
-                    boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(archivePathInCache,
-                                                                                          archiveRelativePathAsString,
-                                                                                          configuration.storageConfiguration(),
-                                                                                          configuration.s3AccessTimeout(),
-                                                                                          configuration.lockName(),
-                                                                                          configuration.lockCreationDate(),
-                                                                                          configuration.renewDuration(),
-                                                                                          configuration.lockService());
+                    boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
+                                                                           archivePathInCache);
                     if (!restorationComplete) {
                         progressManager.deletionFailed(request,
                                                        String.format("Unable to restore the archive %s containing the "
@@ -118,16 +121,26 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                         return null;
                     }
                 }
-                // Unzip the restored archive in the building directory
-                ZipUtils.unzip(archivePathInCache, dirInWorkspacePath);
+                // Unzip the restored archive in the plugin workspace cache directory
+                // The extracted directory will be used to create the updated archive
+                // The presence of the files here allow the directory to be used to both restore the files and create
+                // the updated archive.
+                boolean success = ZipUtils.unzip(archivePathInCache, dirInCachePath);
+                if (!success) {
+                    progressManager.deletionFailed(request, "Error while extracting small file archive");
+                    return null;
+                }
+                try {
+                    // Create a symbolic link
+                    Files.createDirectories(dirInWorkspacePath.getParent());
+                    Files.createSymbolicLink(dirInWorkspacePath, dirInCachePath);
+                } catch (IOException e) {
+                    LOGGER.error(e.getMessage(), e);
+                    progressManager.deletionFailed(request, "Error while creating new small file archive");
+                    return null;
+                }
             }
-            DeleteLocalSmallFileTaskConfiguration subTaskConfiguration = new DeleteLocalSmallFileTaskConfiguration(
-                configuration.fileRelativePath(),
-                configuration.archiveBuildingWorkspacePath(),
-                configuration.storageName(),
-                configuration.storageConfiguration(),
-                configuration.s3Client(),
-                configuration.glacierArchiveService());
+            DeleteLocalSmallFileTaskConfiguration subTaskConfiguration = createDeleteLocalSmallFileTaskConfiguration();
             DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(subTaskConfiguration,
                                                                          request,
                                                                          progressManager);
@@ -160,5 +173,25 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                     configuration.fileRelativePath(),
                     System.currentTimeMillis() - start);
         return null;
+    }
+
+    private DeleteLocalSmallFileTaskConfiguration createDeleteLocalSmallFileTaskConfiguration() {
+        return new DeleteLocalSmallFileTaskConfiguration(configuration.fileRelativePath(),
+                                                         configuration.archiveBuildingWorkspacePath(),
+                                                         configuration.storageName(),
+                                                         configuration.storageConfiguration(),
+                                                         configuration.s3Client(),
+                                                         configuration.glacierArchiveService());
+    }
+
+    private boolean checkRestorationComplete(String archiveRelativePathAsString, Path archivePathInCache) {
+        return S3GlacierUtils.checkRestorationComplete(archivePathInCache,
+                                                       archiveRelativePathAsString,
+                                                       configuration.storageConfiguration(),
+                                                       configuration.s3AccessTimeout(),
+                                                       configuration.lockName(),
+                                                       configuration.lockCreationDate(),
+                                                       configuration.renewDuration(),
+                                                       configuration.lockService());
     }
 }

@@ -23,6 +23,7 @@ import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RetrieveCacheFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
@@ -91,8 +92,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
         if (smallFileName.isPresent()) {
-
-            String dirName = archiveName.substring(0, archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
+            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
             Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
             if (Files.exists(localPath)) {
                 copyFileAndHandleSuccess(localPath);
@@ -107,7 +107,16 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
             // Restore
             LOGGER.info("Restoring {}", relativeArchivePath);
-            S3GlacierUtils.restore(configuration.s3Client(), configuration.s3Configuration(), relativeArchivePath);
+            RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
+                                                                     configuration.s3Configuration(),
+                                                                     relativeArchivePath);
+
+            if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+                progressManager.restoreFailed(request,
+                                              String.format("The specified key %s does not exists on the server.",
+                                                            relativeArchivePath));
+                return;
+            }
 
             // Launch check restoration process
             boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
@@ -137,9 +146,15 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     private void retrieveBigFile() {
 
         // Restore
-        S3GlacierUtils.restore(configuration.s3Client(),
-                               configuration.s3Configuration(),
-                               configuration.fileRelativePath().toString());
+        RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
+                                                                 configuration.s3Configuration(),
+                                                                 configuration.fileRelativePath().toString());
+        if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+            progressManager.restoreFailed(request,
+                                          String.format("The specified key %s does not exists on the server.",
+                                                        configuration.fileRelativePath()));
+            return;
+        }
 
         // Launch check restoration process
         Path targetPath = Path.of(request.getRestorationDirectory(),

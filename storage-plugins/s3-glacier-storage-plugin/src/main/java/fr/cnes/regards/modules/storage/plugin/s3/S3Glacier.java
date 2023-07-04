@@ -16,6 +16,7 @@ import fr.cnes.regards.modules.storage.plugin.s3.task.*;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,14 +112,15 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String workspacePath;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_MAX_SIZE,
-                     description = "Maximum size of a file for it treated as a small file and stored in group",
-                     label = "Small file max size",
+                     description = "Threshold under which files are categorized as small files, in bytes.",
+                     label = "Small file max size in bytes.",
                      defaultValue = "1048576")
     private int smallFileMaxSize;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
-                     description = "Determines when the small files archive is considered full and should be closed",
-                     label = "Archive max size",
+                     description = "Threshold beyond which a small files archive is considered as full and closed, in" 
+                                   + " bytes.",
+                     label = "Archive max size in bytes.",
                      defaultValue = "10485760")
     private int archiveMaxSize;
 
@@ -557,17 +559,23 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
      */
     private void cleanArchiveCache() {
         Path cacheWorkspacePath = Paths.get(workspacePath, S3Glacier.TMP_DIR);
+        String tenant = runtimeTenantResolver.getTenant();
         if (!Files.exists(cacheWorkspacePath)) {
             return;
         }
         Instant oldestAgeToKeep = OffsetDateTime.now().minusHours(archiveCacheLifetime).toInstant();
         List<Path> directoriesWithFiles = new ArrayList<>();
-        getDirectoriesWithFilesTooOld(directoriesWithFiles, cacheWorkspacePath, oldestAgeToKeep);
+        getDirectoriesWithFilesToDelete(directoriesWithFiles,
+                                        cacheWorkspacePath,
+                                        oldestAgeToKeep,
+                                        cacheWorkspacePath,
+                                        Paths.get(workspacePath, S3Glacier.ZIP_DIR));
         try {
             executorService.invokeAll(directoriesWithFiles.stream()
                                                           .map(dirToProcess -> doCleanDirectory(cacheWorkspacePath,
                                                                                                 dirToProcess,
-                                                                                                oldestAgeToKeep))
+                                                                                                oldestAgeToKeep,
+                                                                                                tenant))
                                                           .toList());
         } catch (InterruptedException e) {
             LOGGER.error("Clean archive cache process interrupted");
@@ -576,8 +584,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private Callable<LockServiceResponse<Void>> doCleanDirectory(Path cacheWorkspacePath,
                                                                  Path dirPath,
-                                                                 Instant oldestAgeToKeep) {
+                                                                 Instant oldestAgeToKeep,
+                                                                 String tenant) {
         return () -> {
+            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+            runtimeTenantResolver.forceTenant(tenant);
             CleanDirectoryTaskConfiguration cleanDirectoryTaskConfiguration = new CleanDirectoryTaskConfiguration(
                 dirPath,
                 oldestAgeToKeep);
@@ -598,21 +609,51 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         };
     }
 
-    private void getDirectoriesWithFilesTooOld(List<Path> directoriesWithFiles,
-                                               Path directoryPath,
-                                               Instant oldestAgeToKeep) {
+    /**
+     * A directory need to be deleted if it fulfills the following :
+     * <ul>
+     *     <li>It has the rs_zip_ prefix</li>
+     *     <li>It is NOT used to update an archive following a deletion, this means there is no symbolic link in
+     *     the building workspace to this directory</li>
+     *     <li>It is older than the oldest age to keep</li>
+     * </ul>
+     */
+    private void getDirectoriesWithFilesToDelete(List<Path> directoriesWithFiles,
+                                                 Path directoryPath,
+                                                 Instant oldestAgeToKeep,
+                                                 Path cachePath,
+                                                 Path buildingPath) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath)) {
             for (Path path : stream) {
                 if (Files.isDirectory(path)) {
-                    if (hasFilesTooOld(path, oldestAgeToKeep)) {
+                    // Check directory with conditions :
+                    // - directory is a building directory like rs_zip_*
+                    // - directory contains at least one file to expired or directory is empty
+                    // - directory is not associated to a current building archive so no symbolic link exists in
+                    // building directory.
+                    if (path.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX) && (hasFilesTooOld(path,
+                                                                                                               oldestAgeToKeep)
+                                                                                                || FileUtils.isEmptyDirectory(
+                        path.toFile())) && !hasSymLink(path, cachePath, buildingPath)) {
                         directoriesWithFiles.add(path);
+                    } else {
+                        // Else handle recursive subdirectories
+                        getDirectoriesWithFilesToDelete(directoriesWithFiles,
+                                                        path,
+                                                        oldestAgeToKeep,
+                                                        cachePath,
+                                                        buildingPath);
                     }
-                    getDirectoriesWithFilesTooOld(directoriesWithFiles, path, oldestAgeToKeep);
                 }
             }
         } catch (IOException e) {
             LOGGER.error("Error while getting directories to clean", e);
         }
+    }
+
+    private boolean hasSymLink(Path path, Path cachePath, Path buildingPath) {
+        Path pathInBuildingWorkspace = buildingPath.resolve(cachePath.relativize(path));
+        return Files.isSymbolicLink(pathInBuildingWorkspace);
     }
 
     private boolean hasFilesTooOld(Path directoryPath, Instant oldestAgeToKeep) throws IOException {
