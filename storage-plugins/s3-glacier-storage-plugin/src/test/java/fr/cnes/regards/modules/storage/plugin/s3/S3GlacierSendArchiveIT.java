@@ -267,10 +267,14 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
 
         List<String> files = List.of("smallFile1.txt", "smallFile2.txt", "smallFile3.txt", "smallFile4.txt");
 
-        OffsetDateTime now = OffsetDateTime.now();
-        String dirName = S3Glacier.BUILDING_DIRECTORY_PREFIX
-                         + now.format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+        String dirName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName;
         String nodeName = "testnode1";
+
+        createTestArchive(files,
+                          ROOT_PATH + File.separator + nodeName,
+                          archiveName,
+                          workspace.getRoot().toPath().resolve(S3Glacier.TMP_DIR));
 
         TestPeriodicActionProgressManager periodicActionProgressManager = new TestPeriodicActionProgressManager();
 
@@ -303,6 +307,14 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
                                                    ROOT_PATH,
                                                    nodeName,
                                                    dirName)), "The directory should exist");
+
+        // Check that the archive exists
+        Assertions.assertTrue(Files.exists(Path.of(workspace.getRoot().toString(),
+                                                   S3Glacier.TMP_DIR,
+                                                   ROOT_PATH,
+                                                   nodeName,
+                                                   archiveName + S3Glacier.ARCHIVE_EXTENSION)),
+                              "The archive should exist");
 
         // When
         s3Glacier.runPeriodicAction(periodicActionProgressManager);
@@ -368,7 +380,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
                                                     S3Glacier.TMP_DIR,
                                                     ROOT_PATH,
                                                     nodeName,
-                                                    dirName + S3Glacier.ARCHIVE_EXTENSION)),
+                                                    archiveName + S3Glacier.ARCHIVE_EXTENSION)),
                                "The archive should have been deleted");
     }
 
