@@ -370,9 +370,16 @@ public class SubmitReadyArchiveTask implements LockServiceTask<Boolean> {
             try {
                 // Delete files only if the storage succeeded
                 if (Files.isSymbolicLink(dirPath)) {
-                    //If the directory is a symbolic link to the archive cache workspace, delete only
-                    //the link as the real directory will be deleted when the cache will be cleaned
+                    //Link target
+                    Path dirPathInCache = dirPath.toRealPath();
+                    //If the directory is a symbolic link to the archive cache workspace, delete
+                    //the link but not the real directory because it willl be deleted when the cache will be cleaned
                     Files.delete(dirPath);
+                    //Also delete the archive in the cache workspace because it is no longer up to date.
+                    Path archivePathInCache = dirPathInCache.getParent()
+                                                            .resolve(S3GlacierUtils.createArchiveNameFromBuildingDir(
+                                                                dirPathInCache.getFileName().toString()));
+                    Files.delete(archivePathInCache);
                 } else {
                     //If it's a real directory, delete both the files and the directory
                     filesList.forEach(file -> {

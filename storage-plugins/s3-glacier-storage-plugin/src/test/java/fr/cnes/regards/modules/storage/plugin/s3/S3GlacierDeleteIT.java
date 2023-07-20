@@ -334,4 +334,67 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         //Then
         checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
     }
+
+    @Test
+    @Purpose("Test that a file is deleted when it is located in the archive cache workspace (through à symlink) and "
+             + "that the old archive is not extracted again (so any file present in the archive but not in the "
+             + "directory is not extracted a second time")
+    public void test_simulated_deletion_sequence() throws URISyntaxException, IOException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
+        TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
+
+        String fileName = "smallFile1.txt";
+        String fileName2 = "smallFile2.txt";
+        String fileName3 = "smallFile3.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+
+        // Create the archive that contain the file to retrieve and copy it to the cache
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+        createTestArchive(List.of(fileName, fileName2, fileName3),
+                          ROOT_PATH + File.separator + nodeName,
+                          archiveName,
+                          workspace.getRoot().toPath().resolve(S3Glacier.TMP_DIR));
+
+        Path cacheDirPath = Path.of(workspace.getRoot().toString(),
+                                    S3Glacier.TMP_DIR,
+                                    ROOT_PATH,
+                                    nodeName,
+                                    S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
+        Files.createDirectories(cacheDirPath);
+
+        Path zipDirPath = Path.of(workspace.getRoot().toString(),
+                                  S3Glacier.ZIP_DIR,
+                                  ROOT_PATH,
+                                  nodeName,
+                                  S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
+        Files.createDirectories(zipDirPath.getParent());
+        Files.createSymbolicLink(zipDirPath, cacheDirPath);
+
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName,
+                            S3Glacier.TMP_DIR);
+        copyFileToWorkspace(ROOT_PATH,
+                            S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName,
+                            nodeName,
+                            fileName2,
+                            S3Glacier.TMP_DIR);
+
+        // When
+        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+
+        FileDeletionRequest request = new FileDeletionRequest(reference,
+                                                              "groupIdTest",
+                                                              "sessionOwnerTest",
+                                                              "sessionTest");
+        FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
+        s3Glacier.delete(workingSubset, progressManager);
+
+        //Then
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+    }
 }
