@@ -109,7 +109,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @PluginParameter(name = GLACIER_WORKSPACE_PATH,
                      description = "Local workspace for archive building and restoring cache",
                      label = "Workspace path")
-    private String workspacePath;
+    private String rawWorkspacePath;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_MAX_SIZE,
                      description = "Threshold under which files are categorized as small files, in bytes.",
@@ -118,7 +118,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private int smallFileMaxSize;
 
     @PluginParameter(name = GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
-                     description = "Threshold beyond which a small files archive is considered as full and closed, in" 
+                     description = "Threshold beyond which a small files archive is considered as full and closed, in"
                                    + " bytes.",
                      label = "Archive max size in bytes.",
                      defaultValue = "10485760")
@@ -170,6 +170,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @Value("${regards.glacier.scheduled.cache.clean.minutes:60}")
     private int scheduledCacheClean = 60;
 
+    private String workspacePath;
+
     private String storageName;
 
     private ThreadPoolTaskScheduler scheduler;
@@ -177,6 +179,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @PluginInit(hasConfiguration = true)
     public void init(PluginConfiguration conf) {
         super.init();
+        if (runtimeTenantResolver != null) {
+            workspacePath = Path.of(rawWorkspacePath, runtimeTenantResolver.getTenant()).toString();
+        } else {
+            // In case the runtimeTenantResolver doesn't exist, use the raw workspace
+            // This will happen in tests
+            workspacePath = rawWorkspacePath;
+        }
         BasicThreadFactory factory = new BasicThreadFactory.Builder().namingPattern("s3-glacier-threadpool-thread-%d")
                                                                      .priority(Thread.MAX_PRIORITY)
                                                                      .build();
