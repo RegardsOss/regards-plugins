@@ -118,7 +118,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @PluginParameter(name = "overlap",
                      label = "Overlap",
                      description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
-                     defaultValue = "0")
+                     defaultValue = "30")
     private long overlap;
 
     // -------------------------
