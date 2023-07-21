@@ -98,6 +98,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     public static final String SMALL_FILE_PARAMETER_NAME = "fileName";
 
+    private static final String STANDARD_STORAGE_CLASS_NAME = "standardStorageClassName";
+
     @Autowired
     private LockService lockService;
 
@@ -151,6 +153,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                      label = "S3 Access Timeout in seconds",
                      defaultValue = "3600")
     private int s3AccessTimeout;
+
+    @PluginParameter(name = STANDARD_STORAGE_CLASS_NAME,
+                     description = "The name of the standard storage class if different than STANDARD",
+                     label = "Standard storage class name",
+                     optional = true)
+    private String standardStorageClassName;
 
     /**
      * Duration before end of locking time to run lock renew. To avoid lock renew done too late.
@@ -351,6 +359,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     lockName,
                     Instant.now(),
                     renewCallDuration,
+                    standardStorageClassName,
                     lockService);
                 RetrieveCacheFileTask task = new RetrieveCacheFileTask(configuration, request, progressManager);
 
@@ -458,6 +467,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     lockName,
                     Instant.now(),
                     renewCallDuration,
+                    standardStorageClassName,
                     lockService,
                     glacierArchiveService);
                 RestoreAndDeleteSmallFileTask task = new RestoreAndDeleteSmallFileTask(configuration,

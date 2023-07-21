@@ -198,6 +198,8 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                                                        configuration.lockName(),
                                                        configuration.lockCreationDate(),
                                                        configuration.renewDuration(),
-                                                       configuration.lockService());
+                                                       configuration.standardStorageClassName(),
+                                                       configuration.lockService(),
+                                                       configuration.s3Client());
     }
 }

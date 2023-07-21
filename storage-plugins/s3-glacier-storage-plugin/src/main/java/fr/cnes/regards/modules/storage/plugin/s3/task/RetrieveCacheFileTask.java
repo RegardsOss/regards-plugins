@@ -134,7 +134,9 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                   configuration.lockName(),
                                                                                   configuration.lockCreationDate(),
                                                                                   configuration.renewDuration(),
-                                                                                  configuration.lockService());
+                                                                                  configuration.standardStorageClassName(),
+                                                                                  configuration.lockService(),
+                                                                                  configuration.s3Client());
 
             if (restorationComplete) {
                 extractThenCopyFileAndHandleSuccess(localPath, archivePath);
@@ -180,7 +182,9 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                               configuration.lockName(),
                                                                               configuration.lockCreationDate(),
                                                                               configuration.renewDuration(),
-                                                                              configuration.lockService());
+                                                                              configuration.standardStorageClassName(),
+                                                                              configuration.lockService(),
+                                                                              configuration.s3Client());
         if (restorationComplete) {
             progressManager.restoreSucceed(request, targetPath);
         } else {

@@ -236,7 +236,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
-        saveFileAfterSomeTime(2L, writeCmd);
+        writeFileOnStorage(writeCmd);
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then
@@ -331,7 +331,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
-        saveFileAfterSomeTime(2L, writeCmd);
+        writeFileOnStorage(writeCmd);
         s3Glacier.retrieve(workingSubset, progressManager);
 
         // Then

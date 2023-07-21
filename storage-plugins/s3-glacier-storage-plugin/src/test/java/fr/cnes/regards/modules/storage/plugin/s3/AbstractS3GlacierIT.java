@@ -264,16 +264,9 @@ public abstract class AbstractS3GlacierIT {
         S3HighLevelReactiveClient s3Client;
         if (mockRestore) {
             // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
-            s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10) {
-
-                @Override
-                public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
-                    LOGGER.debug("Ignoring restore for key {}", key);
-                    return Mono.just(RestoreObjectResponse.builder().build());
-                }
-            };
+            s3Client = new MockedS3ClientWithoutRestore(scheduler);
         } else {
-            s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
+            s3Client = new MockedS3Client(scheduler);
         }
 
         LockService lockService;
@@ -543,17 +536,6 @@ public abstract class AbstractS3GlacierIT {
                                               filename);
     }
 
-    protected void saveFileAfterSomeTime(Long timeToWaitInSecond, StorageCommand.Write writeCmd) {
-
-        new java.util.Timer().schedule(new java.util.TimerTask() {
-
-            @Override
-            public void run() {
-                writeFileOnStorage(writeCmd);
-            }
-        }, timeToWaitInSecond * 1000);
-    }
-
     protected void writeFileOnStorage(StorageCommand.Write writeCmd) {
         createS3Client().write(writeCmd)
                         .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
@@ -748,6 +730,7 @@ public abstract class AbstractS3GlacierIT {
         @Override
         public void restoreFailed(FileCacheRequest fileRequest, String cause) {
             restoreFailed.add(fileRequest);
+            LOGGER.error(cause);
         }
 
         public List<FileCacheRequest> getRestoreSucceed() {
@@ -806,4 +789,38 @@ public abstract class AbstractS3GlacierIT {
         }
     }
 
+    private static class MockedS3ClientWithoutRestore extends MockedS3Client {
+
+        public MockedS3ClientWithoutRestore(Scheduler scheduler) {
+            super(scheduler);
+        }
+
+        @Override
+        public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
+            LOGGER.debug("Ignoring restore for key {}", key);
+            return Mono.just(RestoreObjectResponse.builder().build());
+        }
+    }
+
+    private static class MockedS3Client extends S3HighLevelReactiveClient {
+
+        private int tryCount;
+
+        public MockedS3Client(Scheduler scheduler) {
+            super(scheduler, 10 * 1024 * 1024, 10);
+            tryCount = 0;
+        }
+
+        @Override
+        public Mono<Boolean> isStandardStorageClass(StorageConfig config, String key, String standardStorageClassName) {
+            if (tryCount >= 2) {
+                tryCount = 0;
+                return Mono.just(true);
+            } else {
+                tryCount++;
+                return Mono.just(false);
+            }
+        }
+
+    }
 }
