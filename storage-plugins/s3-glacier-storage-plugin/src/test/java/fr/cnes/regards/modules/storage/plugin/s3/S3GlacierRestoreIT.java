@@ -18,6 +18,9 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
@@ -32,6 +35,7 @@ import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -332,5 +336,48 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         // Then
         checkRestoreSuccess(fileName, fileChecksum, progressManager, restorationWorkspace);
+    }
+
+    @Test
+    @Purpose("Test that the process fail correctly when there is an unexpected error thrown by the LockService")
+    public void test_unexpected_restore_error()
+        throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false, true);
+
+        String fileName = "smallFile1.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+        TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
+
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
+
+        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
+                                                          fileName,
+                                                          fileChecksum,
+                                                          fileSize,
+                                                          nodeName,
+                                                          archiveName,
+                                                          false);
+
+        FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
+
+        Logger fooLogger = (Logger) LoggerFactory.getLogger(S3Glacier.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        fooLogger.addAppender(listAppender);
+
+        // When
+        s3Glacier.retrieve(workingSubset, progressManager);
+
+        // Then
+        Awaitility.await()
+                  .atMost(Durations.TEN_SECONDS)
+                  .until(() -> listAppender.list.stream()
+                                                .map(ILoggingEvent::getMessage)
+                                                .anyMatch(message -> message.equals("Error during retrieval process")));
     }
 }

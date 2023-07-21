@@ -147,25 +147,32 @@ public abstract class AbstractS3GlacierIT {
 
     protected IRuntimeTenantResolver runtimeTenantResolver;
 
-    protected LockService lockService;
-
     protected GlacierArchiveService glacierArchiveService;
 
     private Random random = new Random();
 
     private S3StorageConfiguration s3StorageSettingsMock;
 
-    private S3HighLevelReactiveClient s3ClientWithoutRestore;
-
     @Before
-    public void init() throws Throwable {
+    public void init() {
         S3BucketTestUtils.createBucket(createInputS3Server());
         PluginUtils.setup();
 
         runtimeTenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(runtimeTenantResolver.getTenant()).thenReturn(TENANT);
         Mockito.doNothing().when(runtimeTenantResolver).forceTenant(anyString());
-        lockService = Mockito.mock(LockService.class);
+        glacierArchiveService = Mockito.mock(GlacierArchiveService.class);
+
+        // Settings for download in all available S3 servers
+        s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
+        Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
+
+        // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
+        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
+    }
+
+    private LockService mockLockService() throws InterruptedException {
+        LockService lockService = Mockito.mock(LockService.class);
         Mockito.doAnswer((mock) -> {
             LockServiceTask task = mock.getArgument(1);
             return new LockServiceResponse<>(true, task.run());
@@ -175,22 +182,15 @@ public abstract class AbstractS3GlacierIT {
             return new LockServiceResponse<>(true, task.run());
         }).when(lockService).tryRunWithLock(any(), any(), anyInt(), any());
         Mockito.doAnswer((mock) -> 60000).when(lockService).getTimeToLive();
-        glacierArchiveService = Mockito.mock(GlacierArchiveService.class);
+        return lockService;
+    }
 
-        // Settings for download in all available S3 servers
-        s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
-        Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
-
-        // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
-        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
-        s3ClientWithoutRestore = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10) {
-
-            @Override
-            public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
-                LOGGER.debug("Ignoring restore for key {}", key);
-                return Mono.just(RestoreObjectResponse.builder().build());
-            }
-        };
+    private LockService mockLockServiceError() throws InterruptedException {
+        LockService lockService = Mockito.mock(LockService.class);
+        Mockito.doThrow(SimulatedException.class).when(lockService).runWithLock(any(), any());
+        Mockito.doThrow(SimulatedException.class).when(lockService).tryRunWithLock(any(), any(), anyInt(), any());
+        Mockito.doThrow(SimulatedException.class).when(lockService).getTimeToLive();
+        return lockService;
     }
 
     @After
@@ -204,7 +204,7 @@ public abstract class AbstractS3GlacierIT {
                               String secret,
                               String bucket,
                               String rootPath) {
-        loadPlugin(endpoint, region, key, secret, bucket, rootPath, true);
+        loadPlugin(endpoint, region, key, secret, bucket, rootPath, true, false);
     }
 
     protected void loadPlugin(String endpoint,
@@ -213,7 +213,8 @@ public abstract class AbstractS3GlacierIT {
                               String secret,
                               String bucket,
                               String rootPath,
-                              Boolean mockRestore) {
+                              Boolean mockRestore,
+                              Boolean simulateLockTaskException) {
         this.rootPath = rootPath;
         StringPluginParam secretParam = IPluginParam.build(AbstractS3Storage.S3_SERVER_SECRET_PARAM_NAME, secret);
         secretParam.setDecryptedValue(secret);
@@ -275,9 +276,19 @@ public abstract class AbstractS3GlacierIT {
             s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
         }
 
+        LockService lockService;
+        try {
+            if (!simulateLockTaskException) {
+                lockService = mockLockService();
+            } else {
+                lockService = mockLockServiceError();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         // Apply mocks to the plugin
         ReflectionTestUtils.setField(s3Glacier, "s3StorageSettings", s3StorageSettingsMock);
-        ReflectionTestUtils.setField(s3Glacier, "clientCache", s3ClientWithoutRestore);
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
         ReflectionTestUtils.setField(s3Glacier, "glacierArchiveService", glacierArchiveService);
         ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);

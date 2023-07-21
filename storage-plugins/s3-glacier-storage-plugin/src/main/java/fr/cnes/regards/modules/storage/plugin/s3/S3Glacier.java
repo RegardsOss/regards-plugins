@@ -299,7 +299,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         } catch (InterruptedException e) {
             LOGGER.error("Retrieval process interrupted");
         } catch (ExecutionException e) {
-            LOGGER.error("Error during storage process", e);
+            LOGGER.error("Error during retrieval process", e);
         }
         LOGGER.info("Handling of retrieve requests ended");
     }

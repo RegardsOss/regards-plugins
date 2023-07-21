@@ -22,6 +22,7 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.task.RetrieveCacheFileTask;
@@ -69,19 +70,20 @@ public class S3GlacierUtils {
      */
     public static RestoreResponse restore(S3HighLevelReactiveClient s3Client, StorageConfig config, String key) {
         RestoreResponse response = s3Client.restore(config, key)
-                                           .map(result -> {
-                                               return RestoreResponse.SUCCESS;
-                                           })
+                                           .map(result -> new RestoreResponse(RestoreStatus.SUCCESS))
                                            .onErrorResume(InvalidObjectStateException.class,
-                                                          error -> Mono.just(RestoreResponse.WRONG_STORAGE_CLASS))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.WRONG_STORAGE_CLASS)))
                                            .onErrorResume(NoSuchKeyException.class,
-                                                          error -> Mono.just(RestoreResponse.KEY_NOT_FOUND))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.KEY_NOT_FOUND)))
+                                           .onErrorResume(S3ClientException.class,
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                                 error)))
                                            .block();
-        if (response.equals(RestoreResponse.WRONG_STORAGE_CLASS)) {
+        if (response.status().equals(RestoreStatus.WRONG_STORAGE_CLASS)) {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
                         + " The restoration process will continue as if.", key);
-            return RestoreResponse.SUCCESS;
+            return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         return response;
     }
@@ -157,6 +159,8 @@ public class S3GlacierUtils {
             LOGGER.error("Error when downloading file {}", downloadedFileName, e);
         } catch (InterruptedException e) {
             LOGGER.error("Sleep interrupted", e);
+        } catch (S3ClientException e) {
+            LOGGER.error("Unable to reach S3 Server", e);
         }
         return restorationComplete;
     }

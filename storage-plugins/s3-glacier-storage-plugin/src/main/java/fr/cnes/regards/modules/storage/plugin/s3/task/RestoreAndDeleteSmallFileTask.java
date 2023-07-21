@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreStatus;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
@@ -104,13 +105,18 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                     RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                              configuration.storageConfiguration(),
                                                                              archiveRelativePathAsString);
-                    if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+                    if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
                         LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
                                     + "considered successful", request.getFileReference().getLocation().getUrl());
                         progressManager.deletionSucceed(request);
                         return null;
                     }
 
+                    if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
+                        LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+                        progressManager.deletionFailed(request, "Unable to reach S3 server");
+                        return null;
+                    }
                     // Launch check restoration process
                     boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
                                                                            archivePathInCache);

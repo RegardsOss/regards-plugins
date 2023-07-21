@@ -218,7 +218,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     @Purpose("Test that there is no error when a file to delete is not on the server")
     public void test_delete_small_file_no_such_key() {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false, false);
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
         String fileName = "smallFile1.txt";
