@@ -64,11 +64,16 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     private String recipientLabel;
     
     public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
+        return sendEvents(toSend, headers, Optional.empty(), 0);
+    }
+
+    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers,
+                                                                  Optional<String> routingKey, int priority) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
-                                    Optional.empty(),
+                                    routingKey,
                                     Optional.ofNullable(queueDlRoutingKey),
-                                    0,
+                                    priority,
                                     toSend,
                                     headers);
 
