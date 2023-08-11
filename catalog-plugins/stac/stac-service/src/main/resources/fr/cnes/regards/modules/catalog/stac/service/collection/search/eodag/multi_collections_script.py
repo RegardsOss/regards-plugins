@@ -19,4 +19,8 @@ project_search_results = SearchResult([])
 for query_args in project_query_args:
     project_search_results.extend(dag.search_all(**query_args))
 # This command actually downloads the matching products
-downloaded_paths = dag.download_all(project_search_results)
+downloaded_paths = dag.download_all(project_search_results, outputs_prefix=path_out)
+if downloaded_paths:
+    print(f"files successfully downloaded in {downloaded_paths}")
+else:
+    print(f"No files downloaded! Verify API-KEY and/or project search configuration.")

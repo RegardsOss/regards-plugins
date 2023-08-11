@@ -2,16 +2,18 @@ help_message = """
 Download products from your {{ info.portalName }} project ({{ info.baseUri }}) using EODAG (https://github.com/CS-SI/eodag)
 This script is an example tuned for your last {{ info.portalName }} project but feel free to adapt it for future requests.
 Follow these steps:
-1. If not already done, install EODAG latest version using `pip install -U eodag` or `conda update eodag`
+1. If not already done, install EODAG and packaging latest version using `pip install -U eodag packaging` or `conda update eodag packaging`
 2a. Generate an API-Key from {{ info.portalName }} portal in your user settings
 2b. Carefully store your API-Key
 - either in your eodag configuration file (usually ~/.config/eodag/eodag.yml, automatically generated the first time you use eodag) in auth/credentials/apikey="PLEASE_CHANGE_ME"
 - or in an environment variable `export {{ info.apiKey }}="PLEASE_CHANGE_ME"`
-3. You are all set, run this script `python {{ info.filename }}`
+3. You can change download directory by modifying the variable path_out. By default, current path is used.
+4. You are all set, run this script `python {{ info.filename }}`
 
 For more information, please refer to EODAG Documentation https://eodag.readthedocs.io
 """
 try:
+    import os
     from eodag import EODataAccessGateway, SearchResult
     from eodag import __version__ as eodag_version
     from eodag import setup_logging
@@ -28,8 +30,12 @@ dag = EODataAccessGateway()
 
 # --------------------------------------------------
 # Declare the path where the file will be downloaded
-# path_out = "/tmp"
-#
+# Set to /tmp if path is incorrect
+path_out = os.getcwd()
+
+if not os.path.isdir(path_out):
+    path_out = "/tmp"
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Use this code-block to define your search criteria. It defines a list of query-arguments dictionaries.
 # Each query-arguments dictionary will be used to perform a distinct search, whose results will then be concatenated.
@@ -47,7 +53,3 @@ dag = EODataAccessGateway()
 #     project_search_results = SearchResult([])
 #     for query_args in project_query_args:
 #         project_search_results.extend(dag.search_all(**query_args))
-#
-# This command actually downloads the matching products
-#     downloaded_paths = dag.download_all(project_search_results, outputs_prefix=path_out)
-#     print(f"files successfully downloaded in {downloaded_paths}")

@@ -22,4 +22,8 @@ search_results = dag.search_all(
 {% endif %}
 )
 # This command actually downloads the matching products
-downloaded_paths = dag.download_all(search_results)
+downloaded_paths = dag.download_all(search_results, outputs_prefix=path_out)
+if downloaded_paths:
+    print(f"files successfully downloaded in {downloaded_paths}")
+else:
+    print(f"No files downloaded! Verify API-KEY and/or product search configuration.")
