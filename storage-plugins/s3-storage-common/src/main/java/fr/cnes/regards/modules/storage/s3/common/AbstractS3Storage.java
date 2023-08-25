@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.exception.ChecksumDoesntMatchException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
@@ -266,43 +267,51 @@ public abstract class AbstractS3Storage implements IStorageLocation {
             StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfiguration,
                                                                           createStorageCommandID(request.getJobId()),
                                                                           entryKey,
-                                                                          storageEntry);
+                                                                          storageEntry,
+                                                                          request.getMetaInfo().getChecksum());
 
-            StorageCommandResult.WriteResult result = createS3Client().write(writeCmd)
-                                                                      .flatMap(writeResult -> writeResult.matchWriteResult(
-                                                                          Mono::just,
-                                                                          unreachable -> Mono.error(new RuntimeException(
-                                                                              "Unreachable endpoint")),
-                                                                          failure -> Mono.error(new RuntimeException(
-                                                                              "Write failure in S3 storage"))))
-                                                                      .doOnError(t -> {
-                                                                          LOGGER.error("[{}] End storing {}",
-                                                                                       request.getJobId(),
-                                                                                       request.getOriginUrl(),
-                                                                                       t);
-                                                                          progressManager.storageFailed(request,
-                                                                                                        "Write failure in S3 storage");
+            createS3Client().write(writeCmd)
+                            .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                                 unreachable -> Mono.error(new RuntimeException(
+                                                                                     "Unreachable endpoint")),
+                                                                                 failure -> {
+                                                                                     return handleWriteError(failure.getCause());
+                                                                                 }))
+                            .doOnError(t -> {
+                                LOGGER.error("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
+                                progressManager.storageFailed(request, t.getMessage());
 
-                                                                      })
-                                                                      .doOnSuccess(success -> {
-                                                                          LOGGER.info("[{}] End storing {}",
-                                                                                      request.getJobId(),
-                                                                                      request.getOriginUrl());
-                                                                      })
-                                                                      .block();
-            long storedFileSize = 0l;
-            if (result instanceof StorageCommandResult.WriteSuccess resultSuccess) {
-                storedFileSize = resultSuccess.getSize();
-            }
-            progressManager.storageSucceed(request,
-                                           storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
-                                           storedFileSize);
+                            })
+                            .doOnSuccess(success -> {
+                                LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
+                                progressManager.storageSucceed(request,
+                                                               storageConfiguration.entryKeyUrl(entryKey.replaceFirst(
+                                                                   "^/*",
+                                                                   "")),
+                                                               success.getSize());
+                            })
+                            .block();
+
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);
             progressManager.storageFailed(request, String.format("Invalid source url %s", request.getOriginUrl()));
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             progressManager.storageFailed(request, String.format("Store failed cause : %s", e.getMessage()));
+        }
+    }
+
+    private static Mono<StorageCommandResult.WriteSuccess> handleWriteError(Throwable cause) {
+        if (cause instanceof ChecksumDoesntMatchException) {
+            LOGGER.error("The stored file checksum does not match the expected one, this is likely a problem with"
+                         + " the source file checksum not being the same as the one in the request metadata and "
+                         + "not a problem with the s3 storage.");
+            return Mono.error(new RuntimeException("Write failure in S3 storage : the uploaded file checksum doesn't "
+                                                   + "match the expected one"));
+        } else {
+
+            return Mono.error(new RuntimeException(String.format("Write failure in S3 storage : %s",
+                                                                 cause.toString())));
         }
     }
 
