@@ -41,6 +41,7 @@ public record RestoreAndDeleteSmallFileTaskConfiguration(Path fileRelativePath,
                                                          String lockName,
                                                          Instant lockCreationDate,
                                                          long renewDuration,
+                                                         String standardStorageClassName,
                                                          LockService lockService,
                                                          GlacierArchiveService glacierArchiveService) {
 

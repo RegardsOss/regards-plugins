@@ -28,10 +28,17 @@ import java.time.Instant;
 /**
  * @author Thibaud Michaudel
  **/
-public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath, String cachePath, StorageConfig s3Configuration,
-                                                 int s3AccessTimeout, String rootPath, boolean isSmallFile,
-                                                 S3HighLevelReactiveClient s3Client, String lockName,
-                                                 Instant lockCreationDate, long renewDuration,
+public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath,
+                                                 String cachePath,
+                                                 StorageConfig s3Configuration,
+                                                 int s3AccessTimeout,
+                                                 String rootPath,
+                                                 boolean isSmallFile,
+                                                 S3HighLevelReactiveClient s3Client,
+                                                 String lockName,
+                                                 Instant lockCreationDate,
+                                                 long renewDuration,
+                                                 String standardStorageClassName,
                                                  LockService lockService) {
 
 }

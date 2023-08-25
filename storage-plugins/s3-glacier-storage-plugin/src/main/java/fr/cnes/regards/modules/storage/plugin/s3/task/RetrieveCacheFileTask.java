@@ -24,6 +24,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RetrieveCacheFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreStatus;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
@@ -111,10 +112,16 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                      configuration.s3Configuration(),
                                                                      relativeArchivePath);
 
-            if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+            if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
                 progressManager.restoreFailed(request,
                                               String.format("The specified key %s does not exists on the server.",
                                                             relativeArchivePath));
+                return;
+            }
+
+            if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
+                LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+                progressManager.restoreFailed(request, "Unable to reach S3 server");
                 return;
             }
 
@@ -127,7 +134,9 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                   configuration.lockName(),
                                                                                   configuration.lockCreationDate(),
                                                                                   configuration.renewDuration(),
-                                                                                  configuration.lockService());
+                                                                                  configuration.standardStorageClassName(),
+                                                                                  configuration.lockService(),
+                                                                                  configuration.s3Client());
 
             if (restorationComplete) {
                 extractThenCopyFileAndHandleSuccess(localPath, archivePath);
@@ -149,10 +158,16 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                  configuration.s3Configuration(),
                                                                  configuration.fileRelativePath().toString());
-        if (restoreResponse.equals(RestoreResponse.KEY_NOT_FOUND)) {
+        if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
             progressManager.restoreFailed(request,
                                           String.format("The specified key %s does not exists on the server.",
                                                         configuration.fileRelativePath()));
+            return;
+        }
+
+        if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
+            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+            progressManager.restoreFailed(request, "Unable to reach S3 server");
             return;
         }
 
@@ -167,7 +182,9 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                               configuration.lockName(),
                                                                               configuration.lockCreationDate(),
                                                                               configuration.renewDuration(),
-                                                                              configuration.lockService());
+                                                                              configuration.standardStorageClassName(),
+                                                                              configuration.lockService(),
+                                                                              configuration.s3Client());
         if (restorationComplete) {
             progressManager.restoreSucceed(request, targetPath);
         } else {

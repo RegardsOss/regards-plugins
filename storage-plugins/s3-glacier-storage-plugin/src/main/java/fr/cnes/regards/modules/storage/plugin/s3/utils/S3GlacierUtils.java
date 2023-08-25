@@ -22,6 +22,7 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.task.RetrieveCacheFileTask;
@@ -34,6 +35,7 @@ import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,6 +58,8 @@ public class S3GlacierUtils {
 
     private static final Logger LOGGER = getLogger(S3GlacierUtils.class);
 
+    private static final int S3_MAX_ATTEMPT = 5;
+
     private S3GlacierUtils() {
 
     }
@@ -69,19 +73,20 @@ public class S3GlacierUtils {
      */
     public static RestoreResponse restore(S3HighLevelReactiveClient s3Client, StorageConfig config, String key) {
         RestoreResponse response = s3Client.restore(config, key)
-                                           .map(result -> {
-                                               return RestoreResponse.SUCCESS;
-                                           })
+                                           .map(result -> new RestoreResponse(RestoreStatus.SUCCESS))
                                            .onErrorResume(InvalidObjectStateException.class,
-                                                          error -> Mono.just(RestoreResponse.WRONG_STORAGE_CLASS))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.WRONG_STORAGE_CLASS)))
                                            .onErrorResume(NoSuchKeyException.class,
-                                                          error -> Mono.just(RestoreResponse.KEY_NOT_FOUND))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.KEY_NOT_FOUND)))
+                                           .onErrorResume(S3ClientException.class,
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                                 error)))
                                            .block();
-        if (response.equals(RestoreResponse.WRONG_STORAGE_CLASS)) {
+        if (response.status().equals(RestoreStatus.WRONG_STORAGE_CLASS)) {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
                         + " The restoration process will continue as if.", key);
-            return RestoreResponse.SUCCESS;
+            return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         return response;
     }
@@ -106,7 +111,9 @@ public class S3GlacierUtils {
                                                    String lockName,
                                                    Instant lockCreationDate,
                                                    Long renewCallDuration,
-                                                   LockService lockService) {
+                                                   @Nullable String standardStorageClassName,
+                                                   LockService lockService,
+                                                   S3HighLevelReactiveClient s3Client) {
         int lockTimeToLive = lockService.getTimeToLive();
 
         String downloadedFileName = targetFilePath.getFileName().toString();
@@ -115,14 +122,25 @@ public class S3GlacierUtils {
         int delay = RetrieveCacheFileTask.INITIAL_DELAY;
         int totalWaited = 0;
         int iterationNumber = 0;
-
+        int reachServerAttempt = 0;
         try {
             while (!restorationComplete && !delayExpired) {
                 iterationNumber++;
+                reachServerAttempt++;
                 LOGGER.debug("Checking if restoration succeeded");
-                restorationComplete = DownloadUtils.existsS3(key, s3Configuration);
-                LOGGER.debug("Restoration succeeded");
+                try {
+                    restorationComplete = s3Client.isStandardStorageClass(s3Configuration,
+                                                                          key,
+                                                                          standardStorageClassName).block();
+                    reachServerAttempt = 0;
+                } catch (S3ClientException e) {
+                    LOGGER.warn("Unable to check if the restoration is complete because the server is unreachable");
+                    if (reachServerAttempt >= S3_MAX_ATTEMPT) {
+                        throw e;
+                    }
+                }
                 if (restorationComplete) {
+                    LOGGER.debug("Restoration succeeded");
                     String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
                     LOGGER.info("Downloading file from S3");
                     InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
@@ -151,12 +169,14 @@ public class S3GlacierUtils {
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | NoSuchKeyException e) {
             LOGGER.error("The requested file {} was not found on the server", downloadedFileName, e);
         } catch (IOException e) {
             LOGGER.error("Error when downloading file {}", downloadedFileName, e);
         } catch (InterruptedException e) {
             LOGGER.error("Sleep interrupted", e);
+        } catch (S3ClientException e) {
+            LOGGER.error("Unable to reach S3 Server to restore the file", e);
         }
         return restorationComplete;
     }

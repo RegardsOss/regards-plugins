@@ -18,19 +18,11 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.utils;
 
-import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
-
 /**
- * Response from {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String) GlacierUtils restore}
+ * Status for {@link RestoreResponse}
  *
  * @author Thibaud Michaudel
  **/
-public record RestoreResponse(RestoreStatus status,
-                              Exception exception) {
-
-    public RestoreResponse(RestoreStatus status) {
-        this(status, null);
-    }
-
+public enum RestoreStatus {
+    SUCCESS, KEY_NOT_FOUND, CLIENT_EXCEPTION, WRONG_STORAGE_CLASS
 }
