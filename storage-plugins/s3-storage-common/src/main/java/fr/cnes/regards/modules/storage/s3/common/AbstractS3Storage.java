@@ -278,9 +278,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                                      return handleWriteError(failure.getCause());
                                                                                  }))
                             .doOnError(t -> {
-                                LOGGER.error("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
-                                progressManager.storageFailed(request, t.getMessage());
-
+                                LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
+                                // Do not handle error here. Block method will throw the exception wrapped in a
+                                // RuntimeException. Error is handle in catch of this runtimeException here under.
                             })
                             .doOnSuccess(success -> {
                                 LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
@@ -306,13 +306,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
             LOGGER.error("The stored file checksum does not match the expected one, this is likely a problem with"
                          + " the source file checksum not being the same as the one in the request metadata and "
                          + "not a problem with the s3 storage.");
-            return Mono.error(new RuntimeException("Write failure in S3 storage : the uploaded file checksum doesn't "
-                                                   + "match the expected one"));
-        } else {
-
-            return Mono.error(new RuntimeException(String.format("Write failure in S3 storage : %s",
-                                                                 cause.toString())));
         }
+        return Mono.error(new RuntimeException(String.format("Write failure in S3 storage : %s", cause.getMessage())));
     }
 
     private StorageEntry buildStorageEntry(FileStorageRequest request, String entryKey, Flux<ByteBuffer> buffers) {
