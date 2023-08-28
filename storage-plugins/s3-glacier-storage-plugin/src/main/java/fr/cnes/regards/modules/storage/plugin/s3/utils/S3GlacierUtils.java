@@ -81,6 +81,8 @@ public class S3GlacierUtils {
                                            .onErrorResume(S3ClientException.class,
                                                           error -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
                                                                                                  error)))
+                                           .onErrorResume((error) -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                                   new Exception(error))))
                                            .block();
         if (response.status().equals(RestoreStatus.WRONG_STORAGE_CLASS)) {
             LOGGER.warn("The requested file {} is present but its storage class is not "
@@ -89,6 +91,7 @@ public class S3GlacierUtils {
             return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         return response;
+
     }
 
     /**
