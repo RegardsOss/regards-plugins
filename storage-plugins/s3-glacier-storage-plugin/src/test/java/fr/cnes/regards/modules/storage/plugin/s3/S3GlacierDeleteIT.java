@@ -28,7 +28,6 @@ import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.slf4j.Logger;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
@@ -41,8 +40,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Test class for {@link  S3Glacier#delete(FileDeletionWorkingSubset, IDeletionProgressManager)}
  *
@@ -50,8 +47,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  **/
 @SpringBootTest
 public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
-
-    private static final Logger LOGGER = getLogger(AbstractS3GlacierIT.class);
 
     @Test
     @Purpose("Test that a small file present in the archive building workspace is correctly deleted")

@@ -7,6 +7,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
+import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
@@ -39,6 +40,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -685,6 +687,66 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean hasPeriodicAction() {
+        return true;
+    }
+
+    @Override
+    public void runCheckPendingAction(IPeriodicActionProgressManager progressManager,
+                                      Set<FileReference> filesWithPendingActions) {
+        LOGGER.info("Glacier periodic pending actions started");
+        String tenant = runtimeTenantResolver.getTenant();
+        List<Future<LockServiceResponse<Void>>> taskResults = null;
+        try {
+            taskResults = executorService.invokeAll(filesWithPendingActions.stream()
+                                                                           .map(ref -> doCheckPendingAction(ref.getLocation()
+                                                                                                               .getUrl(),
+                                                                                                            progressManager,
+                                                                                                            tenant))
+                                                                           .toList());
+            // Wait for all tasks to complete
+            for (Future<LockServiceResponse<Void>> future : taskResults) {
+                future.get();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
+        LOGGER.info("Glacier periodic pending actions ended");
+    }
+
+    Callable<LockServiceResponse<Void>> doCheckPendingAction(String url,
+                                                             IPeriodicActionProgressManager progressManager,
+                                                             String tenant) {
+        return () -> {
+            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+            runtimeTenantResolver.forceTenant(tenant);
+            S3GlacierUtils.S3GlacierUrl s3GlacierUrl = S3GlacierUtils.dispatchS3Url(url);
+            if (!s3GlacierUrl.isSmallFileUrl()) {
+                LOGGER.error("The URL {} is not a small file url and has a pending action which is not supported by "
+                             + "the S3Glacier", url);
+                return null;
+            }
+            Path archiveRelativePath = getServerPath().relativize(Path.of(s3GlacierUrl.archiveFilePath()));
+            CheckPendingActionTaskConfiguration checkPendingActionTaskConfiguration = new CheckPendingActionTaskConfiguration(
+                url,
+                archiveRelativePath,
+                s3GlacierUrl.smallFileNameInArchive().get(),
+                workspacePath,
+                storageConfiguration);
+            CheckPendingActionTask task = new CheckPendingActionTask(checkPendingActionTaskConfiguration,
+                                                                     progressManager);
+            lockService.runWithLock(S3GlacierUtils.getLockName(rootPath,
+                                                               archiveRelativePath.toString(),
+                                                               S3Glacier.LOCK_STORE_SUFFIX), task);
+            return null;
+        };
+
     }
 
     private Path getServerPath() {
