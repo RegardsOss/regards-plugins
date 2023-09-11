@@ -163,10 +163,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String standardStorageClassName;
 
     /**
-     * Duration before end of locking time to run lock renew. To avoid lock renew done too late.
+     * Duration in milliseconds before end of locking time to run lock renew. To avoid lock renew done too late.
      */
     @Value("${regards.glacier.renew.call.duration:1000}")
-    private int renewCallDuration = 1000;
+    private int renewCallDurationInMs = 1000;
 
     /**
      * Timeout to acquire a new lock to run a {@link CleanDirectoryTask}
@@ -360,7 +360,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     createS3Client(),
                     lockName,
                     Instant.now(),
-                    renewCallDuration,
+                    renewCallDurationInMs,
                     standardStorageClassName,
                     lockService);
                 RetrieveCacheFileTask task = new RetrieveCacheFileTask(configuration, request, progressManager);
@@ -468,7 +468,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     s3AccessTimeout,
                     lockName,
                     Instant.now(),
-                    renewCallDuration,
+                    renewCallDurationInMs,
                     standardStorageClassName,
                     lockService,
                     glacierArchiveService);

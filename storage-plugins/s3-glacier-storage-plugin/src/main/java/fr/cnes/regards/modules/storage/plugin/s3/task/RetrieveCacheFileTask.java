@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
+import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
@@ -126,19 +127,19 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
             }
 
             // Launch check restoration process
-            boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
-                                                                                          relativeArchivePath),
-                                                                                  relativeArchivePath,
-                                                                                  configuration.s3Configuration(),
-                                                                                  configuration.s3AccessTimeout(),
-                                                                                  configuration.lockName(),
-                                                                                  configuration.lockCreationDate(),
-                                                                                  configuration.renewDuration(),
-                                                                                  configuration.standardStorageClassName(),
-                                                                                  configuration.lockService(),
-                                                                                  configuration.s3Client());
+            GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
+                                                                                           relativeArchivePath),
+                                                                                   relativeArchivePath,
+                                                                                   configuration.s3Configuration(),
+                                                                                   configuration.s3AccessTimeoutInSeconds(),
+                                                                                   configuration.lockName(),
+                                                                                   configuration.lockCreationDate(),
+                                                                                   configuration.renewDurationInMs(),
+                                                                                   configuration.standardStorageClassName(),
+                                                                                   configuration.lockService(),
+                                                                                   configuration.s3Client());
 
-            if (restorationComplete) {
+            if (fileStatus == GlacierFileStatus.AVAILABLE) {
                 extractThenCopyFileAndHandleSuccess(localPath, archivePath);
             } else {
                 progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
@@ -174,18 +175,18 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         // Launch check restoration process
         Path targetPath = Path.of(request.getRestorationDirectory(),
                                   configuration.fileRelativePath().getFileName().toString());
-        boolean restorationComplete = S3GlacierUtils.checkRestorationComplete(targetPath,
-                                                                              configuration.fileRelativePath()
-                                                                                           .toString(),
-                                                                              configuration.s3Configuration(),
-                                                                              configuration.s3AccessTimeout(),
-                                                                              configuration.lockName(),
-                                                                              configuration.lockCreationDate(),
-                                                                              configuration.renewDuration(),
-                                                                              configuration.standardStorageClassName(),
-                                                                              configuration.lockService(),
-                                                                              configuration.s3Client());
-        if (restorationComplete) {
+        GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(targetPath,
+                                                                               configuration.fileRelativePath()
+                                                                                            .toString(),
+                                                                               configuration.s3Configuration(),
+                                                                               configuration.s3AccessTimeoutInSeconds(),
+                                                                               configuration.lockName(),
+                                                                               configuration.lockCreationDate(),
+                                                                               configuration.renewDurationInMs(),
+                                                                               configuration.standardStorageClassName(),
+                                                                               configuration.lockService(),
+                                                                               configuration.s3Client());
+        if (fileStatus == GlacierFileStatus.AVAILABLE) {
             progressManager.restoreSucceed(request, targetPath);
         } else {
             progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");

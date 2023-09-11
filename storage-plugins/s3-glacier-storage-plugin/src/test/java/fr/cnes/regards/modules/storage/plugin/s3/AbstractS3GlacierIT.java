@@ -26,6 +26,7 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
+import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
@@ -812,13 +813,15 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<Boolean> isStandardStorageClass(StorageConfig config, String key, String standardStorageClassName) {
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+                                                       String key,
+                                                       String standardStorageClassName) {
             if (tryCount >= 2) {
                 tryCount = 0;
-                return Mono.just(true);
+                return Mono.just(GlacierFileStatus.AVAILABLE);
             } else {
                 tryCount++;
-                return Mono.just(false);
+                return Mono.just(GlacierFileStatus.RESTORE_PENDING);
             }
         }
 
