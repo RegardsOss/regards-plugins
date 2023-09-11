@@ -20,7 +20,6 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils;
 
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
-import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId;
 import lombok.Value;
 import org.slf4j.Logger;
@@ -30,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -74,20 +72,6 @@ public class ErrorControllerAdvice {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
-    }
-
-    @ExceptionHandler(Throwable.class)
-    @ResponseBody
-    public ResponseEntity<ErrorStructure> formatError(Throwable e) {
-        UUID cid = StacRequestCorrelationId.currentCId();
-        error(LOGGER, "STAC Request {}: {}", cid, e.getMessage(), e);
-        return new ResponseEntity<>(new ErrorStructure(cid,
-                                                       StacFailureType.UNKNOWN.name(),
-                                                       e.getMessage(),
-                                                       e.getCause() == null ? null : e.getCause().getMessage(),
-                                                       OffsetDateTime.now()),
-                                    headers(),
-                                    StacFailureType.UNKNOWN.getStatus());
     }
 
 }
