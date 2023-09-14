@@ -19,8 +19,10 @@
 package fr.cnes.regards.modules.storage.s3.common;
 
 import com.google.common.collect.Maps;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
@@ -144,10 +146,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected Boolean allowPhysicalDeletion;
 
     /**
-     * Cache for the client S3
-     * (Do not use this field, use the createS3Client)
+     * s3Client
      */
-    private S3HighLevelReactiveClient clientCache;
+    private S3HighLevelReactiveClient client;
 
     /**
      * Configuration of S3 server
@@ -166,8 +167,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     /**
      * Initialize the storage configuration of S3 server
      */
-    @PluginInit
-    public void init() {
+    @PluginInit(hasConfiguration = true)
+    public void init(PluginConfiguration conf) {
         if (rawRootPath == null) {
             rootPath = "";
         } else {
@@ -183,20 +184,22 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                             .bucket(bucket)
                                             .rootPath(rootPath)
                                             .build();
+
+        Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", conf.getBusinessId()), 10);
+        int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
+        client = new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
+    }
+
+    @PluginDestroy
+    void dispose() {
+        client.close();
     }
 
     /**
-     * Create the client S3 in order to communicate with S3 server
-     *
      * @return the client S3
      */
-    protected S3HighLevelReactiveClient createS3Client() {
-        if (clientCache == null) {
-            Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
-            int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
-            clientCache = new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
-        }
-        return clientCache;
+    protected S3HighLevelReactiveClient getS3Client() {
+        return client;
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
@@ -216,36 +219,36 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
                                                                          cmdId,
                                                                          getEntryKey(request.getFileReference()));
-        createS3Client().delete(deleteCmd)
-                        .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
-                                                                                unreachable -> Mono.error(new RuntimeException(
-                                                                                    "Unreachable endpoint")),
-                                                                                failure -> Mono.error(new RuntimeException(
-                                                                                    "Delete failure in S3 storage"))))
-                        .doOnError(t -> {
-                            try {
-                                runtimeTenantResolver.forceTenant(tenant);
-                                LOGGER.error("End deleting {} with location {}",
-                                             request.getFileReference().getMetaInfo().getFileName(),
-                                             request.getFileReference().getLocation().getUrl(),
-                                             t);
-                                progressManager.deletionFailed(request, "Delete failure in S3 storage");
-                            } finally {
-                                runtimeTenantResolver.clearTenant();
-                            }
-                        })
-                        .doOnSuccess(success -> {
-                            try {
-                                runtimeTenantResolver.forceTenant(tenant);
-                                LOGGER.info("End deleting {} with location {}",
-                                            request.getFileReference().getMetaInfo().getFileName(),
-                                            request.getFileReference().getLocation().getUrl());
-                                progressManager.deletionSucceed(request);
-                            } finally {
-                                runtimeTenantResolver.clearTenant();
-                            }
-                        })
-                        .block();
+        getS3Client().delete(deleteCmd)
+                     .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
+                                                                             unreachable -> Mono.error(new RuntimeException(
+                                                                                 "Unreachable endpoint")),
+                                                                             failure -> Mono.error(new RuntimeException(
+                                                                                 "Delete failure in S3 storage"))))
+                     .doOnError(t -> {
+                         try {
+                             runtimeTenantResolver.forceTenant(tenant);
+                             LOGGER.error("End deleting {} with location {}",
+                                          request.getFileReference().getMetaInfo().getFileName(),
+                                          request.getFileReference().getLocation().getUrl(),
+                                          t);
+                             progressManager.deletionFailed(request, "Delete failure in S3 storage");
+                         } finally {
+                             runtimeTenantResolver.clearTenant();
+                         }
+                     })
+                     .doOnSuccess(success -> {
+                         try {
+                             runtimeTenantResolver.forceTenant(tenant);
+                             LOGGER.info("End deleting {} with location {}",
+                                         request.getFileReference().getMetaInfo().getFileName(),
+                                         request.getFileReference().getLocation().getUrl());
+                             progressManager.deletionSucceed(request);
+                         } finally {
+                             runtimeTenantResolver.clearTenant();
+                         }
+                     })
+                     .block();
     }
 
     protected void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
@@ -270,27 +273,26 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                           storageEntry,
                                                                           request.getMetaInfo().getChecksum());
 
-            createS3Client().write(writeCmd)
-                            .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
-                                                                                 unreachable -> Mono.error(new RuntimeException(
-                                                                                     "Unreachable endpoint")),
-                                                                                 failure -> {
-                                                                                     return handleWriteError(failure.getCause());
-                                                                                 }))
-                            .doOnError(t -> {
-                                LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
-                                // Do not handle error here. Block method will throw the exception wrapped in a
-                                // RuntimeException. Error is handle in catch of this runtimeException here under.
-                            })
-                            .doOnSuccess(success -> {
-                                LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
-                                progressManager.storageSucceed(request,
-                                                               storageConfiguration.entryKeyUrl(entryKey.replaceFirst(
-                                                                   "^/*",
-                                                                   "")),
-                                                               success.getSize());
-                            })
-                            .block();
+            getS3Client().write(writeCmd)
+                         .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                              unreachable -> Mono.error(new RuntimeException(
+                                                                                  "Unreachable endpoint")),
+                                                                              failure -> {
+                                                                                  return handleWriteError(failure.getCause());
+                                                                              }))
+                         .doOnError(t -> {
+                             LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
+                             // Do not handle error here. Block method will throw the exception wrapped in a
+                             // RuntimeException. Error is handle in catch of this runtimeException here under.
+                         })
+                         .doOnSuccess(success -> {
+                             LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
+                             progressManager.storageSucceed(request,
+                                                            storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*",
+                                                                                                                   "")),
+                                                            success.getSize());
+                         })
+                         .block();
 
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);
