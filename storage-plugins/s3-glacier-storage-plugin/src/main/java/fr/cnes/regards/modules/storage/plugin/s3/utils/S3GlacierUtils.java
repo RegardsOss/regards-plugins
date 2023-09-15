@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3.utils;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
+import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
@@ -97,44 +98,42 @@ public class S3GlacierUtils {
     /**
      * Check if the restoration of a file is completed, either successfully or after the timeout is exceeded
      *
-     * @param targetFilePath    path where the file will be downloaded
-     * @param key               s3 key of the file to download
-     * @param s3Configuration   configuration of the s3 storage
-     * @param s3AccessTimeout   time after which the restoration attempt will fail
-     * @param lockName          name of the lock for renewal purpose
-     * @param lockCreationDate  creation date of the lock for renewal purpose
-     * @param renewCallDuration worst case scenario duration of the renewal call, necessary to prevent the lock from expiring between renewal call and renewal success
-     * @param lockService       lockService handling the lock renewal
-     * @return true if the restoration succeeded, false otherwise
+     * @param targetFilePath           path where the file will be downloaded
+     * @param key                      s3 key of the file to download
+     * @param s3Configuration          configuration of the s3 storage
+     * @param s3AccessTimeoutInSeconds time after which the restoration attempt will fail
+     * @param lockName                 name of the lock for renewal purpose
+     * @param lockCreationDate         creation date of the lock for renewal purpose
+     * @param renewCallDurationInMs    worst case scenario duration of the renewal call, necessary to prevent the lock from expiring between renewal call and renewal success
+     * @param lockService              lockService handling the lock renewal
+     * @return GlacierFileStatus
      */
-    public static boolean checkRestorationComplete(Path targetFilePath,
-                                                   String key,
-                                                   StorageConfig s3Configuration,
-                                                   int s3AccessTimeout,
-                                                   String lockName,
-                                                   Instant lockCreationDate,
-                                                   Long renewCallDuration,
-                                                   @Nullable String standardStorageClassName,
-                                                   LockService lockService,
-                                                   S3HighLevelReactiveClient s3Client) {
+    public static GlacierFileStatus checkRestorationComplete(Path targetFilePath,
+                                                             String key,
+                                                             StorageConfig s3Configuration,
+                                                             int s3AccessTimeoutInSeconds,
+                                                             String lockName,
+                                                             Instant lockCreationDate,
+                                                             Long renewCallDurationInMs,
+                                                             @Nullable String standardStorageClassName,
+                                                             LockService lockService,
+                                                             S3HighLevelReactiveClient s3Client) {
         int lockTimeToLive = lockService.getTimeToLive();
 
         String downloadedFileName = targetFilePath.getFileName().toString();
-        boolean restorationComplete = false;
-        boolean delayExpired = false;
+        GlacierFileStatus fileStatus = GlacierFileStatus.NOT_AVAILABLE;
+        boolean retryAvailability = true;
         int delay = RetrieveCacheFileTask.INITIAL_DELAY;
         int totalWaited = 0;
         int iterationNumber = 0;
         int reachServerAttempt = 0;
         try {
-            while (!restorationComplete && !delayExpired) {
+            while ((fileStatus != GlacierFileStatus.AVAILABLE) && retryAvailability) {
                 iterationNumber++;
                 reachServerAttempt++;
                 LOGGER.debug("Checking if restoration succeeded");
                 try {
-                    restorationComplete = s3Client.isStandardStorageClass(s3Configuration,
-                                                                          key,
-                                                                          standardStorageClassName).block();
+                    fileStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName).block();
                     reachServerAttempt = 0;
                 } catch (S3ClientException e) {
                     LOGGER.warn("Unable to check if the restoration is complete because the server is unreachable");
@@ -142,33 +141,49 @@ public class S3GlacierUtils {
                         throw e;
                     }
                 }
-                if (restorationComplete) {
-                    LOGGER.debug("Restoration succeeded");
-                    String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
-                    LOGGER.info("Downloading file from S3");
-                    InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
-                                                                                        s3Configuration,
-                                                                                        new StorageCommandID(taskId,
-                                                                                                             UUID.randomUUID()));
-                    LOGGER.info("File download ended");
-                    FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
-                } else {
-                    LOGGER.debug("Restoration not succeeded yet");
-                    if (totalWaited > s3AccessTimeout * 1000) {
-                        LOGGER.error("The Restoration was not completed after the set maximum delay of {} s, ending "
-                                     + "restoration process", s3AccessTimeout * 1000);
-                        delayExpired = true;
-                    } else {
-                        WaitingLock lock = new WaitingLock(lockName,
-                                                           lockCreationDate,
-                                                           lockTimeToLive,
-                                                           renewCallDuration,
-                                                           lockService);
-                        LOGGER.debug("Next try in {}", delay);
-                        LOGGER.debug("Will wait at most {}", s3AccessTimeout * 1000 - totalWaited);
-                        lock.waitAndRenew(delay);
-                        totalWaited += delay;
-                        delay = 2 * delay;
+                switch (fileStatus) {
+                    case RESTORE_PENDING -> {
+                        LOGGER.info("Restoration of file {}/{} not succeeded yet. Waiting for restoration end.",
+                                    s3Configuration.getBucket(),
+                                    key);
+                        if (totalWaited > s3AccessTimeoutInSeconds * 1000) {
+                            LOGGER.error("The Restoration was not completed after the set maximum delay of {}s, ending "
+                                         + "restoration process", s3AccessTimeoutInSeconds);
+                            retryAvailability = false;
+                        } else {
+                            WaitingLock lock = new WaitingLock(lockName,
+                                                               lockCreationDate,
+                                                               lockTimeToLive,
+                                                               renewCallDurationInMs,
+                                                               lockService);
+                            LOGGER.debug("Next try in {}", delay);
+                            LOGGER.debug("Will wait at most {}ms", s3AccessTimeoutInSeconds * 1000 - totalWaited);
+                            lock.waitAndRenew(delay);
+                            totalWaited += delay;
+                            delay = 2 * delay;
+                        }
+                    }
+                    case AVAILABLE -> {
+                        LOGGER.info("Restoration succeeded for file {}/{}", s3Configuration.getBucket(), key);
+                        String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
+                        InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
+                                                                                            s3Configuration,
+                                                                                            new StorageCommandID(taskId,
+                                                                                                                 UUID.randomUUID()));
+                        FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
+                        retryAvailability = false;
+                    }
+                    case EXPIRED -> {
+                        LOGGER.error("The restoration of file {}/{} is done but expired. File is no longer available.",
+                                     s3Configuration.getBucket(),
+                                     key);
+                        retryAvailability = false;
+                    }
+                    case NOT_AVAILABLE -> {
+                        LOGGER.error("File {}/{} is not available and no restoration request is pending.",
+                                     s3Configuration.getBucket(),
+                                     key);
+                        retryAvailability = false;
                     }
                 }
             }
@@ -181,7 +196,7 @@ public class S3GlacierUtils {
         } catch (S3ClientException e) {
             LOGGER.error("Unable to reach S3 Server to restore the file", e);
         }
-        return restorationComplete;
+        return fileStatus;
     }
 
     /**

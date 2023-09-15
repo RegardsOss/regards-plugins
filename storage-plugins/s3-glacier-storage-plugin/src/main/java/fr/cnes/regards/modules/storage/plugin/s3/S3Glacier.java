@@ -163,10 +163,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String standardStorageClassName;
 
     /**
-     * Duration before end of locking time to run lock renew. To avoid lock renew done too late.
+     * Duration in milliseconds before end of locking time to run lock renew. To avoid lock renew done too late.
      */
     @Value("${regards.glacier.renew.call.duration:1000}")
-    private int renewCallDuration = 1000;
+    private int renewCallDurationInMs = 1000;
 
     /**
      * Timeout to acquire a new lock to run a {@link CleanDirectoryTask}
@@ -187,8 +187,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private ThreadPoolTaskScheduler scheduler;
 
     @PluginInit(hasConfiguration = true)
-    public void init(PluginConfiguration conf) {
-        super.init();
+    public void initGlacier(PluginConfiguration conf) {
         if (runtimeTenantResolver != null) {
             workspacePath = Path.of(rawWorkspacePath, runtimeTenantResolver.getTenant()).toString();
         } else {
@@ -204,7 +203,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         initWorkspaceCleanScheduler();
     }
 
-    public void initWorkspaceCleanScheduler() {
+    private void initWorkspaceCleanScheduler() {
         scheduler = new ThreadPoolTaskScheduler();
         scheduler.initialize();
         Trigger trigger = new PeriodicTrigger(scheduledCacheClean, TimeUnit.MINUTES);
@@ -357,10 +356,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     s3AccessTimeout,
                     rootPath,
                     isSmallFile,
-                    createS3Client(),
+                    getS3Client(),
                     lockName,
                     Instant.now(),
-                    renewCallDuration,
+                    renewCallDurationInMs,
                     standardStorageClassName,
                     lockService);
                 RetrieveCacheFileTask task = new RetrieveCacheFileTask(configuration, request, progressManager);
@@ -438,7 +437,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     getArchiveBuildingWorkspacePath(),
                     storageName,
                     storageConfiguration,
-                    createS3Client(),
+                    getS3Client(),
                     glacierArchiveService);
                 DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(configuration, request, progressManager);
                 LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask from Glacier with lock",
@@ -464,11 +463,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     node,
                     storageName,
                     storageConfiguration,
-                    createS3Client(),
+                    getS3Client(),
                     s3AccessTimeout,
                     lockName,
                     Instant.now(),
-                    renewCallDuration,
+                    renewCallDurationInMs,
                     standardStorageClassName,
                     lockService,
                     glacierArchiveService);
@@ -559,7 +558,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                 storageConfiguration,
                 multipartThresholdMb,
                 glacierArchiveService,
-                createS3Client());
+                getS3Client());
             SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
                                                                      progressManager);
             LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(rootPath,

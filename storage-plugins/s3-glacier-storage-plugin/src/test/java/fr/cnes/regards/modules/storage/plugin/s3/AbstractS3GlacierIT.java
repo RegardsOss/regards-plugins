@@ -26,6 +26,7 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
+import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
@@ -153,6 +154,8 @@ public abstract class AbstractS3GlacierIT {
 
     private S3StorageConfiguration s3StorageSettingsMock;
 
+    private S3HighLevelReactiveClient s3Client;
+
     @Before
     public void init() {
         S3BucketTestUtils.createBucket(createInputS3Server());
@@ -196,6 +199,11 @@ public abstract class AbstractS3GlacierIT {
     @After
     public void cleanBucket() {
         S3FileTestUtils.deleteAllFilesFromRoot(s3Glacier.storageConfiguration, rootPath);
+    }
+
+    @After
+    public void disposeClient() {
+        s3Client.close();
     }
 
     protected void loadPlugin(String endpoint,
@@ -261,7 +269,6 @@ public abstract class AbstractS3GlacierIT {
         Assert.assertNotNull(s3Glacier);
 
         Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
-        S3HighLevelReactiveClient s3Client;
         if (mockRestore) {
             // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
             s3Client = new MockedS3ClientWithoutRestore(scheduler);
@@ -285,7 +292,7 @@ public abstract class AbstractS3GlacierIT {
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
         ReflectionTestUtils.setField(s3Glacier, "glacierArchiveService", glacierArchiveService);
         ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);
-        ReflectionTestUtils.setField(s3Glacier, "clientCache", s3Client);
+        ReflectionTestUtils.setField(s3Glacier, "client", s3Client);
 
     }
 
@@ -812,13 +819,15 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<Boolean> isStandardStorageClass(StorageConfig config, String key, String standardStorageClassName) {
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+                                                       String key,
+                                                       String standardStorageClassName) {
             if (tryCount >= 2) {
                 tryCount = 0;
-                return Mono.just(true);
+                return Mono.just(GlacierFileStatus.AVAILABLE);
             } else {
                 tryCount++;
-                return Mono.just(false);
+                return Mono.just(GlacierFileStatus.RESTORE_PENDING);
             }
         }
 

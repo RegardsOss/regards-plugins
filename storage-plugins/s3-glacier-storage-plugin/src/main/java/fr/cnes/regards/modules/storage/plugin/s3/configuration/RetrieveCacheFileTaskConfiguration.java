@@ -31,13 +31,13 @@ import java.time.Instant;
 public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath,
                                                  String cachePath,
                                                  StorageConfig s3Configuration,
-                                                 int s3AccessTimeout,
+                                                 int s3AccessTimeoutInSeconds,
                                                  String rootPath,
                                                  boolean isSmallFile,
                                                  S3HighLevelReactiveClient s3Client,
                                                  String lockName,
                                                  Instant lockCreationDate,
-                                                 long renewDuration,
+                                                 long renewDurationInMs,
                                                  String standardStorageClassName,
                                                  LockService lockService) {
 
