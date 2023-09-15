@@ -37,6 +37,5 @@
         <module>worker-manager-sender</module>
         <module>dissemination-ack-sender</module>
         <module>lta-request-sender</module>
-        <module>chronos-recipient-sender</module>
     </modules>
 </project>
