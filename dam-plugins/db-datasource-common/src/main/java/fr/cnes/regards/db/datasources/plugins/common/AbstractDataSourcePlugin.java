@@ -32,8 +32,22 @@ public abstract class AbstractDataSourcePlugin implements IDataSourcePlugin {
                      description = "Associated data source model name")
     protected String modelName;
 
+    @PluginParameter(name = DataSourcePluginConstants.COLUMN_ID,
+                     label = "column id",
+                     optional = true,
+                     description = "the column name which contains ids")
+    protected String columnId;
+
+    @PluginParameter(name = DataSourcePluginConstants.UNIQUE_ID,
+                     label = "unique id",
+                     defaultValue = "false",
+                     optional = true,
+                     description = "indicate if ids of column id are unique or not")
+    protected Boolean uniqueId;
+
     @Override
     public String getModelName() {
         return modelName;
     }
+
 }

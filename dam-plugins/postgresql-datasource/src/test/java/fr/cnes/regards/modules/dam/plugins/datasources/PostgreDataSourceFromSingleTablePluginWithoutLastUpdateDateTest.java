@@ -232,7 +232,9 @@ public class PostgreDataSourceFromSingleTablePluginWithoutLastUpdateDateTest ext
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(TENANT, new CrawlingCursor(0, 10), date);
+        CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
+        crawlingCursor.setLastEntityDate(date);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(TENANT, crawlingCursor, null);
         Assert.assertNotNull(ll);
         Assert.assertEquals(3, ll.size());
 

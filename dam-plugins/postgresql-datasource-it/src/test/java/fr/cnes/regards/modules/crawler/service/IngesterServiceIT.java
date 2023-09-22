@@ -54,6 +54,7 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import org.assertj.core.util.Lists;
 import org.junit.*;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,6 +73,12 @@ import java.util.Set;
 // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
 public class IngesterServiceIT extends AbstractRegardsIT {
+
+    private static final String PLUGIN_LABEL_1 = "pluginConf1";
+
+    private static final String PLUGIN_LABEL_2 = "pluginConf2";
+
+    private static final String PLUGIN_LABEL_3 = "pluginConf3";
 
     @Autowired
     private MultitenantFlattenedAttributeAdapterFactoryEventHandler gsonAttributeFactoryHandler;
@@ -185,8 +192,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
                                                              null,
                                                              parameters);
-        conf.setLabel("pluginConf1");
-        conf.setBusinessId("pluginConf1");
+        conf.setLabel(PLUGIN_LABEL_1);
+        conf.setBusinessId(PLUGIN_LABEL_1);
         return conf;
     }
 
@@ -205,8 +212,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
                                                              null,
                                                              parameters);
-        conf.setLabel("pluginConf2");
-        conf.setBusinessId("pluginConf2");
+        conf.setLabel(PLUGIN_LABEL_2);
+        conf.setBusinessId(PLUGIN_LABEL_2);
         return conf;
     }
 
@@ -225,8 +232,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         PluginConfiguration conf = PluginConfiguration.build(PostgreDataSourceFromSingleTablePlugin.class,
                                                              null,
                                                              parameters);
-        conf.setLabel("pluginConf3");
-        conf.setBusinessId("pluginConf3");
+        conf.setLabel(PLUGIN_LABEL_3);
+        conf.setBusinessId(PLUGIN_LABEL_3);
         return conf;
     }
 
@@ -375,8 +382,13 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
         ingesterService.manage();
         dsIngestions = dsIngestionRepos.findAll();
-        // ExternalData has a Date not a DateTime so its creation date will be available tomorrow, not today
-        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 0));
+        for (DatasourceIngestion dsIngestion : dsIngestions) {
+            switch (dsIngestion.getLabel()) {
+                case PLUGIN_LABEL_1 -> Assertions.assertEquals(1, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_2 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_3 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+            }
+        }
 
         final OffsetDateTime now = OffsetDateTime.now();
         final ExternalData2 data2_0 = new ExternalData2(now);
@@ -391,20 +403,50 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         dsIngestions = dsIngestionRepos.findAll();
         // because of refresh rates, only ExternalData2 datasource must be ingested, we should wait 9 more
         // seconds for ExternalData3 one
-        Assert.assertEquals(1, dsIngestions.stream().filter(dsIngest -> dsIngest.getSavedObjectsCount() == 1).count());
+        for (DatasourceIngestion dsIngestion : dsIngestions) {
+            switch (dsIngestion.getLabel()) {
+                case PLUGIN_LABEL_1 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_2 -> Assertions.assertEquals(1, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_3 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+            }
+        }
 
         Thread.sleep(9_000);
         ingesterService.manage();
         dsIngestions = dsIngestionRepos.findAll();
         // because of refresh rates, only ExternalData2 datasource must be ingested, we should wait at least 9 more
         // seconds for ExternalData3 one
-        Assert.assertEquals(1, dsIngestions.stream().filter(dsIngest -> dsIngest.getSavedObjectsCount() == 1).count());
+        for (DatasourceIngestion dsIngestion : dsIngestions) {
+            switch (dsIngestion.getLabel()) {
+                case PLUGIN_LABEL_1 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_2 -> Assertions.assertEquals(1, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_3 -> Assertions.assertEquals(1, dsIngestion.getSavedObjectsCount());
+            }
+        }
 
         Thread.sleep(10_000);
         ingesterService.manage();
         dsIngestions = dsIngestionRepos.findAll();
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
-        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 0));
+        for (DatasourceIngestion dsIngestion : dsIngestions) {
+            switch (dsIngestion.getLabel()) {
+                case PLUGIN_LABEL_1 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_2 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_3 -> Assertions.assertEquals(1, dsIngestion.getSavedObjectsCount());
+            }
+        }
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
+
+        Thread.sleep(10_000);
+        ingesterService.manage();
+        dsIngestions = dsIngestionRepos.findAll();
+        Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
+        for (DatasourceIngestion dsIngestion : dsIngestions) {
+            switch (dsIngestion.getLabel()) {
+                case PLUGIN_LABEL_1 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_2 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+                case PLUGIN_LABEL_3 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
+            }
+        }
     }
 }

@@ -31,6 +31,7 @@ import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursorMode;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -82,6 +83,11 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * A pattern used to set a date in the statement
      */
     protected static final String LAST_MODIFICATION_DATE_KEYWORD = "%last_modification_date%";
+
+    /**
+     * A pattern used to set id in the statement
+     */
+    protected static final String LAST_ID_KEYWORD = "%last_id%";
 
     /**
      * Class logger
@@ -142,6 +148,18 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      */
     private String lastUpdateAttributeName = "";
 
+    @Override
+    public CrawlingCursorMode getCrawlingCursorMode() {
+        if (columnId != null) {
+            return CrawlingCursorMode.CRAWL_FROM_LAST_ID;
+        }
+        if (getLastUpdateAttributeName().isBlank()) {
+            return CrawlingCursorMode.CRAWL_EVERYTHING;
+        } else {
+            return CrawlingCursorMode.CRAWL_SINCE_LAST_UPDATE;
+        }
+    }
+
     /**
      * Get {@link fr.cnes.regards.modules.model.dto.properties.DateProperty}.
      *
@@ -184,30 +202,29 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                                               Connection ctx,
                                               String inSelectRequest,
                                               String inCountRequest,
-                                              CrawlingCursor cursor,
-                                              OffsetDateTime sinceDate) throws DataSourceException {
-        List<DataObjectFeature> features = new ArrayList<>();
+                                              CrawlingCursor cursor) throws DataSourceException {
+        List<DataObjectFeature> features = null;
 
         try (Statement statement = ctx.createStatement()) {
 
             String selectRequest = inSelectRequest;
             String countRequest = inCountRequest;
 
-            if (sinceDate != null) {
-                selectRequest = buildDateStatement(selectRequest, sinceDate);
-                countRequest = buildDateStatement(countRequest, sinceDate);
+            if (getCrawlingCursorMode() == CrawlingCursorMode.CRAWL_FROM_LAST_ID) {
+                selectRequest = buildIdStatement(selectRequest, cursor);
+                countRequest = buildIdStatement(countRequest, cursor);
+            } else if (cursor.getLastEntityDate() != null) {
+                selectRequest = buildDateStatement(selectRequest, cursor.getLastEntityDate());
+                countRequest = buildDateStatement(countRequest, cursor.getLastEntityDate());
             }
             LOG.info("select request : {}", selectRequest);
             LOG.info("count request : {}", countRequest);
 
             // Execute the request to get the elements
             try (ResultSet rs = statement.executeQuery(selectRequest)) {
-                while (rs.next()) {
-                    features.add(processResultSet(rs, tenant));
-                }
+                features = processResults(rs, tenant, cursor);
             }
             countItems(statement, countRequest);
-
             // 3) Update cursor for next iteration
             // compute the total number of pages to process and see if there are still requests to be performed
             int totalNumOfPages = nbItems == 0 ? 1 : (int) Math.ceil((double) nbItems / (double) cursor.getSize());
@@ -219,6 +236,51 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         return features;
     }
 
+    private List<DataObjectFeature> processResults(ResultSet rs, String tenant, CrawlingCursor cursor)
+        throws SQLException, DataSourceException {
+        List<DataObjectFeature> features = new ArrayList<>();
+        switch (getCrawlingCursorMode()) {
+            case CRAWL_EVERYTHING -> {
+                while (rs.next()) {
+                    features.add(processResultSet(rs, tenant));
+                }
+            }
+            case CRAWL_SINCE_LAST_UPDATE -> {
+                Optional<AbstractAttributeMapping> column = computeLastUpdateDateColumn();
+                if (column.isPresent()) {
+                    while (rs.next()) {
+                        IProperty<?> attr = buildAttribute(rs, column.get());
+                        features.add(processResultSet(rs, tenant));
+                        if (attr != null && attr.getValue() != null) {
+                            cursor.setCurrentLastEntityDate(OffsetDateTime.parse(attr.getValue().toString()));
+                        } else {
+                            // this case will never happen because a where clause on specific column will exclude
+                            // null values
+                            throw new DataSourceException("last update date must not be null");
+                        }
+                    }
+                }
+            }
+            case CRAWL_FROM_LAST_ID -> {
+                while (rs.next()) {
+                    features.add(processResultSet(rs, tenant));
+                    cursor.setCurrentLastId(rs.getLong(columnId));
+                    LOG.info("Read line with id {} and columnId {} ", rs.getLong("id"), rs.getLong(columnId));
+                }
+            }
+        }
+        return features;
+    }
+
+    /**
+     * Returns the column id (type Long), the last_update column mapped, or null if none indicated
+     */
+    private Optional<AbstractAttributeMapping> computeLastUpdateDateColumn() {
+        return attributesMapping.stream()
+                                .filter(mapping -> mapping.getNameDS().equals(getLastUpdateAttributeName()))
+                                .findFirst();
+    }
+
     /**
      * Execute a SQL request to count the number of items
      *
@@ -227,7 +289,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
      * @throws SQLException an SQL error occurred
      */
     private void countItems(Statement statement, String countRequest) throws SQLException {
-        if ((countRequest != null) && !countRequest.isEmpty() && (nbItems == RESET_COUNT)) {
+        if ((countRequest != null) && !countRequest.isEmpty()) {
             // Execute the request to count the elements
             try (ResultSet rsCount = statement.executeQuery(countRequest)) {
                 if (rsCount.next()) {
@@ -283,7 +345,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
 
         //For each name space, add an ObjectAttribute to the list of attribute
         spaceNames.forEach((name, attrs) -> attributes.add(IProperty.buildObject(name,
-                                                                                   attrs.toArray(new IProperty[0]))));
+                                                                                 attrs.toArray(new IProperty[0]))));
 
         feature.setProperties(attributes);
 
@@ -466,6 +528,9 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         for (String col : columns) {
             clauseStr.append(col).append(COMMA);
         }
+        if (columnId != null) {
+            clauseStr.append(columnId).append(COMMA);
+        }
         return clauseStr.substring(0, clauseStr.length() - 1) + BLANK;
     }
 
@@ -486,6 +551,18 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
                                   + " > '"
                                   + getLastUpdateValue(getLastUpdateAttributeName(), date)
                                   + "'");
+    }
+
+    /**
+     * Replace the key word '%last_id%' in the request to get the data from a date
+     */
+    private String buildIdStatement(String request, CrawlingCursor cursor) throws DataSourceException {
+        if (cursor.getLastId() != null) {
+            String sign = uniqueId ? " > " : " >= ";
+            return request.replaceAll(LAST_ID_KEYWORD, columnId + sign + cursor.getLastId());
+        } else {
+            return request.replaceAll(LAST_ID_KEYWORD, columnId + " > " + Long.MIN_VALUE);
+        }
     }
 
     protected abstract String getLastUpdateValue(String lastUpdateColumnName, OffsetDateTime date)

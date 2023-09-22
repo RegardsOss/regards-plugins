@@ -114,8 +114,8 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
     }
 
     @Override
-    protected SqlGenerator buildSqlGenerator(String allColumnsClause, String orderBy) {
-        return new PostgreSqlGenerator(allColumnsClause, orderBy);
+    protected SqlGenerator buildSqlGenerator(String allColumnsClause) {
+        return new PostgreSqlGenerator(allColumnsClause);
     }
 
     @Override

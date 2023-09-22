@@ -258,7 +258,9 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), date);
+        CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
+        crawlingCursor.setLastEntityDate(date);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), crawlingCursor, null);
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.size());
 
@@ -282,7 +284,9 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         Assert.assertEquals(nbElements, repository.count());
 
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), ldt);
+        CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
+        crawlingCursor.setLastEntityDate(ldt);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), crawlingCursor, null);
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.size());
     }

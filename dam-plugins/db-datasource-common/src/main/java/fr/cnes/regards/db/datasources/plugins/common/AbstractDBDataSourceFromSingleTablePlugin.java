@@ -24,6 +24,7 @@ import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
+import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursorMode;
 import fr.cnes.regards.modules.dam.domain.datasources.Table;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
@@ -32,7 +33,7 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -80,7 +81,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
 
     protected abstract SqlGenerator buildSqlGenerator();
 
-    protected abstract SqlGenerator buildSqlGenerator(String allColumnsClause, String orderBy);
+    protected abstract SqlGenerator buildSqlGenerator(String allColumnsClause);
 
     /**
      * This method initialize the {@link SqlGenerator} used to request the database.<br>
@@ -101,7 +102,7 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
             if ("".equals(orderByColumn)) {
                 orderByColumn = columns.get(0);
             }
-            sqlGenerator = buildSqlGenerator(buildColumnClause(columns.toArray(new String[0])), orderByColumn);
+            sqlGenerator = buildSqlGenerator(buildColumnClause(columns.toArray(new String[0])));
         }
     }
 
@@ -155,46 +156,79 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
 
     /**
      * Build the SELECT request.</br>
-     * Add the key word "%last_modification_date%" in the WHERE clause.
+     * Compute keyword from crawling cursor mode
      *
      * @return the SELECT request
      */
-    protected String getSelectRequest(Pageable pageable, OffsetDateTime date) {
+    protected String getSelectRequest(CrawlingCursor cursor) {
+        PageRequest pageable = getPageRequest(cursor);
         String selectRequest = sqlGenerator.selectAll(tableDescription, pageable);
-
-        if ((date != null) && !getLastUpdateAttributeName().isEmpty()) {
-
-            if (selectRequest.contains(WHERE)) {
-                // Add at the beginning of the where clause
-                int pos = selectRequest.indexOf(WHERE);
-                selectRequest = selectRequest.substring(0, pos)
-                                + WHERE
-                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                                + AND
-                                + selectRequest.substring(pos + WHERE.length());
-            } else if (selectRequest.contains(ORDER_BY)) {
-                // Add before the order by clause
-                int pos = selectRequest.indexOf(ORDER_BY);
-                selectRequest = selectRequest.substring(0, pos)
-                                + WHERE
-                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                                + SPACE
-                                + selectRequest.substring(pos);
-            } else if (selectRequest.contains(LIMIT)) {
-                // Add before the limit clause
-                int pos = selectRequest.indexOf(LIMIT);
-                selectRequest = selectRequest.substring(0, pos)
-                                + WHERE
-                                + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD
-                                + SPACE
-                                + selectRequest.substring(pos);
-            } else {
-                // Add at the end of the request
-                selectRequest = selectRequest + WHERE + AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD;
-            }
-        }
+        selectRequest = switch (getCrawlingCursorMode()) {
+            case CRAWL_SINCE_LAST_UPDATE -> getSelectRequestWithCrawlerByLastUpdate(cursor, selectRequest);
+            case CRAWL_FROM_LAST_ID -> getSelectRequestWithCrawlerById(selectRequest);
+            default -> selectRequest;
+        };
 
         return selectRequest;
+    }
+
+    private String getSelectRequestWithCrawlerById(String selectRequest) {
+        return getSelectRequestWithWhereKeyword(selectRequest, LAST_ID_KEYWORD);
+    }
+
+    /**
+     * Build the SELECT request.</br>
+     * Add the key word in the WHERE clause.
+     *
+     * @return the SELECT request
+     */
+    private String getSelectRequestWithWhereKeyword(String selectRequest, String keyword) {
+        // select based on id column
+        if (selectRequest.contains(WHERE)) {
+            // Add at the beginning of the where clause
+            int pos = selectRequest.indexOf(WHERE);
+            selectRequest = selectRequest.substring(0, pos) + WHERE + keyword + AND + selectRequest.substring(pos
+                                                                                                              + WHERE.length());
+        } else if (selectRequest.contains(ORDER_BY)) {
+            // Add before the order by clause
+            int pos = selectRequest.indexOf(ORDER_BY);
+            selectRequest = selectRequest.substring(0, pos) + WHERE + keyword + SPACE + selectRequest.substring(pos);
+        } else if (selectRequest.contains(LIMIT)) {
+            // Add before the limit clause
+            int pos = selectRequest.indexOf(LIMIT);
+            selectRequest = selectRequest.substring(0, pos) + WHERE + keyword + SPACE + selectRequest.substring(pos);
+        } else {
+            // Add at the end of the request
+            selectRequest = selectRequest + WHERE + keyword;
+        }
+        return selectRequest;
+    }
+
+    private String getSelectRequestWithCrawlerByLastUpdate(CrawlingCursor cursor, String selectRequest) {
+        if ((cursor.getLastEntityDate() != null) && !getLastUpdateAttributeName().isEmpty()) {
+            selectRequest = getSelectRequestWithWhereKeyword(selectRequest,
+                                                             AbstractDataObjectMapping.LAST_MODIFICATION_DATE_KEYWORD);
+        }
+        return selectRequest;
+    }
+
+    private PageRequest getPageRequest(CrawlingCursor cursor) {
+        Sort.Order defaultOrderSorting = new Sort.Order(Sort.Direction.ASC, orderByColumn);
+        String customColumnSorting = null;
+        if (getCrawlingCursorMode() == CrawlingCursorMode.CRAWL_FROM_LAST_ID) {
+            customColumnSorting = columnId;
+        } else if (!getLastUpdateAttributeName().isBlank()) {
+            customColumnSorting = getLastUpdateAttributeName();
+        }
+        if (customColumnSorting != null && !customColumnSorting.equals(orderByColumn)) {
+            return PageRequest.of(cursor.getPosition(),
+                                  cursor.getSize(),
+                                  Sort.by(new Sort.Order(Sort.Direction.ASC,
+                                                         customColumnSorting,
+                                                         Sort.NullHandling.NULLS_FIRST), defaultOrderSorting));
+        } else {
+            return PageRequest.of(cursor.getPosition(), cursor.getSize(), Sort.by(defaultOrderSorting));
+        }
     }
 
     protected String getCountRequest(OffsetDateTime date) {
@@ -207,22 +241,38 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
         }
     }
 
+    protected String getCountRequest(Long id) {
+        if (id == null) {
+            return sqlGenerator.count(tableDescription);
+        } else {
+            return sqlGenerator.count(tableDescription) + WHERE + AbstractDataObjectMapping.LAST_ID_KEYWORD;
+        }
+    }
+
     @Override
     public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
         throws DataSourceException {
         if (sqlGenerator == null) {
             throw new DataSourceException("sqlGenerator is null");
         }
-        final String selectRequest = getSelectRequest(PageRequest.of(cursor.getPosition(), cursor.getSize()), date);
-        final String countRequest = getCountRequest(date);
+        final String selectRequest = getSelectRequest(cursor);
+        final String countRequest = getCountRequest(cursor);
 
         try (Connection conn = getDBConnection().getConnection()) {
 
-            return findAll(tenant, conn, selectRequest, countRequest, cursor, date);
+            return findAll(tenant, conn, selectRequest, countRequest, cursor);
         } catch (SQLException e) {
             // This exception can only be thrown from getDBConnection(), others have already been transformed into
             // DataSourceException
             throw new DataSourceException("Unable to obtain a database connection.", e);
+        }
+    }
+
+    private String getCountRequest(CrawlingCursor cursor) {
+        if (getCrawlingCursorMode() == CrawlingCursorMode.CRAWL_FROM_LAST_ID) {
+            return getCountRequest(cursor.getLastId());
+        } else {
+            return getCountRequest(cursor.getLastEntityDate());
         }
     }
 }

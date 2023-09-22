@@ -28,14 +28,8 @@ import org.springframework.data.domain.Sort;
  */
 public class PostgreSqlGenerator extends SqlGenerator {
 
-    /**
-     * The table name used in a "ORDER BY" clause
-     */
-    private String orderByTable;
-
-    public PostgreSqlGenerator(String allColumnsClause, String orderTable) {
+    public PostgreSqlGenerator(String allColumnsClause) {
         super(allColumnsClause);
-        this.orderByTable = orderTable;
     }
 
     public PostgreSqlGenerator() {
@@ -45,14 +39,8 @@ public class PostgreSqlGenerator extends SqlGenerator {
     @Override
     protected String limitClause(Pageable page) {
         int offset = page.getPageNumber() * page.getPageSize();
-
-        if ((orderByTable != null) && !orderByTable.isEmpty()) {
-            return String.format(" ORDER BY %s LIMIT %d OFFSET %d", orderByTable, page.getPageSize(), offset);
-
-        } else {
-            return String.format(" LIMIT %d OFFSET %d", page.getPageSize(), offset);
-        }
-
+        // ORDER BY is managed by SqlGenerator.selectAll(..)
+        return String.format(" LIMIT %d OFFSET %d", page.getPageSize(), offset);
     }
 
     @Override
