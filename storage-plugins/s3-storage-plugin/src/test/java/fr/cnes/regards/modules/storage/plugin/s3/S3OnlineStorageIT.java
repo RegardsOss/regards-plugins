@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.domain.S3Server;
@@ -37,10 +38,8 @@ import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -109,6 +108,9 @@ public class S3OnlineStorageIT {
      */
     private S3OnlineStorage s3OnlineStorage;
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Before
     public void prepare() {
         S3BucketTestUtils.createBucket(createInputS3Server());
@@ -154,6 +156,14 @@ public class S3OnlineStorageIT {
         IRuntimeTenantResolver resolverMock = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(resolverMock.getTenant()).thenReturn(TENANT);
         ReflectionTestUtils.setField(s3OnlineStorage, "runtimeTenantResolver", resolverMock);
+
+        WorkspaceService workspaceService = Mockito.mock(WorkspaceService.class);
+        try {
+            Mockito.when(workspaceService.getMicroserviceWorkspace()).thenReturn(temporaryFolder.getRoot().toPath());
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+        ReflectionTestUtils.setField(s3OnlineStorage, "workspaceService", workspaceService);
 
         // Settings for all available S3 servers for the downloading
         S3StorageConfiguration s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);

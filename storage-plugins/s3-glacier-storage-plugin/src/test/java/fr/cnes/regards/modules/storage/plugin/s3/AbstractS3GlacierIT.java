@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
@@ -156,6 +157,9 @@ public abstract class AbstractS3GlacierIT {
 
     private S3HighLevelReactiveClient s3Client;
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    
     @Before
     public void init() {
         S3BucketTestUtils.createBucket(createInputS3Server());
@@ -287,12 +291,20 @@ public abstract class AbstractS3GlacierIT {
             throw new RuntimeException(e);
         }
 
+        WorkspaceService workspaceService = Mockito.mock(WorkspaceService.class);
+        try {
+            Mockito.when(workspaceService.getMicroserviceWorkspace()).thenReturn(temporaryFolder.getRoot().toPath());
+        } catch (IOException e) {
+            Assert.fail(e.getMessage());
+        }
+
         // Apply mocks to the plugin
         ReflectionTestUtils.setField(s3Glacier, "s3StorageSettings", s3StorageSettingsMock);
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
         ReflectionTestUtils.setField(s3Glacier, "glacierArchiveService", glacierArchiveService);
         ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);
         ReflectionTestUtils.setField(s3Glacier, "client", s3Client);
+        ReflectionTestUtils.setField(s3Glacier, "workspaceService", workspaceService);
 
     }
 

@@ -23,6 +23,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
+import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
@@ -164,6 +165,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     @Autowired
     protected S3StorageConfiguration s3StorageSettings;
 
+    @Autowired
+    protected WorkspaceService workspaceService;
+
     /**
      * Initialize the storage configuration of S3 server
      */
@@ -254,12 +258,16 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
+            String tenant = runtimeTenantResolver.getTenant();
+
             // Download the file from url (File system, S3 server)
-            Flux<ByteBuffer> buffers = DataBufferUtils.readInputStream(() -> DownloadUtils.getInputStream(sourceUrl,
-                                                                                                          s3StorageSettings.getStorages()),
-                                                                       new DefaultDataBufferFactory(),
-                                                                       multipartThresholdMb * 1024 * 1024)
-                                                      .map(DataBuffer::asByteBuffer);
+            Flux<ByteBuffer> buffers = DataBufferUtils.readInputStream(() -> {
+                runtimeTenantResolver.forceTenant(tenant);
+                return DownloadUtils.getInputStream(sourceUrl,
+                                                    s3StorageSettings.getStorages(),
+                                                    multipartThresholdMb * 1024 * 1024L,
+                                                    workspaceService.getMicroserviceWorkspace());
+            }, new DefaultDataBufferFactory(), multipartThresholdMb * 1024 * 1024).map(DataBuffer::asByteBuffer);
 
             request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
 

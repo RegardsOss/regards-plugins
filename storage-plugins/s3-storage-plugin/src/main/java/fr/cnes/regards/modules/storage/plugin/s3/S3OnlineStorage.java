@@ -14,9 +14,15 @@ import java.util.UUID;
 /**
  * Main class of plugin of storage(online type) in S3 server
  */
-@Plugin(author = "REGARDS Team", description = "Plugin handling the storage on S3", id = "S3", version = "1.0",
-    contact = "regards@c-s.fr", license = "GPLv3", owner = "CNES", markdown = "S3StoragePlugin.md",
-    url = "https://regardsoss.github.io/")
+@Plugin(author = "REGARDS Team",
+        description = "Plugin handling the storage on S3",
+        id = "S3",
+        version = "1.0",
+        contact = "regards@c-s.fr",
+        license = "GPLv3",
+        owner = "CNES",
+        markdown = "S3StoragePlugin.md",
+        url = "https://regardsoss.github.io/")
 public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorageLocation {
 
     /**
@@ -27,7 +33,11 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
      */
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
-        workingSet.getFileReferenceRequests().forEach(request -> handleStoreRequest(request, progressManager));
+        String tenant = runtimeTenantResolver.getTenant();
+        workingSet.getFileReferenceRequests().forEach(request -> {
+            runtimeTenantResolver.forceTenant(tenant);
+            handleStoreRequest(request, progressManager);
+        });
     }
 
     /**
