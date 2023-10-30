@@ -108,6 +108,15 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @Autowired
     private GlacierArchiveService glacierArchiveService;
 
+    /**
+     * Parallel thread executor service for store actions.
+     * As store actions can use a lot of memory (depending on configuration) it has his own pool.
+     */
+    ExecutorService storeExecutorService;
+
+    /**
+     * Parallel thread executor service for all actions except store.
+     */
     ExecutorService executorService;
 
     @PluginParameter(name = GLACIER_WORKSPACE_PATH,
@@ -136,11 +145,17 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private int archiveMaxAge;
 
     @PluginParameter(name = GLACIER_PARALLEL_TASK_NUMBER,
-                     description = "Number of tasks that can be handled at the same time in each job. The "
-                                   + "different tasks (Store, Restore, Delete) use the same thread pool ",
-                     label = "Parallel Task Number",
+                     description = "Number of parallel tasks for file restoration and deletion.",
+                     label = "Number of file to restore or to delete in parallel",
                      defaultValue = "20")
     private int parallelTaskNumber;
+
+    @PluginParameter(name = GLACIER_PARALLEL_TASK_NUMBER,
+                     description = "Number of parallel files to store. A high number of parallel files needs to raise"
+                                   + " microservice available memory resource.",
+                     label = "Number of files to store in parallel",
+                     defaultValue = "5")
+    private int storeParallelTaskNumber;
 
     @PluginParameter(name = GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
                      description = "Duration in hours for which the restored small file archives and their "
@@ -198,6 +213,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         BasicThreadFactory factory = new BasicThreadFactory.Builder().namingPattern("s3-glacier-threadpool-thread-%d")
                                                                      .priority(Thread.MAX_PRIORITY)
                                                                      .build();
+        storeExecutorService = Executors.newFixedThreadPool(storeParallelTaskNumber, factory);
         executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
         storageName = conf.getBusinessId();
         initWorkspaceCleanScheduler();
@@ -221,7 +237,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.warn("Shutdown of the plugin, this may cause errors as the currently running tasks will be "
                     + "terminated");
         scheduler.shutdown();
-        executorService.shutdownNow();
+        storeExecutorService.shutdownNow();
+        executorService.shutdown();
     }
 
     @Override
@@ -229,13 +246,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Glacier store requests received");
         try {
             String tenant = runtimeTenantResolver.getTenant();
-            List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSet.getFileReferenceRequests()
-                                                                                                      .stream()
-                                                                                                      .map(request -> doStoreTask(
-                                                                                                          request,
-                                                                                                          progressManager,
-                                                                                                          tenant))
-                                                                                                      .toList());
+            List<Future<LockServiceResponse<Void>>> taskResults = storeExecutorService.invokeAll(workingSet.getFileReferenceRequests()
+                                                                                                           .stream()
+                                                                                                           .map(request -> doStoreTask(
+                                                                                                               request,
+                                                                                                               progressManager,
+                                                                                                               tenant))
+                                                                                                           .toList());
 
             // Wait for all tasks to complete
             for (Future<LockServiceResponse<Void>> future : taskResults) {
@@ -504,12 +521,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                    .toString()
                                                                    .startsWith(S3Glacier.BUILDING_DIRECTORY_PREFIX))
                                                  .toList();
-            List<Future<Boolean>> res = executorService.invokeAll(dirToProcessList.stream()
-                                                                                  .map(dirToProcess -> doSubmitReadyArchive(
-                                                                                      dirToProcess,
-                                                                                      progressManager,
-                                                                                      tenant))
-                                                                                  .toList());
+            List<Future<Boolean>> res = storeExecutorService.invokeAll(dirToProcessList.stream()
+                                                                                       .map(dirToProcess -> doSubmitReadyArchive(
+                                                                                           dirToProcess,
+                                                                                           progressManager,
+                                                                                           tenant))
+                                                                                       .toList());
             boolean success = res.stream().allMatch(futureRes -> {
                 try {
                     return futureRes.get();

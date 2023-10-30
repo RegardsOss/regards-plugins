@@ -129,14 +129,14 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
-                     description = "Number of Mb for a file size over which multipart upload is used",
-                     label = "Multipart threshold in Mb",
+                     description = "MultiPart upload : Size in Mb of each part during multipart upload.",
+                     label = "MultiPart upload : Size of a part in Mb",
                      defaultValue = "5")
     protected int multipartThresholdMb;
 
     @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME,
-                     description = "Number of parallel parts to upload",
-                     label = "Number of parallel parts during multipart upload",
+                     description = "MultiPart upload : Number of parts read in memory.",
+                     label = "MultiPart upload : Number of parts read in memory.",
                      defaultValue = "5")
     protected int nbParallelPartsUpload;
 
