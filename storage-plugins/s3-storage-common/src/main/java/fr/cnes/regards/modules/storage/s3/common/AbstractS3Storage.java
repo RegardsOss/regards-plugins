@@ -267,7 +267,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                     s3StorageSettings.getStorages(),
                                                     multipartThresholdMb * 1024 * 1024L,
                                                     workspaceService.getMicroserviceWorkspace());
-            }, new DefaultDataBufferFactory(), multipartThresholdMb * 1024 * 1024).map(DataBuffer::asByteBuffer);
+            }, new DefaultDataBufferFactory(), 1024).map(DataBuffer::asByteBuffer);
 
             request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
 
