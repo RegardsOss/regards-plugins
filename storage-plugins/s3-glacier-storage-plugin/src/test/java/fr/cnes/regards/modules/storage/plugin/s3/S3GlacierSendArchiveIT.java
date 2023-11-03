@@ -463,11 +463,21 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
 
         // Create the empty dir to simulate a building dir with no file left
         Path emptyDirPath = Path.of(workspace.getRoot().toString(),
-                                    S3Glacier.ZIP_DIR,
+                                    S3Glacier.TMP_DIR,
                                     ROOT_PATH,
                                     nodeName,
                                     S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
         Files.createDirectories(emptyDirPath);
+
+        // Create the symbolic link to the empty dir
+        Path symbolicLinkSourcePath = Path.of(workspace.getRoot().toString(),
+                                              S3Glacier.ZIP_DIR,
+                                              ROOT_PATH,
+                                              nodeName,
+                                              S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName);
+        Files.createDirectories(symbolicLinkSourcePath.getParent());
+        Files.createSymbolicLink(symbolicLinkSourcePath, emptyDirPath);
+
         Assertions.assertTrue(Files.exists(emptyDirPath), "The building directory should exist");
         String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName,
                                                                           archiveName + S3Glacier.ARCHIVE_EXTENSION)

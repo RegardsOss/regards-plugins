@@ -55,7 +55,10 @@ public class CleanDirectoryTask implements LockServiceTask<Void> {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryToClean)) {
             for (Path path : stream) {
                 BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-                if (attr.lastModifiedTime().toInstant().isBefore(configuration.oldestAgeToKeep())) {
+                //In real use cases there will never be a directory sibling to regular files, check nonetheless
+                if (!Files.isDirectory(path) && attr.lastModifiedTime()
+                                                    .toInstant()
+                                                    .isBefore(configuration.oldestAgeToKeep())) {
                     //Delete the file only if it's too old
                     Files.delete(path);
                 } else {

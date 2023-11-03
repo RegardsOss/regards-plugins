@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.s3.utils.LockTypeEnum;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreStatus;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -151,23 +152,12 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
             DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(subTaskConfiguration,
                                                                          request,
                                                                          progressManager);
-            try {
-                LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask in RestoreAndDeleteSmallFileTask with lock",
-                             Thread.currentThread().getName());
-                configuration.lockService()
-                             .runWithLock(S3GlacierUtils.getLockName(configuration.rootPath(),
-                                                                     configuration.fileRelativePath().getParent()
-                                                                     != null ?
-                                                                         configuration.fileRelativePath()
-                                                                                      .getParent()
-                                                                                      .toString() :
-                                                                         "",
-                                                                     S3Glacier.LOCK_STORE_SUFFIX), task);
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
-                Thread.currentThread().interrupt();
-            }
+            /**
+             * Run the task without needing more locking as we already are in a locked environment (with a RESTORE
+             * LOCK on the archive containing the file being deleted).
+             * @see S3Glacier#handleDeleteSmallFileRequest
+             */
+            task.run();
         } else {
             progressManager.deletionFailed(request,
                                            String.format("Error while trying to delete small file %s. Url "

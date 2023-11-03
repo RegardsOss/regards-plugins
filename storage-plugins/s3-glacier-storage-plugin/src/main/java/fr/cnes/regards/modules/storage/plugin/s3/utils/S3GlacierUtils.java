@@ -31,10 +31,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
-import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,6 +80,12 @@ public class S3GlacierUtils {
                                                           error -> Mono.just(new RestoreResponse(RestoreStatus.WRONG_STORAGE_CLASS)))
                                            .onErrorResume(NoSuchKeyException.class,
                                                           error -> Mono.just(new RestoreResponse(RestoreStatus.KEY_NOT_FOUND)))
+                                           .onErrorResume(S3Exception.class,
+                                                          error -> error.getMessage()
+                                                                        .contains("RestoreAlreadyInProgress") ?
+                                                              Mono.just(new RestoreResponse(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) :
+                                                              Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                            error)))
                                            .onErrorResume(S3ClientException.class,
                                                           error -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
                                                                                                  error)))
@@ -89,6 +96,10 @@ public class S3GlacierUtils {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
                         + " The restoration process will continue as if.", key);
+            return new RestoreResponse(RestoreStatus.SUCCESS);
+        }
+        if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {
+            LOGGER.info("A restoration process is already in progress for key {}", key);
             return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         return response;
@@ -212,7 +223,11 @@ public class S3GlacierUtils {
      * given String
      */
     public static String removePrefix(String name) {
-        return name.substring(S3Glacier.BUILDING_DIRECTORY_PREFIX.length());
+        if (name.length() > S3Glacier.BUILDING_DIRECTORY_PREFIX.length()) {
+            return name.substring(S3Glacier.BUILDING_DIRECTORY_PREFIX.length());
+        } else {
+            return name;
+        }
     }
 
     /**
@@ -242,15 +257,59 @@ public class S3GlacierUtils {
     }
 
     /**
-     * Create the lock name for the given node
-     *
-     * @param node   the node, if null will be replaced par an empty string
-     * @param suffix the lock suffix for its type
-     * @return the lock name
+     * Calculates lock name for glacier tasks.
+     * Can be :
+     * <ul>
+     *     <li>Restore big file : LOCK_/root/path/node1/node2/file.txt_RESTORE_LOCK</li>
+     *     <li>Restore small file in remote archive : LOCK_/root/path/node1/node2/archive.zip_RESTORE_LOCK</li>
+     *     <li>Store big file : None</li>
+     *     <li>Store small file : LOCK_/root/path/node1/node2</li>
+     * </ul>
      */
-    public static String getLockName(String rootPath, String node, String suffix) {
-        Assert.notNull(rootPath, "The Root Path can be empty but cannot be null");
-        return S3Glacier.LOCK_PREFIX + Path.of(rootPath, node != null ? node : "") + suffix;
+    public static String getLockName(LockTypeEnum lockType,
+                                     @Nullable String rootPath,
+                                     @Nullable String workspacePath,
+                                     String node) {
+        String pathToLock;
+        S3GlacierUrl dispatchedFilePath = dispatchS3FilePath(node);
+        Path zipBuildingRootPath = workspacePath != null ? Path.of(workspacePath, S3Glacier.ZIP_DIR) : null;
+        Path cacheWorkspace = workspacePath != null ? Paths.get(workspacePath, S3Glacier.TMP_DIR) : null;
+        Path nodePath = Paths.get(node);
+        boolean isBuildingDirectory = zipBuildingRootPath != null && nodePath.startsWith(zipBuildingRootPath);
+        boolean isCacheDirectory = cacheWorkspace != null && nodePath.startsWith(cacheWorkspace);
+        if (isBuildingDirectory) {
+            // Build path to lock for locking a building archive
+            Path relativizedPath = zipBuildingRootPath.relativize(nodePath);
+            String fileName = removePrefix(relativizedPath.getFileName().toString());
+            pathToLock = relativizedPath.getParent().resolve(fileName).toString();
+            // If lock type is RESTORE we need to lock the zip archive name with zip extension.
+            // Else for STORE lock we lock only the node (no zip extension)
+            if (lockType == LockTypeEnum.LOCK_RESTORE) {
+                pathToLock += S3Glacier.ARCHIVE_EXTENSION;
+            }
+        } else if (isCacheDirectory) {
+            // Build path to lock the restored archive
+            Path relativizedPath = cacheWorkspace.relativize(nodePath);
+            pathToLock = rootPath != null ?
+                Path.of(rootPath).relativize(relativizedPath).toString() :
+                relativizedPath.toString();
+        } else if (dispatchedFilePath.isSmallFileUrl()) {
+            // For small files :
+            // Lock the archive containing the small file to prevent other retrieve jobs from restoring the
+            // same archive (during restore or delete)
+            // @see S3Glacier#doRetrieveTask and {@link S3Glacier#doDeleteTask} and {@link S3Glacier#doCleanDirectory}
+            pathToLock = dispatchedFilePath.archiveFilePath;
+        } else {
+            // Not a small file, not in building or in restore directories.
+            // Lock on the node
+            pathToLock = node;
+        }
+
+        if (rootPath != null) {
+            return Paths.get(S3Glacier.LOCK_PREFIX, "/", rootPath, pathToLock, lockType.toString()).toString();
+        } else {
+            return Paths.get(S3Glacier.LOCK_PREFIX, "/", pathToLock, lockType.toString()).toString();
+        }
     }
 
     /**

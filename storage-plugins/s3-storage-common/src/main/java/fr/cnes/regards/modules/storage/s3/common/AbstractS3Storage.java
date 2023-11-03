@@ -45,6 +45,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -129,8 +130,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
-                     description = "MultiPart upload : Size in Mb of each part during multipart upload.",
-                     label = "MultiPart upload : Size of a part in Mb",
+                     description = "MultiPart upload : Size in Mb of each part during multipart upload. The value "
+                                   + "must be at least 5",
+                     label = "MultiPart upload : Size of a part in Mb (>= 5)",
                      defaultValue = "5")
     protected int multipartThresholdMb;
 
@@ -173,6 +175,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     @PluginInit(hasConfiguration = true)
     public void init(PluginConfiguration conf) {
+        Assert.isTrue(multipartThresholdMb >= 5,
+                      String.format("The parameter value %s must be at least 5. (actual : " + "%d)",
+                                    UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
+                                    multipartThresholdMb));
         if (rawRootPath == null) {
             rootPath = "";
         } else {

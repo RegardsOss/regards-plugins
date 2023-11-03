@@ -155,6 +155,13 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
     private void retrieveBigFile() {
 
+        // Check if the file is already present before attempting to restore it
+        Path targetPath = Path.of(request.getRestorationDirectory(),
+                                  configuration.fileRelativePath().getFileName().toString());
+        if (Files.exists(targetPath)) {
+            progressManager.restoreSucceed(request, targetPath);
+        }
+
         // Restore
         RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                  configuration.s3Configuration(),
@@ -173,8 +180,6 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         }
 
         // Launch check restoration process
-        Path targetPath = Path.of(request.getRestorationDirectory(),
-                                  configuration.fileRelativePath().getFileName().toString());
         GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(targetPath,
                                                                                configuration.fileRelativePath()
                                                                                             .toString(),
