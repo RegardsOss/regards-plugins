@@ -73,7 +73,18 @@ public class S3GlacierUtils {
      * @param config   configuration of the s3 storage
      * @param key      s3 key of the file to restore
      */
-    public static RestoreResponse restore(S3HighLevelReactiveClient s3Client, StorageConfig config, String key) {
+    public static RestoreResponse restore(S3HighLevelReactiveClient s3Client,
+                                          StorageConfig config,
+                                          String key,
+                                          String standardStorageClassName) {
+        GlacierFileStatus fileStatus = s3Client.isFileAvailable(config, key, standardStorageClassName).block();
+
+        if (fileStatus.equals(GlacierFileStatus.AVAILABLE)) {
+            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE);
+        }
+        if (fileStatus.equals(GlacierFileStatus.RESTORE_PENDING)) {
+            return new RestoreResponse(RestoreStatus.SUCCESS);
+        }
         RestoreResponse response = s3Client.restore(config, key)
                                            .map(result -> new RestoreResponse(RestoreStatus.SUCCESS))
                                            .onErrorResume(InvalidObjectStateException.class,
@@ -96,6 +107,10 @@ public class S3GlacierUtils {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
                         + " The restoration process will continue as if.", key);
+            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE);
+        }
+        if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {
+            LOGGER.info("A restoration process is already in progress for key {}", key);
             return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {

@@ -343,7 +343,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     public void test_unexpected_restore_error()
         throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, false, true);
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.MockedS3Client, true);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";

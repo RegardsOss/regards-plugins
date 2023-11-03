@@ -216,7 +216,14 @@ public abstract class AbstractS3GlacierIT {
                               String secret,
                               String bucket,
                               String rootPath) {
-        loadPlugin(endpoint, region, key, secret, bucket, rootPath, true, false);
+        loadPlugin(endpoint,
+                   region,
+                   key,
+                   secret,
+                   bucket,
+                   rootPath,
+                   MockedS3ClientType.MockedS3ClientWithoutRestore,
+                   false);
     }
 
     protected void loadPlugin(String endpoint,
@@ -225,7 +232,7 @@ public abstract class AbstractS3GlacierIT {
                               String secret,
                               String bucket,
                               String rootPath,
-                              Boolean mockRestore,
+                              MockedS3ClientType clientType,
                               Boolean simulateLockTaskException) {
         this.rootPath = rootPath;
         StringPluginParam secretParam = IPluginParam.build(AbstractS3Storage.S3_SERVER_SECRET_PARAM_NAME, secret);
@@ -275,11 +282,10 @@ public abstract class AbstractS3GlacierIT {
         Assert.assertNotNull(s3Glacier);
 
         Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
-        if (mockRestore) {
-            // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
-            s3Client = new MockedS3ClientWithoutRestore(scheduler);
-        } else {
-            s3Client = new MockedS3Client(scheduler);
+        switch (clientType) {
+            case MockedS3ClientWithNoFileAvailable -> s3Client = new MockedS3ClientWithNoFileAvailable(scheduler);
+            case MockedS3ClientWithoutRestore -> s3Client = new MockedS3ClientWithoutRestore(scheduler);
+            default -> s3Client = new MockedS3Client(scheduler);
         }
 
         LockService lockService;
@@ -844,6 +850,26 @@ public abstract class AbstractS3GlacierIT {
                 return Mono.just(GlacierFileStatus.RESTORE_PENDING);
             }
         }
+    }
 
+    private static class MockedS3ClientWithNoFileAvailable extends S3HighLevelReactiveClient {
+
+        private int tryCount;
+
+        public MockedS3ClientWithNoFileAvailable(Scheduler scheduler) {
+            super(scheduler, 10 * 1024 * 1024, 10);
+            tryCount = 0;
+        }
+
+        @Override
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+                                                       String key,
+                                                       String standardStorageClassName) {
+            return Mono.just(GlacierFileStatus.NOT_AVAILABLE);
+        }
+    }
+
+    protected enum MockedS3ClientType {
+        MockedS3Client, MockedS3ClientWithoutRestore, MockedS3ClientWithNoFileAvailable
     }
 }

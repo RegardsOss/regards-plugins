@@ -24,5 +24,5 @@ package fr.cnes.regards.modules.storage.plugin.s3.utils;
  * @author Thibaud Michaudel
  **/
 public enum RestoreStatus {
-    SUCCESS, KEY_NOT_FOUND, CLIENT_EXCEPTION, WRONG_STORAGE_CLASS, RESTORE_ALREADY_IN_PROGRESS
+    SUCCESS, KEY_NOT_FOUND, CLIENT_EXCEPTION, WRONG_STORAGE_CLASS, RESTORE_ALREADY_IN_PROGRESS, FILE_AVAILABLE
 }
