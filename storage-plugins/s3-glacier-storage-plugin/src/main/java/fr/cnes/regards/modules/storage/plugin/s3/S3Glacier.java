@@ -183,6 +183,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String standardStorageClassName;
 
     /**
+     *
+     */
+    @Value("${regards.glacier.renew.max.iteration.wait.period:120}")
+    private int renewMaxIterationWaitingPeriodInS = 120;
+
+    /**
      * Duration in milliseconds before end of locking time to run lock renew. To avoid lock renew done too late.
      */
     @Value("${regards.glacier.renew.call.duration:1000}")
@@ -391,6 +397,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     getS3Client(),
                     lockName,
                     Instant.now(),
+                    renewMaxIterationWaitingPeriodInS,
                     renewCallDurationInMs,
                     standardStorageClassName,
                     lockService);
@@ -510,6 +517,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     s3AccessTimeout,
                     lockName,
                     Instant.now(),
+                    renewMaxIterationWaitingPeriodInS,
                     renewCallDurationInMs,
                     standardStorageClassName,
                     lockService,

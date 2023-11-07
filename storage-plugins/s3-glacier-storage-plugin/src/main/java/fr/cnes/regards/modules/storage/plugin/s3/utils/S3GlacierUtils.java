@@ -140,6 +140,7 @@ public class S3GlacierUtils {
                                                              int s3AccessTimeoutInSeconds,
                                                              String lockName,
                                                              Instant lockCreationDate,
+                                                             int renewMaxIterationWaitingPeriodInS,
                                                              Long renewCallDurationInMs,
                                                              @Nullable String standardStorageClassName,
                                                              LockService lockService,
@@ -186,7 +187,7 @@ public class S3GlacierUtils {
                             LOGGER.debug("Will wait at most {}ms", s3AccessTimeoutInSeconds * 1000 - totalWaited);
                             lock.waitAndRenew(delay);
                             totalWaited += delay;
-                            delay = 2 * delay;
+                            delay = Math.min(2 * delay, renewMaxIterationWaitingPeriodInS * 1000);
                         }
                     }
                     case AVAILABLE -> {

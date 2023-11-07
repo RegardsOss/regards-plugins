@@ -37,6 +37,7 @@ public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath,
                                                  S3HighLevelReactiveClient s3Client,
                                                  String lockName,
                                                  Instant lockCreationDate,
+                                                 int renewMaxIterationWaitingPeriodInS,
                                                  long renewDurationInMs,
                                                  String standardStorageClassName,
                                                  LockService lockService) {

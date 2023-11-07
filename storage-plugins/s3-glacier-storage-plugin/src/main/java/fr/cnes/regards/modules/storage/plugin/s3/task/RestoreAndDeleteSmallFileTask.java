@@ -26,7 +26,6 @@ import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.LockTypeEnum;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreStatus;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -193,6 +192,7 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                                                                                configuration.s3AccessTimeout(),
                                                                                configuration.lockName(),
                                                                                configuration.lockCreationDate(),
+                                                                               configuration.renewMaxIterationWaitingPeriodInS(),
                                                                                configuration.renewDuration(),
                                                                                configuration.standardStorageClassName(),
                                                                                configuration.lockService(),
