@@ -105,7 +105,8 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                     // Restore
                     RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                              configuration.storageConfiguration(),
-                                                                             archiveRelativePathAsString);
+                                                                             archiveRelativePathAsString,
+                                                                             configuration.standardStorageClassName());
                     if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
                         LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
                                     + "considered successful", request.getFileReference().getLocation().getUrl());
@@ -118,14 +119,18 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                         progressManager.deletionFailed(request, "Unable to reach S3 server");
                         return null;
                     }
-                    // Launch check restoration process
-                    boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
-                                                                           archivePathInCache);
-                    if (!restorationComplete) {
-                        progressManager.deletionFailed(request,
-                                                       String.format("Unable to restore the archive %s containing the "
-                                                                     + "file to delete", archiveRelativePathAsString));
-                        return null;
+                    if (!restoreResponse.status().equals(RestoreStatus.FILE_AVAILABLE)) {
+                        // Launch check restoration process
+                        boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
+                                                                               archivePathInCache);
+                        if (!restorationComplete) {
+                            progressManager.deletionFailed(request,
+                                                           String.format(
+                                                               "Unable to restore the archive %s containing the "
+                                                               + "file to delete",
+                                                               archiveRelativePathAsString));
+                            return null;
+                        }
                     }
                 }
                 // Unzip the restored archive in the plugin workspace cache directory
@@ -151,23 +156,12 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
             DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(subTaskConfiguration,
                                                                          request,
                                                                          progressManager);
-            try {
-                LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask in RestoreAndDeleteSmallFileTask with lock",
-                             Thread.currentThread().getName());
-                configuration.lockService()
-                             .runWithLock(S3GlacierUtils.getLockName(configuration.rootPath(),
-                                                                     configuration.fileRelativePath().getParent()
-                                                                     != null ?
-                                                                         configuration.fileRelativePath()
-                                                                                      .getParent()
-                                                                                      .toString() :
-                                                                         "",
-                                                                     S3Glacier.LOCK_STORE_SUFFIX), task);
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
-                Thread.currentThread().interrupt();
-            }
+            /**
+             * Run the task without needing more locking as we already are in a locked environment (with a RESTORE
+             * LOCK on the archive containing the file being deleted).
+             * @see S3Glacier#handleDeleteSmallFileRequest
+             */
+            task.run();
         } else {
             progressManager.deletionFailed(request,
                                            String.format("Error while trying to delete small file %s. Url "
@@ -198,6 +192,7 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                                                                                configuration.s3AccessTimeout(),
                                                                                configuration.lockName(),
                                                                                configuration.lockCreationDate(),
+                                                                               configuration.renewMaxIterationWaitingPeriodInS(),
                                                                                configuration.renewDuration(),
                                                                                configuration.standardStorageClassName(),
                                                                                configuration.lockService(),

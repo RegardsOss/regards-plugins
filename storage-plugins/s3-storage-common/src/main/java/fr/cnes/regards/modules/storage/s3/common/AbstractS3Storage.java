@@ -45,6 +45,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -129,14 +130,15 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String rootPath;
 
     @PluginParameter(name = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
-                     description = "Number of Mb for a file size over which multipart upload is used",
-                     label = "Multipart threshold in Mb",
+                     description = "MultiPart upload : Size in Mb of each part during multipart upload. The value "
+                                   + "must be at least 5",
+                     label = "MultiPart upload : Size of a part in Mb (>= 5)",
                      defaultValue = "5")
     protected int multipartThresholdMb;
 
     @PluginParameter(name = MULTIPART_PARALLEL_PARAM_NAME,
-                     description = "Number of parallel parts to upload",
-                     label = "Number of parallel parts during multipart upload",
+                     description = "MultiPart upload : Number of parts read in memory.",
+                     label = "MultiPart upload : Number of parts read in memory.",
                      defaultValue = "5")
     protected int nbParallelPartsUpload;
 
@@ -173,6 +175,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     @PluginInit(hasConfiguration = true)
     public void init(PluginConfiguration conf) {
+        Assert.isTrue(multipartThresholdMb >= 5,
+                      String.format("The parameter value %s must be at least 5. (actual : " + "%d)",
+                                    UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
+                                    multipartThresholdMb));
         if (rawRootPath == null) {
             rootPath = "";
         } else {
@@ -267,7 +273,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                     s3StorageSettings.getStorages(),
                                                     multipartThresholdMb * 1024 * 1024L,
                                                     workspaceService.getMicroserviceWorkspace());
-            }, new DefaultDataBufferFactory(), multipartThresholdMb * 1024 * 1024).map(DataBuffer::asByteBuffer);
+            }, new DefaultDataBufferFactory(), 1024).map(DataBuffer::asByteBuffer);
 
             request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
 

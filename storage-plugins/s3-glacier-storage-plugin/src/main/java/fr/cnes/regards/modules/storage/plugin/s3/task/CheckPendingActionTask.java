@@ -34,6 +34,11 @@ import java.util.stream.Stream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
+ * Check if the pending actions of the given file have been completed or not.
+ * This is necessary to prevent pending actions to stay forever if the job is terminated (due to an error
+ * or a shutdown/crash) between the moment when the pending action is completed and the moment when the progress
+ * manager is informed of the completion.
+ *
  * @author Thibaud Michaudel
  **/
 public class CheckPendingActionTask implements LockServiceTask<Void> {

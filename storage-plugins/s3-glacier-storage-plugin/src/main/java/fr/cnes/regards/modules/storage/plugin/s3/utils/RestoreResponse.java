@@ -22,7 +22,7 @@ import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
 
 /**
- * Response from {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String) GlacierUtils restore}
+ * Response from {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String, String) GlacierUtils restore}
  *
  * @author Thibaud Michaudel
  **/
