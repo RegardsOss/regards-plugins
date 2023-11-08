@@ -37,7 +37,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import javax.annotation.Nullable;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -193,11 +192,9 @@ public class S3GlacierUtils {
                     case AVAILABLE -> {
                         LOGGER.info("Restoration succeeded for file {}/{}", s3Configuration.getBucket(), key);
                         String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
-                        InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
-                                                                                            s3Configuration,
-                                                                                            new StorageCommandID(taskId,
-                                                                                                                 UUID.randomUUID()));
-                        FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
+                        if (!downloadFile(targetFilePath, key, s3Configuration, taskId)) {
+                            fileStatus = GlacierFileStatus.NOT_AVAILABLE;
+                        }
                         retryAvailability = false;
                     }
                     case EXPIRED -> {
@@ -214,16 +211,40 @@ public class S3GlacierUtils {
                     }
                 }
             }
-        } catch (FileNotFoundException | NoSuchKeyException e) {
+        } catch (NoSuchKeyException e) {
             LOGGER.error("The requested file {} was not found on the server", downloadedFileName, e);
-        } catch (IOException e) {
-            LOGGER.error("Error when downloading file {}", downloadedFileName, e);
         } catch (InterruptedException e) {
             LOGGER.error("Sleep interrupted", e);
         } catch (S3ClientException e) {
             LOGGER.error("Unable to reach S3 Server to restore the file", e);
         }
         return fileStatus;
+    }
+
+    /**
+     * Download S3 available file to local directory
+     *
+     * @return true if file is downloaded with success
+     */
+    public static boolean downloadFile(Path targetFilePath,
+                                       String key,
+                                       StorageConfig s3Configuration,
+                                       @Nullable String taskId) {
+        String finalTaskId = taskId;
+        if (finalTaskId == null) {
+            finalTaskId = "S3GlacierRestore_" + targetFilePath.getFileName().toString();
+        }
+        try {
+            InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
+                                                                                s3Configuration,
+                                                                                new StorageCommandID(finalTaskId,
+                                                                                                     UUID.randomUUID()));
+            FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
+        } catch (IOException e) {
+            LOGGER.error(String.format("Error downloading file %s from s3 server to local directory", key), e);
+            return false;
+        }
+        return true;
     }
 
     /**
