@@ -129,8 +129,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
             if (!restoreResponse.status().equals(RestoreStatus.FILE_AVAILABLE)) {
                 // Launch check restoration process
-                GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(Path.of(configuration.cachePath(),
-                                                                                               relativeArchivePath),
+                GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(archiveCachePath,
                                                                                        relativeArchivePath,
                                                                                        configuration.s3Configuration(),
                                                                                        configuration.s3AccessTimeoutInSeconds(),
@@ -142,12 +141,25 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                        configuration.lockService(),
                                                                                        configuration.s3Client());
 
-                if (fileStatus != GlacierFileStatus.AVAILABLE) {
+                if (fileStatus == GlacierFileStatus.AVAILABLE) {
+                    extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+                } else {
                     progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
-                    return;
+                }
+            } else {
+                // File available, just download file to local directory
+                if (S3GlacierUtils.downloadFile(archiveCachePath,
+                                                relativeArchivePath,
+                                                configuration.s3Configuration(),
+                                                null)) {
+                    extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+                } else {
+                    progressManager.restoreFailed(request,
+                                                  "Error while trying to restore file, download error to local "
+                                                  + "cache directory");
                 }
             }
-            extractThenCopyFileAndHandleSuccess(localPath, archivePath);
+
         } else {
             progressManager.restoreFailed(request,
                                           String.format("Error while trying to restore file %s. Url "
@@ -198,12 +210,24 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                    configuration.standardStorageClassName(),
                                                                                    configuration.lockService(),
                                                                                    configuration.s3Client());
-            if (fileStatus != GlacierFileStatus.AVAILABLE) {
+            if (fileStatus == GlacierFileStatus.AVAILABLE) {
+                progressManager.restoreSucceed(request, targetPath);
+            } else {
                 progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
             }
+        } else {
+            // File available, just download file to local directory
+            if (S3GlacierUtils.downloadFile(targetPath,
+                                            configuration.fileRelativePath().toString(),
+                                            configuration.s3Configuration(),
+                                            null)) {
+                progressManager.restoreSucceed(request, targetPath);
+            } else {
+                progressManager.restoreFailed(request,
+                                              "Error while trying to restore file, download error to local "
+                                              + "cache directory");
+            }
         }
-        progressManager.restoreSucceed(request, targetPath);
-
     }
 
     private void extractThenCopyFileAndHandleSuccess(Path localPath, Path archivePath) {
