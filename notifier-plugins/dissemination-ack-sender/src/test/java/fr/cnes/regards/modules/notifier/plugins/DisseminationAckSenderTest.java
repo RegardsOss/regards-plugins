@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.notifier.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
-import fr.cnes.regards.common.notifier.plugins.AbstractRabbitMQSender;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
@@ -28,7 +27,6 @@ import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 import org.junit.Assert;
@@ -105,32 +103,30 @@ public class DisseminationAckSenderTest {
     private ArgumentCaptor<Integer> priorityCaptor;
 
     @Captor
-    private ArgumentCaptor<Collection<DisseminationAckEvent>> messagesCaptor;
+    private ArgumentCaptor<Collection<fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent>> messagesCaptor;
+
+    @Captor
+    private ArgumentCaptor<Collection<fr.cnes.regards.modules.ingest.dto.request.event.DisseminationAckEvent>> oaisMessagesCaptor;
 
     @Captor
     private ArgumentCaptor<Map<String, Object>> headersCaptor;
 
     @Test
-    public void testDisseminationAckSender() throws NotAvailablePluginConfigurationException {
+    public void testFeatureDisseminationAckSender() throws NotAvailablePluginConfigurationException {
         Mockito.clearInvocations(publisher);
 
         PluginUtils.setup();
-        String exchange = "exchange";
-        String queueName = "queueName";
-        String recipientLabel = "recipientLabel";
-        String recipientTenant = "recipientTenant";
-        String senderLabelName = "sender";
+        String featureDisseminationExchange = "featureDisseminationExchange";
+        String senderLabel = "senderLabel";
+        String featureQueueName = "featureQueueName";
+
         // Plugin parameters
-        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(AbstractRabbitMQSender.EXCHANGE_PARAM_NAME,
-                                                                           exchange),
-                                                        IPluginParam.build(AbstractRabbitMQSender.QUEUE_PARAM_NAME,
-                                                                           queueName),
-                                                        IPluginParam.build(AbstractRabbitMQSender.RECIPIENT_LABEL_PARAM_NAME,
-                                                                           recipientLabel),
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DisseminationAckSender.FEATURE_EXCHANGE_PARAM_NAME,
+                                                                           featureDisseminationExchange),
                                                         IPluginParam.build(DisseminationAckSender.SENDER_LABEL_PARAM_NAME,
-                                                                           senderLabelName),
-                                                        IPluginParam.build(DisseminationAckSender.RECIPIENT_TENANT_PARAM_NAME,
-                                                                           recipientTenant));
+                                                                           senderLabel),
+                                                        IPluginParam.build(DisseminationAckSender.FEATURE_QUEUE_PARAM_NAME,
+                                                                           featureQueueName));
 
         // Instantiate plugin
         IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(DisseminationAckSender.class,
@@ -147,7 +143,7 @@ public class DisseminationAckSenderTest {
 
         NotificationRequest validNotificationRequest = new NotificationRequest();
         JsonObject validFeature = new JsonObject();
-        String validURN = "URN:FEATURE:DATA:PROJECT:00000000-0000-0000-0000-000169267448:V1";
+        String validURN = "URN:FEATURE:DATA:PROJECT1:00000000-0000-0000-0000-000169267448:V1";
         validFeature.addProperty(DisseminationAckSender.FEATURE_PATH_TO_URN, validURN);
         validNotificationRequest.setPayload(validFeature);
 
@@ -165,21 +161,89 @@ public class DisseminationAckSenderTest {
                              priorityCaptor.capture(),
                              messagesCaptor.capture(),
                              headersCaptor.capture());
-        Assert.assertEquals("should retrieve good exchange", exchange, exchangeNameCaptor.getValue());
-        Assert.assertEquals("should retrieve good queue name", Optional.of(queueName), queueNameCaptor.getValue());
+        Assert.assertEquals("should retrieve good exchange",
+                            featureDisseminationExchange,
+                            exchangeNameCaptor.getValue());
+        Assert.assertEquals("should retrieve good queue name",
+                            Optional.of(featureQueueName),
+                            queueNameCaptor.getValue());
         Assert.assertFalse("should not override routing key", routingKeyCaptor.getValue().isPresent());
         Assert.assertFalse("should not override DLK", dlkCaptor.getValue().isPresent());
         Assert.assertEquals("should retrieve default priority", Integer.valueOf(0), priorityCaptor.getValue());
         Assert.assertEquals("should provide 1 header", 1, headersCaptor.getValue().size());
         Assert.assertEquals("should override tenant",
-                            recipientTenant,
+                            "PROJECT1",
                             headersCaptor.getValue().get(AmqpConstants.REGARDS_TENANT_HEADER));
-
         Assert.assertFalse("should send a message", messagesCaptor.getValue().isEmpty());
-        DisseminationAckEvent event = (DisseminationAckEvent) messagesCaptor.getValue().stream().findFirst().get();
+        fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent event = messagesCaptor.getValue()
+                                                                                                 .stream()
+                                                                                                 .findFirst()
+                                                                                                 .get();
         Assert.assertEquals("should get the correct recipient label (current tenant)",
-                            senderLabelName,
+                            senderLabel,
                             event.getRecipientLabel());
         Assert.assertEquals("should send a message", validURN, event.getUrn());
+    }
+
+    @Test
+    public void testAipDisseminationAckSender() throws NotAvailablePluginConfigurationException {
+        Mockito.clearInvocations(publisher);
+
+        PluginUtils.setup();
+        String aipDisseminationExchange = "aipDisseminationExchange";
+        String senderLabel = "senderLabel";
+        String aipQueueName = "aipQueueName";
+
+        // Plugin parameters
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DisseminationAckSender.AIP_EXCHANGE_PARAM_NAME,
+                                                                           aipDisseminationExchange),
+                                                        IPluginParam.build(DisseminationAckSender.SENDER_LABEL_PARAM_NAME,
+                                                                           senderLabel),
+                                                        IPluginParam.build(DisseminationAckSender.AIP_QUEUE_PARAM_NAME,
+                                                                           aipQueueName));
+
+        // Instantiate plugin
+        IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(DisseminationAckSender.class,
+                                                                                    UUID.randomUUID().toString(),
+                                                                                    parameters),
+                                                          new ConcurrentHashMap<>());
+        Assert.assertNotNull(plugin);
+
+        // sample requests
+        NotificationRequest validNotificationRequest = new NotificationRequest();
+        JsonObject validAip = new JsonObject();
+        String validURN = "URN:AIP:DATA:PROJECT2:00000000-0000-0000-0000-000169267448:V1";
+        validAip.addProperty(DisseminationAckSender.FEATURE_PATH_TO_URN, validURN);
+        validNotificationRequest.setPayload(validAip);
+
+        // Run plugin
+        Collection<NotificationRequest> requests = Lists.newArrayList(validNotificationRequest);
+        Collection<NotificationRequest> requestError = plugin.send(requests);
+        Assert.assertEquals("should return one error", 0, requestError.size());
+
+        Mockito.verify(publisher, Mockito.times(1))
+               .broadcastAll(exchangeNameCaptor.capture(),
+                             queueNameCaptor.capture(),
+                             routingKeyCaptor.capture(),
+                             dlkCaptor.capture(),
+                             priorityCaptor.capture(),
+                             oaisMessagesCaptor.capture(),
+                             headersCaptor.capture());
+        Assert.assertEquals("should retrieve good exchange", aipDisseminationExchange, exchangeNameCaptor.getValue());
+        Assert.assertEquals("should retrieve good queue name", Optional.of(aipQueueName), queueNameCaptor.getValue());
+        Assert.assertFalse("should not override routing key", routingKeyCaptor.getValue().isPresent());
+        Assert.assertFalse("should not override DLK", dlkCaptor.getValue().isPresent());
+        Assert.assertEquals("should retrieve default priority", Integer.valueOf(0), priorityCaptor.getValue());
+        Assert.assertEquals("should provide 1 header", 1, headersCaptor.getValue().size());
+        Assert.assertFalse("should send a message", oaisMessagesCaptor.getValue().isEmpty());
+        Assert.assertEquals("should override tenant",
+                            "PROJECT2",
+                            headersCaptor.getValue().get(AmqpConstants.REGARDS_TENANT_HEADER));
+        fr.cnes.regards.modules.ingest.dto.request.event.DisseminationAckEvent event = oaisMessagesCaptor.getValue()
+                                                                                                         .stream()
+                                                                                                         .findFirst()
+                                                                                                         .get();
+        Assert.assertEquals("should retrieve good urn", validURN, event.getUrn());
+        Assert.assertEquals("should retrieve good label", senderLabel, event.getRecipientLabel());
     }
 }

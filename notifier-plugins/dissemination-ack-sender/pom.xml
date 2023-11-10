@@ -43,6 +43,10 @@
             <groupId>fr.cnes.regards.modules.feature</groupId>
             <artifactId>feature-dto</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-domain</artifactId>
+        </dependency>
         <!-- Test dependencies -->
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
@@ -77,6 +81,7 @@
                                 <includes>
                                     <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
                                     <include>fr.cnes.regards.modules.feature:feature-dto</include>
+                                    <include>fr.cnes.regards.modules.ingest:ingest-domain</include>
                                     <include>fr.cnes.regards.framework:urn-regards</include>
                                 </includes>
                             </artifactSet>
