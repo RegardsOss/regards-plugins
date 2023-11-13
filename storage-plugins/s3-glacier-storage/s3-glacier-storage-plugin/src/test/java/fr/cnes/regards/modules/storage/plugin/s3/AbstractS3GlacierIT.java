@@ -89,7 +89,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -416,7 +415,7 @@ public abstract class AbstractS3GlacierIT {
                                                       pendingActionRemaining);
         FileCacheRequest request = new FileCacheRequest(reference,
                                                         restorationWorkspace.toString(),
-                                                        OffsetDateTime.now().plusDays(1),
+                                                        24,
                                                         "test-group-id");
         return request;
     }

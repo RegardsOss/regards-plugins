@@ -42,7 +42,6 @@ import org.springframework.util.MimeType;
 
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -476,7 +475,7 @@ public class S3GlacierLockTest {
 
         return new FileCacheRequest(createFileReference(node, smallFile, local, archiveName),
                                     "restorationDirectory",
-                                    OffsetDateTime.now(),
+                                    24,
                                     "groupId");
     }
 
