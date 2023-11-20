@@ -9,11 +9,11 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>local-storage-location</artifactId>
+    <artifactId>s3-glacier-storage</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>local-storage-location-plugin</module>
-        <module>local-storage-location-plugin-dto</module>
+        <module>s3-glacier-storage-plugin</module>
+        <module>s3-glacier-storage-plugin-dto</module>
     </modules>
 </project>

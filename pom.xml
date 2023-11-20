@@ -233,12 +233,27 @@
             <!-- Storage -->
             <dependency>
                 <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>storage-plugins</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
                 <artifactId>local-storage-location</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-                <artifactId>storage-plugins</artifactId>
+                <artifactId>local-storage-location-plugin</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>local-storage-location-plugin-dto</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-storage</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -248,7 +263,37 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-storage-plugin-dto</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-glacier-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-glacier-storage-plugin</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-glacier-storage-plugin-dto</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
                 <artifactId>s3-storage-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-storage-common-plugin</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+                <artifactId>s3-storage-common-plugin-dto</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>
