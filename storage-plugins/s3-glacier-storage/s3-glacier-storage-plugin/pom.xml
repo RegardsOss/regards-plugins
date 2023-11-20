@@ -135,6 +135,8 @@
                                     <include>fr.cnes.regards.framework:s3-starter</include>
                                     <include>fr.cnes.regards.framework.utils.file:*</include>
                                     <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common</include>
+                                    <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin</include>
+                                    <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin-dto</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
