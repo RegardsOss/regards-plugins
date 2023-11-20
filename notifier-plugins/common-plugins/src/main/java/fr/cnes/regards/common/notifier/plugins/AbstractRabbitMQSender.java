@@ -43,6 +43,8 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
 
     public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
 
+    public static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
+
     @Autowired
     private IPublisher publisher;
 
@@ -62,13 +64,22 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
                      name = RECIPIENT_LABEL_PARAM_NAME,
                      optional = true)
     private String recipientLabel;
-    
+
+    @PluginParameter(label = "Direct notification enabled",
+                     description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
+                     name = DIRECT_NOTIFICATION_ENABLED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
+    private boolean directNotificationEnabled;
+
     public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
         return sendEvents(toSend, headers, Optional.empty(), 0);
     }
 
-    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers,
-                                                                  Optional<String> routingKey, int priority) {
+    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend,
+                                                                  Map<String, Object> headers,
+                                                                  Optional<String> routingKey,
+                                                                  int priority) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     routingKey,
@@ -84,6 +95,11 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @Override
     public String getRecipientLabel() {
         return recipientLabel;
+    }
+
+    @Override
+    public boolean isDirectNotificationEnabled() {
+        return directNotificationEnabled;
     }
 
 }
