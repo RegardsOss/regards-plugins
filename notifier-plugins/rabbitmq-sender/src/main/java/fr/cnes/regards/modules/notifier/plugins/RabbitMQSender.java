@@ -80,20 +80,12 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
 
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    public static final String DESCRIPTION_PARAM_NAME = "description";
-
     @PluginParameter(label = "Recipient acknowledgment required",
                      description = "When value is True, the recipient will send back an acknowledgment.",
                      name = ACK_REQUIRED_PARAM_NAME,
                      optional = true,
                      defaultValue = "false")
     private boolean ackRequired;
-
-    @PluginParameter(label = "Recipient description",
-                     name = DESCRIPTION_PARAM_NAME,
-                     optional = true,
-                     defaultValue = "Rabbit MQ sender")
-    private String description;
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
@@ -105,11 +97,6 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
     @Override
     public boolean isAckRequired() {
         return ackRequired;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
     }
 
 }

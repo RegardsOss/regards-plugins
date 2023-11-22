@@ -78,8 +78,6 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
 
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    public static final String DESCRIPTION_PARAM_NAME = "description";
-
     private static final TypeToken<List<FeatureFile>> typeTokenFiles = new TypeToken<>() {
 
     };
@@ -134,12 +132,6 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
                      optional = true,
                      defaultValue = "false")
     private boolean ackRequired;
-
-    @PluginParameter(label = "Recipient description",
-                     name = DESCRIPTION_PARAM_NAME,
-                     optional = true,
-                     defaultValue = "LTA request sender")
-    private String description;
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToProcess) {
@@ -221,11 +213,6 @@ public class LtaRequestSender extends AbstractRabbitMQSender {
     @Override
     public boolean isAckRequired() {
         return ackRequired;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
     }
 
 }

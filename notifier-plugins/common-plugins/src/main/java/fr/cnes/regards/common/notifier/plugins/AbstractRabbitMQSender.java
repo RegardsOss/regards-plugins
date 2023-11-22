@@ -43,6 +43,8 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
 
     public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
 
+    public static final String DESCRIPTION_PARAM_NAME = "description";
+
     public static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
 
     @Autowired
@@ -64,6 +66,12 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
                      name = RECIPIENT_LABEL_PARAM_NAME,
                      optional = true)
     private String recipientLabel;
+
+    @PluginParameter(label = "Recipient description",
+                     name = DESCRIPTION_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "Rabbit MQ sender")
+    private String description;
 
     @PluginParameter(label = "Direct notification enabled",
                      description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
@@ -95,6 +103,11 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @Override
     public String getRecipientLabel() {
         return recipientLabel;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
     }
 
     @Override
