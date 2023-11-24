@@ -8,9 +8,17 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
+import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.StorageCommandID;
+import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.storage.domain.exception.NearlineDownloadException;
+import fr.cnes.regards.modules.storage.domain.exception.NearlineFileNotAvailableException;
 import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
@@ -30,7 +38,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -41,10 +51,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -879,5 +886,36 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error(e.getMessage(), e);
             return false;
         }
+    }
+
+    public InputStream download(FileReference fileReference)
+        throws NearlineFileNotAvailableException, NearlineDownloadException {
+        InputStream inputStreamFromS3Source;
+        String entryKey = getEntryKey(fileReference);
+        GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
+                                                                        entryKey,
+                                                                        standardStorageClassName).block();
+        if (fileAvailable == null || !fileAvailable.equals(GlacierFileStatus.AVAILABLE)) {
+            throw new NearlineFileNotAvailableException("File "
+                                                        + fileReference.getMetaInfo().getFileName()
+                                                        + " is not available");
+        }
+        try {
+            inputStreamFromS3Source = DownloadUtils.getInputStreamFromS3Source(entryKey,
+                                                                               storageConfiguration,
+                                                                               new StorageCommandID(String.format("%d",
+                                                                                                                  fileReference.getId()),
+                                                                                                    UUID.randomUUID()));
+        } catch (FileNotFoundException e) {
+            LOGGER.error("File "
+                         + fileReference.getMetaInfo().getFileName()
+                         + " cannot be download : "
+                         + e.getMessage());
+            throw new NearlineDownloadException("File "
+                                                + fileReference.getMetaInfo().getFileName()
+                                                + " cannot be download : "
+                                                + e.getMessage());
+        }
+        return inputStreamFromS3Source;
     }
 }
