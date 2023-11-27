@@ -116,6 +116,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private static final String STANDARD_STORAGE_CLASS_NAME = "standardStorageClassName";
 
+    private static final String FILE = "File ";
+
     @Autowired
     private LockService lockService;
 
@@ -892,14 +894,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         throws NearlineFileNotAvailableException, NearlineDownloadException {
         InputStream inputStreamFromS3Source;
         String entryKey = getEntryKey(fileReference);
-        GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
-                                                                        entryKey,
-                                                                        standardStorageClassName).block();
-        if (fileAvailable == null || !fileAvailable.equals(GlacierFileStatus.AVAILABLE)) {
-            throw new NearlineFileNotAvailableException("File "
-                                                        + fileReference.getMetaInfo().getFileName()
-                                                        + " is not available");
-        }
+        checkFileAvailibity(entryKey, fileReference);
         try {
             inputStreamFromS3Source = DownloadUtils.getInputStreamFromS3Source(entryKey,
                                                                                storageConfiguration,
@@ -907,15 +902,38 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                                                                   fileReference.getId()),
                                                                                                     UUID.randomUUID()));
         } catch (FileNotFoundException e) {
-            LOGGER.error("File "
-                         + fileReference.getMetaInfo().getFileName()
-                         + " cannot be download : "
-                         + e.getMessage());
-            throw new NearlineDownloadException("File "
+            LOGGER.error(FILE + fileReference.getMetaInfo().getFileName() + " cannot be download : " + e.getMessage());
+            throw new NearlineDownloadException(FILE
                                                 + fileReference.getMetaInfo().getFileName()
                                                 + " cannot be download : "
                                                 + e.getMessage());
         }
         return inputStreamFromS3Source;
+    }
+
+    /**
+     * Ask to S3 client if file is available to download, and throw if not
+     */
+    private void checkFileAvailibity(String entryKey, FileReference fileReference)
+        throws NearlineFileNotAvailableException {
+        String fileName = fileReference.getMetaInfo().getFileName();
+        GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
+                                                                        entryKey,
+                                                                        standardStorageClassName).block();
+        String errorMessage;
+        if (fileAvailable == null) {
+            errorMessage = FILE + fileName + " is not available";
+        } else {
+            errorMessage = switch (fileAvailable) {
+                case EXPIRED -> FILE + fileName + " is expired";
+                case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending";
+                case NOT_AVAILABLE -> FILE + fileName + " is not available";
+                default -> null;
+            };
+        }
+        if (errorMessage != null) {
+            LOGGER.warn(errorMessage);
+            throw new NearlineFileNotAvailableException(errorMessage);
+        }
     }
 }
