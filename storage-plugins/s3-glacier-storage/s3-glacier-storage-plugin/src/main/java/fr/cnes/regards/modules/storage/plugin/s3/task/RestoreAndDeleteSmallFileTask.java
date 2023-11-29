@@ -19,7 +19,8 @@
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
-import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
@@ -186,17 +187,17 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
     }
 
     private boolean checkRestorationComplete(String archiveRelativePathAsString, Path archivePathInCache) {
-        GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(archivePathInCache,
-                                                                               archiveRelativePathAsString,
-                                                                               configuration.storageConfiguration(),
-                                                                               configuration.s3AccessTimeout(),
-                                                                               configuration.lockName(),
-                                                                               configuration.lockCreationDate(),
-                                                                               configuration.renewMaxIterationWaitingPeriodInS(),
-                                                                               configuration.renewDuration(),
-                                                                               configuration.standardStorageClassName(),
-                                                                               configuration.lockService(),
-                                                                               configuration.s3Client());
-        return fileStatus == GlacierFileStatus.AVAILABLE;
+        GlacierFileStatus glacierFileStatus = S3GlacierUtils.checkRestorationComplete(archivePathInCache,
+                                                                                      archiveRelativePathAsString,
+                                                                                      configuration.storageConfiguration(),
+                                                                                      configuration.s3AccessTimeout(),
+                                                                                      configuration.lockName(),
+                                                                                      configuration.lockCreationDate(),
+                                                                                      configuration.renewMaxIterationWaitingPeriodInS(),
+                                                                                      configuration.renewDuration(),
+                                                                                      configuration.standardStorageClassName(),
+                                                                                      configuration.lockService(),
+                                                                                      configuration.s3Client());
+        return RestorationStatus.AVAILABLE == glacierFileStatus.getStatus();
     }
 }

@@ -19,8 +19,9 @@
 package fr.cnes.regards.modules.storage.plugin.s3.utils;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
-import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
+import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
@@ -76,12 +77,12 @@ public class S3GlacierUtils {
                                           StorageConfig config,
                                           String key,
                                           String standardStorageClassName) {
-        GlacierFileStatus fileStatus = s3Client.isFileAvailable(config, key, standardStorageClassName).block();
+        GlacierFileStatus glacierFileStatus = s3Client.isFileAvailable(config, key, standardStorageClassName).block();
 
-        if (fileStatus.equals(GlacierFileStatus.AVAILABLE)) {
+        if (RestorationStatus.AVAILABLE == glacierFileStatus.getStatus()) {
             return new RestoreResponse(RestoreStatus.FILE_AVAILABLE);
         }
-        if (fileStatus.equals(GlacierFileStatus.RESTORE_PENDING)) {
+        if (RestorationStatus.RESTORE_PENDING == glacierFileStatus.getStatus()) {
             return new RestoreResponse(RestoreStatus.SUCCESS);
         }
         RestoreResponse response = s3Client.restore(config, key)
@@ -147,19 +148,21 @@ public class S3GlacierUtils {
         int lockTimeToLive = lockService.getTimeToLive();
 
         String downloadedFileName = targetFilePath.getFileName().toString();
-        GlacierFileStatus fileStatus = GlacierFileStatus.NOT_AVAILABLE;
+        RestorationStatus restorationStatus = RestorationStatus.NOT_AVAILABLE;
         boolean retryAvailability = true;
         int delay = RetrieveCacheFileTask.INITIAL_DELAY;
         int totalWaited = 0;
         int iterationNumber = 0;
         int reachServerAttempt = 0;
         try {
-            while ((fileStatus != GlacierFileStatus.AVAILABLE) && retryAvailability) {
+            while ((restorationStatus != RestorationStatus.AVAILABLE) && retryAvailability) {
                 iterationNumber++;
                 reachServerAttempt++;
                 LOGGER.debug("Checking if restoration succeeded");
                 try {
-                    fileStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName).block();
+                    restorationStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName)
+                                                .block()
+                                                .getStatus();
                     reachServerAttempt = 0;
                 } catch (S3ClientException e) {
                     LOGGER.warn("Unable to check if the restoration is complete because the server is unreachable");
@@ -167,7 +170,7 @@ public class S3GlacierUtils {
                         throw e;
                     }
                 }
-                switch (fileStatus) {
+                switch (restorationStatus) {
                     case RESTORE_PENDING -> {
                         LOGGER.info("Restoration of file {}/{} not succeeded yet. Waiting for restoration end.",
                                     s3Configuration.getBucket(),
@@ -193,7 +196,7 @@ public class S3GlacierUtils {
                         LOGGER.info("Restoration succeeded for file {}/{}", s3Configuration.getBucket(), key);
                         String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
                         if (!downloadFile(targetFilePath, key, s3Configuration, taskId)) {
-                            fileStatus = GlacierFileStatus.NOT_AVAILABLE;
+                            restorationStatus = RestorationStatus.NOT_AVAILABLE;
                         }
                         retryAvailability = false;
                     }
@@ -218,7 +221,7 @@ public class S3GlacierUtils {
         } catch (S3ClientException e) {
             LOGGER.error("Unable to reach S3 Server to restore the file", e);
         }
-        return fileStatus;
+        return new GlacierFileStatus(restorationStatus, null);
     }
 
     /**

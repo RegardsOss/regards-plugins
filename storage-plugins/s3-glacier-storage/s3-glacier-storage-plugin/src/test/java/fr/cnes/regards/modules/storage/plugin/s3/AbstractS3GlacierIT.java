@@ -27,7 +27,6 @@ import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringP
 import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
-import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
@@ -91,6 +90,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -846,10 +846,10 @@ public abstract class AbstractS3GlacierIT {
                                                        String standardStorageClassName) {
             if (tryCount >= 2) {
                 tryCount = 0;
-                return Mono.just(GlacierFileStatus.AVAILABLE);
+                return Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, ZonedDateTime.now()));
             } else {
                 tryCount++;
-                return Mono.just(GlacierFileStatus.RESTORE_PENDING);
+                return Mono.just(new GlacierFileStatus(RestorationStatus.RESTORE_PENDING, null));
             }
         }
     }
@@ -867,7 +867,7 @@ public abstract class AbstractS3GlacierIT {
         public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
                                                        String key,
                                                        String standardStorageClassName) {
-            return Mono.just(GlacierFileStatus.NOT_AVAILABLE);
+            return Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, ZonedDateTime.now()));
         }
     }
 

@@ -195,7 +195,6 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         writeFileOnStorage(writeCmd);
 
         // When
-
         FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
 
         FileDeletionRequest request = new FileDeletionRequest(reference,

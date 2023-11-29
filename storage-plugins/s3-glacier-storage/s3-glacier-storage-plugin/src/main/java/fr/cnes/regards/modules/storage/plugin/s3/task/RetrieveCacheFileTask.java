@@ -18,7 +18,8 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
-import fr.cnes.regards.framework.s3.client.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
+import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
@@ -141,7 +142,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                        configuration.lockService(),
                                                                                        configuration.s3Client());
 
-                if (fileStatus == GlacierFileStatus.AVAILABLE) {
+                if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
                     extractThenCopyFileAndHandleSuccess(localPath, archivePath);
                 } else {
                     progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
@@ -210,7 +211,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                    configuration.standardStorageClassName(),
                                                                                    configuration.lockService(),
                                                                                    configuration.s3Client());
-            if (fileStatus == GlacierFileStatus.AVAILABLE) {
+            if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
                 progressManager.restoreSucceed(request, targetPath);
             } else {
                 progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
