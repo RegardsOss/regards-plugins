@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
@@ -33,7 +33,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileLocation;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
@@ -128,7 +128,7 @@ public class S3OnlineStorageIT {
 
     private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
         StringPluginParam secretParam = IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret);
-        secretParam.setDecryptedValue(secret);
+        secretParam.setValue(secret);
         // Set plugin configuration
         Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(S3OnlineStorage.S3_SERVER_ENDPOINT_PARAM_NAME,
                                                                                   endpoint),
@@ -173,22 +173,24 @@ public class S3OnlineStorageIT {
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest(""), "/rootPath0/rootPath1/");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation(""),
+                                                          "/rootPath0/rootPath1/");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPathSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "/rootPath0");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"),
+                                                          "/rootPath0");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"), "");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_only() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequest("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"), "");
     }
 
     @Test
@@ -196,7 +198,7 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server(""),
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server(""),
                                                           "/rootPath0/rootPath1/");
     }
 
@@ -206,7 +208,7 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"),
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
                                                           "/rootPath0");
     }
 
@@ -215,7 +217,8 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
+                                                          "");
     }
 
     @Test
@@ -223,10 +226,11 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestFromS3Server("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
+                                                          "");
     }
 
-    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequest fileStorageRequest,
+    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregation fileStorageRequest,
                                                                    String rootPath) {
         // Given
         loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
@@ -265,8 +269,8 @@ public class S3OnlineStorageIT {
         }
     }
 
-    private FileStorageRequest createFileStorageRequest(String subDirectory) {
-        FileStorageRequest fileStorageRequest = new FileStorageRequest();
+    private FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory) {
+        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
         fileStorageRequest.setOriginUrl("file:./src/test/resources/" + FILE_NAME);
         fileStorageRequest.setStorageSubDirectory(subDirectory);
 
@@ -281,8 +285,8 @@ public class S3OnlineStorageIT {
         return fileStorageRequest;
     }
 
-    private FileStorageRequest createFileStorageRequestFromS3Server(String subDirectory) {
-        FileStorageRequest fileStorageRequest = new FileStorageRequest();
+    private FileStorageRequestAggregation createFileStorageRequestAggregationFromS3Server(String subDirectory) {
+        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
         fileStorageRequest.setOriginUrl(endPoint + File.separator + bucketInput + File.separator + FILE_NAME);
         fileStorageRequest.setStorageSubDirectory(subDirectory);
 
@@ -297,7 +301,7 @@ public class S3OnlineStorageIT {
         return fileStorageRequest;
     }
 
-    private FileReference createFileReference(FileStorageRequest fileStorageRequest, String rootPath) {
+    private FileReference createFileReference(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
         FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
         fileReferenceMetaInfo.setFileName(fileStorageRequest.getMetaInfo().getFileName());
         fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
@@ -311,7 +315,8 @@ public class S3OnlineStorageIT {
         return new FileReference("regards", fileReferenceMetaInfo, fileLocation);
     }
 
-    private FileDeletionRequest createFileDeletionRequest(FileStorageRequest fileStorageRequest, String rootPath) {
+    private FileDeletionRequest createFileDeletionRequest(FileStorageRequestAggregation fileStorageRequest,
+                                                          String rootPath) {
         FileDeletionRequest fileDeletionRequest = new FileDeletionRequest();
         fileDeletionRequest.setJobId("JOB_ID");
 
@@ -320,7 +325,7 @@ public class S3OnlineStorageIT {
         return fileDeletionRequest;
     }
 
-    private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
+    private String buildFileLocationUrl(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
         return endPoint + File.separator + bucketOutput + Paths.get(File.separator,
                                                                     rootPath,
                                                                     fileStorageRequest.getStorageSubDirectory())
@@ -339,11 +344,13 @@ public class S3OnlineStorageIT {
         return new IStorageProgressManager() {
 
             @Override
-            public void storageSucceed(FileStorageRequest fileReferenceRequest, URL storedUrl, Long fileSize) {
+            public void storageSucceed(FileStorageRequestAggregation fileReferenceRequest,
+                                       URL storedUrl,
+                                       Long fileSize) {
             }
 
             @Override
-            public void storageSucceedWithPendingActionRemaining(FileStorageRequest fileReferenceRequest,
+            public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation fileReferenceRequest,
                                                                  URL storedUrl,
                                                                  Long fileSize,
                                                                  Boolean notifyAdministrators) {
@@ -356,7 +363,7 @@ public class S3OnlineStorageIT {
             }
 
             @Override
-            public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
+            public void storageFailed(FileStorageRequestAggregation fileReferenceRequest, String cause) {
             }
         };
     }

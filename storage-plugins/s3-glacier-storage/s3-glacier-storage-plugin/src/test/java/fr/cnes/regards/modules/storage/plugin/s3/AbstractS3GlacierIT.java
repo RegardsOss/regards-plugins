@@ -22,8 +22,8 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceResponse;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
@@ -44,7 +44,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
@@ -236,7 +236,7 @@ public abstract class AbstractS3GlacierIT {
                               Boolean simulateLockTaskException) {
         this.rootPath = rootPath;
         StringPluginParam secretParam = IPluginParam.build(AbstractS3Storage.S3_SERVER_SECRET_PARAM_NAME, secret);
-        secretParam.setDecryptedValue(secret);
+        secretParam.setValue(secret);
         // Set plugin configuration
         Collection<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(AbstractS3Storage.S3_SERVER_ENDPOINT_PARAM_NAME,
                                                                                   endpoint),
@@ -485,15 +485,17 @@ public abstract class AbstractS3GlacierIT {
                                 "The remaining file in the directory should be the one that wasn't deleted");
     }
 
-    protected FileStorageRequest createFileStorageRequest(String subDirectory, String fileName, String fileChecksum) {
-        return createFileStorageRequest(subDirectory, fileName, null, fileChecksum);
+    protected FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory,
+                                                                                String fileName,
+                                                                                String fileChecksum) {
+        return createFileStorageRequestAggregation(subDirectory, fileName, null, fileChecksum);
     }
 
-    protected FileStorageRequest createFileStorageRequest(String subDirectory,
-                                                          String fileName,
-                                                          Long fileSize,
-                                                          String fileChecksum) {
-        FileStorageRequest fileStorageRequest = new FileStorageRequest();
+    protected FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory,
+                                                                                String fileName,
+                                                                                Long fileSize,
+                                                                                String fileChecksum) {
+        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
         fileStorageRequest.setId(random.nextLong());
         fileStorageRequest.setOriginUrl("file:./src/test/resources/files/" + fileName);
         fileStorageRequest.setStorageSubDirectory(subDirectory);
@@ -510,7 +512,7 @@ public abstract class AbstractS3GlacierIT {
         return fileStorageRequest;
     }
 
-    protected FileReference createFileReference(FileStorageRequest fileStorageRequest, String rootPath) {
+    protected FileReference createFileReference(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
         FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
         fileReferenceMetaInfo.setFileName(fileStorageRequest.getMetaInfo().getFileName());
         fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
@@ -526,7 +528,7 @@ public abstract class AbstractS3GlacierIT {
         return reference;
     }
 
-    private String buildFileLocationUrl(FileStorageRequest fileStorageRequest, String rootPath) {
+    private String buildFileLocationUrl(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
         return endPoint + File.separator + bucket + Paths.get(File.separator,
                                                               rootPath,
                                                               fileStorageRequest.getStorageSubDirectory() != null ?
@@ -647,12 +649,12 @@ public abstract class AbstractS3GlacierIT {
         List<String> storageFailed = new ArrayList<>();
 
         @Override
-        public void storageSucceed(FileStorageRequest fileReferenceRequest, URL storedUrl, Long fileSize) {
+        public void storageSucceed(FileStorageRequestAggregation fileReferenceRequest, URL storedUrl, Long fileSize) {
             storageSucceed.add(storedUrl);
         }
 
         @Override
-        public void storageSucceedWithPendingActionRemaining(FileStorageRequest fileReferenceRequest,
+        public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation fileReferenceRequest,
                                                              URL storedUrl,
                                                              Long fileSize,
                                                              Boolean notifyAdministrators) {
@@ -667,7 +669,7 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public void storageFailed(FileStorageRequest fileReferenceRequest, String cause) {
+        public void storageFailed(FileStorageRequestAggregation fileReferenceRequest, String cause) {
             storageFailed.add(fileReferenceRequest.getOriginUrl());
         }
 

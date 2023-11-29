@@ -83,6 +83,11 @@
             <artifactId>gson-regards-starter</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-dto</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

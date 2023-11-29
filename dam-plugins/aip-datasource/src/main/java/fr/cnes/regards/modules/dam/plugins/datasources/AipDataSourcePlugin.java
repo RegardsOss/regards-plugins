@@ -43,6 +43,8 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginCo
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
+import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.StorageType;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
@@ -60,8 +62,6 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.project.domain.ProjectUpdateEvent;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.slf4j.Logger;
@@ -401,7 +401,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      * @throws DataSourceException in case locations could not be retrieved
      */
     private Storages getStorageLocations() throws DataSourceException {
-        ResponseEntity<List<EntityModel<StorageLocationDTO>>> storageResponse = storageRestClient.retrieve();
+        ResponseEntity<List<EntityModel<StorageLocationDto>>> storageResponse = storageRestClient.retrieve();
 
         if (!storageResponse.getStatusCode().is2xxSuccessful() || !storageResponse.hasBody()) {
             throw new DataSourceException(String.format(
@@ -715,20 +715,20 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
 
         private List<String> offlines;
 
-        public static Storages build(List<StorageLocationDTO> storageLocationDTOList) {
+        public static Storages build(List<StorageLocationDto> storageLocationDTOList) {
             Storages storages = new Storages();
-            storages.all = storageLocationDTOList.stream().map(StorageLocationDTO::getName).toList();
+            storages.all = storageLocationDTOList.stream().map(StorageLocationDto::getName).toList();
             storages.onlines = storageLocationDTOList.stream()
                                                      .filter(s -> (s.getConfiguration() != null)
                                                                   && (s.getConfiguration().getStorageType()
                                                                       == StorageType.ONLINE))
-                                                     .map(StorageLocationDTO::getName)
+                                                     .map(StorageLocationDto::getName)
                                                      .toList();
             storages.offlines = storageLocationDTOList.stream()
                                                       .filter(s -> (s.getConfiguration() == null)
                                                                    || (s.getConfiguration().getStorageType()
                                                                        == StorageType.OFFLINE))
-                                                      .map(StorageLocationDTO::getName)
+                                                      .map(StorageLocationDto::getName)
                                                       .toList();
             return storages;
         }

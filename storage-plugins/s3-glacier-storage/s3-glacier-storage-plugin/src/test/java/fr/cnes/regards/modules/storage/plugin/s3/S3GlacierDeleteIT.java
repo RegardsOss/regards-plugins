@@ -145,10 +145,10 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
-        FileReference reference = createFileReference(createFileStorageRequest(nodeName,
-                                                                               fileName,
-                                                                               fileSize,
-                                                                               fileChecksum), ROOT_PATH);
+        FileReference reference = createFileReference(createFileStorageRequestAggregation(nodeName,
+                                                                                          fileName,
+                                                                                          fileSize,
+                                                                                          fileChecksum), ROOT_PATH);
 
         FileDeletionRequest request = new FileDeletionRequest(reference,
                                                               "groupIdTest",

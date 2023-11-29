@@ -29,12 +29,12 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
 import fr.cnes.regards.modules.feature.dto.*;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
+import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.StorageType;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
-import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
@@ -294,7 +294,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
             // Remote request to STORAGE
             try {
                 FeignSecurityManager.asSystem();
-                ResponseEntity<List<EntityModel<StorageLocationDTO>>> response = storageRestClient.retrieve();
+                ResponseEntity<List<EntityModel<StorageLocationDto>>> response = storageRestClient.retrieve();
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
@@ -302,7 +302,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                                                   + response.getStatusCode());
                 }
 
-                List<StorageLocationDTO> storageLocationDTOList = Objects.requireNonNull(response.getBody())
+                List<StorageLocationDto> storageLocationDTOList = Objects.requireNonNull(response.getBody())
                                                                          .stream()
                                                                          .map(EntityModel::getContent)
                                                                          .toList();
@@ -328,20 +328,20 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
         private List<String> offlines;
 
-        public static Storages build(List<StorageLocationDTO> storageLocationDTOList) {
+        public static Storages build(List<StorageLocationDto> storageLocationDTOList) {
             Storages storages = new Storages();
-            storages.all = storageLocationDTOList.stream().map(StorageLocationDTO::getName).toList();
+            storages.all = storageLocationDTOList.stream().map(StorageLocationDto::getName).toList();
             storages.onlines = storageLocationDTOList.stream()
                                                      .filter(s -> (s.getConfiguration() != null)
                                                                   && (s.getConfiguration().getStorageType()
                                                                       == StorageType.ONLINE))
-                                                     .map(StorageLocationDTO::getName)
+                                                     .map(StorageLocationDto::getName)
                                                      .toList();
             storages.offlines = storageLocationDTOList.stream()
                                                       .filter(s -> (s.getConfiguration() == null)
                                                                    || (s.getConfiguration().getStorageType()
                                                                        == StorageType.OFFLINE))
-                                                      .map(StorageLocationDTO::getName)
+                                                      .map(StorageLocationDto::getName)
                                                       .toList();
             return storages;
         }

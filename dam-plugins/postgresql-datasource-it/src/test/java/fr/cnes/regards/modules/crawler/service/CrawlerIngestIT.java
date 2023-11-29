@@ -23,8 +23,8 @@ import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
@@ -292,7 +292,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
                                                         IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
                                                                            dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPpassword);
-        passwordParam.setDecryptedValue(dbPpassword);
+        passwordParam.setValue(dbPpassword);
         parameters.add(passwordParam);
 
         return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);

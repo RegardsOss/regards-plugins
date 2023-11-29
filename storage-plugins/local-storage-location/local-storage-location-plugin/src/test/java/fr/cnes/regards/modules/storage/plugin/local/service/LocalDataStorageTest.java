@@ -20,7 +20,7 @@ package fr.cnes.regards.modules.storage.plugin.local.service;
 
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.domain.S3Server;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
@@ -29,7 +29,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileLocation;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -104,22 +104,23 @@ public class LocalDataStorageTest {
 
     @Test
     public void store() throws IOException {
-        Set<FileStorageRequest> files = Sets.newHashSet();
+        Set<FileStorageRequestAggregation> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "edc900745c5d15d773fbcdc0b376f00c",
-                                                                       "MD5",
-                                                                       "file.name",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   testFilePath.toUri().toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "edc900745c5d15d773fbcdc0b376f00c",
+                                                                                             "MD5",
+                                                                                             "file.name",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         testFilePath.toUri()
+                                                                                                     .toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
 
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
@@ -161,22 +162,23 @@ public class LocalDataStorageTest {
 
     @Test
     public void store_file_exists() throws IOException {
-        Set<FileStorageRequest> files = Sets.newHashSet();
+        Set<FileStorageRequestAggregation> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "edc900745c5d15d773fbcdc0b376f00c",
-                                                                       "MD5",
-                                                                       "file.name",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   testFilePath.toUri().toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "edc900745c5d15d773fbcdc0b376f00c",
+                                                                                             "MD5",
+                                                                                             "file.name",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         testFilePath.toUri()
+                                                                                                     .toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
         files.add(storageRequest);
         // rather than mimicking the storage logic, lets just ask for storage and then try it again
         store();
@@ -189,22 +191,22 @@ public class LocalDataStorageTest {
 
     @Test
     public void store_error_missing_file() {
-        Set<FileStorageRequest> files = Sets.newHashSet();
+        Set<FileStorageRequestAggregation> files = Sets.newHashSet();
         Path unknownFilePath = Paths.get("src", "test", "resources", "unknown.test");
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "edc900745c5d15d773fbcdc0b376f00c",
-                                                                       "MD5",
-                                                                       "unknown.test",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   unknownFilePath.toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "edc900745c5d15d773fbcdc0b376f00c",
+                                                                                             "MD5",
+                                                                                             "unknown.test",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         unknownFilePath.toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
@@ -215,23 +217,23 @@ public class LocalDataStorageTest {
 
     @Test
     public void store_error_invalid_md5() throws MalformedURLException {
-        Set<FileStorageRequest> files = Sets.newHashSet();
+        Set<FileStorageRequestAggregation> files = Sets.newHashSet();
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "abcde123456789abcde123456789abcd",
-                                                                       "MD5",
-                                                                       "file.name",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   (new URL("file",
-                                                                            null,
-                                                                            "src/test/resources/file.test")).toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "abcde123456789abcde123456789abcd",
+                                                                                             "MD5",
+                                                                                             "file.name",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         (new URL("file",
+                                                                                                  null,
+                                                                                                  "src/test/resources/file.test")).toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
         Mockito.verify(storageProgress, Mockito.never()).storageSucceed(Mockito.any(), Mockito.any(), Mockito.any());
@@ -245,19 +247,20 @@ public class LocalDataStorageTest {
         store();
         Path testFilePath = Paths.get("src", "test", "resources", "file.test");
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "edc900745c5d15d773fbcdc0b376f00c",
-                                                                       "MD5",
-                                                                       "file.name",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   testFilePath.toUri().toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "edc900745c5d15d773fbcdc0b376f00c",
+                                                                                             "MD5",
+                                                                                             "file.name",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         testFilePath.toUri()
+                                                                                                     .toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
         Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> files = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",
@@ -290,22 +293,23 @@ public class LocalDataStorageTest {
         //store first file
         store();
         // store second file
-        Set<FileStorageRequest> files = Sets.newHashSet();
+        Set<FileStorageRequestAggregation> files = Sets.newHashSet();
         Path testFilePath = Paths.get("src", "test", "resources", "file2.test");
 
-        FileStorageRequest storageRequest = new FileStorageRequest("owner",
-                                                                   new FileReferenceMetaInfo(
-                                                                       "b4b2c823e4a4cf98d755f76679c83918",
-                                                                       "MD5",
-                                                                       "file2.name",
-                                                                       null,
-                                                                       MediaType.APPLICATION_OCTET_STREAM),
-                                                                   testFilePath.toUri().toString(),
-                                                                   "localStorage",
-                                                                   Optional.empty(),
-                                                                   "group",
-                                                                   "TEST",
-                                                                   "session-001");
+        FileStorageRequestAggregation storageRequest = new FileStorageRequestAggregation("owner",
+                                                                                         new FileReferenceMetaInfo(
+                                                                                             "b4b2c823e4a4cf98d755f76679c83918",
+                                                                                             "MD5",
+                                                                                             "file2.name",
+                                                                                             null,
+                                                                                             MediaType.APPLICATION_OCTET_STREAM),
+                                                                                         testFilePath.toUri()
+                                                                                                     .toString(),
+                                                                                         "localStorage",
+                                                                                         Optional.empty(),
+                                                                                         "group",
+                                                                                         "TEST",
+                                                                                         "session-001");
 
         files.add(storageRequest);
         FileStorageWorkingSubset ws = new FileStorageWorkingSubset(files);
@@ -313,18 +317,18 @@ public class LocalDataStorageTest {
 
         // delete first file
         testFilePath = Paths.get("src", "test", "resources", "file.test");
-        storageRequest = new FileStorageRequest("owner",
-                                                new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
-                                                                          "MD5",
-                                                                          "file.name",
-                                                                          testFilePath.toFile().length(),
-                                                                          MediaType.APPLICATION_OCTET_STREAM),
-                                                testFilePath.toUri().toString(),
-                                                "localStorage",
-                                                Optional.empty(),
-                                                "group",
-                                                "TEST",
-                                                "session-001");
+        storageRequest = new FileStorageRequestAggregation("owner",
+                                                           new FileReferenceMetaInfo("edc900745c5d15d773fbcdc0b376f00c",
+                                                                                     "MD5",
+                                                                                     "file.name",
+                                                                                     testFilePath.toFile().length(),
+                                                                                     MediaType.APPLICATION_OCTET_STREAM),
+                                                           testFilePath.toUri().toString(),
+                                                           "localStorage",
+                                                           Optional.empty(),
+                                                           "group",
+                                                           "TEST",
+                                                           "session-001");
         Path zipPath = plugin.getCurrentZipPath(plugin.getStorageLocationForZip(storageRequest));
         Set<FileDeletionRequest> fileDeletionRequests = Sets.newHashSet();
         FileReference fileRef = new FileReference("owner",

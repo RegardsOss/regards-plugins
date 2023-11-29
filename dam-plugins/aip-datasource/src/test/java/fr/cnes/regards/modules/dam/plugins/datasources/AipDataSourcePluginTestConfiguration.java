@@ -5,6 +5,8 @@ import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
+import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.StorageType;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
@@ -19,8 +21,6 @@ import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfiguration;
-import fr.cnes.regards.modules.storage.domain.dto.StorageLocationDTO;
-import fr.cnes.regards.modules.storage.domain.plugin.StorageType;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -142,14 +142,14 @@ public class AipDataSourcePluginTestConfiguration {
         IStorageRestClient mock = Mockito.mock(IStorageRestClient.class);
         StorageLocationConfiguration storageLocationConfiguration = new StorageLocationConfiguration("AWS", null, 1L);
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
-        StorageLocationDTO dto = StorageLocationDTO.build("AWS", storageLocationConfiguration)
+        StorageLocationDto dto = StorageLocationDto.build("AWS", storageLocationConfiguration.toDto())
                                                    .withRunningProcessesInformation(false, false, false, false)
                                                    .withAllowPhysicalDeletion(false)
                                                    .withFilesInformation(1L, 0L, 1L)
                                                    .withErrorInformation(1L, 1L);
-        List<EntityModel<StorageLocationDTO>> list = new LinkedList<>();
+        List<EntityModel<StorageLocationDto>> list = new LinkedList<>();
         list.add(EntityModel.of(dto));
-        ResponseEntity<List<EntityModel<StorageLocationDTO>>> result = ResponseEntity.ok(list);
+        ResponseEntity<List<EntityModel<StorageLocationDto>>> result = ResponseEntity.ok(list);
         Mockito.when(mock.retrieve()).thenReturn(result);
         return mock;
     }

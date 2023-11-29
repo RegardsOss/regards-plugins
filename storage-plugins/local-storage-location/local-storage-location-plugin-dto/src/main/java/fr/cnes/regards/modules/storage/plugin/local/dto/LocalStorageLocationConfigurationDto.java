@@ -18,14 +18,14 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local.dto;
 
-import fr.cnes.regards.modules.storage.domain.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
 
 /**
  * Configuration DTO for Local Storage Plugin
  *
  * @author Thibaud Michaudel
  **/
-public class LocalStorageLocationConfigurationDTO extends AbstractStoragePluginConfigurationDto {
+public class LocalStorageLocationConfigurationDto extends AbstractStoragePluginConfigurationDto {
 
     /**
      * Root directory where to store new files on this location
@@ -47,7 +47,7 @@ public class LocalStorageLocationConfigurationDTO extends AbstractStoragePluginC
      */
     private Long maxZipSize;
 
-    public LocalStorageLocationConfigurationDTO(Boolean allowPhysicalDeletion,
+    public LocalStorageLocationConfigurationDto(Boolean allowPhysicalDeletion,
                                                 String baseStorageLocationAsString,
                                                 Long maxFileSizeForZip,
                                                 Long maxZipSize) {

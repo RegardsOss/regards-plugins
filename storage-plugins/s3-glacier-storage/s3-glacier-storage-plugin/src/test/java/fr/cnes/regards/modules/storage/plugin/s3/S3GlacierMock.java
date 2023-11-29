@@ -23,7 +23,7 @@ import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
@@ -108,7 +108,7 @@ public class S3GlacierMock extends S3Glacier {
     }
 
     @Override
-    protected void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
+    protected void handleStoreRequest(FileStorageRequestAggregation request, IStorageProgressManager progressManager) {
         // Nothing to do
     }
 }

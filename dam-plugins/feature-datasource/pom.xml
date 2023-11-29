@@ -63,6 +63,10 @@
             <artifactId>feature-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
+            <artifactId>file-catalog-dto</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
             <artifactId>storage-client</artifactId>
             <scope>provided</scope>

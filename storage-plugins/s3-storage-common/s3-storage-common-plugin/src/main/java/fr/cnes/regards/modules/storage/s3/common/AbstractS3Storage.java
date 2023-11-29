@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
+import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.framework.modules.workspace.service.WorkspaceService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
@@ -33,7 +33,7 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -174,7 +174,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      * Initialize the storage configuration of S3 server
      */
     @PluginInit(hasConfiguration = true)
-    public void init(PluginConfiguration conf) {
+    public void init(PluginConfigurationDto conf) {
         Assert.isTrue(multipartThresholdMb >= 5,
                       String.format("The parameter value %s must be at least 5. (actual : " + "%d)",
                                     UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
@@ -261,7 +261,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      .block();
     }
 
-    protected void handleStoreRequest(FileStorageRequest request, IStorageProgressManager progressManager) {
+    protected void handleStoreRequest(FileStorageRequestAggregation request, IStorageProgressManager progressManager) {
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
             String tenant = runtimeTenantResolver.getTenant();
@@ -326,7 +326,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return Mono.error(new RuntimeException(String.format("Write failure in S3 storage : %s", cause.getMessage())));
     }
 
-    private StorageEntry buildStorageEntry(FileStorageRequest request, String entryKey, Flux<ByteBuffer> buffers) {
+    private StorageEntry buildStorageEntry(FileStorageRequestAggregation request,
+                                           String entryKey,
+                                           Flux<ByteBuffer> buffers) {
         return StorageEntry.builder()
                            .config(storageConfiguration)
                            .fullPath(entryKey)
@@ -348,7 +350,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                             .substring(1);
     }
 
-    private String getEntryKey(FileStorageRequest request) {
+    private String getEntryKey(FileStorageRequestAggregation request) {
         String entryKey = request.getMetaInfo().getChecksum();
         if (request.getStorageSubDirectory() != null && !request.getStorageSubDirectory().isEmpty()) {
             entryKey = Paths.get(request.getStorageSubDirectory(), request.getMetaInfo().getChecksum()).toString();
@@ -359,11 +361,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return entryKey;
     }
 
-    private Option<Long> entrySize(FileStorageRequest request) {
+    private Option<Long> entrySize(FileStorageRequestAggregation request) {
         return Option.some(request.getMetaInfo().getFileSize());
     }
 
-    private Option<Tuple2<String, String>> entryChecksum(FileStorageRequest request) {
+    private Option<Tuple2<String, String>> entryChecksum(FileStorageRequestAggregation request) {
         return Option.some(Tuple.of(request.getMetaInfo().getAlgorithm(), request.getMetaInfo().getChecksum()));
     }
 
@@ -397,7 +399,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     }
 
     @Override
-    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregation> prepareForStorage(Collection<FileStorageRequestAggregation> fileReferenceRequests) {
         List<FileStorageWorkingSubset> workingSubsets = new ArrayList<>();
         workingSubsets.add(new FileStorageWorkingSubset(fileReferenceRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());

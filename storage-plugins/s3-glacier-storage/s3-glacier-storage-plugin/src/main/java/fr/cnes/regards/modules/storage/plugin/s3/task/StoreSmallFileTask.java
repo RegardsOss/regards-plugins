@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.task;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.StoreSmallFileTaskConfiguration;
@@ -57,8 +57,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * </ul>
  * <p>
  * The result of the call is sent through the progress manager using
- * {@link IStorageProgressManager#storageSucceedWithPendingActionRemaining(FileStorageRequest, URL, Long, Boolean)}
- * in case of success or {@link IStorageProgressManager#storageFailed(FileStorageRequest, String)} in case of error
+ * {@link IStorageProgressManager#storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation, URL, Long, Boolean)}
+ * in case of success or {@link IStorageProgressManager#storageFailed(FileStorageRequestAggregation, String)} in case of error
  *
  * @author Thibaud Michaudel
  **/
@@ -68,12 +68,12 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
 
     private final StoreSmallFileTaskConfiguration configuration;
 
-    private final FileStorageRequest request;
+    private final FileStorageRequestAggregation request;
 
     private final IStorageProgressManager progressManager;
 
     public StoreSmallFileTask(StoreSmallFileTaskConfiguration storeSmallFileTaskConfiguration,
-                              FileStorageRequest request,
+                              FileStorageRequestAggregation request,
                               IStorageProgressManager progressManager) {
         this.configuration = storeSmallFileTaskConfiguration;
         this.request = request;
@@ -264,7 +264,7 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
         }
     }
 
-    private void handleStorageSucceedWithPendingAction(FileStorageRequest request,
+    private void handleStorageSucceedWithPendingAction(FileStorageRequestAggregation request,
                                                        IStorageProgressManager progressManager,
                                                        String archiveName,
                                                        long realFileSize) {

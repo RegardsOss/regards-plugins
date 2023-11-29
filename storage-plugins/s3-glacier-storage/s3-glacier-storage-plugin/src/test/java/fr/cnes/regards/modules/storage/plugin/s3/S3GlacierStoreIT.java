@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -61,7 +61,7 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
 
         // When
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
-        FileStorageRequest request1 = createFileStorageRequest("", "bigFile1.txt", fileChecksum);
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("", "bigFile1.txt", fileChecksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         TestStorageProgressManager storageProgressManager = new TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
@@ -107,7 +107,9 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
 
-        FileStorageRequest request1 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation(nodeName,
+                                                                                     file1Name,
+                                                                                     file1Checksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         TestStorageProgressManager storageProgressManager = new TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
@@ -148,24 +150,26 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
-        FileStorageRequest request1 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation(nodeName,
+                                                                                     file1Name,
+                                                                                     file1Checksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         TestStorageProgressManager storageProgressManager = new TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 1);
 
         // When
-        FileStorageRequest request2 = createFileStorageRequest(nodeName,
-                                                               "smallFile2.txt",
-                                                               "0e7de3ed4befa2c4a42ec404520d99ff");
+        FileStorageRequestAggregation request2 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile2.txt",
+                                                                                     "0e7de3ed4befa2c4a42ec404520d99ff");
         request2.getMetaInfo().setFileName(file1Name);
         FileStorageWorkingSubset workingSet2 = new FileStorageWorkingSubset(List.of(request2));
         s3Glacier.store(workingSet2, storageProgressManager);
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 2);
 
-        FileStorageRequest request3 = createFileStorageRequest(nodeName,
-                                                               "smallFile3.txt",
-                                                               "00a0b9954478ebd589d7b7c698d71d57");
+        FileStorageRequestAggregation request3 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile3.txt",
+                                                                                     "00a0b9954478ebd589d7b7c698d71d57");
         request3.getMetaInfo().setFileName(file1Name);
         FileStorageWorkingSubset workingSet3 = new FileStorageWorkingSubset(List.of(request3));
         s3Glacier.store(workingSet3, storageProgressManager);
@@ -229,7 +233,9 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         String file1Name = "smallFile1.txt";
         String file1Checksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
-        FileStorageRequest request1 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation(nodeName,
+                                                                                     file1Name,
+                                                                                     file1Checksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         TestStorageProgressManager storageProgressManager = new TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
@@ -237,7 +243,9 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         storageProgressManager.reset();
 
         // When
-        FileStorageRequest request2 = createFileStorageRequest(nodeName, file1Name, file1Checksum);
+        FileStorageRequestAggregation request2 = createFileStorageRequestAggregation(nodeName,
+                                                                                     file1Name,
+                                                                                     file1Checksum);
         FileStorageWorkingSubset workingSet2 = new FileStorageWorkingSubset(List.of(request2));
         s3Glacier.store(workingSet2, storageProgressManager);
 
@@ -288,21 +296,21 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         String nodeName = "deep/dir/testNode";
-        FileStorageRequest request1 = createFileStorageRequest(nodeName,
-                                                               "smallFile1.txt",
-                                                               "83e93a40da8ad9e6ed0ab9ef852e7e39");
-        FileStorageRequest request2 = createFileStorageRequest(nodeName,
-                                                               "smallFile2.txt",
-                                                               "0e7de3ed4befa2c4a42ec404520d99ff");
-        FileStorageRequest request3 = createFileStorageRequest(nodeName,
-                                                               "smallFile3.txt",
-                                                               "00a0b9954478ebd589d7b7c698d71d57");
-        FileStorageRequest request4 = createFileStorageRequest(nodeName,
-                                                               "smallFile4.txt",
-                                                               "6169ec97b7dc25d2c25a0216bd4f81b9");
-        FileStorageRequest request5 = createFileStorageRequest(nodeName,
-                                                               "smallFile5.txt",
-                                                               "eef5db37af89c5e9c1a3ad587f2dcf5f");
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile1.txt",
+                                                                                     "83e93a40da8ad9e6ed0ab9ef852e7e39");
+        FileStorageRequestAggregation request2 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile2.txt",
+                                                                                     "0e7de3ed4befa2c4a42ec404520d99ff");
+        FileStorageRequestAggregation request3 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile3.txt",
+                                                                                     "00a0b9954478ebd589d7b7c698d71d57");
+        FileStorageRequestAggregation request4 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile4.txt",
+                                                                                     "6169ec97b7dc25d2c25a0216bd4f81b9");
+        FileStorageRequestAggregation request5 = createFileStorageRequestAggregation(nodeName,
+                                                                                     "smallFile5.txt",
+                                                                                     "eef5db37af89c5e9c1a3ad587f2dcf5f");
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1,
                                                                                    request2,
                                                                                    request3,

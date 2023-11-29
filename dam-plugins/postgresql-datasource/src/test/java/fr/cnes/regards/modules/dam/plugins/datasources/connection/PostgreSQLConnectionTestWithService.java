@@ -20,8 +20,8 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -130,7 +130,7 @@ public class PostgreSQLConnectionTestWithService extends AbstractRegardsIT {
                                                         IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
                                                                            dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
-        passwordParam.setDecryptedValue(dbPassword);
+        passwordParam.setValue(dbPassword);
         parameters.add(passwordParam);
 
         return PluginConfiguration.build(DefaultPostgreConnectionPlugin.class, null, parameters);

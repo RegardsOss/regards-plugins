@@ -27,8 +27,8 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.dao.IPluginConfigurationRepository;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.modules.plugins.service.IPluginService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
@@ -313,7 +313,7 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
                                                         IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
                                                                            dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
-        passwordParam.setDecryptedValue(dbPassword);
+        passwordParam.setValue(dbPassword);
         parameters.add(passwordParam);
 
         PluginConfiguration plgConf = new PluginConfiguration("TEST_DefaultPostgreConnectionPlugin",

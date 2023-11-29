@@ -20,8 +20,8 @@ package fr.cnes.regards.modules.dam.plugins.datasources.connection;
 
 import com.zaxxer.hikari.pool.HikariPool;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.StringPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.test.report.annotation.Requirement;
@@ -180,7 +180,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
                                                         IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
                                                                            dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, "unknown");
-        passwordParam.setDecryptedValue("unknown");
+        passwordParam.setValue("unknown");
         parameters.add(passwordParam);
 
         try {
@@ -205,7 +205,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
                                                         IPluginParam.build(DBConnectionPluginConstants.DB_NAME_PARAM,
                                                                            dbName));
         StringPluginParam passwordParam = IPluginParam.build(DBConnectionPluginConstants.PASSWORD_PARAM, dbPassword);
-        passwordParam.setDecryptedValue(dbPassword);
+        passwordParam.setValue(dbPassword);
         parameters.add(passwordParam);
         return parameters;
     }

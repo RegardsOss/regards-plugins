@@ -26,7 +26,7 @@ import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
@@ -79,10 +79,10 @@ public class S3GlacierLockTest {
     @Test
     public void test_store_big_file_multiples_locks() throws Exception {
         // Given
-        FileStorageRequest request1 = createStoreFileRequest("node1", false);
-        FileStorageRequest request2 = createStoreFileRequest("node1", false);
-        FileStorageRequest request3 = createStoreFileRequest("node1", false);
-        FileStorageRequest request4 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregation request1 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregation request2 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregation request3 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregation request4 = createStoreFileRequest("node1", false);
         // When
         glacier.mockBigFile();
         glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -100,10 +100,10 @@ public class S3GlacierLockTest {
     @Test
     public void test_store_small_file_on_same_node_locked() throws Exception {
         // Given
-        FileStorageRequest request1 = createStoreFileRequest("node1", true);
-        FileStorageRequest request2 = createStoreFileRequest("node1", true);
-        FileStorageRequest request3 = createStoreFileRequest("node2", true);
-        FileStorageRequest request4 = createStoreFileRequest("node2", true);
+        FileStorageRequestAggregation request1 = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request2 = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request3 = createStoreFileRequest("node2", true);
+        FileStorageRequestAggregation request4 = createStoreFileRequest("node2", true);
         // When
         glacier.mockSmallFile();
         glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -118,7 +118,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_local_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequest request = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
         FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, true);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -136,7 +136,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_local_not_locked_by_store_small_file_on_other_node() throws Exception {
         // Given
-        FileStorageRequest request = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
         FileCacheRequest cacheRequest = createRestoreFileRequest("node2", true, true);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -153,7 +153,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_remote_not_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequest request = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
         FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -170,7 +170,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_big_file_remote_not_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequest request = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
         FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -305,8 +305,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_delete_local_small_file_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequest storeRequest = createStoreFileRequest("node1", true);
-        FileStorageRequest storeRequest2 = createStoreFileRequest("node2", true);
+        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation storeRequest2 = createStoreFileRequest("node2", true);
         FileDeletionRequest deleteRequest = createDeletionRequest("node1", true, true, Optional.of("archive1"));
         FileDeletionRequest deleteRequest2 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
         // When
@@ -334,7 +334,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_submit_rdy_archive_lock_other_store_request_on_same_node() throws Exception {
         // Given
-        FileStorageRequest storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
         // when
         glacier.mockSmallFile();
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1"),
@@ -387,7 +387,7 @@ public class S3GlacierLockTest {
     public void test_submit_rdy_archive_lock_other_restore_remote_local_file_request_on_same_archive_name()
         throws Exception {
         // Given
-        FileStorageRequest storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
         // When
         glacier.doCleanDirectory(Paths.get("/tmp/zip"),
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
@@ -441,7 +441,7 @@ public class S3GlacierLockTest {
                       " There should be 1 task waiting for lock");
     }
 
-    private FileStorageRequest createStoreFileRequest(String node, boolean smallFile) {
+    private FileStorageRequestAggregation createStoreFileRequest(String node, boolean smallFile) {
         String checksum = "123456";
         String algorithm = "MD5";
         String fileName = "file.txt";
@@ -455,14 +455,14 @@ public class S3GlacierLockTest {
         String groupId = "groupId";
         String sessionOwner = "sessionOwner";
         String session = "session";
-        return new FileStorageRequest(owner,
-                                      metaInfos,
-                                      originUrl,
-                                      storage,
-                                      storageSubDirectory,
-                                      groupId,
-                                      sessionOwner,
-                                      session);
+        return new FileStorageRequestAggregation(owner,
+                                                 metaInfos,
+                                                 originUrl,
+                                                 storage,
+                                                 storageSubDirectory,
+                                                 groupId,
+                                                 sessionOwner,
+                                                 session);
     }
 
     private FileCacheRequest createRestoreFileRequest(String node, boolean smallFile, boolean local) {

@@ -27,13 +27,13 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storage.domain.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
-import fr.cnes.regards.modules.storage.plugin.local.dto.LocalStorageLocationConfigurationDTO;
+import fr.cnes.regards.modules.storage.plugin.local.dto.LocalStorageLocationConfigurationDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,7 +148,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequest> prepareForStorage(Collection<FileStorageRequest> fileReferenceRequests) {
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregation> prepareForStorage(Collection<FileStorageRequestAggregation> fileReferenceRequests) {
         return createWorkingSubset(fileReferenceRequests, FileStorageWorkingSubset::new);
     }
 
@@ -188,7 +188,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         workingSubset.getFileReferenceRequests().forEach(data -> doStore(progressManager, data));
     }
 
-    private void doStore(IStorageProgressManager progressManager, FileStorageRequest request) {
+    private void doStore(IStorageProgressManager progressManager, FileStorageRequestAggregation request) {
         Path fullPathToFile;
         try {
             fullPathToFile = getStorageLocation(request);
@@ -263,7 +263,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequest request, File file)
+    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequestAggregation request, File file)
         throws IOException {
         long start = System.currentTimeMillis();
         Path zipDirPath = getStorageLocationForZip(request);
@@ -341,7 +341,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     // this method is public because of tests
-    public Path getStorageLocation(FileStorageRequest request) throws IOException {
+    public Path getStorageLocation(FileStorageRequestAggregation request) throws IOException {
         String checksum = request.getMetaInfo().getChecksum();
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if ((request.getStorageSubDirectory() != null) && !request.getStorageSubDirectory().isEmpty()) {
@@ -368,7 +368,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return storageLocation.resolve(checksum);
     }
 
-    public Path getStorageLocationForZip(FileStorageRequest request) throws IOException {
+    public Path getStorageLocationForZip(FileStorageRequestAggregation request) throws IOException {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
         if (!Strings.isNullOrEmpty(request.getStorageSubDirectory())) {
             // add the sub directory
@@ -664,7 +664,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public AbstractStoragePluginConfigurationDto createWorkerStoreConfiguration() {
-        return new LocalStorageLocationConfigurationDTO(allowPhysicalDeletion,
+        return new LocalStorageLocationConfigurationDto(allowPhysicalDeletion,
                                                         baseStorageLocationAsString,
                                                         maxFileSizeForZip,
                                                         maxZipSize);

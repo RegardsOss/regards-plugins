@@ -6,12 +6,12 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
+import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
+import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
 import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
 import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
-import fr.cnes.regards.modules.storage.domain.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.plugin.*;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
 import fr.cnes.regards.modules.storage.plugin.s3.dto.S3GlacierStorageConfigurationDto;
@@ -213,9 +213,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String storageName;
 
     private ThreadPoolTaskScheduler scheduler;
-
+    
     @PluginInit(hasConfiguration = true)
-    public void initGlacier(PluginConfiguration conf) {
+    public void initGlacier(PluginConfigurationDto conf) {
         if (runtimeTenantResolver != null) {
             workspacePath = Path.of(rawWorkspacePath, runtimeTenantResolver.getTenant()).toString();
         } else {
@@ -280,7 +280,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("End handling store requests");
     }
 
-    public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequest request,
+    public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequestAggregation request,
                                                            IStorageProgressManager progressManager,
                                                            String tenant) {
 
