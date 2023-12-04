@@ -54,7 +54,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  */
 @Component
 public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAccessor
-        implements ConfigurationAccessorFactory {
+    implements ConfigurationAccessorFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationAccessorFactoryImpl.class);
 
@@ -87,13 +87,13 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
     public Provider getProvider(ProviderConfiguration pc) {
         List<ProviderRole> roles = List.ofAll(pc.getProviderRoles())
-                .flatMap(role -> trying(() -> ProviderRole.valueOf(role)).onFailure(t -> warn(
-                        LOGGER,
-                        "Failed to parse provider role {}",
-                        role)));
+                                       .flatMap(role -> trying(() -> ProviderRole.valueOf(role)).onFailure(t -> warn(
+                                           LOGGER,
+                                           "Failed to parse provider role {}",
+                                           role)));
         URL providerUrl = trying(() -> new URL(pc.getProviderUrl())).onFailure(t -> warn(LOGGER,
-                "Failed to parse provider URL in {}",
-                pc)).getOrNull();
+                                                                                         "Failed to parse provider URL in {}",
+                                                                                         pc)).getOrNull();
         return new Provider(pc.getProviderName(), pc.getProviderDescription(), providerUrl, roles);
     }
 
@@ -102,19 +102,19 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
             trace(LOGGER, "Converting stac prop config: {}", s);
             StacPropertyType stacType = StacPropertyType.parse(s.getStacPropertyType());
             @SuppressWarnings("rawtypes") AbstractPropertyConverter converter = propertyConverterFactory.getConverter(
-                    stacType,
-                    s.getStacPropertyFormat(),
-                    s.getSourcePropertyFormat());
+                stacType,
+                s.getStacPropertyFormat(),
+                s.getSourcePropertyFormat());
             return new StacProperty(extractPropertyAccessor(s, stacType),
-                    s.getStacPropertyNamespace(),
-                    s.getStacPropertyName(),
-                    s.getStacPropertyExtension(),
-                    s.getStacComputeSummary() && canComputeSummary(stacType),
-                    s.getStacDynamicCollectionLevel(),
-                    s.getStacDynamicCollectionFormat(),
-                    stacType,
-                    converter,
-                    Boolean.FALSE);
+                                    s.getStacPropertyNamespace(),
+                                    s.getStacPropertyName(),
+                                    s.getStacPropertyExtension(),
+                                    s.getStacComputeSummary() && canComputeSummary(stacType),
+                                    s.getStacDynamicCollectionLevel(),
+                                    s.getStacDynamicCollectionFormat(),
+                                    stacType,
+                                    converter,
+                                    Boolean.FALSE);
         }).toList();
     }
 
@@ -124,7 +124,7 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
 
     public List<StacProperty> getConfiguredProperties(StacSearchEngine plugin) {
         java.util.List<StacPropertyConfiguration> propConfigs = Option.of(plugin.getStacExtraProperties())
-                .getOrElse(new ArrayList<>());
+                                                                      .getOrElse(new ArrayList<>());
         StacPropertyConfiguration datetimeProp = plugin.getStacDatetimeProperty().toStacPropertyConfiguration();
         return addVirtualStacProperties(getConfiguredProperties(List.ofAll(propConfigs).prepend(datetimeProp)));
     }
@@ -133,33 +133,33 @@ public class ConfigurationAccessorFactoryImpl extends AbstractConfigurationAcces
                                          String stacPropertyName,
                                          StacPropertyType stacType) {
         return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType),
-                null,
-                stacPropertyName,
-                null,
-                false,
-                null,
-                null,
-                stacType,
-                null,
-                Boolean.FALSE);
+                                null,
+                                stacPropertyName,
+                                null,
+                                false,
+                                null,
+                                null,
+                                stacType,
+                                null,
+                                Boolean.FALSE);
     }
 
     public StacProperty makeDefaultStacProperty(String sourcePropertyPath,
                                                 String stacPropertyName,
                                                 StacPropertyType stacType) {
         StacSourcePropertyConfiguration sourcePropertyConfiguration = new StacSourcePropertyConfiguration(
-                sourcePropertyPath,
-                null,
-                null);
+            sourcePropertyPath,
+            null,
+            null);
         return new StacProperty(extractPropertyAccessor(sourcePropertyConfiguration, stacType),
-                null,
-                stacPropertyName,
-                null,
-                false,
-                null,
-                null,
-                stacType,
-                null,
-                Boolean.FALSE);
+                                null,
+                                stacPropertyName,
+                                null,
+                                false,
+                                null,
+                                null,
+                                stacType,
+                                null,
+                                Boolean.FALSE);
     }
 }

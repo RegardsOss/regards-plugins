@@ -48,7 +48,7 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 public class UriParamAdderImpl implements UriParamAdder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UriParamAdderImpl.class);
-    
+
     private final IRuntimeTenantResolver runtimeTenantResolver;
 
     private final IAuthenticationResolver authenticationResolver;

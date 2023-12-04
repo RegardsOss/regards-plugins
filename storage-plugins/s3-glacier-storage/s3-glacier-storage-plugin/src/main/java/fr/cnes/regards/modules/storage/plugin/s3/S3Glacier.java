@@ -213,7 +213,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private String storageName;
 
     private ThreadPoolTaskScheduler scheduler;
-    
+
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
         if (runtimeTenantResolver != null) {

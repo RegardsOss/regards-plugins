@@ -131,7 +131,7 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
 
             // Deleting link
             Files.delete(dirPath);
-            
+
             // Deleting archive info as it doesn't exist anymore
             S3GlacierUtils.S3GlacierUrl s3FileInfo = S3GlacierUtils.dispatchS3FilePath(archiveUrl);
             configuration.glacierArchiveService()

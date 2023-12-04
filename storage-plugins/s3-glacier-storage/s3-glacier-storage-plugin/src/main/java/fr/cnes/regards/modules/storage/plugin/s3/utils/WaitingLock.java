@@ -54,7 +54,6 @@ public class WaitingLock {
      * Wait for the given duration and renew the lock when needed during the wait
      *
      * @param delay the time to wait
-     * @throws InterruptedException
      */
     public void waitAndRenew(long delay) throws InterruptedException {
         long lockRemainingTime = getLockRemainingTime();

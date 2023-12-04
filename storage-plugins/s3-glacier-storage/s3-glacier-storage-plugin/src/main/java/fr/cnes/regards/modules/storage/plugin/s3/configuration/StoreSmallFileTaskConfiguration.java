@@ -28,7 +28,10 @@ import java.util.List;
  *
  * @author Thibaud Michaudel
  **/
-public record StoreSmallFileTaskConfiguration(String workspacePath, List<S3Server> storages,
-                                              StorageConfig s3Configuration, int archiveMaxSize, String rootPath) {
+public record StoreSmallFileTaskConfiguration(String workspacePath,
+                                              List<S3Server> storages,
+                                              StorageConfig s3Configuration,
+                                              int archiveMaxSize,
+                                              String rootPath) {
 
 }

@@ -46,8 +46,9 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
 
     private final ConfigurationAccessorFactoryImpl configurationAccessorFactoryImpl;
 
-
-    public CustomConfigurationAccessor(IRuntimeTenantResolver runtimeTenantResolver, Try<StacSearchEngine> plugin, ConfigurationAccessorFactoryImpl configurationAccessorFactoryImpl) {
+    public CustomConfigurationAccessor(IRuntimeTenantResolver runtimeTenantResolver,
+                                       Try<StacSearchEngine> plugin,
+                                       ConfigurationAccessorFactoryImpl configurationAccessorFactoryImpl) {
         this.runtimeTenantResolver = runtimeTenantResolver;
         this.plugin = plugin;
         this.configurationAccessorFactoryImpl = configurationAccessorFactoryImpl;
@@ -71,43 +72,42 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
 
     @Override
     public List<StacProperty> getStacProperties() {
-        return plugin.map(configurationAccessorFactoryImpl::getConfiguredProperties)
-                .getOrElse(List.empty());
+        return plugin.map(configurationAccessorFactoryImpl::getConfiguredProperties).getOrElse(List.empty());
     }
 
     @Override
     public StacProperty getDatetimeStacProperty() {
         return plugin.map(p -> p.getStacDatetimeProperty().toStacPropertyConfiguration())
-                .map(spc -> configurationAccessorFactoryImpl.getConfiguredProperties(List.of(spc)).head())
-                .getOrNull();
+                     .map(spc -> configurationAccessorFactoryImpl.getConfiguredProperties(List.of(spc)).head())
+                     .getOrNull();
     }
 
     @Override
     public StacProperty getLinksStacProperty() {
         String stacPropertyName = StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME;
         return plugin.map(p -> configurationAccessorFactoryImpl.makeStacProperty(p.getStacLinksProperty(),
-                        stacPropertyName,
-                        StacPropertyType.JSON_OBJECT))
-                .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
-                        stacPropertyName,
-                        StacPropertyType.JSON_OBJECT));
+                                                                                 stacPropertyName,
+                                                                                 StacPropertyType.JSON_OBJECT))
+                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
+                                                                                         stacPropertyName,
+                                                                                         StacPropertyType.JSON_OBJECT));
     }
 
     @Override
     public StacProperty getAssetsStacProperty() {
         String stacPropertyName = StacSpecConstants.PropertyName.STAC_ASSETS_PROPERTY_NAME;
         return plugin.map(p -> configurationAccessorFactoryImpl.makeStacProperty(p.getStacAssetsProperty(),
-                        stacPropertyName,
-                        StacPropertyType.JSON_OBJECT))
-                .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
-                        stacPropertyName,
-                        StacPropertyType.JSON_OBJECT));
+                                                                                 stacPropertyName,
+                                                                                 StacPropertyType.JSON_OBJECT))
+                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
+                                                                                         stacPropertyName,
+                                                                                         StacPropertyType.JSON_OBJECT));
     }
 
     @Override
     public List<Provider> getProviders(String datasetUrn) {
         return getCollectionConfigs(datasetUrn).flatMap(CollectionConfiguration::getProviders)
-                .map(configurationAccessorFactoryImpl::getProvider);
+                                               .map(configurationAccessorFactoryImpl::getProvider);
     }
 
     @Override
@@ -117,16 +117,14 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
 
     @Override
     public String getLicense(String datasetUrn) {
-        return getCollectionConfigs(datasetUrn).headOption()
-                .map(CollectionConfiguration::getLicense)
-                .getOrNull();
+        return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense).getOrNull();
     }
 
     private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
         return plugin.map(StacSearchEngine::getStacCollectionDatasetProperties)
-                .map(List::ofAll)
-                .getOrElse(List.empty())
-                .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+                     .map(List::ofAll)
+                     .getOrElse(List.empty())
+                     .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
     }
 
     @Override
@@ -149,22 +147,22 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
     @Override
     public String getEODAGPortalName() {
         return plugin.map(StacSearchEngine::getEodagConfiguration)
-                .map(EODAGConfiguration::getPortalName)
-                .getOrElse(this::getTitle);
+                     .map(EODAGConfiguration::getPortalName)
+                     .getOrElse(this::getTitle);
     }
 
     @Override
     public String getEODAGProvider() {
         return plugin.map(StacSearchEngine::getEodagConfiguration)
-                .map(EODAGConfiguration::getProvider)
-                .getOrElse("provider");
+                     .map(EODAGConfiguration::getProvider)
+                     .getOrElse("provider");
     }
 
     @Override
     public String getEODAGApiKey() {
         return plugin.map(StacSearchEngine::getEodagConfiguration)
-                .map(EODAGConfiguration::getApiKey)
-                .getOrElse("apiKey");
+                     .map(EODAGConfiguration::getApiKey)
+                     .getOrElse("apiKey");
     }
 
 }
