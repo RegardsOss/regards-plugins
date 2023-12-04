@@ -29,10 +29,11 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.oais.ContentInformation;
-import fr.cnes.regards.framework.oais.OAISDataObject;
-import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
-import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.oais.dto.ContentInformationDto;
+import fr.cnes.regards.framework.oais.dto.OAISDataObjectDto;
+import fr.cnes.regards.framework.oais.dto.OAISDataObjectLocationDto;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
+import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.utils.RsRuntimeException;
@@ -49,7 +50,6 @@ import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPState;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.ModelAttrAssoc;
@@ -453,7 +453,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      */
     private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages, String tenant)
         throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, DataSourceException {
-        AIP aip = aipEntity.getAip();
+        AIPDto aip = aipEntity.getAip();
         // Build feature
         DataObjectFeature feature = new DataObjectFeature(aip.getId(), aip.getProviderId(), "NO_LABEL");
 
@@ -467,8 +467,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         Long rawDataFilesSize = 0L;
 
         // Add referenced files from raw AIP
-        for (ContentInformation ci : aip.getProperties().getContentInformations()) {
-            OAISDataObject oaisDo = ci.getDataObject();
+        for (ContentInformationDto ci : aip.getProperties().getContentInformations()) {
+            OAISDataObjectDto oaisDo = ci.getDataObject();
             if (oaisDo.getLocations().isEmpty()) {
                 LOGGER.warn("No location inside the AIP's content informations {}", aipEntity.getAipId());
             } else {
@@ -536,7 +536,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         return feature;
     }
 
-    private void manageFeatureProperties(AIP aip, DataObjectFeature feature)
+    private void manageFeatureProperties(AIPDto aip, DataObjectFeature feature)
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Binded properties
         for (Map.Entry<String, List<String>> entry : modelBindingMap.entrySet()) {
@@ -620,8 +620,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         }
     }
 
-    private DataFile buildDataFile(ContentInformation ci,
-                                   OAISDataObject oaisDo,
+    private DataFile buildDataFile(ContentInformationDto ci,
+                                   OAISDataObjectDto oaisDo,
                                    boolean online,
                                    Optional<String> referenceUrl,
                                    String downloadUrl) {
@@ -669,9 +669,9 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                                       .replace("{checksum}", checksum);
     }
 
-    private Optional<String> checkReference(OAISDataObject oaisDo, Storages storages) {
+    private Optional<String> checkReference(OAISDataObjectDto oaisDo, Storages storages) {
         Optional<String> referenceUrl = Optional.empty();
-        for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
+        for (OAISDataObjectLocationDto oaisDataObjectLocation : oaisDo.getLocations()) {
             boolean isOffline = storages.getOfflines().contains(oaisDataObjectLocation.getStorage())
                                 || !storages.getAll().contains(oaisDataObjectLocation.getStorage());
             if (isOffline && oaisDataObjectLocation.getUrl().startsWith("http")) {
@@ -682,9 +682,9 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         return referenceUrl;
     }
 
-    private boolean checkOnline(OAISDataObject oaisDo, Storages storageLocationDTOList) {
+    private boolean checkOnline(OAISDataObjectDto oaisDo, Storages storageLocationDTOList) {
         boolean isOnline = false;
-        for (OAISDataObjectLocation oaisDataObjectLocation : oaisDo.getLocations()) {
+        for (OAISDataObjectLocationDto oaisDataObjectLocation : oaisDo.getLocations()) {
             isOnline = storageLocationDTOList.getOnlines().contains(oaisDataObjectLocation.getStorage());
             if (isOnline) {
                 break;
@@ -696,7 +696,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     /**
      * Get nested property managing null value
      */
-    private Object getNestedProperty(AIP aip, String propertyJsonPath)
+    private Object getNestedProperty(AIPDto aip, String propertyJsonPath)
         throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         Object value = null;
         try {

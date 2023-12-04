@@ -1,7 +1,9 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import com.google.common.collect.Sets;
-import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
+import fr.cnes.regards.framework.oais.dto.OAISDataObjectLocationDto;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
+import fr.cnes.regards.framework.oais.dto.sip.SIPDto;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
@@ -12,10 +14,8 @@ import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPState;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
-import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
@@ -99,19 +99,19 @@ public class AipDataSourcePluginTestConfiguration {
 
             List<AIPEntity> aipEntities = new ArrayList<>();
 
-            for (AIP aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
+            for (AIPDto aip : AipDataSourcePluginTest.createAIPs(1, "tag1", "tag2", "session 1")) {
                 aip.withDataObject(DataType.RAWDATA,
                                    "Name",
                                    "SHA",
                                    "Checksum",
                                    1000L,
-                                   OAISDataObjectLocation.build("http://perdu.com", "AWS"));
+                                   OAISDataObjectLocationDto.build("http://perdu.com", "AWS"));
                 aip.withSyntaxAndDimension(MimeTypeUtils.IMAGE_JPEG, 1000d, 1500d);
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
                                                     Sets.newHashSet("type1", "type2"));
                 aip.registerContentInformation();
 
-                SIP sip = SIP.build(EntityType.DATA, "sipId");
+                SIPDto sip = SIPDto.build(EntityType.DATA, "sipId");
                 SIPEntity sipEntity = SIPEntity.build("PROJECT1",
                                                       IngestMetadata.build("NASA",
                                                                            OffsetDateTime.now().toString(),

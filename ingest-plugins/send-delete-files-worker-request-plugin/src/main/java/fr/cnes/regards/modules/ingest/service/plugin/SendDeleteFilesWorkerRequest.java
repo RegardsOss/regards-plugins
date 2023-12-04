@@ -26,7 +26,7 @@ import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.ContentInformation;
+import fr.cnes.regards.framework.oais.dto.ContentInformationDto;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.aip.AbstractAIPEntity;
 import fr.cnes.regards.modules.ingest.domain.plugin.ISipPostprocessing;
@@ -123,7 +123,7 @@ public class SendDeleteFilesWorkerRequest implements ISipPostprocessing {
                         .toList();
     }
 
-    private Stream<String> getUrlsToDeleteFromDataObject(ContentInformation contentInformation) {
+    private Stream<String> getUrlsToDeleteFromDataObject(ContentInformationDto contentInformation) {
         return contentInformation.getDataObject()
                                  .getLocations()
                                  .stream()

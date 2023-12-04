@@ -3,7 +3,7 @@ package fr.cnes.regards.modules.ingest.plugins;
 import com.google.common.base.Strings;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
 
 /**
  * Allows to add two given String to generated AIPs.
@@ -27,7 +27,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
     private String value;
 
     @Override
-    protected void addDescriptiveInformation(AIP aip) {
+    protected void addDescriptiveInformation(AIPDto aip) {
         aip.withDescriptiveInformation(descriptiveInfoName, value);
         if ((secondDescriptiveInfo != null) && secondDescriptiveInfo.isInitialized()) {
             aip.withDescriptiveInformation(secondDescriptiveInfo.getSecondDescriptiveInfoName(),

@@ -20,14 +20,14 @@ package fr.cnes.regards.modules.ingest.plugins;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
+import fr.cnes.regards.framework.oais.dto.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.ingest.domain.exception.AIPGenerationException;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
 import fr.cnes.regards.modules.ingest.domain.request.IngestErrorType;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,27 +54,27 @@ public class AIPGenerationTest implements IAipGeneration {
     private Boolean simulateErrors;
 
     @Override
-    public List<AIP> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
+    public List<AIPDto> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
         if (simulateErrors) {
             throw new AIPGenerationException(IngestErrorType.GENERATION,
                                              String.format("Simulated AIP generation error" + " for sip %s",
                                                            sip.getProviderId()));
         } else {
-            List<AIP> aips = new ArrayList<>();
+            List<AIPDto> aips = new ArrayList<>();
             // in this case we just use SIP providerId as there is only one AIP generated, no need to tweak it
             Integer version = sip.getVersion();
             OaisUniformResourceName sipIdUrn = sip.getSipIdUrn();
-            aips.add(AIP.build(sip.getSip(),
-                               new OaisUniformResourceName(OAISIdentifier.AIP,
-                                                           entityType,
-                                                           tenant,
-                                                           sipIdUrn.getEntityId(),
-                                                           version,
-                                                           null,
-                                                           null),
-                               Optional.of(sipIdUrn),
-                               sip.getProviderId(),
-                               version));
+            aips.add(AIPDto.build(sip.getSip(),
+                                  new OaisUniformResourceName(OAISIdentifier.AIP,
+                                                              entityType,
+                                                              tenant,
+                                                              sipIdUrn.getEntityId(),
+                                                              version,
+                                                              null,
+                                                              null),
+                                  Optional.of(sipIdUrn),
+                                  sip.getProviderId(),
+                                  version));
             return aips;
         }
     }

@@ -24,8 +24,9 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
+import fr.cnes.regards.framework.oais.dto.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsServiceIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
@@ -36,7 +37,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.LongProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
@@ -135,8 +135,8 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         }
     }
 
-    protected static List<AIP> createAIPs(int count, String... tags) {
-        List<AIP> aips = new ArrayList<>();
+    protected static List<AIPDto> createAIPs(int count, String... tags) {
+        List<AIPDto> aips = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             OaisUniformResourceName id = new OaisUniformResourceName(OAISIdentifier.AIP,
                                                                      EntityType.DATA,
@@ -145,7 +145,7 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
                                                                      1,
                                                                      null,
                                                                      null);
-            AIP aip = AIP.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
+            AIPDto aip = AIPDto.build(EntityType.DATA, id, Optional.empty(), "sipId" + i, 1);
             aip.withContextTags(tags);
 
             aip.withDescriptiveInformation("label", "libellé du data object " + i);

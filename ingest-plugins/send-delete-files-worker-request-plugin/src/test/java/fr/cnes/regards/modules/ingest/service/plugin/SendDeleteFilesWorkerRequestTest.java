@@ -22,13 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.framework.oais.InformationPackageProperties;
-import fr.cnes.regards.framework.oais.OAISDataObjectLocation;
+import fr.cnes.regards.framework.oais.dto.InformationPackageProperties;
+import fr.cnes.regards.framework.oais.dto.OAISDataObjectLocationDto;
+import fr.cnes.regards.framework.oais.dto.sip.SIPDto;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
-import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -146,12 +146,12 @@ public class SendDeleteFilesWorkerRequestTest {
     private AIPEntity initEntity(String providerId, String owner, String session, String... urls) {
         AIPEntity aipEntity = new AIPEntity();
         SIPEntity sipEntity = new SIPEntity();
-        SIP sip = SIP.build(EntityType.DATA, providerId);
+        SIPDto sip = SIPDto.build(EntityType.DATA, providerId);
         InformationPackageProperties ip = InformationPackageProperties.build();
-        OAISDataObjectLocation[] locs = Arrays.stream(urls)
-                                              .map(OAISDataObjectLocation::build)
-                                              .toList()
-                                              .toArray(new OAISDataObjectLocation[urls.length]);
+        OAISDataObjectLocationDto[] locs = Arrays.stream(urls)
+                                                 .map(OAISDataObjectLocationDto::build)
+                                                 .toList()
+                                                 .toArray(new OAISDataObjectLocationDto[urls.length]);
         ip.withDataObject(DataType.RAWDATA, "filename", "MD5", "123456789", 12L, locs);
         ip.registerContentInformation();
         sip.setProperties(ip);

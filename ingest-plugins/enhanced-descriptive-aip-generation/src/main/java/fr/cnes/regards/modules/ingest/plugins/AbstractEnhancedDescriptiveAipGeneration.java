@@ -1,13 +1,13 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.framework.oais.urn.OAISIdentifier;
-import fr.cnes.regards.framework.oais.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
+import fr.cnes.regards.framework.oais.dto.urn.OAISIdentifier;
+import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.ingest.domain.exception.AIPGenerationException;
 import fr.cnes.regards.modules.ingest.domain.plugin.IAipGeneration;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,19 +34,19 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
     protected Boolean always;
 
     @Override
-    public List<AIP> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
+    public List<AIPDto> generate(SIPEntity sip, String tenant, EntityType entityType) throws AIPGenerationException {
         OaisUniformResourceName sipIdUrn = sip.getSipIdUrn();
-        AIP aip = AIP.build(sip.getSip(),
-                            new OaisUniformResourceName(OAISIdentifier.AIP,
-                                                        entityType,
-                                                        tenant,
-                                                        sipIdUrn.getEntityId(),
-                                                        sip.getVersion(),
-                                                        null,
-                                                        null),
-                            Optional.of(sipIdUrn),
-                            sip.getProviderId(),
-                            sip.getVersion());
+        AIPDto aip = AIPDto.build(sip.getSip(),
+                                  new OaisUniformResourceName(OAISIdentifier.AIP,
+                                                              entityType,
+                                                              tenant,
+                                                              sipIdUrn.getEntityId(),
+                                                              sip.getVersion(),
+                                                              null,
+                                                              null),
+                                  Optional.of(sipIdUrn),
+                                  sip.getProviderId(),
+                                  sip.getVersion());
         if (COUNTER.get() == Integer.MAX_VALUE) {
             COUNTER.set(Integer.MIN_VALUE);
         }
@@ -54,11 +54,11 @@ public abstract class AbstractEnhancedDescriptiveAipGeneration implements IAipGe
         if (always || ((COUNTER.get() % 2) == 0)) {
             addDescriptiveInformation(aip);
         }
-        List<AIP> aips = new ArrayList<>();
+        List<AIPDto> aips = new ArrayList<>();
         aips.add(aip);
         return aips;
     }
 
-    protected abstract void addDescriptiveInformation(AIP aip);
+    protected abstract void addDescriptiveInformation(AIPDto aip);
 
 }

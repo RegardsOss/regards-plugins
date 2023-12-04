@@ -20,8 +20,8 @@ package fr.cnes.regards.modules.ingest.plugins;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.oais.dto.sip.SIPDto;
 import fr.cnes.regards.modules.ingest.domain.plugin.ISipValidation;
-import fr.cnes.regards.modules.ingest.dto.sip.SIP;
 import org.springframework.validation.Errors;
 
 import java.util.List;
@@ -89,7 +89,7 @@ public class FakeSipValidation implements ISipValidation {
     private ISipValidation embedded;
 
     @Override
-    public void validate(SIP sip, Errors errors) {
+    public void validate(SIPDto sip, Errors errors) {
         // Nothing to do
     }
 

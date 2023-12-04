@@ -2,7 +2,7 @@ package fr.cnes.regards.modules.ingest.plugins;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -30,7 +30,7 @@ public class StringArrayEnhancedDescriptiveAipGeneration extends AbstractEnhance
     private Boolean allValues;
 
     @Override
-    protected void addDescriptiveInformation(AIP aip) {
+    protected void addDescriptiveInformation(AIPDto aip) {
         if (allValues) {
             aip.withDescriptiveInformation(descriptiveInfoName, values);
         } else {

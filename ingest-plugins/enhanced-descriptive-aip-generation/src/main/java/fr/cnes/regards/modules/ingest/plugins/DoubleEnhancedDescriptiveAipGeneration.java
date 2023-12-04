@@ -1,7 +1,7 @@
 package fr.cnes.regards.modules.ingest.plugins;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
-import fr.cnes.regards.modules.ingest.dto.aip.AIP;
+import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DoubleEnhancedDescriptiveAipGeneration extends AbstractEnhancedDescriptiveAipGeneration {
 
     @Override
-    protected void addDescriptiveInformation(AIP aip) {
+    protected void addDescriptiveInformation(AIPDto aip) {
         aip.withDescriptiveInformation(descriptiveInfoName,
                                        ThreadLocalRandom.current().nextDouble(Double.MIN_VALUE, Double.MAX_VALUE));
     }
