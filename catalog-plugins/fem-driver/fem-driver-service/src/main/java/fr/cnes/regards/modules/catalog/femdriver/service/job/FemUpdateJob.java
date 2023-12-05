@@ -34,6 +34,7 @@ import fr.cnes.regards.modules.feature.dto.PriorityLevel;
 import fr.cnes.regards.modules.feature.dto.event.in.FeatureUpdateRequestEvent;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.StringProperty;
 import fr.cnes.regards.modules.search.dto.SearchRequest;
 import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,11 @@ public class FemUpdateJob extends AbstractJob<Void> {
                                                         EntityType.DATA,
                                                         dobj.getModel().getName());
                         for (IProperty<?> prop : request.getFeature().getProperties()) {
+                            // Hack to allow fem driver to set null value into a string attribute by passing the
+                            // string containing "null".
+                            if (prop instanceof StringProperty stringProp && "null".equals(stringProp.getValue())) {
+                                stringProp.setValue(null);
+                            }
                             feature.addProperty(prop);
                         }
                         features.add(feature);

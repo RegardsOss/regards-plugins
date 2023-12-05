@@ -21,8 +21,8 @@ package fr.cnes.regards.modules.catalog.femdriver.service.job;
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
-import fr.cnes.regards.framework.modules.jobs.domain.JobStatus;
-import fr.cnes.regards.framework.modules.jobs.service.IJobInfoService;
+import fr.cnes.regards.framework.modules.jobs.domain.JobInfo;
+import fr.cnes.regards.framework.modules.jobs.service.IJobService;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.modules.catalog.femdriver.dto.FeatureUpdateRequest;
 import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
@@ -35,11 +35,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -49,12 +51,13 @@ import java.util.concurrent.ExecutionException;
  *
  * @author Sébastien Binda
  */
+@ActiveProfiles({ "nojobs", "noscheduler" })
 @TestPropertySource(locations = { "classpath:test.properties" },
                     properties = { "spring.jpa.properties.hibernate.default_schema=fem_job" })
 public class FemUpdateJobTest extends AbstractFemJobTest {
 
     @Autowired
-    private IJobInfoService jobInfoService;
+    private IJobService jobService;
 
     @Autowired
     private FemDriverService femDriverService;
@@ -80,12 +83,8 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
                                                         null);
         Set<IProperty<?>> propertyMap = Sets.newHashSet();
         propertyMap.add(IProperty.buildString("name", "plop"));
-        femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
-        int loop = 0;
-        while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
-            loop++;
-            Thread.sleep(100);
-        }
+        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+        jobService.runJob(job, getDefaultTenant()).get();
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
                                                             .stream()
@@ -104,6 +103,41 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
     }
 
     @Test
+    public void testUpdateJobWithNullValue() throws ModuleException, InterruptedException, ExecutionException {
+        tenantResolver.forceTenant(getDefaultTenant());
+        Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
+        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
+        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID,
+                                                        null,
+                                                        searchParameters,
+                                                        null,
+                                                        null,
+                                                        null);
+        Set<IProperty<?>> propertyMap = Sets.newHashSet();
+        propertyMap.add(IProperty.buildString("name", "null"));
+        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+        jobService.runJob(job, getDefaultTenant()).get();
+        Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
+        Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
+                                                            .stream()
+                                                            .filter(v -> v instanceof List)
+                                                            .findFirst();
+        Assert.assertTrue(events.isPresent());
+        Assert.assertEquals(1000, events.get().size());
+        events.get().forEach(e -> {
+            FeatureUpdateRequestEvent event = (FeatureUpdateRequestEvent) e;
+            Assert.assertNull("Feature name should be null",
+                              event.getFeature()
+                                   .getProperties()
+                                   .stream()
+                                   .filter(p -> Objects.equals(p.getName(), "name"))
+                                   .findFirst()
+                                   .get()
+                                   .getValue());
+        });
+    }
+
+    @Test
     public void testUpdateJobWithCrit() throws ModuleException, InterruptedException, ExecutionException {
         tenantResolver.forceTenant(getDefaultTenant());
         Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
@@ -116,12 +150,9 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
                                                         null);
         Set<IProperty<?>> propertyMap = Sets.newHashSet();
         propertyMap.add(IProperty.buildString("name", "plop"));
-        femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
-        int loop = 0;
-        while ((jobInfoService.retrieveJobs(JobStatus.SUCCEEDED).size() == 0) && (loop < 2000)) {
-            loop++;
-            Thread.sleep(100);
-        }
+        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
+        jobService.runJob(job, getDefaultTenant()).get();
+
         Mockito.verify(publisher, Mockito.atLeastOnce()).publish(recordsCaptor.capture());
         Optional<List<ISubscribable>> events = recordsCaptor.getAllValues()
                                                             .stream()
@@ -138,20 +169,5 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
             Assert.assertNotNull("Feature urn is mandatory", event.getFeature().getUrn());
         });
     }
-
-    // Free testing
-    //    @Test
-    //    public void testUpdateJobWithCrit2() throws ModuleException, InterruptedException, ExecutionException {
-    //        tenantResolver.forceTenant(getDefaultTenant());
-    //        Mockito.verify(publisher, Mockito.times(0)).publish(recordsCaptor.capture());
-    //        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<String, String>();
-    //        searchParameters.add("q", "name:plouf");
-    //        SearchRequest searchRequest = new SearchRequest(SearchEngineMappings.LEGACY_PLUGIN_ID, null, searchParameters,
-    //                null, null, null);
-    //        Set<IProperty<?>> propertyMap = Sets.newHashSet();
-    //        propertyMap.add(IProperty.buildString("name", "plouf"));
-    //        JobInfo job = femDriverService.scheduleUpdate(FeatureUpdateRequest.build(searchRequest, propertyMap));
-    //        Assert.assertNotNull("Job must exist", job);
-    //    }
 
 }
