@@ -47,24 +47,34 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
 
     public static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
 
+    public static final String BLOCKING_REQUIRED_PARAM_NAME = "blockingRequired";
+
     @Autowired
     private IPublisher publisher;
 
-    @PluginParameter(label = "RabbitMQ exchange name", name = EXCHANGE_PARAM_NAME)
+    //@formatter:off
+    @PluginParameter(
+        label = "RabbitMQ exchange name",
+        name = EXCHANGE_PARAM_NAME)
     private String exchange;
 
-    @PluginParameter(label = "RabbitMQ queue name", name = QUEUE_PARAM_NAME, optional = true)
+    @PluginParameter(
+        label = "RabbitMQ queue name",
+        name = QUEUE_PARAM_NAME,
+        optional = true)
     private String queueName;
 
-    @PluginParameter(label = "RabbitMQ queue dead letter routing key",
-                     name = QUEUE_DL_ROUTING_KEY_PARAM_NAME,
-                     optional = true)
+    @PluginParameter(
+        label = "RabbitMQ queue dead letter routing key",
+        name = QUEUE_DL_ROUTING_KEY_PARAM_NAME,
+        optional = true)
     private String queueDlRoutingKey;
 
-    @PluginParameter(label = "Recipient label (must be unique).",
-                     description = "When not specified, the emitter wont know what's the recipient label that should receive its events",
-                     name = RECIPIENT_LABEL_PARAM_NAME,
-                     optional = true)
+    @PluginParameter(
+        label = "Recipient label (must be unique).",
+        description = "When not specified, the emitter wont know what's the recipient label that should receive its events",
+        name = RECIPIENT_LABEL_PARAM_NAME,
+        optional = true)
     private String recipientLabel;
 
     @PluginParameter(label = "Recipient description",
@@ -80,6 +90,17 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
                      defaultValue = "false")
     private boolean directNotificationEnabled;
 
+
+    @PluginParameter(
+        label = "Blocking notification.",
+        description = "Indicate whether this is a blocking notification or not. When value is True, the recipient "
+                      + "must acquire this notification to unblock this notification",
+        name = BLOCKING_REQUIRED_PARAM_NAME,
+        optional = true,
+        defaultValue = "false")
+    private boolean blockingRequired;
+    //@formatter:off
+    
     public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers) {
         return sendEvents(toSend, headers, Optional.empty(), 0);
     }
@@ -113,6 +134,11 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @Override
     public boolean isDirectNotificationEnabled() {
         return directNotificationEnabled;
+    }
+
+    @Override
+    public boolean isBlockingRequired() {
+        return blockingRequired;
     }
 
 }
