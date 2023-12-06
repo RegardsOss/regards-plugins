@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequest;
+import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
 import fr.cnes.regards.modules.storage.domain.exception.NearlineDownloadException;
 import fr.cnes.regards.modules.storage.domain.exception.NearlineFileNotAvailableException;
 import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
@@ -50,7 +50,7 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
 
         // When
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
-        FileStorageRequest request1 = createFileStorageRequest("", "bigFile1.txt", fileChecksum);
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("", "bigFile1.txt", fileChecksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         AbstractS3GlacierIT.TestStorageProgressManager storageProgressManager = new AbstractS3GlacierIT.TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
