@@ -45,6 +45,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
 
+import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -121,6 +122,17 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                      defaultValue = "30")
     private long overlap;
 
+    /**
+     * Return duration in seconds to retrieve entities by maximum date limit to avoid retrieving entities to close with
+     * the current aspiration date.
+     */
+    @PluginParameter(name = "searchLimitFromNowInSeconds",
+                     label = "Overlap",
+                     description = "Duration in seconds to retrieve entities by maximum date limit to avoid "
+                                   + "retrieving entities to close with the current aspiration date",
+                     defaultValue = "600")
+    private long searchLimitFromNowInSeconds;
+
     // -------------------------
     // ------- SERVICES --------
     // -------------------------
@@ -146,8 +158,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           @Nullable OffsetDateTime lastIngestDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         // 1) Get page of feature entities to process
         PagedModel<EntityModel<FeatureEntityDto>> pageFeatureEntities;
 
@@ -156,7 +170,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
         try {
             FeignSecurityManager.asSystem();
-            pageFeatureEntities = getFeatureEntities(cursor);
+            pageFeatureEntities = getFeatureEntities(cursor, currentIngestionStartDate);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException(String.format(
                 "An error occurred during the searching of feature entities. Cause %s: ",
@@ -193,14 +207,25 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
      * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case featureEntities could not be retrieved
      */
-    private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor)
+    private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor,
+                                                                         OffsetDateTime currentIngestionStartDate)
         throws DataSourceException {
+
+        // /!\ In order to avoid some missing features from fem service, search for entities
+        OffsetDateTime searchMinDate = cursor.getLastEntityDate();
+        OffsetDateTime searchMaxDate = currentIngestionStartDate.minusSeconds(searchLimitFromNowInSeconds);
+        if (searchMinDate != null && searchMaxDate.isBefore(searchMinDate)) {
+            // Ensure range is valid
+            searchMaxDate = searchMinDate;
+        }
+
         // /!\ this sorting is very important as it allows the db to retrieve features always in the same order, to avoid any feature to be skipped.
         // Features must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
         ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
-                                                                                                   cursor.getLastEntityDate(),
+                                                                                                   searchMinDate,
+                                                                                                   searchMaxDate,
                                                                                                    cursor.getPosition(),
                                                                                                    cursor.getSize(),
                                                                                                    sorting);
@@ -386,8 +411,9 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                + CATALOG_DOWNLOAD_PATH.replace(URN_PLACEHOLDER, urn.toString()).replace(CHECKSUM_PLACEHOLDER, checksum);
     }
 
-    private static String encode4Uri(String str) {
-        return new String(UriUtils.encode(str, Charset.defaultCharset().name()).getBytes(), StandardCharsets.US_ASCII);
+    private static String encode4Uri(String uriToEncode) {
+        return new String(UriUtils.encode(uriToEncode, Charset.defaultCharset().name()).getBytes(),
+                          StandardCharsets.US_ASCII);
     }
 
     @Override

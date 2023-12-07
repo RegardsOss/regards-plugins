@@ -231,7 +231,10 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
     public void getDataSourceIntrospection() throws DataSourceException {
         Assert.assertEquals(nbElements, repository.count());
 
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(0, 10), null);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(),
+                                                             new CrawlingCursor(0, 10),
+                                                             null,
+                                                             OffsetDateTime.now());
         Assert.assertNotNull(ll);
         Assert.assertEquals(nbElements, ll.size());
 
@@ -260,7 +263,10 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         OffsetDateTime date = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).minusMinutes(2);
         CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
         crawlingCursor.setLastEntityDate(date);
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), crawlingCursor, null);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(),
+                                                             crawlingCursor,
+                                                             null,
+                                                             OffsetDateTime.now());
         Assert.assertNotNull(ll);
         Assert.assertEquals(1, ll.size());
 
@@ -286,7 +292,10 @@ public class PostgreDataSourcePluginTest extends AbstractRegardsServiceIT {
         OffsetDateTime ldt = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).plusSeconds(10);
         CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
         crawlingCursor.setLastEntityDate(ldt);
-        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(), crawlingCursor, null);
+        List<DataObjectFeature> ll = plgDBDataSource.findAll(getDefaultTenant(),
+                                                             crawlingCursor,
+                                                             null,
+                                                             OffsetDateTime.now());
         Assert.assertNotNull(ll);
         Assert.assertEquals(0, ll.size());
     }

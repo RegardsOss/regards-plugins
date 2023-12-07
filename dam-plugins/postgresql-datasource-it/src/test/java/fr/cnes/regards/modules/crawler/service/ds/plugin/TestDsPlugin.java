@@ -51,7 +51,10 @@ public class TestDsPlugin extends AbstractDataSourcePlugin implements IDataSourc
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date) {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) {
         List<DataObjectFeature> list = new ArrayList<>();
         DataObjectFeature o = new DataObjectFeature(OaisUniformResourceName.pseudoRandomUrn(OAISIdentifier.AIP,
                                                                                             EntityType.DATA,

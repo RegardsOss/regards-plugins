@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -250,8 +251,10 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           @Nullable OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         if (sqlGenerator == null) {
             throw new DataSourceException("sqlGenerator is null");
         }

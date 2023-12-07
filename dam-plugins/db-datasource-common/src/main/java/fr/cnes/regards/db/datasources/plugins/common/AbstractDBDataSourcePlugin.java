@@ -82,13 +82,12 @@ public abstract class AbstractDBDataSourcePlugin extends AbstractDataObjectMappi
         }
 
     }
-
-    /**
-     * @param sinceDate can be null
-     */
+    
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime sinceDate)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         final String selectRequest = getSelectRequest(PageRequest.of(cursor.getPosition(), cursor.getSize()), cursor);
         final String countRequest = getCountRequest(cursor);
 
