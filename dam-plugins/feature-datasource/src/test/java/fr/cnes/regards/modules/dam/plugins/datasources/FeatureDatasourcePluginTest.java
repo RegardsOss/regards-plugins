@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
-import fr.cnes.regards.framework.modules.plugins.domain.parameter.IPluginParam;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.bean.PluginUtilsBean;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
