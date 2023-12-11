@@ -177,6 +177,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                   configuration.fileRelativePath().getFileName().toString());
         if (Files.exists(targetPath)) {
             progressManager.restoreSucceed(request, targetPath);
+            return;
         }
 
         // Restore
