@@ -80,29 +80,12 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
 
     public static final String ACK_REQUIRED_PARAM_NAME = "ackRequired";
 
-    private static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
-
-    public static final String DESCRIPTION_PARAM_NAME = "description";
-
     @PluginParameter(label = "Recipient acknowledgment required",
                      description = "When value is True, the recipient will send back an acknowledgment.",
                      name = ACK_REQUIRED_PARAM_NAME,
                      optional = true,
                      defaultValue = "false")
     private boolean ackRequired;
-
-    @PluginParameter(label = "Direct notification enabled",
-                     description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
-                     name = DIRECT_NOTIFICATION_ENABLED_PARAM_NAME,
-                     optional = true,
-                     defaultValue = "false")
-    private boolean directNotificationEnabled;
-
-    @PluginParameter(label = "Recipient description",
-                     name = DESCRIPTION_PARAM_NAME,
-                     optional = true,
-                     defaultValue = "Rabbit MQ sender")
-    private String description;
 
     @Override
     public Collection<NotificationRequest> send(Collection<NotificationRequest> requestsToSend) {
@@ -114,16 +97,6 @@ public class RabbitMQSender extends AbstractRabbitMQSender {
     @Override
     public boolean isAckRequired() {
         return ackRequired;
-    }
-
-    @Override
-    public boolean isDirectNotificationEnabled() {
-        return directNotificationEnabled;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
     }
 
 }

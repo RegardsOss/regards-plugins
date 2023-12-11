@@ -202,8 +202,10 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      * @throws DataSourceException when conversion was not possible
      */
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime date)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         // A - pull web service resulting features for page (ignore date if not provided)
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(String.format(
@@ -215,7 +217,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
 
         ResponseEntity<FeatureWithPropertiesCollection> retrievedFeatures;
         try {
-            retrievedFeatures = fetcher.fetchFeatures(cursor, date);
+            retrievedFeatures = fetcher.fetchFeatures(cursor, lastIngestionDate);
         } catch (DataSourceException e) {
             // catch exception to notify administrator, then let it through
             notificationClient.notify(e.getMessage(),

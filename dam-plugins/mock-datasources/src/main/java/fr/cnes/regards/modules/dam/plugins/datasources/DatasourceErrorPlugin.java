@@ -116,8 +116,10 @@ public class DatasourceErrorPlugin implements IInternalDataSourcePlugin {
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime from)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         LOGGER.info("---------------------------------------------------------");
         LOGGER.info("Init of DatasourceErrorPlugin");
         LOGGER.info("Cursor position number {}", cursor.getPosition());

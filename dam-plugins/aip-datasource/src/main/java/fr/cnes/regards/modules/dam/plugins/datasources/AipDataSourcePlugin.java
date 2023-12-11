@@ -77,6 +77,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -158,6 +159,17 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                      label = "Attribute model for RAW DATA files size",
                      description = "This parameter is used to define which model attribute is used to map the RAW DATA files sizes")
     private String modelAttrNameFileSize;
+
+    /**
+     * Return duration in seconds to retrieve entities by maximum date limit to avoid retrieving entities to close with
+     * the current aspiration date.
+     */
+    @PluginParameter(name = "searchLimitFromNowInSeconds",
+                     label = "Overlap",
+                     description = "Duration in seconds to retrieve entities by maximum date limit to avoid "
+                                   + "retrieving entities to close with the current aspiration date",
+                     defaultValue = "60")
+    private long searchLimitFromNowInSeconds;
 
     @Value("${prefix.path}")
     String urlPrefix;
@@ -337,14 +349,16 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime from)
-        throws DataSourceException {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           @Nullable OffsetDateTime lastIngestDate,
+                                           OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         try {
             FeignSecurityManager.asSystem();
             Storages storages = getStorageLocations();
 
             // 1) Get all storage locations and aipEntities to process
-            PagedModel<EntityModel<AIPEntity>> pageAipEntities = getAipEntities(cursor);
+            PagedModel<EntityModel<AIPEntity>> pageAipEntities = getAipEntities(cursor, currentIngestionStartDate);
             Collection<EntityModel<AIPEntity>> aipEntities = pageAipEntities.getContent();
             if (aipEntities.isEmpty()) {
                 cursor.setHasNext(false);
@@ -422,14 +436,27 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      * @param cursor aipEntities should be retrieved with a lastUpdate >= {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case aipEntities could not be retrieved
      */
-    private PagedModel<EntityModel<AIPEntity>> getAipEntities(CrawlingCursor cursor) throws DataSourceException {
+    private PagedModel<EntityModel<AIPEntity>> getAipEntities(CrawlingCursor cursor,
+                                                              OffsetDateTime currentIngestionStartDate)
+        throws DataSourceException {
+
+        // /!\ In order to avoid some missing features from ingest service, search for entities
+        OffsetDateTime searchMinDate = cursor.getLastEntityDate();
+        OffsetDateTime searchMaxDate = currentIngestionStartDate.minusSeconds(searchLimitFromNowInSeconds);
+        if (searchMinDate != null && searchMaxDate.isBefore(searchMinDate)) {
+            // Ensure range is valid
+            searchMaxDate = searchMinDate;
+        }
+
         // /!\ this sorting is very important as it allows the db to retrieve aipEntities always in the same order, to avoid any entity to be skipped.
         // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
         SearchAIPsParameters filters = new SearchAIPsParameters().withAipIpType(Arrays.asList(EntityType.DATA))
                                                                  .withStatesIncluded(Arrays.asList(AIPState.STORED))
-                                                                 .withLastUpdateAfter(cursor.getLastEntityDate());
+                                                                 .withLastUpdateAfter(searchMinDate)
+                                                                 .withLastUpdateBefore(searchMaxDate);
+
         if (!CollectionUtils.isEmpty(subsettingTags)) {
             filters.withTagsIncluded(subsettingTags);
         }

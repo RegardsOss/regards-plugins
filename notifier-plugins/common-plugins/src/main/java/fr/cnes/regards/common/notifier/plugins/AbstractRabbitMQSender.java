@@ -43,6 +43,10 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
 
     public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
 
+    public static final String DESCRIPTION_PARAM_NAME = "description";
+
+    public static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
+
     public static final String BLOCKING_REQUIRED_PARAM_NAME = "blockingRequired";
 
     @Autowired
@@ -73,6 +77,20 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
         optional = true)
     private String recipientLabel;
 
+    @PluginParameter(label = "Recipient description",
+                     name = DESCRIPTION_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "Rabbit MQ sender")
+    private String description;
+
+    @PluginParameter(label = "Direct notification enabled",
+                     description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
+                     name = DIRECT_NOTIFICATION_ENABLED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
+    private boolean directNotificationEnabled;
+
+
     @PluginParameter(
         label = "Blocking notification.",
         description = "Indicate whether this is a blocking notification or not. When value is True, the recipient "
@@ -87,8 +105,10 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
         return sendEvents(toSend, headers, Optional.empty(), 0);
     }
 
-    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend, Map<String, Object> headers,
-                                                                  Optional<String> routingKey, int priority) {
+    public <T extends IEvent> Set<NotificationRequest> sendEvents(List<T> toSend,
+                                                                  Map<String, Object> headers,
+                                                                  Optional<String> routingKey,
+                                                                  int priority) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     routingKey,
@@ -104,6 +124,16 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @Override
     public String getRecipientLabel() {
         return recipientLabel;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public boolean isDirectNotificationEnabled() {
+        return directNotificationEnabled;
     }
 
     @Override

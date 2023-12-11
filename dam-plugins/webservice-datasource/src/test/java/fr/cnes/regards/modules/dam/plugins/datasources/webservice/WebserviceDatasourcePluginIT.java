@@ -142,7 +142,7 @@ public class WebserviceDatasourcePluginIT extends AbstractRegardsServiceTransact
         CrawlingCursor cursor = new CrawlingCursor(0, 100);
         OffsetDateTime updateDate = OffsetDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         do {
-            result = pl.findAll("myTenant", cursor, updateDate);
+            result = pl.findAll("myTenant", cursor, updateDate, OffsetDateTime.now());
             // No error to report
             Assert.assertFalse("There should be no error in report", pl.getConverter().getReport().hasErrors());
             // Check that each feature has been fully converted

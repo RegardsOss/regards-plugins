@@ -216,7 +216,10 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
         CrawlingCursor crawlingCursor = new CrawlingCursor(0, 10);
 
         // When
-        List<DataObjectFeature> dataObjects = aipDataSourcePlugin.findAll(tenant, crawlingCursor, null);
+        List<DataObjectFeature> dataObjects = aipDataSourcePlugin.findAll(tenant,
+                                                                          crawlingCursor,
+                                                                          null,
+                                                                          OffsetDateTime.now());
 
         // Then
         Assert.assertNotNull(dataObjects);

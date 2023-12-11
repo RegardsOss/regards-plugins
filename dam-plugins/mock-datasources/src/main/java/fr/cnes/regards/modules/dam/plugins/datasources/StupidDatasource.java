@@ -81,7 +81,10 @@ public class StupidDatasource implements IInternalDataSourcePlugin {
     }
 
     @Override
-    public List<DataObjectFeature> findAll(String tenant, CrawlingCursor cursor, OffsetDateTime from) {
+    public List<DataObjectFeature> findAll(String tenant,
+                                           CrawlingCursor cursor,
+                                           OffsetDateTime lastIngestionDate,
+                                           OffsetDateTime currentIngestionStartDate) {
         int position = cursor.getPosition();
         if (position < NUMBER_ELEMENT / STEP) {
             cursor.setHasNext(true);
