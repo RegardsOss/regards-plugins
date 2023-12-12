@@ -127,7 +127,7 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
      * the current aspiration date.
      */
     @PluginParameter(name = "searchLimitFromNowInSeconds",
-                     label = "Overlap",
+                     label = "Search date limit in seconds",
                      description = "Duration in seconds to retrieve entities by maximum date limit to avoid "
                                    + "retrieving entities to close with the current aspiration date",
                      defaultValue = "600")
