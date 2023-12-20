@@ -89,6 +89,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -751,14 +752,22 @@ public abstract class AbstractS3GlacierIT {
         List<FileCacheRequest> restoreFailed = new ArrayList<>();
 
         @Override
-        public void restoreSucceed(FileCacheRequest fileRequest, Path restoredFilePath) {
-            restoreSucceed.add(fileRequest);
+        public void restoreSucceededInternalCache(FileCacheRequest fileCacheRequest, Path restoredFilePath) {
+            restoreSucceed.add(fileCacheRequest);
         }
 
         @Override
-        public void restoreFailed(FileCacheRequest fileRequest, String cause) {
-            restoreFailed.add(fileRequest);
+        public void restoreFailed(FileCacheRequest fileCacheRequest, String cause) {
+            restoreFailed.add(fileCacheRequest);
             LOGGER.error(cause);
+        }
+
+        @Override
+        public void restoreSucceededExternalCache(FileCacheRequest fileCacheRequest,
+                                                  URL restoredFileUrl,
+                                                  @Nullable Long fileSize,
+                                                  OffsetDateTime expirationDate) {
+            restoreSucceed.add(fileCacheRequest);
         }
 
         public List<FileCacheRequest> getRestoreSucceed() {

@@ -176,7 +176,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         Path targetPath = Path.of(request.getRestorationDirectory(),
                                   configuration.fileRelativePath().getFileName().toString());
         if (Files.exists(targetPath)) {
-            progressManager.restoreSucceed(request, targetPath);
+            progressManager.restoreSucceededInternalCache(request, targetPath);
             return;
         }
 
@@ -213,7 +213,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                    configuration.lockService(),
                                                                                    configuration.s3Client());
             if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
-                progressManager.restoreSucceed(request, targetPath);
+                progressManager.restoreSucceededInternalCache(request, targetPath);
             } else {
                 progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
             }
@@ -223,7 +223,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                             configuration.fileRelativePath().toString(),
                                             configuration.s3Configuration(),
                                             null)) {
-                progressManager.restoreSucceed(request, targetPath);
+                progressManager.restoreSucceededInternalCache(request, targetPath);
             } else {
                 progressManager.restoreFailed(request,
                                               "Error while trying to restore file, download error to local "

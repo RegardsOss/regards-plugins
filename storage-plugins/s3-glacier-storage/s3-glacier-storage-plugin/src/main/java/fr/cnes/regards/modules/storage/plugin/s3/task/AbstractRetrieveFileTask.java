@@ -53,10 +53,10 @@ public abstract class AbstractRetrieveFileTask implements LockServiceTask<Void> 
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(localFilePath, targetPath);
-            progressManager.restoreSucceed(request, targetPath);
+            progressManager.restoreSucceededInternalCache(request, targetPath);
         } catch (FileAlreadyExistsException e) { //NOSONAR
             LOGGER.warn("The restored file {} already exists in the target location {}", localFilePath, targetPath);
-            progressManager.restoreSucceed(request, targetPath);
+            progressManager.restoreSucceededInternalCache(request, targetPath);
         } catch (IOException e) {
             LOGGER.error("Error while copying {} to {}", localFilePath, targetPath, e);
             progressManager.restoreFailed(request,
