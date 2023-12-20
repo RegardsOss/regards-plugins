@@ -165,4 +165,8 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
                      .getOrElse("apiKey");
     }
 
+    @Override
+    public String getHistogramProperyPath() {
+        return plugin.map(StacSearchEngine::getHistogramPropertyPath).getOrNull();
+    }
 }

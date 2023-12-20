@@ -2,7 +2,7 @@
 <!-- 
 	Last changes :
 -->
-<model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="model_V1.0.xsd">
+<model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="model_V1.10.0.xsd">
 	<name>HYGOR_DATASET_V2</name>
 	<description>Hydrology datasets (one per data type)</description>
 	<version>beta</version>
@@ -17,7 +17,7 @@
 		<name>description</name>
 		<type>STRING</type>
 	</attribute>
-	<attribute optional="true">
+	<attribute optional="true" indexed="true">
 		<label>Keywords</label>
 		<name>keywords</name>
 		<type>STRING_ARRAY</type>
@@ -381,6 +381,74 @@
 					}]]>
 				</json_schema>
 			</restriction>
+			<esMapping>
+				<![CDATA[
+				{
+					"properties": {
+						"categories": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": false
+								}
+							},
+							"fielddata": true
+						},
+						"description": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": false
+								}
+							},
+							"fielddata": true
+						},
+						"long_name": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": false
+								}
+							},
+							"fielddata": true
+						},
+						"short_name": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": false
+								}
+							},
+							"fielddata": true
+						},
+						"unit": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": false
+								}
+							},
+							"fielddata": true
+						},
+						"uri": {
+							"type": "text",
+							"fields": {
+								"keyword": {
+									"type": "keyword",
+									"index": true
+								}
+							},
+							"fielddata": true
+						}
+					}
+				}
+				]]>
+			</esMapping>
 		</attribute>
 	</fragment>
 	<fragment>

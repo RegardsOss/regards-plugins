@@ -62,4 +62,6 @@ public interface ConfigurationAccessor {
     String getEODAGProvider();
 
     String getEODAGApiKey();
+
+    String getHistogramProperyPath();
 }

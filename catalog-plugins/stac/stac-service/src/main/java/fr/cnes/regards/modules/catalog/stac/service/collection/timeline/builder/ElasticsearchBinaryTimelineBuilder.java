@@ -18,30 +18,23 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder;
 
-import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 
 import java.util.Map;
 
-/**
- * Build a timeline with a number of item matching for each timeline entry
- */
-public class HistogramTimelineBuilder extends BinaryTimelineBuilder {
+public class ElasticsearchBinaryTimelineBuilder extends AbstractElasticsearchTimelineBuilder
+    implements TimelineBuilder {
 
-    public HistogramTimelineBuilder(ICatalogSearchService catalogSearchService,
-                                    PropertyExtractionService propertyExtractionService) {
-        super(catalogSearchService, propertyExtractionService);
+    public ElasticsearchBinaryTimelineBuilder(String propertyPath, ICatalogSearchService catalogSearchService) {
+        super(propertyPath, catalogSearchService);
     }
 
     @Override
-    protected void doTimelineReport(Map<String, Long> timeline, String key) {
-        // Increment entry
-        timeline.put(key, timeline.get(key) + 1L);
-    }
-
-    @Override
-    protected boolean continueReporting(Map<String, Long> timeline) {
-        // Continue anyway
-        return true;
+    long getBucketValue(Histogram.Bucket bucket) {
+        // If bucket exists, at least one document matches!
+        return bucket.getDocCount() > 0 ? 1 : 0;
     }
 }

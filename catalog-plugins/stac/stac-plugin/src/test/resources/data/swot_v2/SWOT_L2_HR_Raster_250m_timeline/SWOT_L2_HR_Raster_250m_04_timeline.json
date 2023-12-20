@@ -1,5 +1,5 @@
 {
-  "id": "SWOT:GOLDEN:L2_HR_RASTER_250m_01_timeline",
+  "id": "SWOT:GOLDEN:L2_HR_RASTER_250m_04_timeline",
   "type": "Feature",
   "entityType": "DATA",
   "model": "HYGOR_V2",
@@ -32,8 +32,8 @@
   },
   "properties": {
     "datetime": "2018-04-01T00:00:00.012345Z",
-    "start_datetime": "2020-04-10T00:30:39Z",
-    "end_datetime": "2020-04-15T11:21:59Z",
+    "start_datetime": "2020-03-01T01:00:00Z",
+    "end_datetime": "2020-03-03T23:00:00Z",
     "license": "Apache-2.0",
     "providers": [
       {
@@ -70,7 +70,7 @@
       "KaRIn"
     ],
     "mission": "SWOT",
-    "version": "012",
+    "version": "014",
     "release": "NRT",
     "processing": {
       "level": "L2",

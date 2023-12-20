@@ -38,64 +38,46 @@ import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractTimelineBuilder {
+public abstract class AbstractTimelineBuilder implements TimelineBuilder {
 
-    private final ICatalogSearchService catalogSearchService;
+    protected final ICatalogSearchService catalogSearchService;
 
     public AbstractTimelineBuilder(ICatalogSearchService catalogSearchService) {
         this.catalogSearchService = catalogSearchService;
     }
 
-    protected FacetPage<AbstractEntity<?>> getTimelineFacetPaged(ICriterion itemCriteria,
-                                                                 Pageable pageable,
-                                                                 String collectionId) {
-        try {
-            return catalogSearchService.search(itemCriteria, SearchType.DATAOBJECTS, null, pageable);
-        } catch (SearchException | OpenSearchUnknownParameter ex) {
-            throw new StacException(String.format("Can not retrieve items of collection %s", collectionId),
-                                    ex,
-                                    StacFailureType.TIMELINE_RETRIEVE);
-        }
+    protected java.util.Map<String, Long> initTimeline(String from, String to) {
+        // Locate the bounds to 00:00:00.
+        OffsetDateTime timelineStart = parseODT(from);
+        OffsetDateTime timelineEnd = parseODT(to);
+        long timelineNbDays = ChronoUnit.DAYS.between(timelineStart, timelineEnd);
+
+        // Initialize result map with 0
+        java.util.Map<String, Long> timeline = new TreeMap<>();
+        java.util.stream.Stream.iterate(timelineStart, currentDate -> currentDate.plusDays(1))
+                               .limit(timelineNbDays + 1)
+                               .forEach(currentDate -> timeline.put(getMapKey(currentDate), 0L));
+        return timeline;
     }
 
-    protected Option<Tuple2<OffsetDateTime, OffsetDateTime>> getPropertyBound(ICriterion itemCriteria,
-                                                                              String collectionId,
-                                                                              io.vavr.collection.List<StacProperty> datetimeStacProperties) {
-        return (Option<Tuple2<OffsetDateTime, OffsetDateTime>>) Try.of(() -> {
+    protected OffsetDateTime parseODT(String odt) {
+        // Locate the bounds to 00:00:00.
+        return OffsetDateTimeAdapter.parse(odt).with(LocalTime.MIDNIGHT);
+    }
 
-            // STAC properties start_datetime & end_datetime must exist
-            if (datetimeStacProperties.size() == 2) {
-                Map<String, StacProperty> stacPropertyMap = datetimeStacProperties.toJavaMap(HashMap::new,
-                                                                                             StacProperty::getStacPropertyName,
-                                                                                             s -> s);
-                String startPropertyName = stacPropertyMap.get(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
-                                                          .getRegardsPropertyAccessor()
-                                                          .getAttributeModel()
-                                                          .getJsonPath();
-                String endPropertyName = stacPropertyMap.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME)
-                                                        .getRegardsPropertyAccessor()
-                                                        .getAttributeModel()
-                                                        .getJsonPath();
-                // Search property bound
-                java.util.List<PropertyBound<?>> bounds = catalogSearchService.retrievePropertiesBounds(Sets.newHashSet(
-                    startPropertyName,
-                    endPropertyName), itemCriteria, SearchType.DATAOBJECTS);
-                Map<String, PropertyBound<?>> boundMap = bounds.stream()
-                                                               .collect(Collectors.toMap(p -> p.getPropertyName(),
-                                                                                         Function.identity()));
-                PropertyBound<String> startBound = (PropertyBound<String>) boundMap.get(startPropertyName);
-                PropertyBound<String> endBound = (PropertyBound<String>) boundMap.get(endPropertyName);
-                return Option.of(Tuple.of(OffsetDateTimeAdapter.parse(startBound.getLowerBound()),
-                                          OffsetDateTimeAdapter.parse(endBound.getUpperBound())));
-            } else {
-                return Option.none();
-            }
-        }).getOrElse(Option.none());
+    /**
+     * @return key according to the context. At the moment, the current day!
+     */
+    protected String getMapKey(OffsetDateTime offsetDateTime) {
+        return offsetDateTime.toLocalDate().toString();
     }
 }

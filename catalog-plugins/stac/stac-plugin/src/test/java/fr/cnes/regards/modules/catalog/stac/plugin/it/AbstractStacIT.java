@@ -43,6 +43,7 @@ import fr.cnes.regards.modules.feature.dto.FeatureFile;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
+import fr.cnes.regards.modules.indexer.service.IMappingService;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.dao.IAttributeModelRepository;
@@ -50,6 +51,7 @@ import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactory;
 import fr.cnes.regards.modules.model.service.IAttributeModelService;
 import fr.cnes.regards.modules.model.service.ModelService;
@@ -103,6 +105,9 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     @Autowired
     protected IEsRepository esRepository;
+
+    @Autowired
+    protected IMappingService mappingService;
 
     @Autowired
     protected IAttributeModelService attributeModelService;
@@ -296,6 +301,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         initPlugins();
 
         initIndex(getDefaultTenant());
+        mappingService.configureMappings(getDefaultTenant(), modelService.getModelAttrAssocs(dataModel.getName()));
 
         // Create datasets
         datasets = createDatasets(datasetModel);
@@ -389,6 +395,10 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         data.setWgs84(feature.getGeometry()); // As we bypass automatic normalization
         data.setProperties(feature.getProperties());
         data.getFeature().setFiles(createFeatureFiles(feature.getFiles()));
+        // Compute temporal extent
+        OffsetDateTime lowerBound = (OffsetDateTime) data.getProperty("start_datetime").getValue();
+        OffsetDateTime upperBound = (OffsetDateTime) data.getProperty("end_datetime").getValue();
+        data.addProperty(IProperty.buildDateRange("temporal_extent", lowerBound, upperBound));
         // Link to dataset
         data.addTags("CNES", "TEST", dataset.getIpId().toString());
         return data;

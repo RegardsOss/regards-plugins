@@ -22,6 +22,12 @@
 		<name>end_datetime</name>
 		<type>DATE_ISO8601</type>
 	</attribute>
+	<attribute indexed="true">
+		<label>Temporal Extent</label>
+		<name>temporal_extent</name>
+		<description>Copy of start and end datetime for histogram calculation</description>
+		<type>DATE_RANGE</type>
+	</attribute>
 	<attribute>
 		<label>Platform</label>
 		<name>platform</name>

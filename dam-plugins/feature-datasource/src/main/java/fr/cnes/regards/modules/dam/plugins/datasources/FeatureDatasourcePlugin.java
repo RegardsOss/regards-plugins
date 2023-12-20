@@ -32,6 +32,8 @@ import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
 import fr.cnes.regards.modules.filecatalog.dto.StorageType;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
+import fr.cnes.regards.modules.model.dto.properties.IProperty;
+import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
@@ -44,6 +46,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.util.UriUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.nio.charset.Charset;
@@ -67,6 +71,8 @@ import java.util.concurrent.ConcurrentHashMap;
         owner = "CSSI",
         url = "https://github.com/RegardsOss")
 public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FeatureDatasourcePlugin.class);
 
     private static final String URN_PLACEHOLDER = "{urn}";
 
@@ -132,6 +138,12 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
                                    + "retrieving entities to close with the current aspiration date",
                      defaultValue = "600")
     private long searchLimitFromNowInSeconds;
+
+    @PluginParameter(name = "date-range-histogram",
+                     label = "Date range histogram properties",
+                     description = "Allows to fulfill a date range property from two date properties",
+                     optional = true)
+    private DateRangeHistogramProperties dateRangeHistogramProperties;
 
     // -------------------------
     // ------- SERVICES --------
@@ -257,6 +269,10 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
         dataObject.setGeometry(feature.getGeometry());
         // Propagate properties
         dataObject.setProperties(feature.getProperties());
+        // Handle optional date range
+        if (dateRangeHistogramProperties != null) {
+            handleDateRangeHistogramProperties(dataObject);
+        }
         // Propagate files if any
         if (feature.hasFiles()) {
             for (FeatureFile file : feature.getFiles()) {
@@ -288,6 +304,29 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
     @Override
     public String getModelName() {
         return modelName;
+    }
+
+    private void handleDateRangeHistogramProperties(DataObjectFeature feature) {
+        // Retrieve lower and upper bound
+        IProperty<?> lowerBound = feature.getProperty(dateRangeHistogramProperties.getLowerBoundPropertyPath());
+        IProperty<?> upperBound = feature.getProperty(dateRangeHistogramProperties.getUpperBoundPropertyPath());
+        // Check value exists else skip
+        if (lowerBound != null
+            && PropertyType.DATE_ISO8601.equals(lowerBound.getType())
+            && upperBound != null
+            && PropertyType.DATE_ISO8601.equals(upperBound.getType())
+            && (((OffsetDateTime) lowerBound.getValue()).isBefore((OffsetDateTime) upperBound.getValue())
+                || ((OffsetDateTime) lowerBound.getValue()).isEqual((OffsetDateTime) upperBound.getValue()))) {
+            feature.addProperty(IProperty.buildDateRange(dateRangeHistogramProperties.getTargetPropertyPath(),
+                                                         (OffsetDateTime) lowerBound.getValue(),
+                                                         (OffsetDateTime) upperBound.getValue()));
+        } else {
+            LOGGER.warn(
+                "Skipping reporting date range histogram for feature {}. At least one bound is missing or lower bound not less than or equals to upper bound : {} < {}",
+                feature.getProviderId(),
+                lowerBound,
+                upperBound);
+        }
     }
 
     private Optional<String> checkReference(Set<FeatureFileLocation> locations, Storages storages) {

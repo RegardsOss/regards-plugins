@@ -26,6 +26,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 
 /**
  * provides methods to get Elasticsearch aggregations.

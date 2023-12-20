@@ -23,6 +23,8 @@ import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
 import org.springframework.data.domain.Pageable;
 
+import java.time.ZoneOffset;
+
 public interface TimelineBuilder {
 
     java.util.Map<String, Long> buildTimeline(ICriterion itemCriteria,
@@ -30,5 +32,6 @@ public interface TimelineBuilder {
                                               String collectionId,
                                               List<StacProperty> itemStacProperties,
                                               String from,
-                                              String to);
+                                              String to,
+                                              ZoneOffset timeZone);
 }

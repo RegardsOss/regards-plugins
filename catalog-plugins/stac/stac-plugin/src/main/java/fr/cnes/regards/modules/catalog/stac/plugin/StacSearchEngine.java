@@ -114,10 +114,16 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
     @PluginParameter(name = "eodag-properties",
-                     label = "EODGA properties for STAC script generation",
+                     label = "EODAG properties for STAC script generation",
                      description = "EODAG configuration to be injected in python script template",
                      optional = true)
     private EODAGConfiguration eodagConfiguration;
+
+    @PluginParameter(name = "histogram-property-path",
+        label = "Histogram JSON property path",
+        description = "Fully qualified property path from data model",
+        optional = true)
+    private String histogramPropertyPath;
 
     @Override
     public boolean supports(SearchType searchType) {

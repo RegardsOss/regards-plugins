@@ -39,13 +39,16 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
 
     private String to;
 
+    private Integer timezone;
+
     private TimelineMode mode;
 
     @Builder(builderMethodName = "timelineCollectionFiltersBuilder")
-    public TimelineFiltersByCollection(List<CollectionFilters> collections, String from, String to, TimelineMode mode) {
+    public TimelineFiltersByCollection(List<CollectionFilters> collections, String from, String to, Integer timezone, TimelineMode mode) {
         super(collections, true);
         this.from = from;
         this.to = to;
+        this.timezone = timezone;
         this.mode = mode;
     }
 
@@ -59,8 +62,12 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
         return to == null ? OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : to;
     }
 
+    public Integer getTimezone() {
+        return timezone == null ? 0 : timezone;
+    }
+
     public TimelineMode getMode() {
-        return mode == null ? TimelineMode.BINARY : mode;
+        return mode == null ? TimelineMode.ES_BINARY : mode;
     }
 
     public enum TimelineMode {
@@ -68,6 +75,10 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
         BINARY, // Compute a sorted map of 0/1 to specify if at least one item exists for each day of the timeline
         BINARY_MAP, // Compute a sorted array of 0/N to specify the number of items per day
         HISTOGRAM, // Compute a sorted map of 0/N to specify the number of items per day
-        HISTOGRAM_MAP
+        HISTOGRAM_MAP,
+        ES_BINARY,
+        ES_BINARY_MAP,
+        ES_HISTOGRAM,
+        ES_HISTOGRAM_MAP
     }
 }
