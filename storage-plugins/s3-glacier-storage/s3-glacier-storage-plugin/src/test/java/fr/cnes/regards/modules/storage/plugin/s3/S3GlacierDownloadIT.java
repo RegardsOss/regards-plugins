@@ -43,19 +43,25 @@ import java.util.List;
 @SpringBootTest
 public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
 
+    /**
+     * Test on mocked S3 Client (see MockedS3Client) with a isFileAvailable method returns :
+     * <ul>
+     *     <li>1. RestorationStatus.RESTORE_PENDING</li>
+     *     <li>2. RestorationStatus.RESTORE_PENDING</li>
+     *     <li>3. RestorationStatus.AVAILABLE</li>
+     * </ul>
+     */
     @Test
     public void test_download() throws IOException {
         // Given
         loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
-        // When
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
         FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("", "bigFile1.txt", fileChecksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         AbstractS3GlacierIT.TestStorageProgressManager storageProgressManager = new AbstractS3GlacierIT.TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
-
-        // Then
+        // Check the file is stored in S3 server
         Awaitility.await().atMost(Durations.TEN_SECONDS).until(() -> storageProgressManager.countAllReports() == 1);
 
         Assertions.assertEquals(1, storageProgressManager.getStorageSucceed().size(), "There should be one success");
@@ -72,25 +78,39 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
                           s3Glacier.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
         Assert.assertEquals("Invalid file size", 22949L, fileReference.getMetaInfo().getFileSize().longValue());
 
-        // Then download fails because restoration is pending (1 time)
+        // When : download fails because restoration is pending (1 time)
         NearlineFileNotAvailableException exception = Assertions.assertThrows(NearlineFileNotAvailableException.class,
                                                                               () -> s3Glacier.download(fileReference));
+        // Then
         Assertions.assertTrue(exception.getMessage().contains("pending"));
-        // Then download fails because restoration is pending (2 times)
+
+        // When : download fails because restoration is pending (2 times)
         exception = Assertions.assertThrows(NearlineFileNotAvailableException.class,
                                             () -> s3Glacier.download(fileReference));
+        // Then
         Assertions.assertTrue(exception.getMessage().contains("pending"));
-        // Then download success because the file is restored
+
+        // When : download success because the file is restored (3 times)
         InputStream inputStream = null;
         try {
             inputStream = s3Glacier.download(fileReference);
+            
+            // Then
             Assertions.assertNotNull(inputStream);
             inputStream.close();
         } catch (NearlineFileNotAvailableException | NearlineDownloadException e) {
+            // Then
             Assertions.fail("File is supposed to be available", e);
         }
+    }
 
-        // Then test with file not available
+    @Test
+    public void test_download_with_file_not_available() {
+        // Given
+        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("",
+                                                                                     "bigFile1.txt",
+                                                                                     "aaf14d43dbfb6c33244ec1a25531cb00");
+        FileReference fileReference = createFileReference(request1, ROOT_PATH);
         loadPlugin(endPoint,
                    region,
                    key,
@@ -99,8 +119,11 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
                    ROOT_PATH,
                    AbstractS3GlacierIT.MockedS3ClientType.MockedS3ClientWithNoFileAvailable,
                    false);
-        exception = Assertions.assertThrows(NearlineFileNotAvailableException.class,
-                                            () -> s3Glacier.download(fileReference));
+        // When
+        NearlineFileNotAvailableException exception = Assertions.assertThrows(NearlineFileNotAvailableException.class,
+                                                                              () -> s3Glacier.download(fileReference));
+        // Then
         Assertions.assertTrue(exception.getMessage().contains("not available"));
     }
+
 }
