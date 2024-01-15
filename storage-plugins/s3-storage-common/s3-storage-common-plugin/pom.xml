@@ -53,11 +53,6 @@
     <dependencies>
         <!-- Regards -->
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>s3-starter</artifactId>
         </dependency>
@@ -68,6 +63,11 @@
         <dependency>
             <groupId>fr.cnes.regards.framework.modules.workspace</groupId>
             <artifactId>workspace-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
+            <artifactId>file-access-plugin-domain</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

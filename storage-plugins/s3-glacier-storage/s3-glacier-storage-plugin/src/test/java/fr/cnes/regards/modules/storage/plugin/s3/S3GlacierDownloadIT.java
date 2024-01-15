@@ -18,11 +18,11 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.exception.NearlineDownloadException;
-import fr.cnes.regards.modules.storage.domain.exception.NearlineFileNotAvailableException;
-import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadException;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;
@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Test class for {@link  S3Glacier#download(FileReference)}
+ * Test class for {@link  S3Glacier#download(FileReferenceWithoutOwnersDto)}
  *
  * @author Thomas GUILLOU
  **/
@@ -57,7 +57,9 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
         loadPlugin(endPoint, region, key, secret, bucket, ROOT_PATH);
 
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
-        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("", "bigFile1.txt", fileChecksum);
+        FileStorageRequestAggregationDto request1 = createFileStorageRequestAggregation("",
+                                                                                        "bigFile1.txt",
+                                                                                        fileChecksum);
         FileStorageWorkingSubset workingSet = new FileStorageWorkingSubset(List.of(request1));
         AbstractS3GlacierIT.TestStorageProgressManager storageProgressManager = new AbstractS3GlacierIT.TestStorageProgressManager();
         s3Glacier.store(workingSet, storageProgressManager);
@@ -72,7 +74,7 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
 
         // Create file reference for S3 server
-        FileReference fileReference = createFileReference(request1, ROOT_PATH);
+        FileReferenceWithoutOwnersDto fileReference = createFileReference(request1, ROOT_PATH);
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3Glacier.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
@@ -94,7 +96,7 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
         InputStream inputStream = null;
         try {
             inputStream = s3Glacier.download(fileReference);
-            
+
             // Then
             Assertions.assertNotNull(inputStream);
             inputStream.close();
@@ -107,10 +109,10 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
     @Test
     public void test_download_with_file_not_available() {
         // Given
-        FileStorageRequestAggregation request1 = createFileStorageRequestAggregation("",
-                                                                                     "bigFile1.txt",
-                                                                                     "aaf14d43dbfb6c33244ec1a25531cb00");
-        FileReference fileReference = createFileReference(request1, ROOT_PATH);
+        FileStorageRequestAggregationDto request1 = createFileStorageRequestAggregation("",
+                                                                                        "bigFile1.txt",
+                                                                                        "aaf14d43dbfb6c33244ec1a25531cb00");
+        FileReferenceWithoutOwnersDto fileReference = createFileReference(request1, ROOT_PATH);
         loadPlugin(endPoint,
                    region,
                    key,

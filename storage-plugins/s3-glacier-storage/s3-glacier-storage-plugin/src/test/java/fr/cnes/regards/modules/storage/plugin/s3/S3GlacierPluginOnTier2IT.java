@@ -22,11 +22,12 @@ import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileRestorationWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileRequestStatus;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.awaitility.Awaitility;
@@ -89,13 +90,13 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         writeFileOnStorage(writeCmd);
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -132,13 +133,13 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -199,13 +200,13 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          null,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                null,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -238,12 +239,24 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
 
         // When
 
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = new FileDeletionRequestDto(1L,
+                                                                    "groupIdTest",
+                                                                    FileRequestStatus.TO_DO,
+                                                                    "storage",
+                                                                    reference,
+                                                                    false,
+                                                                    null,
+                                                                    null,
+                                                                    "jobId",
+                                                                    "sessionOwnerTest",
+                                                                    "sessionTest");
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 

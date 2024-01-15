@@ -35,11 +35,6 @@
     <dependencies>
         <!-- Regards -->
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>s3-storage-utils</artifactId>
         </dependency>
@@ -51,12 +46,30 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>file-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>s3-storage-common-plugin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>s3-storage-plugin-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
+            <artifactId>file-access-plugin-domain</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
+            <artifactId>file-catalog-dto</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Externals -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
@@ -100,14 +113,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>s3-storage-common-plugin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>s3-storage-plugin-dto</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -122,11 +127,6 @@
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${org.mapstruct.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

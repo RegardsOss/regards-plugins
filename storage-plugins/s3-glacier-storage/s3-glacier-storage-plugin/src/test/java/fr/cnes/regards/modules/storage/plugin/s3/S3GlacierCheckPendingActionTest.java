@@ -23,8 +23,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Test;
@@ -67,9 +67,18 @@ public class S3GlacierCheckPendingActionTest extends AbstractS3GlacierIT {
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
         String oldCurrentDirName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX;
-
-        FileReference fileRef = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
-        FileReference fileRef2 = createFileReference(fileName2, fileChecksum2, fileSize2, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto fileRef = createFileReference(fileName,
+                                                                    fileChecksum,
+                                                                    fileSize,
+                                                                    nodeName,
+                                                                    archiveName,
+                                                                    true);
+        FileReferenceWithoutOwnersDto fileRef2 = createFileReference(fileName2,
+                                                                     fileChecksum2,
+                                                                     fileSize2,
+                                                                     nodeName,
+                                                                     archiveName,
+                                                                     true);
 
         copyFileToWorkspace(ROOT_PATH, oldCurrentDirName, nodeName, fileName, S3Glacier.ZIP_DIR);
         copyFileToWorkspace(ROOT_PATH, oldCurrentDirName, nodeName, fileName2, S3Glacier.ZIP_DIR);
@@ -127,7 +136,12 @@ public class S3GlacierCheckPendingActionTest extends AbstractS3GlacierIT {
 
         String oldCurrentDirName = S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName + S3Glacier.CURRENT_ARCHIVE_SUFFIX;
 
-        FileReference fileRef = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto fileRef = createFileReference(fileName,
+                                                                    fileChecksum,
+                                                                    fileSize,
+                                                                    nodeName,
+                                                                    archiveName,
+                                                                    true);
 
         copyFileToWorkspace(ROOT_PATH, oldCurrentDirName, nodeName, fileName, S3Glacier.ZIP_DIR);
 
@@ -172,7 +186,12 @@ public class S3GlacierCheckPendingActionTest extends AbstractS3GlacierIT {
 
         writeFileOnStorage(writeCmd);
 
-        FileReference fileRef = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto fileRef = createFileReference(fileName,
+                                                                    fileChecksum,
+                                                                    fileSize,
+                                                                    nodeName,
+                                                                    archiveName,
+                                                                    true);
 
         // When
         s3Glacier.runCheckPendingAction(progressManager, new HashSet<>(Collections.singletonList(fileRef)));
@@ -198,7 +217,12 @@ public class S3GlacierCheckPendingActionTest extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
-        FileReference fileRef = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto fileRef = createFileReference(fileName,
+                                                                    fileChecksum,
+                                                                    fileSize,
+                                                                    nodeName,
+                                                                    archiveName,
+                                                                    true);
 
         // When
         s3Glacier.runCheckPendingAction(progressManager, new HashSet<>(Collections.singletonList(fileRef)));

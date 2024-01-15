@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -39,11 +39,11 @@ public abstract class AbstractRetrieveFileTask implements LockServiceTask<Void> 
 
     private static final Logger LOGGER = getLogger(AbstractRetrieveFileTask.class);
 
-    protected FileCacheRequest fileCacheRequest;
+    protected FileCacheRequestDto fileCacheRequest;
 
     protected IRestorationProgressManager progressManager;
 
-    protected AbstractRetrieveFileTask(FileCacheRequest fileCacheRequest, IRestorationProgressManager progressManager) {
+    protected AbstractRetrieveFileTask(FileCacheRequestDto fileCacheRequest, IRestorationProgressManager progressManager) {
         this.fileCacheRequest = fileCacheRequest;
         this.progressManager = progressManager;
     }

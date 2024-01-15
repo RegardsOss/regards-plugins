@@ -27,12 +27,12 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.plugin.local.dto.LocalStorageLocationConfigurationDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,17 +148,17 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregation> prepareForStorage(Collection<FileStorageRequestAggregation> fileReferenceRequests) {
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregationDto> prepareForStorage(Collection<FileStorageRequestAggregationDto> fileReferenceRequests) {
         return createWorkingSubset(fileReferenceRequests, FileStorageWorkingSubset::new);
     }
 
     @Override
-    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
+    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequestDto> prepareForDeletion(Collection<FileDeletionRequestDto> fileDeletionRequests) {
         return createWorkingSubset(fileDeletionRequests, FileDeletionWorkingSubset::new);
     }
 
     @Override
-    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> fileCacheRequests) {
+    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequestDto> prepareForRestoration(Collection<FileCacheRequestDto> fileCacheRequests) {
         return createWorkingSubset(fileCacheRequests, FileRestorationWorkingSubset::new);
     }
 
@@ -188,7 +188,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         workingSubset.getFileReferenceRequests().forEach(data -> doStore(progressManager, data));
     }
 
-    private void doStore(IStorageProgressManager progressManager, FileStorageRequestAggregation request) {
+    private void doStore(IStorageProgressManager progressManager, FileStorageRequestAggregationDto request) {
         Path fullPathToFile;
         try {
             fullPathToFile = getStorageLocation(request);
@@ -263,8 +263,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void doStoreInZip(IStorageProgressManager progressManager, FileStorageRequestAggregation request, File file)
-        throws IOException {
+    private void doStoreInZip(IStorageProgressManager progressManager,
+                              FileStorageRequestAggregationDto request,
+                              File file) throws IOException {
         long start = System.currentTimeMillis();
         Path zipDirPath = getStorageLocationForZip(request);
         try {
@@ -341,12 +342,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     // this method is public because of tests
-    public Path getStorageLocation(FileStorageRequestAggregation request) throws IOException {
+    public Path getStorageLocation(FileStorageRequestAggregationDto request) throws IOException {
         String checksum = request.getMetaInfo().getChecksum();
         Path storageLocation = Paths.get(baseStorageLocationAsString);
-        if ((request.getStorageSubDirectory() != null) && !request.getStorageSubDirectory().isEmpty()) {
+        if ((request.getSubDirectory() != null) && !request.getSubDirectory().isEmpty()) {
             // Storage directory is provided. use it
-            storageLocation = Paths.get(baseStorageLocationAsString, request.getStorageSubDirectory());
+            storageLocation = Paths.get(baseStorageLocationAsString, request.getSubDirectory());
         } else {
             // Storage directory is not provided, generate new one with checksum
             int subFolders = 0;
@@ -368,11 +369,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         return storageLocation.resolve(checksum);
     }
 
-    public Path getStorageLocationForZip(FileStorageRequestAggregation request) throws IOException {
+    public Path getStorageLocationForZip(FileStorageRequestAggregationDto request) throws IOException {
         Path storageLocation = Paths.get(baseStorageLocationAsString);
-        if (!Strings.isNullOrEmpty(request.getStorageSubDirectory())) {
+        if (!Strings.isNullOrEmpty(request.getSubDirectory())) {
             // add the sub directory
-            storageLocation = Paths.get(baseStorageLocationAsString, request.getStorageSubDirectory());
+            storageLocation = Paths.get(baseStorageLocationAsString, request.getSubDirectory());
         } else {
             // add "zips" to the storage location to get all zips in the same subdirectory
             storageLocation = storageLocation.resolve(ZIP_DIR_NAME);
@@ -446,7 +447,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSubset, IDeletionProgressManager progressManager) {
-        for (FileDeletionRequest request : workingSubset.getFileDeletionRequests()) {
+        for (FileDeletionRequestDto request : workingSubset.getFileDeletionRequests()) {
             if (request.getFileReference().getLocation().getUrl().matches(".*regards_.*\\.zip")) {
                 deleteFromZipPath(request, progressManager);
             } else {
@@ -473,7 +474,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void deleteFromZipPath(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+    private void deleteFromZipPath(FileDeletionRequestDto request, IDeletionProgressManager progressManager) {
         try {
             Path zipPath = Paths.get(new URL(request.getFileReference().getLocation().getUrl()).getPath());
             if (Files.exists(zipPath) && Files.isReadable(zipPath)) {
@@ -493,8 +494,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
     }
 
-    private void deleteFromZipPath(Path zipPath, FileDeletionRequest request, IDeletionProgressManager progressManager)
-        throws IOException {
+    private void deleteFromZipPath(Path zipPath,
+                                   FileDeletionRequestDto request,
+                                   IDeletionProgressManager progressManager) throws IOException {
         Map<String, String> env = new HashMap<>(1);
         env.put(CREATE_ENV_FS, "false");
         LOGGER.debug("[LOCAL STORAGE PLUGIN] File to delete from a zip file [{}].", zipPath);
@@ -532,7 +534,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public InputStream retrieve(FileReference fileRef) throws ModuleException, FileNotFoundException {
+    public InputStream retrieve(FileReferenceWithoutOwnersDto fileRef) throws ModuleException, FileNotFoundException {
         if (fileRef.getLocation().getUrl().matches(".*regards_.*\\.zip")) {
             return retrieveFromZip(fileRef);
         } else {
@@ -556,11 +558,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
      * Retrieve a stream of the given file from a ZIP file.<br/>
      * <b>NOTE</b> : The stream and the ZIP access are released when the stream is closed. Callers must call the stream after usage.
      *
-     * @param fileRef {@link FileReference} to retrieve
+     * @param fileRef {@link FileReferenceWithoutOwnersDto} to retrieve
      * @return {@link InputStream}
      * @throws ModuleException if an error occurs while accessing ZIP file or file himself
      */
-    private InputStream retrieveFromZip(FileReference fileRef) throws ModuleException {
+    private InputStream retrieveFromZip(FileReferenceWithoutOwnersDto fileRef) throws ModuleException {
         Map<String, String> env = new HashMap<>(1);
         env.put(CREATE_ENV_FS, "false");
         String checksum = fileRef.getMetaInfo().getChecksum();

@@ -19,8 +19,8 @@
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -49,12 +49,12 @@ public class DeleteLocalSmallFileTask implements LockServiceTask<Void> {
 
     private final DeleteLocalSmallFileTaskConfiguration configuration;
 
-    private final FileDeletionRequest request;
+    private final FileDeletionRequestDto request;
 
     private final IDeletionProgressManager progressManager;
 
     public DeleteLocalSmallFileTask(DeleteLocalSmallFileTaskConfiguration deleteLocalSmallFileTaskConfiguration,
-                                    FileDeletionRequest request,
+                                    FileDeletionRequestDto request,
                                     IDeletionProgressManager progressManager) {
         this.configuration = deleteLocalSmallFileTaskConfiguration;
         this.request = request;

@@ -40,12 +40,9 @@
             <artifactId>plugins-domain</artifactId>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-service</artifactId>
+            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
+            <artifactId>file-access-plugin-domain</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
@@ -71,7 +68,17 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>s3-storage-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>s3-glacier-storage-plugin-dto</artifactId>
+        </dependency>
 
+        <!-- External -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -92,10 +99,6 @@
             <groupId>fr.cnes.regards.framework.test</groupId>
             <artifactId>regards-s3-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>s3-glacier-storage-plugin-dto</artifactId>
         </dependency>
     </dependencies>
 

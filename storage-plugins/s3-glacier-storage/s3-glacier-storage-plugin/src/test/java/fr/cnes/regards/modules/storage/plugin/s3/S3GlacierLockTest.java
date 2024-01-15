@@ -21,30 +21,28 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.domain.S3Server;
-import fr.cnes.regards.modules.storage.domain.database.FileLocation;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceMetaInfoDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileRequestStatus;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.plugin.s3.task.*;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
-import io.jsonwebtoken.lang.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Sébastien Binda
@@ -71,17 +69,16 @@ public class S3GlacierLockTest {
                                     ROOT_PATH,
                                     "https://s3.datalake-qualif.cnes.fr",
                                     "bucket",
-                                    Mockito.mock(GlacierArchiveService.class),
                                     Mockito.mock(IRuntimeTenantResolver.class));
     }
 
     @Test
     public void test_store_big_file_multiples_locks() throws Exception {
         // Given
-        FileStorageRequestAggregation request1 = createStoreFileRequest("node1", false);
-        FileStorageRequestAggregation request2 = createStoreFileRequest("node1", false);
-        FileStorageRequestAggregation request3 = createStoreFileRequest("node1", false);
-        FileStorageRequestAggregation request4 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregationDto request1 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregationDto request2 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregationDto request3 = createStoreFileRequest("node1", false);
+        FileStorageRequestAggregationDto request4 = createStoreFileRequest("node1", false);
         // When
         glacier.mockBigFile();
         glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -99,10 +96,10 @@ public class S3GlacierLockTest {
     @Test
     public void test_store_small_file_on_same_node_locked() throws Exception {
         // Given
-        FileStorageRequestAggregation request1 = createStoreFileRequest("node1", true);
-        FileStorageRequestAggregation request2 = createStoreFileRequest("node1", true);
-        FileStorageRequestAggregation request3 = createStoreFileRequest("node2", true);
-        FileStorageRequestAggregation request4 = createStoreFileRequest("node2", true);
+        FileStorageRequestAggregationDto request1 = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto request2 = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto request3 = createStoreFileRequest("node2", true);
+        FileStorageRequestAggregationDto request4 = createStoreFileRequest("node2", true);
         // When
         glacier.mockSmallFile();
         glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -117,8 +114,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_local_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
-        FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, true);
+        FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
+        FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, true);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -135,8 +132,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_local_not_locked_by_store_small_file_on_other_node() throws Exception {
         // Given
-        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
-        FileCacheRequest cacheRequest = createRestoreFileRequest("node2", true, true);
+        FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
+        FileCacheRequestDto cacheRequest = createRestoreFileRequest("node2", true, true);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -152,8 +149,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_small_file_remote_not_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
-        FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, false);
+        FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
+        FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -169,8 +166,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_big_file_remote_not_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequestAggregation request = createStoreFileRequest("node1", true);
-        FileCacheRequest cacheRequest = createRestoreFileRequest("node1", true, false);
+        FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
+        FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
         glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -186,9 +183,9 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_multiple_big_files_no_lock() throws Exception {
         // Given
-        FileCacheRequest request1 = createRestoreFileRequest("node1", false, false);
-        FileCacheRequest request2 = createRestoreFileRequest("node1", false, false);
-        FileCacheRequest request3 = createRestoreFileRequest("node1", false, false);
+        FileCacheRequestDto request1 = createRestoreFileRequest("node1", false, false);
+        FileCacheRequestDto request2 = createRestoreFileRequest("node1", false, false);
+        FileCacheRequestDto request3 = createRestoreFileRequest("node1", false, false);
         // When
         glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -201,9 +198,9 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_local_small_file_not_locked_by_restore_big_file_on_same_node() throws Exception {
         // Given
-        FileCacheRequest request1 = createRestoreFileRequest("node1", true, true);
-        FileCacheRequest request2 = createRestoreFileRequest("node1", false, false);
-        FileCacheRequest request3 = createRestoreFileRequest("node1", false, false);
+        FileCacheRequestDto request1 = createRestoreFileRequest("node1", true, true);
+        FileCacheRequestDto request2 = createRestoreFileRequest("node1", false, false);
+        FileCacheRequestDto request3 = createRestoreFileRequest("node1", false, false);
         // When
         glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -218,9 +215,9 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_remote_small_file_not_locked_by_restore_other_remote_small_file() throws Exception {
         // Given
-        FileCacheRequest request1 = createRestoreFileRequest("node1", true, false);
-        FileCacheRequest request2 = createRestoreFileRequest("node1", true, false);
-        FileCacheRequest request3 = createRestoreFileRequest("node1", true, false);
+        FileCacheRequestDto request1 = createRestoreFileRequest("node1", true, false);
+        FileCacheRequestDto request2 = createRestoreFileRequest("node1", true, false);
+        FileCacheRequestDto request3 = createRestoreFileRequest("node1", true, false);
         // When
         glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -235,10 +232,10 @@ public class S3GlacierLockTest {
     @Test
     public void test_restore_remote_small_file_locked_by_restore_same_remote_small_file() throws Exception {
         // Given
-        FileCacheRequest request1 = createRestoreFileRequest("node1", true, false);
-        FileCacheRequest request2 = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
-        FileCacheRequest request3 = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
-        FileCacheRequest request4 = createRestoreFileRequest("node2", true, false, Optional.of("archive1"));
+        FileCacheRequestDto request1 = createRestoreFileRequest("node1", true, false);
+        FileCacheRequestDto request2 = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto request3 = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto request4 = createRestoreFileRequest("node2", true, false, Optional.of("archive1"));
         // When
         glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
@@ -255,7 +252,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_delete_big_file_no_lock() throws Exception {
         // Given
-        FileDeletionRequest request = createDeletionRequest("node1", false, false, Optional.empty());
+        FileDeletionRequestDto request = createDeletionRequest("node1", false, false, Optional.empty());
         // When
         glacier.doDeleteTask(request, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
@@ -266,9 +263,9 @@ public class S3GlacierLockTest {
     @Test
     public void test_delete_local_small_file_locked_by_other_deletion_on_same_node() throws Exception {
         // Given
-        FileDeletionRequest request = createDeletionRequest("node1", true, true, Optional.of("archive1"));
-        FileDeletionRequest request2 = createDeletionRequest("node1", true, true, Optional.empty());
-        FileDeletionRequest request3 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
+        FileDeletionRequestDto request = createDeletionRequest("node1", true, true, Optional.of("archive1"));
+        FileDeletionRequestDto request2 = createDeletionRequest("node1", true, true, Optional.empty());
+        FileDeletionRequestDto request3 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
         // When
         glacier.doDeleteTask(request, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         glacier.doDeleteTask(request2, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
@@ -284,9 +281,9 @@ public class S3GlacierLockTest {
     @Test
     public void test_delete_remote_small_file_locked_by_restore_on_same_archive() throws Exception {
         // Given
-        FileCacheRequest restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
-        FileDeletionRequest deleteRequest = createDeletionRequest("node1", true, false, Optional.of("archive1"));
-        FileDeletionRequest deleteRequest2 = createDeletionRequest("node1", true, false, Optional.empty());
+        FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileDeletionRequestDto deleteRequest = createDeletionRequest("node1", true, false, Optional.of("archive1"));
+        FileDeletionRequestDto deleteRequest2 = createDeletionRequest("node1", true, false, Optional.empty());
         // When
         glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         glacier.doDeleteTask(deleteRequest, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
@@ -304,10 +301,10 @@ public class S3GlacierLockTest {
     @Test
     public void test_delete_local_small_file_locked_by_store_small_file_on_same_node() throws Exception {
         // Given
-        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
-        FileStorageRequestAggregation storeRequest2 = createStoreFileRequest("node2", true);
-        FileDeletionRequest deleteRequest = createDeletionRequest("node1", true, true, Optional.of("archive1"));
-        FileDeletionRequest deleteRequest2 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
+        FileStorageRequestAggregationDto storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto storeRequest2 = createStoreFileRequest("node2", true);
+        FileDeletionRequestDto deleteRequest = createDeletionRequest("node1", true, true, Optional.of("archive1"));
+        FileDeletionRequestDto deleteRequest2 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
         // When
         glacier.mockSmallFile();
         glacier.doStoreTask(storeRequest, Mockito.mock(IStorageProgressManager.class), "tenant").call();
@@ -333,7 +330,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_submit_rdy_archive_lock_other_store_request_on_same_node() throws Exception {
         // Given
-        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto storeRequest = createStoreFileRequest("node1", true);
         // when
         glacier.mockSmallFile();
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1"),
@@ -351,7 +348,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_submit_rdy_archive_do_not_lock_restore_if_building() throws Exception {
         // Given
-        FileCacheRequest restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // when
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
                                      Mockito.mock(IPeriodicActionProgressManager.class),
@@ -368,7 +365,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_submit_rdy_archive_lock_restore_if_updating() throws Exception {
         // Given
-        FileCacheRequest restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // when
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
                                      Mockito.mock(IPeriodicActionProgressManager.class),
@@ -386,7 +383,7 @@ public class S3GlacierLockTest {
     public void test_submit_rdy_archive_lock_other_restore_remote_local_file_request_on_same_archive_name()
         throws Exception {
         // Given
-        FileStorageRequestAggregation storeRequest = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto storeRequest = createStoreFileRequest("node1", true);
         // When
         glacier.doCleanDirectory(Paths.get("/tmp/zip"),
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
@@ -405,7 +402,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_clean_directory_lock_restore_archive() throws Exception {
         // Given
-        FileCacheRequest restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // When
         glacier.doCleanDirectory(Paths.get("/tmp/zip"),
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
@@ -422,7 +419,7 @@ public class S3GlacierLockTest {
     @Test
     public void test_check_pending_action_lock_restore_remote_file() throws Exception {
         // Given
-        FileCacheRequest restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
+        FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // When
         glacier.doCleanDirectory(Paths.get("/tmp/zip"),
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
@@ -440,77 +437,109 @@ public class S3GlacierLockTest {
                       " There should be 1 task waiting for lock");
     }
 
-    private FileStorageRequestAggregation createStoreFileRequest(String node, boolean smallFile) {
+    private FileStorageRequestAggregationDto createStoreFileRequest(String node, boolean smallFile) {
         String checksum = "123456";
         String algorithm = "MD5";
         String fileName = "file.txt";
         Long fileSize = smallFile ? 10L : 50000000L;
         MimeType mimeType = MediaType.APPLICATION_OCTET_STREAM;
-        FileReferenceMetaInfo metaInfos = new FileReferenceMetaInfo(checksum, algorithm, fileName, fileSize, mimeType);
+        FileReferenceMetaInfoDto metaInfos = new FileReferenceMetaInfoDto(checksum,
+                                                                          algorithm,
+                                                                          fileName,
+                                                                          fileSize,
+                                                                          null,
+                                                                          null,
+                                                                          mimeType.toString(),
+                                                                          null);
         String owner = "owner";
-        Optional<String> storageSubDirectory = Optional.of(node);
         String originUrl = "file:///tmp/file.txt";
         String storage = "storage";
         String groupId = "groupId";
         String sessionOwner = "sessionOwner";
         String session = "session";
-        return new FileStorageRequestAggregation(owner,
-                                                 metaInfos,
-                                                 originUrl,
-                                                 storage,
-                                                 storageSubDirectory,
-                                                 groupId,
-                                                 sessionOwner,
-                                                 session);
+        return new FileStorageRequestAggregationDto(1L,
+                                                    new HashSet<>(List.of(owner)),
+                                                    originUrl,
+                                                    storage,
+                                                    metaInfos,
+                                                    node,
+                                                    sessionOwner,
+                                                    session,
+                                                    "jobId",
+                                                    null,
+                                                    FileRequestStatus.TO_DO,
+                                                    null,
+                                                    new HashSet<>(List.of(groupId)));
     }
 
-    private FileCacheRequest createRestoreFileRequest(String node, boolean smallFile, boolean local) {
+    private FileCacheRequestDto createRestoreFileRequest(String node, boolean smallFile, boolean local) {
         return createRestoreFileRequest(node, smallFile, local, Optional.empty());
     }
 
-    private FileCacheRequest createRestoreFileRequest(String node,
-                                                      boolean smallFile,
-                                                      boolean local,
-                                                      Optional<String> archiveName) {
+    private FileCacheRequestDto createRestoreFileRequest(String node,
+                                                         boolean smallFile,
+                                                         boolean local,
+                                                         Optional<String> archiveName) {
 
-        return new FileCacheRequest(createFileReference(node, smallFile, local, archiveName),
-                                    "restorationDirectory",
-                                    24,
-                                    "groupId");
+        FileReferenceWithoutOwnersDto fileReferenceWithoutOwnersDto = createFileReferenceWithoutOwnersDto(node,
+                                                                                                          smallFile,
+                                                                                                          local,
+                                                                                                          archiveName);
+        return new FileCacheRequestDto(1L,
+                                       "groupId",
+
+                                       fileReferenceWithoutOwnersDto,
+                                       fileReferenceWithoutOwnersDto.getChecksum(),
+                                       fileReferenceWithoutOwnersDto.getOriginStorage(),
+                                       fileReferenceWithoutOwnersDto.getMetaInfo().getFileSize(),
+                                       "restorationDirectory",
+                                       24,
+                                       FileRequestStatus.TO_DO,
+                                       null,
+                                       null,
+                                       "jobId");
     }
 
-    private FileReference createFileReference(String node,
-                                              boolean smallFile,
-                                              boolean local,
-                                              Optional<String> archiveName) {
-        FileReferenceMetaInfo metaInfo = new FileReferenceMetaInfo("123456789",
-                                                                   "MD5",
-                                                                   "file.txt",
-                                                                   smallFile ? 10L : 5000000L,
-                                                                   MediaType.APPLICATION_OCTET_STREAM);
+    private FileReferenceWithoutOwnersDto createFileReferenceWithoutOwnersDto(String node,
+                                                                              boolean smallFile,
+                                                                              boolean local,
+                                                                              Optional<String> archiveName) {
+        FileReferenceMetaInfoDto metaInfo = new FileReferenceMetaInfoDto("123456789",
+                                                                         "MD5",
+                                                                         "file.txt",
+                                                                         smallFile ? 10L : 5000000L,
+                                                                         null,
+                                                                         null,
+                                                                         MediaType.APPLICATION_OCTET_STREAM.toString(),
+                                                                         null);
         String fileName = (smallFile ?
             "/" + archiveName.orElse(String.valueOf(UUID.randomUUID())) + ".zip?fileName=" :
             "/") + UUID.randomUUID();
-        FileLocation location = new FileLocation("storage",
-                                                 "https://s3.datalake-qualif.cnes.fr/bucket/"
-                                                 + ROOT_PATH
-                                                 + "/"
-                                                 + node
-                                                 + fileName,
-                                                 local);
-        FileReference fileReference = new FileReference("owner", metaInfo, location);
-        fileReference.setId(1L);
-        return fileReference;
+        FileLocationDto location = new FileLocationDto("storage",
+                                                       "https://s3.datalake-qualif.cnes.fr/bucket/"
+                                                       + ROOT_PATH
+                                                       + "/"
+                                                       + node
+                                                       + fileName,
+                                                       local);
+        return new FileReferenceWithoutOwnersDto(null, metaInfo, location);
     }
 
-    public FileDeletionRequest createDeletionRequest(String node,
-                                                     boolean smallFile,
-                                                     boolean local,
-                                                     Optional<String> archiveName) {
-        return new FileDeletionRequest(createFileReference(node, smallFile, local, archiveName),
-                                       "groupeId",
-                                       "sessionOwner",
-                                       "session");
+    public FileDeletionRequestDto createDeletionRequest(String node,
+                                                        boolean smallFile,
+                                                        boolean local,
+                                                        Optional<String> archiveName) {
+        return new FileDeletionRequestDto(1L,
+                                          "groupeId",
+                                          FileRequestStatus.TO_DO,
+                                          "storage",
+                                          createFileReferenceWithoutOwnersDto(node, smallFile, local, archiveName),
+                                          false,
+                                          null,
+                                          null,
+                                          "jobId",
+                                          "sessionOwner",
+                                          "session");
     }
 
 }

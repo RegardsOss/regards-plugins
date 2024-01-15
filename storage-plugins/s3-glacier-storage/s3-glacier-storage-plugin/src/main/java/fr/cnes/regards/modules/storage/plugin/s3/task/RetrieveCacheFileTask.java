@@ -21,8 +21,8 @@ package fr.cnes.regards.modules.storage.plugin.s3.task;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RetrieveCacheFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
@@ -65,7 +65,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     private final RetrieveCacheFileTaskConfiguration configuration;
 
     public RetrieveCacheFileTask(RetrieveCacheFileTaskConfiguration configuration,
-                                 FileCacheRequest fileCacheRequest,
+                                 FileCacheRequestDto fileCacheRequest,
                                  IRestorationProgressManager progressManager) {
         super(fileCacheRequest, progressManager);
         this.configuration = configuration;

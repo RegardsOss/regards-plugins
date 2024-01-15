@@ -38,18 +38,18 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.storage.domain.database.FileLocation;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceMetaInfoDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileRequestStatus;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.apache.http.client.utils.URIBuilder;
@@ -149,8 +149,6 @@ public abstract class AbstractS3GlacierIT {
 
     protected IRuntimeTenantResolver runtimeTenantResolver;
 
-    protected GlacierArchiveService glacierArchiveService;
-
     private Random random = new Random();
 
     private S3StorageConfiguration s3StorageSettingsMock;
@@ -168,7 +166,6 @@ public abstract class AbstractS3GlacierIT {
         runtimeTenantResolver = Mockito.mock(IRuntimeTenantResolver.class);
         Mockito.when(runtimeTenantResolver.getTenant()).thenReturn(TENANT);
         Mockito.doNothing().when(runtimeTenantResolver).forceTenant(anyString());
-        glacierArchiveService = Mockito.mock(GlacierArchiveService.class);
 
         // Settings for download in all available S3 servers
         s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
@@ -314,7 +311,6 @@ public abstract class AbstractS3GlacierIT {
         // Apply mocks to the plugin
         ReflectionTestUtils.setField(s3Glacier, "s3StorageSettings", s3StorageSettingsMock);
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
-        ReflectionTestUtils.setField(s3Glacier, "glacierArchiveService", glacierArchiveService);
         ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);
         ReflectionTestUtils.setField(s3Glacier, "client", s3Client);
         ReflectionTestUtils.setField(s3Glacier, "workspaceService", workspaceService);
@@ -336,12 +332,12 @@ public abstract class AbstractS3GlacierIT {
                    targetFile.resolve(fileName));
     }
 
-    protected FileReference createFileReference(String fileName,
-                                                String fileChecksum,
-                                                long fileSize,
-                                                String nodeName,
-                                                String archiveName,
-                                                boolean pendingActionRemaining) {
+    protected FileReferenceWithoutOwnersDto createFileReference(String fileName,
+                                                                String fileChecksum,
+                                                                long fileSize,
+                                                                String nodeName,
+                                                                String archiveName,
+                                                                boolean pendingActionRemaining) {
         URL storedFileUrl;
         if (archiveName != null) {
             storedFileUrl = createExpectedURL(nodeName, archiveName, fileName);
@@ -349,15 +345,22 @@ public abstract class AbstractS3GlacierIT {
             storedFileUrl = createExpectedURL(nodeName, fileName);
         }
 
-        FileReferenceMetaInfo metaInfo = new FileReferenceMetaInfo(fileChecksum,
-                                                                   S3Glacier.MD5_CHECKSUM,
-                                                                   fileName,
-                                                                   fileSize,
-                                                                   MimeType.valueOf("text/plain"));
+        FileReferenceMetaInfoDto metaInfo = new FileReferenceMetaInfoDto(fileChecksum,
+                                                                         S3Glacier.MD5_CHECKSUM,
+                                                                         fileName,
+                                                                         fileSize,
+                                                                         null,
+                                                                         null,
+                                                                         MimeType.valueOf("text/plain").toString(),
+                                                                         null);
 
-        FileLocation location = new FileLocation("glacier", storedFileUrl.toString(), pendingActionRemaining);
-        FileReference reference = new FileReference("test-owner", metaInfo, location);
-        reference.setId(random.nextLong());
+        FileLocationDto location = new FileLocationDto("glacier", storedFileUrl.toString(), pendingActionRemaining);
+        FileReferenceWithoutOwnersDto reference = new FileReferenceWithoutOwnersDto(random.nextLong(),
+                                                                                    null,
+                                                                                    metaInfo,
+                                                                                    location,
+                                                                                    false,
+                                                                                    false);
         return reference;
     }
 
@@ -406,26 +409,31 @@ public abstract class AbstractS3GlacierIT {
         return archiveTestPath;
     }
 
-    /**
-     * Create the request of cache file with the file available during 24 hours.
-     */
-    protected FileCacheRequest createFileCacheRequest(Path restorationWorkspace,
-                                                      String fileName,
-                                                      String fileChecksum,
-                                                      long fileSize,
-                                                      String nodeName,
-                                                      String archiveName,
-                                                      boolean pendingActionRemaining) {
-        FileReference reference = createFileReference(fileName,
-                                                      fileChecksum,
-                                                      fileSize,
-                                                      nodeName,
-                                                      archiveName,
-                                                      pendingActionRemaining);
-        FileCacheRequest request = new FileCacheRequest(reference,
-                                                        restorationWorkspace.toString(),
-                                                        24,
-                                                        "test-group-id");
+    protected FileCacheRequestDto createFileCacheRequestDto(Path restorationWorkspace,
+                                                            String fileName,
+                                                            String fileChecksum,
+                                                            long fileSize,
+                                                            String nodeName,
+                                                            String archiveName,
+                                                            boolean pendingActionRemaining) {
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      pendingActionRemaining);
+        FileCacheRequestDto request = new FileCacheRequestDto(random.nextLong(),
+                                                              "test-group-id",
+                                                              reference,
+                                                              fileChecksum,
+                                                              "storage",
+                                                              fileSize,
+                                                              restorationWorkspace.toString(),
+                                                              24,
+                                                              FileRequestStatus.TO_DO,
+                                                              null,
+                                                              null,
+                                                              "jobId");
         return request;
     }
 
@@ -493,54 +501,72 @@ public abstract class AbstractS3GlacierIT {
                                 "The remaining file in the directory should be the one that wasn't deleted");
     }
 
-    protected FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory,
-                                                                                String fileName,
-                                                                                String fileChecksum) {
+    protected FileStorageRequestAggregationDto createFileStorageRequestAggregation(String subDirectory,
+                                                                                   String fileName,
+                                                                                   String fileChecksum) {
         return createFileStorageRequestAggregation(subDirectory, fileName, null, fileChecksum);
     }
 
-    protected FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory,
-                                                                                String fileName,
-                                                                                Long fileSize,
-                                                                                String fileChecksum) {
-        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
-        fileStorageRequest.setId(random.nextLong());
-        fileStorageRequest.setOriginUrl("file:./src/test/resources/files/" + fileName);
-        fileStorageRequest.setStorageSubDirectory(subDirectory);
-
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName(fileName);
-        fileReferenceMetaInfo.setAlgorithm("md5");
-        fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
-        fileReferenceMetaInfo.setChecksum(fileChecksum);
-        fileReferenceMetaInfo.setFileSize(fileSize);
-
-        fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
+    protected FileStorageRequestAggregationDto createFileStorageRequestAggregation(String subDirectory,
+                                                                                   String fileName,
+                                                                                   Long fileSize,
+                                                                                   String fileChecksum) {
+        FileStorageRequestAggregationDto fileStorageRequest = new FileStorageRequestAggregationDto(random.nextLong(),
+                                                                                                   null,
+                                                                                                   "file:./src/test"
+                                                                                                   + "/resources/files/"
+                                                                                                   + fileName,
+                                                                                                   "storage",
+                                                                                                   new FileReferenceMetaInfoDto(
+                                                                                                       fileChecksum,
+                                                                                                       "md5",
+                                                                                                       fileName,
+                                                                                                       fileSize,
+                                                                                                       null,
+                                                                                                       null,
+                                                                                                       "text/plain",
+                                                                                                       null),
+                                                                                                   subDirectory,
+                                                                                                   "sessionOwner",
+                                                                                                   "session",
+                                                                                                   "jobId",
+                                                                                                   null,
+                                                                                                   FileRequestStatus.TO_DO,
+                                                                                                   null,
+                                                                                                   null);
 
         return fileStorageRequest;
     }
 
-    protected FileReference createFileReference(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName(fileStorageRequest.getMetaInfo().getFileName());
-        fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
-        fileReferenceMetaInfo.setMimeType(fileStorageRequest.getMetaInfo().getMimeType());
-        fileReferenceMetaInfo.setChecksum(fileStorageRequest.getMetaInfo().getChecksum());
-        fileReferenceMetaInfo.setFileSize(fileStorageRequest.getMetaInfo().getFileSize());
+    protected FileReferenceWithoutOwnersDto createFileReference(FileStorageRequestAggregationDto fileStorageRequest,
+                                                                String rootPath) {
+        FileReferenceMetaInfoDto FileReferenceMetaInfoDto = new FileReferenceMetaInfoDto(fileStorageRequest.getMetaInfo()
+                                                                                                           .getChecksum(),
+                                                                                         fileStorageRequest.getMetaInfo()
+                                                                                                           .getAlgorithm(),
+                                                                                         fileStorageRequest.getMetaInfo()
+                                                                                                           .getFileName(),
+                                                                                         fileStorageRequest.getMetaInfo()
+                                                                                                           .getFileSize(),
+                                                                                         null,
+                                                                                         null,
+                                                                                         fileStorageRequest.getMetaInfo()
+                                                                                                           .getMimeType(),
+                                                                                         null);
 
-        FileLocation fileLocation = new FileLocation();
-        fileLocation.setUrl(buildFileLocationUrl(fileStorageRequest, rootPath));
-        fileLocation.setStorage("Glacier");
-        FileReference reference = new FileReference("regards", fileReferenceMetaInfo, fileLocation);
-        reference.setId(random.nextLong());
+        FileLocationDto fileLocation = new FileLocationDto("glacier",
+                                                           buildFileLocationUrl(fileStorageRequest, rootPath));
+        FileReferenceWithoutOwnersDto reference = new FileReferenceWithoutOwnersDto(null,
+                                                                                    FileReferenceMetaInfoDto,
+                                                                                    fileLocation);
         return reference;
     }
 
-    private String buildFileLocationUrl(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
+    private String buildFileLocationUrl(FileStorageRequestAggregationDto fileStorageRequest, String rootPath) {
         return endPoint + File.separator + bucket + Paths.get(File.separator,
                                                               rootPath,
-                                                              fileStorageRequest.getStorageSubDirectory() != null ?
-                                                                  fileStorageRequest.getStorageSubDirectory() :
+                                                              fileStorageRequest.getSubDirectory() != null ?
+                                                                  fileStorageRequest.getSubDirectory() :
                                                                   "")
                                                          .resolve(fileStorageRequest.getMetaInfo().getChecksum());
     }
@@ -657,12 +683,14 @@ public abstract class AbstractS3GlacierIT {
         List<String> storageFailed = new ArrayList<>();
 
         @Override
-        public void storageSucceed(FileStorageRequestAggregation fileReferenceRequest, URL storedUrl, Long fileSize) {
+        public void storageSucceed(FileStorageRequestAggregationDto FileReferenceWithoutOwnersDtoRequest,
+                                   URL storedUrl,
+                                   Long fileSize) {
             storageSucceed.add(storedUrl);
         }
 
         @Override
-        public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation fileReferenceRequest,
+        public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregationDto FileReferenceWithoutOwnersDtoRequest,
                                                              URL storedUrl,
                                                              Long fileSize,
                                                              Boolean notifyAdministrators) {
@@ -677,8 +705,8 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public void storageFailed(FileStorageRequestAggregation fileReferenceRequest, String cause) {
-            storageFailed.add(fileReferenceRequest.getOriginUrl());
+        public void storageFailed(FileStorageRequestAggregationDto FileReferenceWithoutOwnersDtoRequest, String cause) {
+            storageFailed.add(FileReferenceWithoutOwnersDtoRequest.getOriginUrl());
         }
 
         public List<URL> getStorageSucceed() {
@@ -736,6 +764,16 @@ public abstract class AbstractS3GlacierIT {
             storagePendingActionError.add(pendingActionErrorPath);
         }
 
+        @Override
+        public void archiveStored(String storage, String url, String checksum, Long archiveSize) {
+
+        }
+
+        @Override
+        public void archiveDeleted(String storage, String url) {
+
+        }
+
         public List<String> getStoragePendingActionSucceed() {
             return storagePendingActionSucceed;
         }
@@ -755,9 +793,9 @@ public abstract class AbstractS3GlacierIT {
 
     static class TestRestoreProgressManager implements IRestorationProgressManager {
 
-        List<FileCacheRequest> restoreSucceed = new ArrayList<>();
+        List<FileCacheRequestDto> restoreSucceed = new ArrayList<>();
 
-        List<FileCacheRequest> restoreFailed = new ArrayList<>();
+        List<FileCacheRequestDto> restoreFailed = new ArrayList<>();
 
         private URL restoredFileUrl;
 
@@ -766,18 +804,18 @@ public abstract class AbstractS3GlacierIT {
         private OffsetDateTime expirationDate;
 
         @Override
-        public void restoreSucceededInternalCache(FileCacheRequest fileCacheRequest, Path restoredFilePath) {
+        public void restoreSucceededInternalCache(FileCacheRequestDto fileCacheRequest, Path restoredFilePath) {
             restoreSucceed.add(fileCacheRequest);
         }
 
         @Override
-        public void restoreFailed(FileCacheRequest fileCacheRequest, String cause) {
-            restoreFailed.add(fileCacheRequest);
+        public void restoreFailed(FileCacheRequestDto fileCacheRequestDto, String cause) {
+            restoreFailed.add(fileCacheRequestDto);
             LOGGER.error(cause);
         }
 
         @Override
-        public void restoreSucceededExternalCache(FileCacheRequest fileCacheRequest,
+        public void restoreSucceededExternalCache(FileCacheRequestDto fileCacheRequest,
                                                   URL restoredFileUrl,
                                                   @Nullable Long fileSize,
                                                   OffsetDateTime expirationDate) {
@@ -788,11 +826,11 @@ public abstract class AbstractS3GlacierIT {
             restoreSucceed.add(fileCacheRequest);
         }
 
-        public List<FileCacheRequest> getRestoreSucceed() {
+        public List<FileCacheRequestDto> getRestoreSucceed() {
             return restoreSucceed;
         }
 
-        public List<FileCacheRequest> getRestoreFailed() {
+        public List<FileCacheRequestDto> getRestoreFailed() {
             return restoreFailed;
         }
 
@@ -815,39 +853,39 @@ public abstract class AbstractS3GlacierIT {
 
     static class TestDeletionProgressManager implements IDeletionProgressManager {
 
-        List<FileDeletionRequest> deletionSucceed = new ArrayList<>();
+        List<FileDeletionRequestDto> deletionSucceed = new ArrayList<>();
 
-        List<FileDeletionRequest> deletionSucceedWithPendingAction = new ArrayList<>();
+        List<FileDeletionRequestDto> deletionSucceedWithPendingAction = new ArrayList<>();
 
-        List<FileDeletionRequest> deletionFailed = new ArrayList<>();
+        List<FileDeletionRequestDto> deletionFailed = new ArrayList<>();
 
         @Override
-        public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
-            deletionSucceed.add(fileDeletionRequest);
+        public void deletionSucceed(FileDeletionRequestDto FileDeletionRequestDto) {
+            deletionSucceed.add(FileDeletionRequestDto);
         }
 
         @Override
-        public void deletionFailed(FileDeletionRequest fileDeletionRequest, String cause) {
+        public void deletionFailed(FileDeletionRequestDto FileDeletionRequestDto, String cause) {
             LOGGER.error("Deletion of {} failed : {}",
-                         fileDeletionRequest.getFileReference().getLocation().getUrl(),
+                         FileDeletionRequestDto.getFileReference().getLocation().getUrl(),
                          cause);
-            deletionFailed.add(fileDeletionRequest);
+            deletionFailed.add(FileDeletionRequestDto);
         }
 
         @Override
-        public void deletionSucceedWithPendingAction(FileDeletionRequest fileDeletionRequest) {
-            deletionSucceedWithPendingAction.add(fileDeletionRequest);
+        public void deletionSucceedWithPendingAction(FileDeletionRequestDto FileDeletionRequestDto) {
+            deletionSucceedWithPendingAction.add(FileDeletionRequestDto);
         }
 
-        public List<FileDeletionRequest> getDeletionSucceed() {
+        public List<FileDeletionRequestDto> getDeletionSucceed() {
             return deletionSucceed;
         }
 
-        public List<FileDeletionRequest> getDeletionFailed() {
+        public List<FileDeletionRequestDto> getDeletionFailed() {
             return deletionFailed;
         }
 
-        public List<FileDeletionRequest> getDeletionSucceedWithPendingAction() {
+        public List<FileDeletionRequestDto> getDeletionSucceedWithPendingAction() {
             return deletionSucceedWithPendingAction;
         }
 

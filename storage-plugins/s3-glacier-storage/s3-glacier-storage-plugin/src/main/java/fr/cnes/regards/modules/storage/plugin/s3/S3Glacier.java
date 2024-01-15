@@ -10,22 +10,19 @@ import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.filecatalog.dto.availability.NearlineFileStatusDto;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.exception.NearlineDownloadException;
-import fr.cnes.regards.modules.storage.domain.exception.NearlineFileNotAvailableException;
-import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
 import fr.cnes.regards.modules.storage.plugin.s3.dto.S3GlacierStorageConfigurationDto;
 import fr.cnes.regards.modules.storage.plugin.s3.task.*;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.LockTypeEnum;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
@@ -120,9 +117,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     @Autowired
     private LockService lockService;
-
-    @Autowired
-    private GlacierArchiveService glacierArchiveService;
 
     /**
      * Parallel thread executor service for store actions.
@@ -297,7 +291,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("End handling store requests");
     }
 
-    public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequestAggregation request,
+    public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequestAggregationDto request,
                                                            IStorageProgressManager progressManager,
                                                            String tenant) {
 
@@ -328,7 +322,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
                                                                        rootPath,
                                                                        workspacePath,
-                                                                       request.getStorageSubDirectory()),
+                                                                       request.getSubDirectory()),
                                             new StoreSmallFileTask(configuration, request, progressManager));
                 }
             } catch (MalformedURLException e) {
@@ -368,7 +362,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Handling of retrieve requests ended");
     }
 
-    public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequest fileCacheRequest,
+    public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequestDto fileCacheRequest,
                                                               IRestorationProgressManager progressManager,
                                                               String tenant) {
 
@@ -457,7 +451,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Handling of delete requests ended");
     }
 
-    public Callable<LockServiceResponse<Void>> doDeleteTask(FileDeletionRequest request,
+    public Callable<LockServiceResponse<Void>> doDeleteTask(FileDeletionRequestDto request,
                                                             IDeletionProgressManager progressManager,
                                                             String tenant) {
         return () -> {
@@ -472,7 +466,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         };
     }
 
-    private void handleDeleteSmallFileRequest(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+    private void handleDeleteSmallFileRequest(FileDeletionRequestDto request,
+                                              IDeletionProgressManager progressManager) {
         try {
             Path serverRootPath = getServerPath();
             Path node = Path.of(request.getFileReference().getLocation().getUrl()).getParent();
@@ -487,8 +482,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     getArchiveBuildingWorkspacePath(),
                     storageName,
                     storageConfiguration,
-                    getS3Client(),
-                    glacierArchiveService);
+                    getS3Client());
                 DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(configuration, request, progressManager);
                 LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask from Glacier with lock",
                              Thread.currentThread().getName());
@@ -529,8 +523,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     renewMaxIterationWaitingPeriodInS,
                     renewCallDurationInMs,
                     standardStorageClassName,
-                    lockService,
-                    glacierArchiveService);
+                    lockService);
                 RestoreAndDeleteSmallFileTask task = new RestoreAndDeleteSmallFileTask(configuration,
                                                                                        request,
                                                                                        progressManager);
@@ -566,7 +559,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             storageName,
             storageConfiguration,
             multipartThresholdMb,
-            glacierArchiveService,
             progressManager,
             tenant,
             getS3Client());
@@ -638,7 +630,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                 storageName,
                 storageConfiguration,
                 multipartThresholdMb,
-                glacierArchiveService,
                 progressManager,
                 tenant,
                 getS3Client());
@@ -801,7 +792,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     @Override
     public void runCheckPendingAction(IPeriodicActionProgressManager progressManager,
-                                      Set<FileReference> filesWithPendingActions) {
+                                      Set<FileReferenceWithoutOwnersDto> filesWithPendingActions) {
         LOGGER.info("Glacier periodic pending actions started");
         String tenant = runtimeTenantResolver.getTenant();
         List<Future<LockServiceResponse<Void>>> taskResults = null;
@@ -817,9 +808,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                 future.get();
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Check pending action process interrupted");
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Error during check pending action process", e);
         }
 
         LOGGER.info("Glacier periodic pending actions ended");
@@ -889,7 +880,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @Override
-    public InputStream download(FileReference fileReference)
+    public InputStream download(FileReferenceWithoutOwnersDto fileReference)
         throws NearlineFileNotAvailableException, NearlineDownloadException {
         String entryKey = getEntryKey(fileReference);
 
@@ -914,7 +905,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @Override
-    public NearlineFileStatusDto checkAvailability(FileReference fileReference) {
+    public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
         boolean availability = false;
         OffsetDateTime dateExpiration = null;
 

@@ -20,10 +20,11 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileRequestStatus;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Test;
@@ -74,12 +75,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
                             S3Glacier.ZIP_DIR);
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      true);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -113,12 +116,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
                             fileName2,
                             S3Glacier.ZIP_DIR);
 
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, true);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      true);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -145,15 +150,13 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
-        FileReference reference = createFileReference(createFileStorageRequestAggregation(nodeName,
-                                                                                          fileName,
-                                                                                          fileSize,
-                                                                                          fileChecksum), ROOT_PATH);
+        FileReferenceWithoutOwnersDto reference = createFileReference(createFileStorageRequestAggregation(nodeName,
+                                                                                                          fileName,
+                                                                                                          fileSize,
+                                                                                                          fileChecksum),
+                                                                      ROOT_PATH);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
 
         // When
@@ -195,12 +198,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         writeFileOnStorage(writeCmd);
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -232,12 +237,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -272,12 +279,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         Files.copy(archiveTestPath, cacheNodePath.resolve(archiveTestPath.getFileName().toString()));
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -324,12 +333,14 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
                                          S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName));
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
@@ -387,16 +398,32 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
                             S3Glacier.TMP_DIR);
 
         // When
-        FileReference reference = createFileReference(fileName, fileChecksum, fileSize, nodeName, archiveName, false);
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
 
-        FileDeletionRequest request = new FileDeletionRequest(reference,
-                                                              "groupIdTest",
-                                                              "sessionOwnerTest",
-                                                              "sessionTest");
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
         FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
         s3Glacier.delete(workingSubset, progressManager);
 
         //Then
         checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+    }
+
+    private FileDeletionRequestDto getFileDeletionRequestDto(FileReferenceWithoutOwnersDto reference) {
+        return new FileDeletionRequestDto(1L,
+                                          "groupIdTest",
+                                          FileRequestStatus.TO_DO,
+                                          "storage",
+                                          reference,
+                                          false,
+                                          null,
+                                          null,
+                                          null,
+                                          "sessionOwnerTest",
+                                          "sessionTest");
     }
 }

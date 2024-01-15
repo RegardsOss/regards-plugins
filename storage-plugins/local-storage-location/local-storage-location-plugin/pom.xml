@@ -37,11 +37,6 @@
             <artifactId>local-storage-location-plugin-dto</artifactId>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-service</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>file-utils</artifactId>
             <scope>provided</scope>
@@ -49,6 +44,11 @@
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>s3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
+            <artifactId>file-access-plugin-domain</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- TEST dependencies -->
@@ -81,6 +81,7 @@
                                 <includes>
                                     <include>fr.cnes.regards.framework:s3-starter</include>
                                     <include>fr.cnes.regards.modules.storage.plugins:local-storage-location-plugin-dto</include>
+                                    <include>fr.cnes.regards.modules.fileaccess.plugin:file-access-plugin-domain</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

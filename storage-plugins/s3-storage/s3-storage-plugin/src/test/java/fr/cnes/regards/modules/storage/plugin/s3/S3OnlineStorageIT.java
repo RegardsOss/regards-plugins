@@ -29,15 +29,16 @@ import fr.cnes.regards.framework.s3.test.S3BucketTestUtils;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.storage.domain.database.FileLocation;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.FileDeletionWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.FileStorageWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileDeletionWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceMetaInfoDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileRequestStatus;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -46,7 +47,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.MimeType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -173,24 +173,24 @@ public class S3OnlineStorageIT {
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation(""),
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto(""),
                                                           "/rootPath0/rootPath1/");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPathSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"),
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto("/dir0/dir1"),
                                                           "/rootPath0");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withSubDirectory() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto("/dir0/dir1"), "");
     }
 
     @Test
     public void givenS3_whenReference_thenValidateAndRetrieveFile_only() {
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregation("/dir0/dir1"), "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto("/dir0/dir1"), "");
     }
 
     @Test
@@ -198,7 +198,7 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server(""),
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDtoFromS3Server(""),
                                                           "/rootPath0/rootPath1/");
     }
 
@@ -208,8 +208,8 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
-                                                          "/rootPath0");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDtoFromS3Server(
+            "/dir0/dir1"), "/rootPath0");
     }
 
     @Test
@@ -217,8 +217,8 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
-                                                          "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDtoFromS3Server(
+            "/dir0/dir1"), "");
     }
 
     @Test
@@ -226,11 +226,11 @@ public class S3OnlineStorageIT {
         // Given
         S3BucketTestUtils.store("./src/test/resources/small.txt", "", createInputS3Server());
         //When, then
-        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationFromS3Server("/dir0/dir1"),
-                                                          "");
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDtoFromS3Server(
+            "/dir0/dir1"), "");
     }
 
-    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregation fileStorageRequest,
+    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregationDto fileStorageRequest,
                                                                    String rootPath) {
         // Given
         loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
@@ -241,7 +241,7 @@ public class S3OnlineStorageIT {
                               createStorageProgressManager());
 
         // Create file reference for S3 server
-        FileReference fileReference = createFileReference(fileStorageRequest, rootPath);
+        FileReferenceWithoutOwnersDto fileReference = createFileReferenceDto(fileStorageRequest, rootPath);
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
@@ -256,7 +256,7 @@ public class S3OnlineStorageIT {
         }
 
         // Delete file from S3 server
-        FileDeletionRequest fileDeletionRequest = createFileDeletionRequest(fileStorageRequest, rootPath);
+        FileDeletionRequestDto fileDeletionRequest = createFileDeletionRequestDto(fileStorageRequest, rootPath);
         s3OnlineStorage.delete(new FileDeletionWorkingSubset(Collections.singletonList(fileDeletionRequest)),
                                createDeletionProgressManager());
 
@@ -269,66 +269,103 @@ public class S3OnlineStorageIT {
         }
     }
 
-    private FileStorageRequestAggregation createFileStorageRequestAggregation(String subDirectory) {
-        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
-        fileStorageRequest.setOriginUrl("file:./src/test/resources/" + FILE_NAME);
-        fileStorageRequest.setStorageSubDirectory(subDirectory);
+    private FileStorageRequestAggregationDto createFileStorageRequestAggregationDto(String subDirectory) {
+        FileReferenceMetaInfoDto fileReferenceMetaInfo = new FileReferenceMetaInfoDto(MD5_CHECKSUM_FILE,
+                                                                                      MD5_ALGORITHM,
+                                                                                      FILE_NAME,
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "text/plain",
+                                                                                      null);
 
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName(FILE_NAME);
-        fileReferenceMetaInfo.setAlgorithm(MD5_ALGORITHM);
-        fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
-        fileReferenceMetaInfo.setChecksum(MD5_CHECKSUM_FILE);
-
-        fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
-
-        return fileStorageRequest;
+        return new FileStorageRequestAggregationDto(1L,
+                                                    null,
+                                                    "file:./src/test/resources/" + FILE_NAME,
+                                                    "storage",
+                                                    fileReferenceMetaInfo,
+                                                    subDirectory,
+                                                    "sessionOwner",
+                                                    "session",
+                                                    null,
+                                                    null,
+                                                    FileRequestStatus.TO_DO,
+                                                    null,
+                                                    null);
     }
 
-    private FileStorageRequestAggregation createFileStorageRequestAggregationFromS3Server(String subDirectory) {
-        FileStorageRequestAggregation fileStorageRequest = new FileStorageRequestAggregation();
-        fileStorageRequest.setOriginUrl(endPoint + File.separator + bucketInput + File.separator + FILE_NAME);
-        fileStorageRequest.setStorageSubDirectory(subDirectory);
+    private FileStorageRequestAggregationDto createFileStorageRequestAggregationDtoFromS3Server(String subDirectory) {
 
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName(FILE_NAME);
-        fileReferenceMetaInfo.setAlgorithm(MD5_ALGORITHM);
-        fileReferenceMetaInfo.setMimeType(MimeType.valueOf("text/plain"));
-        fileReferenceMetaInfo.setChecksum(MD5_CHECKSUM_FILE);
+        FileReferenceMetaInfoDto fileReferenceMetaInfo = new FileReferenceMetaInfoDto(MD5_CHECKSUM_FILE,
+                                                                                      MD5_ALGORITHM,
+                                                                                      FILE_NAME,
+                                                                                      null,
+                                                                                      null,
+                                                                                      null,
+                                                                                      "text/plain",
+                                                                                      null);
 
-        fileStorageRequest.setMetaInfo(fileReferenceMetaInfo);
-
-        return fileStorageRequest;
+        return new FileStorageRequestAggregationDto(1L,
+                                                    null,
+                                                    endPoint
+                                                    + File.separator
+                                                    + bucketInput
+                                                    + File.separator
+                                                    + FILE_NAME,
+                                                    "storage",
+                                                    fileReferenceMetaInfo,
+                                                    subDirectory,
+                                                    "sessionOwner",
+                                                    "session",
+                                                    null,
+                                                    null,
+                                                    FileRequestStatus.TO_DO,
+                                                    null,
+                                                    null);
     }
 
-    private FileReference createFileReference(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
-        FileReferenceMetaInfo fileReferenceMetaInfo = new FileReferenceMetaInfo();
-        fileReferenceMetaInfo.setFileName(fileStorageRequest.getMetaInfo().getFileName());
-        fileReferenceMetaInfo.setAlgorithm(fileStorageRequest.getMetaInfo().getAlgorithm());
-        fileReferenceMetaInfo.setMimeType(fileStorageRequest.getMetaInfo().getMimeType());
-        fileReferenceMetaInfo.setChecksum(fileStorageRequest.getMetaInfo().getChecksum());
-        fileReferenceMetaInfo.setFileSize(fileStorageRequest.getMetaInfo().getFileSize());
-
-        FileLocation fileLocation = new FileLocation();
-        fileLocation.setUrl(buildFileLocationUrl(fileStorageRequest, rootPath));
-
-        return new FileReference("regards", fileReferenceMetaInfo, fileLocation);
+    private FileReferenceWithoutOwnersDto createFileReferenceDto(FileStorageRequestAggregationDto fileStorageRequest,
+                                                                 String rootPath) {
+        FileReferenceMetaInfoDto fileReferenceMetaInfo = new FileReferenceMetaInfoDto(fileStorageRequest.getMetaInfo()
+                                                                                                        .getChecksum(),
+                                                                                      fileStorageRequest.getMetaInfo()
+                                                                                                        .getAlgorithm(),
+                                                                                      fileStorageRequest.getMetaInfo()
+                                                                                                        .getFileName(),
+                                                                                      fileStorageRequest.getMetaInfo()
+                                                                                                        .getFileSize(),
+                                                                                      null,
+                                                                                      null,
+                                                                                      fileStorageRequest.getMetaInfo()
+                                                                                                        .getMimeType(),
+                                                                                      null);
+        FileLocationDto fileLocation = new FileLocationDto("storage",
+                                                           buildFileLocationUrl(fileStorageRequest, rootPath));
+        return new FileReferenceWithoutOwnersDto(1L, null, fileReferenceMetaInfo, fileLocation, false, false);
     }
 
-    private FileDeletionRequest createFileDeletionRequest(FileStorageRequestAggregation fileStorageRequest,
-                                                          String rootPath) {
-        FileDeletionRequest fileDeletionRequest = new FileDeletionRequest();
-        fileDeletionRequest.setJobId("JOB_ID");
-
-        fileDeletionRequest.setFileReference(createFileReference(fileStorageRequest, rootPath));
-
+    private FileDeletionRequestDto createFileDeletionRequestDto(FileStorageRequestAggregationDto fileStorageRequest,
+                                                                String rootPath) {
+        FileDeletionRequestDto fileDeletionRequest = new FileDeletionRequestDto(1L,
+                                                                                null,
+                                                                                FileRequestStatus.TO_DO,
+                                                                                null,
+                                                                                createFileReferenceDto(
+                                                                                    fileStorageRequest,
+                                                                                    rootPath),
+                                                                                false,
+                                                                                null,
+                                                                                null,
+                                                                                "JOB_ID",
+                                                                                null,
+                                                                                null);
         return fileDeletionRequest;
     }
 
-    private String buildFileLocationUrl(FileStorageRequestAggregation fileStorageRequest, String rootPath) {
+    private String buildFileLocationUrl(FileStorageRequestAggregationDto fileStorageRequest, String rootPath) {
         return endPoint + File.separator + bucketOutput + Paths.get(File.separator,
                                                                     rootPath,
-                                                                    fileStorageRequest.getStorageSubDirectory())
+                                                                    fileStorageRequest.getSubDirectory())
                                                                .resolve(fileStorageRequest.getMetaInfo().getChecksum());
     }
 
@@ -344,13 +381,13 @@ public class S3OnlineStorageIT {
         return new IStorageProgressManager() {
 
             @Override
-            public void storageSucceed(FileStorageRequestAggregation fileReferenceRequest,
+            public void storageSucceed(FileStorageRequestAggregationDto fileReferenceRequest,
                                        URL storedUrl,
                                        Long fileSize) {
             }
 
             @Override
-            public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation fileReferenceRequest,
+            public void storageSucceedWithPendingActionRemaining(FileStorageRequestAggregationDto fileReferenceRequest,
                                                                  URL storedUrl,
                                                                  Long fileSize,
                                                                  Boolean notifyAdministrators) {
@@ -363,7 +400,7 @@ public class S3OnlineStorageIT {
             }
 
             @Override
-            public void storageFailed(FileStorageRequestAggregation fileReferenceRequest, String cause) {
+            public void storageFailed(FileStorageRequestAggregationDto fileReferenceRequest, String cause) {
             }
         };
     }
@@ -372,16 +409,16 @@ public class S3OnlineStorageIT {
         return new IDeletionProgressManager() {
 
             @Override
-            public void deletionSucceed(FileDeletionRequest fileDeletionRequest) {
+            public void deletionSucceed(FileDeletionRequestDto fileDeletionRequest) {
             }
 
             @Override
-            public void deletionSucceedWithPendingAction(FileDeletionRequest fileDeletionRequest) {
+            public void deletionSucceedWithPendingAction(FileDeletionRequestDto fileDeletionRequest) {
 
             }
 
             @Override
-            public void deletionFailed(FileDeletionRequest fileDeletionRequest, String s) {
+            public void deletionFailed(FileDeletionRequestDto fileDeletionRequest, String s) {
             }
         };
     }

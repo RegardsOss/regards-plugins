@@ -26,9 +26,9 @@ import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.FileRestorationWorkingSubset;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.FileRestorationWorkingSubset;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.awaitility.Awaitility;
@@ -82,13 +82,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
                             nodeName,
                             fileName,
                             S3Glacier.ZIP_DIR);
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          true);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                true);
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
         s3Glacier.retrieve(workingSubset, progressManager);
 
@@ -117,13 +117,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
                             nodeName,
                             fileName,
                             S3Glacier.ZIP_DIR);
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          true);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                true);
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
         s3Glacier.retrieve(workingSubset, progressManager);
 
@@ -152,13 +152,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
                             S3Glacier.TMP_DIR);
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
         s3Glacier.retrieve(workingSubset, progressManager);
 
@@ -190,13 +190,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         ZipUtils.createZipArchive(archivePath.toFile(), List.of(file));
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
         s3Glacier.retrieve(workingSubset, progressManager);
 
@@ -226,13 +226,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -260,13 +260,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
         s3Glacier.retrieve(workingSubset, progressManager);
@@ -322,13 +322,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
         // When
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          null,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                null,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -381,13 +381,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         // When
         // restorationWorkspace is not useful here because the test is realized in external cache, but set in order
         // to follow the logic business. The request doesn't know if it uses internal cache or external cache.
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          null,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                null,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
@@ -437,13 +437,13 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
 
-        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
-                                                          fileName,
-                                                          fileChecksum,
-                                                          fileSize,
-                                                          nodeName,
-                                                          archiveName,
-                                                          false);
+        FileCacheRequestDto request = createFileCacheRequestDto(restorationWorkspace,
+                                                                fileName,
+                                                                fileChecksum,
+                                                                fileSize,
+                                                                nodeName,
+                                                                archiveName,
+                                                                false);
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 

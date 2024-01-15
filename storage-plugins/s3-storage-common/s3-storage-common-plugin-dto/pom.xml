@@ -51,10 +51,9 @@
     </developers>
 
     <dependencies>
-        <!-- Regards -->
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-domain</artifactId>
+            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
+            <artifactId>file-catalog-dto</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

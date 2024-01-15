@@ -23,10 +23,9 @@ import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
@@ -48,7 +47,6 @@ public class S3GlacierMock extends S3Glacier {
                              String rootPath,
                              String url,
                              String bucket,
-                             GlacierArchiveService glacierArchiveService,
                              IRuntimeTenantResolver runtimeTenantResolver)
         throws NoSuchFieldException, IllegalAccessException {
         super();
@@ -71,9 +69,6 @@ public class S3GlacierMock extends S3Glacier {
         Field bucketField = AbstractS3Storage.class.getDeclaredField("bucket");
         bucketField.setAccessible(true);
         bucketField.set(this, bucket);
-        Field glacierArchiveServiceField = S3Glacier.class.getDeclaredField("glacierArchiveService");
-        glacierArchiveServiceField.setAccessible(true);
-        glacierArchiveServiceField.set(this, glacierArchiveService);
         Field runtimeTenantResolverField = AbstractS3Storage.class.getDeclaredField("runtimeTenantResolver");
         runtimeTenantResolverField.setAccessible(true);
         runtimeTenantResolverField.set(this, runtimeTenantResolver);
@@ -108,7 +103,8 @@ public class S3GlacierMock extends S3Glacier {
     }
 
     @Override
-    protected void handleStoreRequest(FileStorageRequestAggregation request, IStorageProgressManager progressManager) {
+    protected void handleStoreRequest(FileStorageRequestAggregationDto request,
+                                      IStorageProgressManager progressManager) {
         // Nothing to do
     }
 }

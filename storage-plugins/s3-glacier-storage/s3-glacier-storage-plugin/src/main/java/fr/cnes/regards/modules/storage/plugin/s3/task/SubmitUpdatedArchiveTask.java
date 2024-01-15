@@ -23,7 +23,7 @@ import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.SubmitReadyArchiveTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -134,8 +134,7 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
 
             // Deleting archive info as it doesn't exist anymore
             S3GlacierUtils.S3GlacierUrl s3FileInfo = S3GlacierUtils.dispatchS3FilePath(archiveUrl);
-            configuration.glacierArchiveService()
-                         .deleteGlacierArchive(configuration.storageName(), s3FileInfo.archiveFilePath());
+            progressManager.archiveDeleted(configuration.storageName(), s3FileInfo.archiveFilePath());
             return true;
         } catch (IOException e) {
             LOGGER.error("Error while deleting local directory {}, but the "

@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +39,7 @@ import java.time.format.DateTimeFormatter;
  *
  * @author Thibaud Michaudel
  **/
+
 @SpringBootTest
 public class S3GlacierCleanIT extends AbstractS3GlacierIT {
 

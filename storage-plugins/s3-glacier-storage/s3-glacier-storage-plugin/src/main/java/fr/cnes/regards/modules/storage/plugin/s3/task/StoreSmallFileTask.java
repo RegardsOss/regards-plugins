@@ -21,8 +21,8 @@ package fr.cnes.regards.modules.storage.plugin.s3.task;
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.IStorageProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.StoreSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -57,8 +57,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * </ul>
  * <p>
  * The result of the call is sent through the progress manager using
- * {@link IStorageProgressManager#storageSucceedWithPendingActionRemaining(FileStorageRequestAggregation, URL, Long, Boolean)}
- * in case of success or {@link IStorageProgressManager#storageFailed(FileStorageRequestAggregation, String)} in case of error
+ * {@link IStorageProgressManager#storageSucceedWithPendingActionRemaining(FileStorageRequestAggregationDto, URL, Long, Boolean)}
+ * in case of success or {@link IStorageProgressManager#storageFailed(FileStorageRequestAggregationDto, String)} in case of error
  *
  * @author Thibaud Michaudel
  **/
@@ -68,12 +68,12 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
 
     private final StoreSmallFileTaskConfiguration configuration;
 
-    private final FileStorageRequestAggregation request;
+    private final FileStorageRequestAggregationDto request;
 
     private final IStorageProgressManager progressManager;
 
     public StoreSmallFileTask(StoreSmallFileTaskConfiguration storeSmallFileTaskConfiguration,
-                              FileStorageRequestAggregation request,
+                              FileStorageRequestAggregationDto request,
                               IStorageProgressManager progressManager) {
         this.configuration = storeSmallFileTaskConfiguration;
         this.request = request;
@@ -88,7 +88,7 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
         Path node = Paths.get(configuration.workspacePath(),
                               S3Glacier.ZIP_DIR,
                               configuration.rootPath(),
-                              request.getStorageSubDirectory() != null ? request.getStorageSubDirectory() : "");
+                              request.getSubDirectory() != null ? request.getSubDirectory() : "");
         Optional<ArchiveInfo> optionalArchiveInfo = createArchiveInfo(node);
         // Save the file only if it is valid and not already saved
         optionalArchiveInfo.ifPresent(this::saveLocalSmallFile);
@@ -264,14 +264,12 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
         }
     }
 
-    private void handleStorageSucceedWithPendingAction(FileStorageRequestAggregation request,
+    private void handleStorageSucceedWithPendingAction(FileStorageRequestAggregationDto request,
                                                        IStorageProgressManager progressManager,
                                                        String archiveName,
                                                        long realFileSize) {
         String storedArchivePath = Paths.get(configuration.rootPath(),
-                                             request.getStorageSubDirectory() != null ?
-                                                 request.getStorageSubDirectory() :
-                                                 "",
+                                             request.getSubDirectory() != null ? request.getSubDirectory() : "",
                                              archiveName + S3Glacier.ARCHIVE_EXTENSION).toString();
         String storedSmallFilePath = S3GlacierUtils.createSmallFilePath(storedArchivePath,
                                                                         request.getMetaInfo().getFileName());

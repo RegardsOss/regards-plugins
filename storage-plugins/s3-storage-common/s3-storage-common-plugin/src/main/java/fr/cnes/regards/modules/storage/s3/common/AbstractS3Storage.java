@@ -30,11 +30,11 @@ import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.s3.exception.ChecksumDoesntMatchException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.database.request.FileStorageRequestAggregation;
-import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
@@ -219,7 +219,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                    .map(DataBuffer::asInputStream);
     }
 
-    protected void handleDeleteRequest(FileDeletionRequest request, IDeletionProgressManager progressManager) {
+    protected void handleDeleteRequest(FileDeletionRequestDto request, IDeletionProgressManager progressManager) {
         String tenant = runtimeTenantResolver.getTenant();
         LOGGER.info("Start deleting {} with location {}",
                     request.getFileReference().getMetaInfo().getFileName(),
@@ -261,7 +261,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      .block();
     }
 
-    protected void handleStoreRequest(FileStorageRequestAggregation request, IStorageProgressManager progressManager) {
+    protected void handleStoreRequest(FileStorageRequestAggregationDto request,
+                                      IStorageProgressManager progressManager) {
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
             String tenant = runtimeTenantResolver.getTenant();
@@ -326,7 +327,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return Mono.error(new RuntimeException(String.format("Write failure in S3 storage : %s", cause.getMessage())));
     }
 
-    private StorageEntry buildStorageEntry(FileStorageRequestAggregation request,
+    private StorageEntry buildStorageEntry(FileStorageRequestAggregationDto request,
                                            String entryKey,
                                            Flux<ByteBuffer> buffers) {
         return StorageEntry.builder()
@@ -342,7 +343,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return new StorageCommandID(taskId, UUID.randomUUID());
     }
 
-    protected String getEntryKey(FileReference fileReference) {
+    protected String getEntryKey(FileReferenceWithoutOwnersDto fileReference) {
         return fileReference.getLocation()
                             .getUrl()
                             .replaceFirst(Pattern.quote(endpoint) + "(:[0-9]*)?/*", "")
@@ -350,10 +351,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                             .substring(1);
     }
 
-    private String getEntryKey(FileStorageRequestAggregation request) {
+    private String getEntryKey(FileStorageRequestAggregationDto request) {
         String entryKey = request.getMetaInfo().getChecksum();
-        if (request.getStorageSubDirectory() != null && !request.getStorageSubDirectory().isEmpty()) {
-            entryKey = Paths.get(request.getStorageSubDirectory(), request.getMetaInfo().getChecksum()).toString();
+        if (request.getSubDirectory() != null && !request.getSubDirectory().isEmpty()) {
+            entryKey = Paths.get(request.getSubDirectory(), request.getMetaInfo().getChecksum()).toString();
             if (entryKey.charAt(0) == '/') {
                 entryKey = entryKey.substring(1);
             }
@@ -361,11 +362,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return entryKey;
     }
 
-    private Option<Long> entrySize(FileStorageRequestAggregation request) {
+    private Option<Long> entrySize(FileStorageRequestAggregationDto request) {
         return Option.some(request.getMetaInfo().getFileSize());
     }
 
-    private Option<Tuple2<String, String>> entryChecksum(FileStorageRequestAggregation request) {
+    private Option<Tuple2<String, String>> entryChecksum(FileStorageRequestAggregationDto request) {
         return Option.some(Tuple.of(request.getMetaInfo().getAlgorithm(), request.getMetaInfo().getChecksum()));
     }
 
@@ -399,21 +400,21 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     }
 
     @Override
-    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregation> prepareForStorage(Collection<FileStorageRequestAggregation> fileReferenceRequests) {
+    public PreparationResponse<FileStorageWorkingSubset, FileStorageRequestAggregationDto> prepareForStorage(Collection<FileStorageRequestAggregationDto> fileReferenceRequests) {
         List<FileStorageWorkingSubset> workingSubsets = new ArrayList<>();
         workingSubsets.add(new FileStorageWorkingSubset(fileReferenceRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
-    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequest> prepareForDeletion(Collection<FileDeletionRequest> fileDeletionRequests) {
+    public PreparationResponse<FileDeletionWorkingSubset, FileDeletionRequestDto> prepareForDeletion(Collection<FileDeletionRequestDto> fileDeletionRequests) {
         List<FileDeletionWorkingSubset> workingSubsets = new ArrayList<>();
         workingSubsets.add(new FileDeletionWorkingSubset(fileDeletionRequests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());
     }
 
     @Override
-    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequest> prepareForRestoration(Collection<FileCacheRequest> requests) {
+    public PreparationResponse<FileRestorationWorkingSubset, FileCacheRequestDto> prepareForRestoration(Collection<FileCacheRequestDto> requests) {
         List<FileRestorationWorkingSubset> workingSubsets = new ArrayList<>();
         workingSubsets.add(new FileRestorationWorkingSubset(requests));
         return PreparationResponse.build(workingSubsets, Maps.newHashMap());

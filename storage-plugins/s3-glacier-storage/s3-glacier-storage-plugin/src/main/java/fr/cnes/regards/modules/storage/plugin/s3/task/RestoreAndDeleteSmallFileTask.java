@@ -22,8 +22,8 @@ import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
-import fr.cnes.regards.modules.storage.domain.database.request.FileDeletionRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
@@ -58,12 +58,12 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
 
     private final RestoreAndDeleteSmallFileTaskConfiguration configuration;
 
-    private final FileDeletionRequest request;
+    private final FileDeletionRequestDto request;
 
     private final IDeletionProgressManager progressManager;
 
     public RestoreAndDeleteSmallFileTask(RestoreAndDeleteSmallFileTaskConfiguration restoreAndDeleteSmallFileTaskConfiguration,
-                                         FileDeletionRequest request,
+                                         FileDeletionRequestDto request,
                                          IDeletionProgressManager progressManager) {
         this.configuration = restoreAndDeleteSmallFileTaskConfiguration;
         this.request = request;
@@ -183,8 +183,7 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                                                          configuration.archiveBuildingWorkspacePath(),
                                                          configuration.storageName(),
                                                          configuration.storageConfiguration(),
-                                                         configuration.s3Client(),
-                                                         configuration.glacierArchiveService());
+                                                         configuration.s3Client());
     }
 
     private boolean checkRestorationComplete(String archiveRelativePathAsString, Path archivePathInCache) {

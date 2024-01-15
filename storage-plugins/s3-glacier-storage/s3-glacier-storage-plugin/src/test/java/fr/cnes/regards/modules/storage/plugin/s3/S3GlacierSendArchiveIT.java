@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
@@ -57,7 +57,7 @@ import java.util.zip.ZipInputStream;
  **/
 @SpringBootTest
 public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
-
+    
     @Test
     @Purpose("Test that an archive is correctly sent when it is closed (not _current)")
     public void test_periodic_save_full_archive() throws IOException, URISyntaxException {

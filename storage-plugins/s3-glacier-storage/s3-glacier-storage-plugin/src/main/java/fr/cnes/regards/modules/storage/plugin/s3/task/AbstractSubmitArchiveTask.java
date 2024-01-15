@@ -25,7 +25,7 @@ import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.SubmitReadyArchiveTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -190,13 +190,12 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
             handleArchiveToSend(archiveToCreate, archivePathOnStorage, storageEntry, taskId);
 
             // Saving archive information
-            configuration.glacierArchiveService()
-                         .saveGlacierArchive(configuration.storageName(),
-                                             configuration.storageConfiguration()
-                                                          .entryKeyUrl(archivePathOnStorage)
-                                                          .toString(),
-                                             checksum,
-                                             fileSize);
+            progressManager.archiveStored(configuration.storageName(),
+                                          configuration.storageConfiguration()
+                                                       .entryKeyUrl(archivePathOnStorage)
+                                                       .toString(),
+                                          checksum,
+                                          fileSize);
         } catch (NoSuchAlgorithmException e) {
             LOGGER.error("Error while sending created archive, unknown algorithm {}", S3Glacier.MD5_CHECKSUM, e);
             return false;

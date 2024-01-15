@@ -18,8 +18,8 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
-import fr.cnes.regards.modules.storage.domain.database.request.FileCacheRequest;
-import fr.cnes.regards.modules.storage.domain.plugin.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
+import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RetrieveLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
@@ -47,7 +47,7 @@ public class RetrieveLocalSmallFileTask extends AbstractRetrieveFileTask {
     private final RetrieveLocalSmallFileTaskConfiguration configuration;
 
     public RetrieveLocalSmallFileTask(RetrieveLocalSmallFileTaskConfiguration configuration,
-                                      FileCacheRequest fileCacheRequest,
+                                      FileCacheRequestDto fileCacheRequest,
                                       IRestorationProgressManager progressManager) {
         super(fileCacheRequest, progressManager);
         this.configuration = configuration;

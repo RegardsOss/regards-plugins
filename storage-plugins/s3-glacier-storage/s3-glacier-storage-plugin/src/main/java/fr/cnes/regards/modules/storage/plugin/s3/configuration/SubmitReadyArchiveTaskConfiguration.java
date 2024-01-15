@@ -19,8 +19,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.configuration;/*
 
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
-import fr.cnes.regards.modules.storage.domain.plugin.IPeriodicActionProgressManager;
-import fr.cnes.regards.modules.storage.service.glacier.GlacierArchiveService;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 
 import java.nio.file.Path;
 
@@ -34,7 +33,6 @@ public record SubmitReadyArchiveTaskConfiguration(Path dirPath,
                                                   String storageName,
                                                   StorageConfig storageConfiguration,
                                                   int multipartThresholdMb,
-                                                  GlacierArchiveService glacierArchiveService,
                                                   IPeriodicActionProgressManager progressManager,
                                                   String tenant,
                                                   S3HighLevelReactiveClient s3client) {

@@ -124,7 +124,8 @@
                                     <include>fr.cnes.regards.modules.ingest:ingest-client</include>
                                     <include>fr.cnes.regards.modules.ingest:ingest-domain</include>
                                     <include>fr.cnes.regards.modules.storage:storage-client</include>
-                                    <include>fr.cnes.regards.modules.storage:storage-domain</include>
+                                    <include>fr.cnes.regards.modules.filecatalog:file-catalog-dto</include>
+                                    <include>fr.cnes.regards.modules.filecatalog:file-catalog-amqp</include>
                                     <include>fr.cnes.regards.modules.project:project-instance-client</include>
                                     <include>fr.cnes.regards.modules.project:project-instance-domain</include>
                                 </includes>

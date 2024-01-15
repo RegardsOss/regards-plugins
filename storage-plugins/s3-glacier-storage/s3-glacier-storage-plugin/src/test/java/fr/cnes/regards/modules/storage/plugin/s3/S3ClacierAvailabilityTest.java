@@ -18,14 +18,13 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
-import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
+import fr.cnes.regards.modules.filecatalog.dto.FileLocationDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceMetaInfoDto;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.filecatalog.dto.availability.NearlineFileStatusDto;
-import fr.cnes.regards.modules.storage.domain.database.FileLocation;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.database.FileReferenceMetaInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -143,16 +143,19 @@ public class S3ClacierAvailabilityTest {
     // -- UTILITY METHODS --
     // ---------------------
 
-    private FileReference createFakeFileReference() {
-        FileReferenceMetaInfo metaInfo = new FileReferenceMetaInfo(UUID.randomUUID().toString(),
-                                                                   "UUID",
-                                                                   "file.test",
-                                                                   10L,
-                                                                   MediaType.APPLICATION_OCTET_STREAM);
-        FileLocation location = new FileLocation("S3Glacier",
-                                                 END_POINT_S3_GLACIER + "/" + BUCKET_S3_GLACIER + "/file",
-                                                 false);
-        return new FileReference(Lists.newArrayList("owner"), metaInfo, location);
+    private FileReferenceWithoutOwnersDto createFakeFileReference() {
+        FileReferenceMetaInfoDto metaInfo = new FileReferenceMetaInfoDto(UUID.randomUUID().toString(),
+                                                                         "UUID",
+                                                                         "file.test",
+                                                                         10L,
+                                                                         null,
+                                                                         null,
+                                                                         MediaType.APPLICATION_OCTET_STREAM.toString(),
+                                                                         null);
+        FileLocationDto location = new FileLocationDto("S3Glacier",
+                                                       END_POINT_S3_GLACIER + "/" + BUCKET_S3_GLACIER + "/file",
+                                                       false);
+        return new FileReferenceWithoutOwnersDto(OffsetDateTime.now(), metaInfo, location);
     }
 
 }

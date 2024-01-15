@@ -3,9 +3,9 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
-import fr.cnes.regards.modules.storage.domain.database.FileReference;
-import fr.cnes.regards.modules.storage.domain.plugin.*;
+import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.storage.plugin.s3.dto.S3StorageConfigurationDTO;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 
@@ -49,7 +49,7 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
      * @return the input stream of file reference
      */
     @Override
-    public InputStream retrieve(FileReference fileReference) throws FileNotFoundException {
+    public InputStream retrieve(FileReferenceWithoutOwnersDto fileReference) throws FileNotFoundException {
         return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
                                                         storageConfiguration,
                                                         new StorageCommandID(String.format("%d", fileReference.getId()),
