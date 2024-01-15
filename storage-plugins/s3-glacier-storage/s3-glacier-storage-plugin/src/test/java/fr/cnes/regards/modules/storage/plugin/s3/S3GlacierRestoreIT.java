@@ -283,8 +283,9 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
     @Test
     @Purpose("Test that a big file that is not already present in the glacier is correctly retrieved after being "
-             + "restored")
-    public void test_big_restore_glacier() throws IOException, URISyntaxException, NoSuchAlgorithmException {
+             + "restored in internal cache")
+    public void test_big_restore_glacier_internalCache()
+        throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
         loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
 
@@ -339,11 +340,92 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     }
 
     @Test
+    @Purpose("Test that a big file that is not already present in the glacier is correctly retrieved after being "
+             + "restored in external cache")
+    public void test_big_restore_glacier_externalCache() throws URISyntaxException, IOException {
+        // Given
+        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.S3Client, false, true);
+
+        String fileName = "bigFile1.txt";
+        String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";
+        long fileSize = 22949;
+        String nodeName = "deep/dir/testNode";
+        TestRestoreProgressManager progressManager = new TestRestoreProgressManager();
+
+        // Create the archive that contain the file to retrieve
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
+        Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
+
+        Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath,
+                                                        new DefaultDataBufferFactory(),
+                                                        UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB * 1024 * 1024)
+                                                  .map(DataBuffer::asByteBuffer);
+
+        StorageEntry storageEntry = StorageEntry.builder()
+                                                .config(s3Glacier.storageConfiguration)
+                                                .fullPath(entryKey)
+                                                .checksum(Option.some(Tuple.of(S3Glacier.MD5_CHECKSUM, fileChecksum)))
+                                                .size(Option.some(fileSize))
+                                                .data(buffers)
+                                                .build();
+        String taskId = "S3GlacierRestore" + archiveName;
+        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.storageConfiguration,
+                                                                      new StorageCommandID(taskId, UUID.randomUUID()),
+                                                                      entryKey,
+                                                                      storageEntry);
+
+        Path restorationWorkspace = workspace.getRoot().toPath().resolve("target");
+
+        // When
+        // restorationWorkspace is not useful here because the test is realized in external cache, but set in order
+        // to follow the logic business. The request doesn't know if it uses internal cache or external cache.
+        FileCacheRequest request = createFileCacheRequest(restorationWorkspace,
+                                                          fileName,
+                                                          fileChecksum,
+                                                          fileSize,
+                                                          nodeName,
+                                                          null,
+                                                          false);
+
+        FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
+
+        writeFileOnStorage(writeCmd);
+        s3Glacier.retrieve(workingSubset, progressManager);
+
+        // Then
+        Awaitility.await().atMost(Durations.FIVE_SECONDS).until(() -> progressManager.countAllReports() == 1);
+        Assertions.assertEquals(1, progressManager.getRestoreSucceed().size(), "There should be one success");
+        Assertions.assertEquals(fileChecksum,
+                                progressManager.getRestoreSucceed().get(0).getChecksum(),
+                                "The successful request is not the expected one");
+        Assertions.assertEquals(0, progressManager.getRestoreFailed().size());
+
+        Assertions.assertEquals(fileSize, progressManager.getFileSize());
+        Assertions.assertEquals(s3Glacier.storageConfiguration.entryKeyUrl(entryKey),
+                                progressManager.getRestoredFileUrl());
+        Assertions.assertNull(progressManager.getExpirationDate());
+
+        Assertions.assertFalse(Files.isDirectory(restorationWorkspace),
+                               "The target directory(internal cache) should not be created, so nothing file copied in"
+                               + " internal cache");
+    }
+
+    @Test
     @Purpose("Test that the process fail correctly when there is an unexpected error thrown by the LockService")
     public void test_unexpected_restore_error()
         throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.MockedS3Client, true);
+        loadPlugin(endPoint,
+                   region,
+                   key,
+                   secret,
+                   BUCKET_OUTPUT,
+                   ROOT_PATH,
+                   MockedS3ClientType.MockedS3Client,
+                   true,
+                   false);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";

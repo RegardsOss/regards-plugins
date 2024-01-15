@@ -69,7 +69,7 @@ public class S3ClacierAvailabilityTest {
         ZonedDateTime dateExpiration = ZonedDateTime.now().plusDays(1);
 
         Mockito.when(s3Client.isFileAvailable(Mockito.any(), Mockito.any(), Mockito.any()))
-               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, dateExpiration)));
+               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, dateExpiration)));
 
         // When
         NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(createFakeFileReference());
@@ -86,7 +86,7 @@ public class S3ClacierAvailabilityTest {
     public void test_file_availability_return_available_without_date_expiration() {
         // Given
         Mockito.when(s3Client.isFileAvailable(Mockito.any(), Mockito.any(), Mockito.any()))
-               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, null)));
+               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, null)));
 
         // When
         NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(createFakeFileReference());
@@ -102,7 +102,7 @@ public class S3ClacierAvailabilityTest {
     public void test_file_availability_return_not_available() {
         // Given
         Mockito.when(s3Client.isFileAvailable(Mockito.any(), Mockito.any(), Mockito.any()))
-               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, null)));
+               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, null, null)));
 
         // When, then
         test_file_availability();
@@ -112,7 +112,7 @@ public class S3ClacierAvailabilityTest {
     public void test_file_availability_return_restore_pending() {
         // Given
         Mockito.when(s3Client.isFileAvailable(Mockito.any(), Mockito.any(), Mockito.any()))
-               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.RESTORE_PENDING, null)));
+               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.RESTORE_PENDING, null, null)));
 
         // When, then
         test_file_availability();
@@ -122,7 +122,7 @@ public class S3ClacierAvailabilityTest {
     public void test_file_availability_return_expired() {
         // Given
         Mockito.when(s3Client.isFileAvailable(Mockito.any(), Mockito.any(), Mockito.any()))
-               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.EXPIRED, null)));
+               .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.EXPIRED, 10L, null)));
 
         // When, then
         test_file_availability();

@@ -47,9 +47,9 @@ public class RetrieveLocalSmallFileTask extends AbstractRetrieveFileTask {
     private final RetrieveLocalSmallFileTaskConfiguration configuration;
 
     public RetrieveLocalSmallFileTask(RetrieveLocalSmallFileTaskConfiguration configuration,
-                                      FileCacheRequest request,
+                                      FileCacheRequest fileCacheRequest,
                                       IRestorationProgressManager progressManager) {
-        super(request, progressManager);
+        super(fileCacheRequest, progressManager);
         this.configuration = configuration;
     }
 
@@ -77,12 +77,12 @@ public class RetrieveLocalSmallFileTask extends AbstractRetrieveFileTask {
             } else if (Files.exists(localPathCurrent)) {
                 copyFileAndHandleSuccess(localPathCurrent);
             } else {
-                progressManager.restoreFailed(request,
+                progressManager.restoreFailed(fileCacheRequest,
                                               String.format("The requested file %s was not found locally",
                                                             localPath.getFileName()));
             }
         } else {
-            progressManager.restoreFailed(request,
+            progressManager.restoreFailed(fileCacheRequest,
                                           String.format("The requested file %s was not found locally. Url "
                                                         + "does not match a smallFile url with %s parameter",
                                                         S3Glacier.SMALL_FILE_PARAMETER_NAME,

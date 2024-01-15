@@ -223,6 +223,7 @@ public abstract class AbstractS3GlacierIT {
                    bucket,
                    rootPath,
                    MockedS3ClientType.MockedS3ClientWithoutRestore,
+                   false,
                    false);
     }
 
@@ -233,7 +234,8 @@ public abstract class AbstractS3GlacierIT {
                               String bucket,
                               String rootPath,
                               MockedS3ClientType clientType,
-                              Boolean simulateLockTaskException) {
+                              boolean simulateLockTaskException,
+                              boolean useExternalCache) {
         this.rootPath = rootPath;
         StringPluginParam secretParam = IPluginParam.build(AbstractS3Storage.S3_SERVER_SECRET_PARAM_NAME, secret);
         secretParam.setValue(secret);
@@ -268,7 +270,9 @@ public abstract class AbstractS3GlacierIT {
                                                                IPluginParam.build(S3Glacier.UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
                                                                                   UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB),
                                                                IPluginParam.build(S3Glacier.MULTIPART_PARALLEL_PARAM_NAME,
-                                                                                  MULTIPART_PARALLEL_PART));
+                                                                                  MULTIPART_PARALLEL_PART),
+                                                               IPluginParam.build(S3Glacier.USE_EXTERNAL_CACHE_NAME,
+                                                                                  useExternalCache));
 
         PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3Glacier.class,
                                                                             "S3 Glacier configuration plugin",
@@ -285,7 +289,8 @@ public abstract class AbstractS3GlacierIT {
         switch (clientType) {
             case MockedS3ClientWithNoFileAvailable -> s3Client = new MockedS3ClientWithNoFileAvailable(scheduler);
             case MockedS3ClientWithoutRestore -> s3Client = new MockedS3ClientWithoutRestore(scheduler);
-            default -> s3Client = new MockedS3Client(scheduler);
+            case MockedS3Client -> s3Client = new MockedS3Client(scheduler);
+            default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
         }
 
         LockService lockService;
@@ -401,6 +406,9 @@ public abstract class AbstractS3GlacierIT {
         return archiveTestPath;
     }
 
+    /**
+     * Create the request of cache file with the file available during 24 hours.
+     */
     protected FileCacheRequest createFileCacheRequest(Path restorationWorkspace,
                                                       String fileName,
                                                       String fileChecksum,
@@ -586,7 +594,7 @@ public abstract class AbstractS3GlacierIT {
                                               String fileChecksum,
                                               TestRestoreProgressManager progressManager,
                                               Path restorationWorkspace) throws NoSuchAlgorithmException, IOException {
-        Awaitility.await().atMost(Durations.FOREVER).until(() -> progressManager.countAllReports() == 1);
+        Awaitility.await().atMost(Durations.FIVE_SECONDS).until(() -> progressManager.countAllReports() == 1);
         Assertions.assertEquals(1, progressManager.getRestoreSucceed().size(), "There should be one success");
         Assertions.assertEquals(fileChecksum,
                                 progressManager.getRestoreSucceed().get(0).getChecksum(),
@@ -751,6 +759,12 @@ public abstract class AbstractS3GlacierIT {
 
         List<FileCacheRequest> restoreFailed = new ArrayList<>();
 
+        private URL restoredFileUrl;
+
+        private Long fileSize;
+
+        private OffsetDateTime expirationDate;
+
         @Override
         public void restoreSucceededInternalCache(FileCacheRequest fileCacheRequest, Path restoredFilePath) {
             restoreSucceed.add(fileCacheRequest);
@@ -767,6 +781,10 @@ public abstract class AbstractS3GlacierIT {
                                                   URL restoredFileUrl,
                                                   @Nullable Long fileSize,
                                                   OffsetDateTime expirationDate) {
+            this.restoredFileUrl = restoredFileUrl;
+            this.fileSize = fileSize;
+            this.expirationDate = expirationDate;
+
             restoreSucceed.add(fileCacheRequest);
         }
 
@@ -780,6 +798,18 @@ public abstract class AbstractS3GlacierIT {
 
         public int countAllReports() {
             return restoreSucceed.size() + restoreFailed.size();
+        }
+
+        public URL getRestoredFileUrl() {
+            return restoredFileUrl;
+        }
+
+        public Long getFileSize() {
+            return fileSize;
+        }
+
+        public OffsetDateTime getExpirationDate() {
+            return expirationDate;
         }
     }
 
@@ -854,10 +884,10 @@ public abstract class AbstractS3GlacierIT {
                                                        String standardStorageClassName) {
             if (tryCount >= 2) {
                 tryCount = 0;
-                return Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, ZonedDateTime.now()));
+                return Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, ZonedDateTime.now()));
             } else {
                 tryCount++;
-                return Mono.just(new GlacierFileStatus(RestorationStatus.RESTORE_PENDING, null));
+                return Mono.just(new GlacierFileStatus(RestorationStatus.RESTORE_PENDING, 10L, null));
             }
         }
     }
@@ -875,11 +905,11 @@ public abstract class AbstractS3GlacierIT {
         public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
                                                        String key,
                                                        String standardStorageClassName) {
-            return Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, ZonedDateTime.now()));
+            return Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, 10L, ZonedDateTime.now()));
         }
     }
 
     protected enum MockedS3ClientType {
-        MockedS3Client, MockedS3ClientWithoutRestore, MockedS3ClientWithNoFileAvailable
+        MockedS3Client, MockedS3ClientWithoutRestore, MockedS3ClientWithNoFileAvailable, S3Client;
     }
 }

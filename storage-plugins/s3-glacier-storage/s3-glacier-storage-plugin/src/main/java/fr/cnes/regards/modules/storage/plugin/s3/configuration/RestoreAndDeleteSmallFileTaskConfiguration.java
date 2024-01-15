@@ -27,6 +27,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 
 /**
+ * Data of configuration for the task in order to restore and to delete small file in cache
+ *
  * @author Thibaud Michaudel
  **/
 public record RestoreAndDeleteSmallFileTaskConfiguration(Path fileRelativePath,

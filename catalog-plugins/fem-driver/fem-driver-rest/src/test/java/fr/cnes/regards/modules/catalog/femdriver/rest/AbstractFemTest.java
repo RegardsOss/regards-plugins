@@ -1,6 +1,5 @@
-package fr.cnes.regards.modules.catalog.femdriver.rest;
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -17,6 +16,7 @@ package fr.cnes.regards.modules.catalog.femdriver.rest;
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
+package fr.cnes.regards.modules.catalog.femdriver.rest;
 
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.event.ISubscribable;
@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.modules.jobs.dao.IJobInfoRepository;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsIT;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.accessrights.client.ILicenseClient;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
@@ -44,6 +45,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.time.OffsetDateTime;
@@ -81,6 +83,9 @@ public abstract class AbstractFemTest extends AbstractRegardsIT {
 
     @SpyBean
     protected IPublisher publisher;
+
+    @MockBean
+    protected ILicenseClient licenseClient;
 
     @Captor
     protected ArgumentCaptor<ISubscribable> recordsCaptor;

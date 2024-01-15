@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 
 /**
+ * Data of configuration for the task in order to retrieve in cache
+ *
  * @author Thibaud Michaudel
  **/
 public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath,
@@ -40,6 +42,7 @@ public record RetrieveCacheFileTaskConfiguration(Path fileRelativePath,
                                                  int renewMaxIterationWaitingPeriodInS,
                                                  long renewDurationInMs,
                                                  String standardStorageClassName,
-                                                 LockService lockService) {
+                                                 LockService lockService,
+                                                 boolean useExternalCache) {
 
 }

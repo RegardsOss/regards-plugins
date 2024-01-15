@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3.utils;
 
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
+import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.StorageConfig;
 
 /**
@@ -27,10 +28,11 @@ import fr.cnes.regards.framework.s3.domain.StorageConfig;
  * @author Thibaud Michaudel
  **/
 public record RestoreResponse(RestoreStatus status,
+                              GlacierFileStatus glacierFileStatus,
                               Exception exception) {
 
-    public RestoreResponse(RestoreStatus status) {
-        this(status, null);
+    public RestoreResponse(RestoreStatus status, GlacierFileStatus glacierFileStatus) {
+        this(status, glacierFileStatus, null);
     }
 
 }

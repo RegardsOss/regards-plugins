@@ -219,6 +219,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
                    BUCKET_OUTPUT,
                    ROOT_PATH,
                    MockedS3ClientType.MockedS3ClientWithNoFileAvailable,
+                   false,
                    false);
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 

@@ -118,6 +118,7 @@ public class S3GlacierDownloadIT extends AbstractS3GlacierIT {
                    bucket,
                    ROOT_PATH,
                    AbstractS3GlacierIT.MockedS3ClientType.MockedS3ClientWithNoFileAvailable,
+                   false,
                    false);
         // When
         NearlineFileNotAvailableException exception = Assertions.assertThrows(NearlineFileNotAvailableException.class,

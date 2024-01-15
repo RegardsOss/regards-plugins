@@ -63,7 +63,15 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     @Purpose("Test that a small file on tier 2 storage is retrieved even if the restore method is called")
     public void test_small_restore_glacier() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.MockedS3Client, false);
+        loadPlugin(endPoint,
+                   region,
+                   key,
+                   secret,
+                   BUCKET_OUTPUT,
+                   ROOT_PATH,
+                   MockedS3ClientType.MockedS3Client,
+                   false,
+                   false);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
@@ -102,7 +110,15 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     public void test_small_restore_no_such_key_glacier()
         throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.MockedS3Client, false);
+        loadPlugin(endPoint,
+                   region,
+                   key,
+                   secret,
+                   BUCKET_OUTPUT,
+                   ROOT_PATH,
+                   MockedS3ClientType.MockedS3Client,
+                   false,
+                   false);
 
         String fileName = "smallFile1.txt";
         String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
@@ -139,7 +155,15 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
     @Purpose("Test that a big file on tier 2 storage is retrieved even if the restore method is called")
     public void test_big_restore_tier2() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
-        loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.MockedS3Client, false);
+        loadPlugin(endPoint,
+                   region,
+                   key,
+                   secret,
+                   BUCKET_OUTPUT,
+                   ROOT_PATH,
+                   MockedS3ClientType.MockedS3Client,
+                   false,
+                   false);
 
         String fileName = "bigFile1.txt";
         String fileChecksum = "aaf14d43dbfb6c33244ec1a25531cb00";

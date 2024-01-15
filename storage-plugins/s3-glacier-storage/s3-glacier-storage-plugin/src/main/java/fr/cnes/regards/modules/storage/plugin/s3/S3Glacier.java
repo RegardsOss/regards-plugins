@@ -57,10 +57,10 @@ import java.util.stream.Stream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Main class of plugin of storage(online type) in S3 server
+ * Main class of plugin of storage(nearline type) in S3 server
  */
 @Plugin(author = "REGARDS Team",
-        description = "Plugin handling the storage on S3",
+        description = "Plugin handling the storage on S3 server",
         id = "S3Glacier",
         version = "1.0",
         contact = "regards@c-s.fr",
@@ -115,6 +115,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private static final String STANDARD_STORAGE_CLASS_NAME = "standardStorageClassName";
 
     private static final String FILE = "File ";
+
+    public static final String USE_EXTERNAL_CACHE_NAME = "useExternalCacheName";
 
     @Autowired
     private LockService lockService;
@@ -190,6 +192,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                      label = "Standard storage class name",
                      optional = true)
     private String standardStorageClassName;
+
+    @PluginParameter(name = USE_EXTERNAL_CACHE_NAME,
+                     description = "If the external cache is enabled, the storage uses the external cache, otherwise "
+                                   + "the internal cache of REGARDS.",
+                     label = "Enable external cache",
+                     optional = true,
+                     defaultValue = "false")
+    private boolean useExternalCache;
 
     /**
      *
@@ -358,7 +368,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Handling of retrieve requests ended");
     }
 
-    public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequest request,
+    public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequest fileCacheRequest,
                                                               IRestorationProgressManager progressManager,
                                                               String tenant) {
 
@@ -366,17 +376,17 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
             runtimeTenantResolver.forceTenant(tenant);
             try {
-                Path fileRelativePath = getServerPath().relativize(Path.of(request.getFileReference()
-                                                                                  .getLocation()
-                                                                                  .getUrl()));
-                boolean isSmallFile = isASmallFileUrl(request.getFileReference().getLocation().getUrl());
-                if (isSmallFile && request.getFileReference().getLocation().isPendingActionRemaining()) {
+                Path fileRelativePath = getServerPath().relativize(Path.of(fileCacheRequest.getFileReference()
+                                                                                           .getLocation()
+                                                                                           .getUrl()));
+                boolean isSmallFile = isASmallFileUrl(fileCacheRequest.getFileReference().getLocation().getUrl());
+                if (isSmallFile && fileCacheRequest.getFileReference().getLocation().isPendingActionRemaining()) {
                     // The file has not been saved to S3 yet, it's still in the local archive building workspace
                     RetrieveLocalSmallFileTaskConfiguration configuration = new RetrieveLocalSmallFileTaskConfiguration(
                         fileRelativePath,
                         getArchiveBuildingWorkspacePath());
                     RetrieveLocalSmallFileTask task = new RetrieveLocalSmallFileTask(configuration,
-                                                                                     request,
+                                                                                     fileCacheRequest,
                                                                                      progressManager);
                     LOGGER.debug("In thread {}, running RetrieveLocalSmallFileTask from Glacier with lock",
                                  Thread.currentThread().getName());
@@ -396,21 +406,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                              workspacePath,
                                                              fileRelativePath.toString());
 
-                RetrieveCacheFileTaskConfiguration configuration = new RetrieveCacheFileTaskConfiguration(
+                RetrieveCacheFileTask task = new RetrieveCacheFileTask(createRetrieveCacheFileTaskConfiguration(
                     fileRelativePath,
-                    getCachePath(),
-                    storageConfiguration,
-                    s3AccessTimeout,
-                    rootPath,
                     isSmallFile,
-                    getS3Client(),
-                    lockName,
-                    Instant.now(),
-                    renewMaxIterationWaitingPeriodInS,
-                    renewCallDurationInMs,
-                    standardStorageClassName,
-                    lockService);
-                RetrieveCacheFileTask task = new RetrieveCacheFileTask(configuration, request, progressManager);
+                    lockName), fileCacheRequest, progressManager);
 
                 LOGGER.debug("In thread {}, running RetrieveCacheFileTask from Glacier with lock",
                              Thread.currentThread().getName());
@@ -419,7 +418,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
             } catch (InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
-                progressManager.restoreFailed(request, "The restoration task was interrupted before completion.");
+                progressManager.restoreFailed(fileCacheRequest,
+                                              "The restoration task was interrupted before completion.");
             }
             return null;
         };
@@ -938,5 +938,24 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         };
 
         return new NearlineFileStatusDto(availability, dateExpiration, message);
+    }
+
+    private RetrieveCacheFileTaskConfiguration createRetrieveCacheFileTaskConfiguration(Path fileRelativePath,
+                                                                                        boolean isSmallFile,
+                                                                                        String lockName) {
+        return new RetrieveCacheFileTaskConfiguration(fileRelativePath,
+                                                      getCachePath(),
+                                                      storageConfiguration,
+                                                      s3AccessTimeout,
+                                                      rootPath,
+                                                      isSmallFile,
+                                                      getS3Client(),
+                                                      lockName,
+                                                      Instant.now(),
+                                                      renewMaxIterationWaitingPeriodInS,
+                                                      renewCallDurationInMs,
+                                                      standardStorageClassName,
+                                                      lockService,
+                                                      useExternalCache);
     }
 }

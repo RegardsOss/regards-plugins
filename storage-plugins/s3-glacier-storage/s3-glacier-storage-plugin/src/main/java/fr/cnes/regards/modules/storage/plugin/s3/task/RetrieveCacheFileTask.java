@@ -31,6 +31,8 @@ import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -39,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Task to retrieve a file (no matter the size) from the server for the S3 Glacier.
- * Before asking the server, we check if the file or the containing archive is already present il the local cache.
+ * Before asking the server, we check if the file or the containing archive is already present in the local cache.
  * <ul>
  * <li>If the file is present in the cache, copy it and send a success to the progress manager</li>
  * <li>If the containing archive is present in the cache, extract the file, then copy it and send a success to the
@@ -63,9 +65,9 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     private final RetrieveCacheFileTaskConfiguration configuration;
 
     public RetrieveCacheFileTask(RetrieveCacheFileTaskConfiguration configuration,
-                                 FileCacheRequest request,
+                                 FileCacheRequest fileCacheRequest,
                                  IRestorationProgressManager progressManager) {
-        super(request, progressManager);
+        super(fileCacheRequest, progressManager);
         this.configuration = configuration;
     }
 
@@ -73,11 +75,19 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     public Void run() {
         LOGGER.info("Starting RetrieveCacheFileTask on {}", configuration.fileRelativePath());
         long start = System.currentTimeMillis();
+
         if (configuration.isSmallFile()) {
+            //Samll files
             retrieveSmallFile();
         } else {
-            retrieveBigFile();
+            //Big files
+            if (configuration.useExternalCache()) {
+                retrieveBigFileExternalCache();
+            } else {
+                retrieveBigFileInternalCache();
+            }
         }
+
         LOGGER.info("End of RetrieveCacheFileTask on {} after {} ms",
                     configuration.fileRelativePath(),
                     System.currentTimeMillis() - start);
@@ -108,29 +118,30 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                 return;
             }
 
-            // Restore
+            // Restore a small file
             LOGGER.info("Restoring {}", relativeArchivePath);
             RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                      configuration.s3Configuration(),
                                                                      relativeArchivePath,
-                                                                     configuration.standardStorageClassName());
+                                                                     configuration.standardStorageClassName(),
+                                                                     null);
 
-            if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
-                progressManager.restoreFailed(request,
+            if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
+                LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+                progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+                return;
+            }
+
+            if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
+                progressManager.restoreFailed(fileCacheRequest,
                                               String.format("The specified key %s does not exists on the server.",
                                                             relativeArchivePath));
                 return;
             }
 
-            if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
-                LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-                progressManager.restoreFailed(request, "Unable to reach S3 server");
-                return;
-            }
-
-            if (!restoreResponse.status().equals(RestoreStatus.FILE_AVAILABLE)) {
+            if (RestoreStatus.FILE_AVAILABLE != restoreResponse.status()) {
                 // Launch check restoration process
-                GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(archiveCachePath,
+                GlacierFileStatus fileStatus = S3GlacierUtils.downloadAfterRestoreFile(archiveCachePath,
                                                                                        relativeArchivePath,
                                                                                        configuration.s3Configuration(),
                                                                                        configuration.s3AccessTimeoutInSeconds(),
@@ -145,7 +156,8 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                 if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
                     extractThenCopyFileAndHandleSuccess(localPath, archivePath);
                 } else {
-                    progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
+                    progressManager.restoreFailed(fileCacheRequest,
+                                                  "Error while trying to restore file, timeout exceeded");
                 }
             } else {
                 // File available, just download file to local directory
@@ -155,14 +167,14 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                 null)) {
                     extractThenCopyFileAndHandleSuccess(localPath, archivePath);
                 } else {
-                    progressManager.restoreFailed(request,
+                    progressManager.restoreFailed(fileCacheRequest,
                                                   "Error while trying to restore file, download error to local "
                                                   + "cache directory");
                 }
             }
 
         } else {
-            progressManager.restoreFailed(request,
+            progressManager.restoreFailed(fileCacheRequest,
                                           String.format("Error while trying to restore file %s. Url "
                                                         + "does not match a smallFile url with %s parameter",
                                                         S3Glacier.SMALL_FILE_PARAMETER_NAME,
@@ -170,37 +182,50 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         }
     }
 
-    private void retrieveBigFile() {
+    private void retrieveBigFileInternalCache() {
 
         // Check if the file is already present before attempting to restore it
-        Path targetPath = Path.of(request.getRestorationDirectory(),
+        Path targetPath = Path.of(fileCacheRequest.getRestorationDirectory(),
                                   configuration.fileRelativePath().getFileName().toString());
         if (Files.exists(targetPath)) {
-            progressManager.restoreSucceededInternalCache(request, targetPath);
+            progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
             return;
         }
 
-        // Restore
+        // Restore a big file
         RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                  configuration.s3Configuration(),
                                                                  configuration.fileRelativePath().toString(),
-                                                                 configuration.standardStorageClassName());
-        if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
-            progressManager.restoreFailed(request,
+                                                                 configuration.standardStorageClassName(),
+                                                                 null);
+        if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
+            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+            progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+            return;
+        }
+
+        if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
+            progressManager.restoreFailed(fileCacheRequest,
                                           String.format("The specified key %s does not exists on the server.",
                                                         configuration.fileRelativePath()));
             return;
         }
 
-        if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
-            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-            progressManager.restoreFailed(request, "Unable to reach S3 server");
-            return;
-        }
-
-        if (!restoreResponse.status().equals(RestoreStatus.FILE_AVAILABLE)) {
+        if (RestoreStatus.FILE_AVAILABLE == restoreResponse.status()) {
+            // File available, just download file to local directory
+            if (S3GlacierUtils.downloadFile(targetPath,
+                                            configuration.fileRelativePath().toString(),
+                                            configuration.s3Configuration(),
+                                            null)) {
+                progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
+            } else {
+                progressManager.restoreFailed(fileCacheRequest,
+                                              "Error while trying to restore file, download error to local "
+                                              + "cache directory");
+            }
+        } else {
             // Launch check restoration process
-            GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(targetPath,
+            GlacierFileStatus fileStatus = S3GlacierUtils.downloadAfterRestoreFile(targetPath,
                                                                                    configuration.fileRelativePath()
                                                                                                 .toString(),
                                                                                    configuration.s3Configuration(),
@@ -213,21 +238,81 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                                    configuration.lockService(),
                                                                                    configuration.s3Client());
             if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
-                progressManager.restoreSucceededInternalCache(request, targetPath);
+                progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
             } else {
-                progressManager.restoreFailed(request, "Error while trying to restore file, timeout exceeded");
+                progressManager.restoreFailed(fileCacheRequest, "Error while trying to restore file, timeout exceeded");
             }
+        }
+    }
+
+    private void retrieveBigFileExternalCache() {
+
+        Integer availabilityHours = fileCacheRequest.getAvailabilityHours();
+        // Restore a big file
+        RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
+                                                                 configuration.s3Configuration(),
+                                                                 configuration.fileRelativePath().toString(),
+                                                                 configuration.standardStorageClassName(),
+                                                                 availabilityHours);
+
+        if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
+            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+            progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+            return;
+        }
+
+        URL urlBigFile = null;
+        String urlFile = String.format("%s/%s/%s",
+                                       configuration.s3Configuration().getEndpoint(),
+                                       configuration.s3Configuration().getBucket(),
+                                       configuration.fileRelativePath().toString());
+        try {
+
+            urlBigFile = new URL(urlFile);
+        } catch (MalformedURLException e) {
+            progressManager.restoreFailed(fileCacheRequest, e.getMessage() + "(" + urlFile + ")");
+            return;
+        }
+
+        if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
+            progressManager.restoreFailed(fileCacheRequest,
+                                          String.format("The specified key %s does not exists on the server.",
+                                                        urlBigFile.toString()));
+            return;
+        }
+
+        if (RestoreStatus.FILE_AVAILABLE == restoreResponse.status()) {
+            progressManager.restoreSucceededExternalCache(fileCacheRequest,
+                                                          urlBigFile,
+                                                          restoreResponse.glacierFileStatus().getFileSize(),
+                                                          restoreResponse.glacierFileStatus().getExpirationDate()
+                                                          == null ?
+                                                              null :
+                                                              restoreResponse.glacierFileStatus()
+                                                                             .getExpirationDate()
+                                                                             .toOffsetDateTime());
         } else {
-            // File available, just download file to local directory
-            if (S3GlacierUtils.downloadFile(targetPath,
-                                            configuration.fileRelativePath().toString(),
-                                            configuration.s3Configuration(),
-                                            null)) {
-                progressManager.restoreSucceededInternalCache(request, targetPath);
+            //Launch check restoration process
+            GlacierFileStatus fileStatus = S3GlacierUtils.checkRestorationComplete(configuration.fileRelativePath()
+                                                                                                .toString(),
+                                                                                   configuration.s3Configuration(),
+                                                                                   configuration.s3AccessTimeoutInSeconds(),
+                                                                                   configuration.lockName(),
+                                                                                   configuration.lockCreationDate(),
+                                                                                   configuration.renewMaxIterationWaitingPeriodInS(),
+                                                                                   configuration.renewDurationInMs(),
+                                                                                   configuration.standardStorageClassName(),
+                                                                                   configuration.lockService(),
+                                                                                   configuration.s3Client());
+            if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
+                progressManager.restoreSucceededExternalCache(fileCacheRequest,
+                                                              urlBigFile,
+                                                              fileStatus.getFileSize(),
+                                                              fileStatus.getExpirationDate() == null ?
+                                                                  null :
+                                                                  fileStatus.getExpirationDate().toOffsetDateTime());
             } else {
-                progressManager.restoreFailed(request,
-                                              "Error while trying to restore file, download error to local "
-                                              + "cache directory");
+                progressManager.restoreFailed(fileCacheRequest, "Error while trying to restore file, timeout exceeded");
             }
         }
     }
@@ -238,14 +323,14 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
             if (Files.exists(localPath)) {
                 copyFileAndHandleSuccess(localPath);
             } else {
-                progressManager.restoreFailed(request,
+                progressManager.restoreFailed(fileCacheRequest,
                                               String.format("The requested file %s is not present in the archive %s",
                                                             localPath.getFileName().toString(),
                                                             archivePath.getFileName().toString()));
             }
         } catch (IOException e) {
             LOGGER.error("Error while extracting file {} from archive {}", localPath, archivePath, e);
-            progressManager.restoreFailed(request,
+            progressManager.restoreFailed(fileCacheRequest,
                                           String.format(
                                               "Error when trying to extract the requested file %s from the archive %s",
                                               localPath.getFileName().toString(),
@@ -253,4 +338,5 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
         }
     }
+
 }

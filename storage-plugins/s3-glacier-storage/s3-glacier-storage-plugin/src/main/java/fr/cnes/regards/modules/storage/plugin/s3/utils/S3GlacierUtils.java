@@ -29,6 +29,7 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.task.RetrieveCacheFileTask;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -67,64 +68,86 @@ public class S3GlacierUtils {
     }
 
     /**
-     * Call the restore process for the given key and handle errors
+     * Call the restore process for the given key and handle errors if the file is not in the status :
+     * <ul>
+     *     <li>{@link RestorationStatus.AVAILABLE}</li>
+     *     <li>{@link RestorationStatus.RESTORE_PENDING}</li>
+     * </ul>
      *
-     * @param s3Client the client used to process the restore
-     * @param config   configuration of the s3 storage
-     * @param key      s3 key of the file to restore
+     * @param s3Client          the client used to process the restore
+     * @param config            configuration of the s3 storage
+     * @param key               s3 key of the file to restore
+     * @param availabilityHours lifetime of file in hours
      */
     public static RestoreResponse restore(S3HighLevelReactiveClient s3Client,
                                           StorageConfig config,
                                           String key,
-                                          String standardStorageClassName) {
+                                          String standardStorageClassName,
+                                          @Nullable Integer availabilityHours) {
         GlacierFileStatus glacierFileStatus = s3Client.isFileAvailable(config, key, standardStorageClassName).block();
 
         if (RestorationStatus.AVAILABLE == glacierFileStatus.getStatus()) {
-            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE);
+            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE, glacierFileStatus);
         }
         if (RestorationStatus.RESTORE_PENDING == glacierFileStatus.getStatus()) {
-            return new RestoreResponse(RestoreStatus.SUCCESS);
+            return new RestoreResponse(RestoreStatus.SUCCESS, glacierFileStatus);
         }
-        RestoreResponse response = s3Client.restore(config, key)
-                                           .map(result -> new RestoreResponse(RestoreStatus.SUCCESS))
+        RestoreResponse response = s3Client.restore(config, key, computeDaysFromHours(availabilityHours))
+                                           .map(result -> new RestoreResponse(RestoreStatus.SUCCESS, glacierFileStatus))
                                            .onErrorResume(InvalidObjectStateException.class,
-                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.WRONG_STORAGE_CLASS)))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.WRONG_STORAGE_CLASS,
+                                                                                                 glacierFileStatus)))
                                            .onErrorResume(NoSuchKeyException.class,
-                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.KEY_NOT_FOUND)))
+                                                          error -> Mono.just(new RestoreResponse(RestoreStatus.KEY_NOT_FOUND,
+                                                                                                 glacierFileStatus)))
                                            .onErrorResume(S3Exception.class,
                                                           error -> error.getMessage()
                                                                         .contains("RestoreAlreadyInProgress") ?
-                                                              Mono.just(new RestoreResponse(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) :
+                                                              Mono.just(new RestoreResponse(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS,
+                                                                                            glacierFileStatus)) :
                                                               Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                            glacierFileStatus,
                                                                                             error)))
                                            .onErrorResume(S3ClientException.class,
                                                           error -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                                 glacierFileStatus,
                                                                                                  error)))
                                            .onErrorResume((error) -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
+                                                                                                   glacierFileStatus,
                                                                                                    new Exception(error))))
                                            .block();
-        if (response.status().equals(RestoreStatus.WRONG_STORAGE_CLASS)) {
+        if (RestoreStatus.WRONG_STORAGE_CLASS == response.status()) {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
                         + " The restoration process will continue as if.", key);
-            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE);
+            return new RestoreResponse(RestoreStatus.FILE_AVAILABLE, glacierFileStatus);
         }
-        if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {
+        if (RestoreStatus.RESTORE_ALREADY_IN_PROGRESS == response.status()) {
             LOGGER.info("A restoration process is already in progress for key {}", key);
-            return new RestoreResponse(RestoreStatus.SUCCESS);
-        }
-        if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {
-            LOGGER.info("A restoration process is already in progress for key {}", key);
-            return new RestoreResponse(RestoreStatus.SUCCESS);
+            return new RestoreResponse(RestoreStatus.SUCCESS, glacierFileStatus);
         }
         return response;
-
     }
 
     /**
-     * Check if the restoration of a file is completed, either successfully or after the timeout is exceeded
+     * Compute the number of days from a number of hours (rounded up to the superior day) :
+     * <ul>
+     *     <li>5 hours -> 1 day</li>
+     *     <li>25 hours -> 2 days</li>
+     * </ul>
+     */
+    private static Integer computeDaysFromHours(@Nullable Integer hours) {
+        Integer days = null;
+        if (hours != null && hours > 0) {
+            days = (int) Math.ceil((float) hours / (float) 24);
+        }
+        return days;
+    }
+
+    /**
+     * Check if the restoration of a file is completed, either successfully or after the timeout is exceeded in
+     * external cache.
      *
-     * @param targetFilePath           path where the file will be downloaded
      * @param key                      s3 key of the file to download
      * @param s3Configuration          configuration of the s3 storage
      * @param s3AccessTimeoutInSeconds time after which the restoration attempt will fail
@@ -134,8 +157,7 @@ public class S3GlacierUtils {
      * @param lockService              lockService handling the lock renewal
      * @return GlacierFileStatus
      */
-    public static GlacierFileStatus checkRestorationComplete(Path targetFilePath,
-                                                             String key,
+    public static GlacierFileStatus checkRestorationComplete(String key,
                                                              StorageConfig s3Configuration,
                                                              int s3AccessTimeoutInSeconds,
                                                              String lockName,
@@ -147,22 +169,23 @@ public class S3GlacierUtils {
                                                              S3HighLevelReactiveClient s3Client) {
         int lockTimeToLive = lockService.getTimeToLive();
 
-        String downloadedFileName = targetFilePath.getFileName().toString();
         RestorationStatus restorationStatus = RestorationStatus.NOT_AVAILABLE;
+
         boolean retryAvailability = true;
         int delay = RetrieveCacheFileTask.INITIAL_DELAY;
         int totalWaited = 0;
-        int iterationNumber = 0;
         int reachServerAttempt = 0;
+        GlacierFileStatus glacierFileStatus = null;
+
         try {
             while ((restorationStatus != RestorationStatus.AVAILABLE) && retryAvailability) {
-                iterationNumber++;
                 reachServerAttempt++;
                 LOGGER.debug("Checking if restoration succeeded");
+
                 try {
-                    restorationStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName)
-                                                .block()
-                                                .getStatus();
+                    glacierFileStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName)
+                                                .block();
+                    restorationStatus = glacierFileStatus.getStatus();
                     reachServerAttempt = 0;
                 } catch (S3ClientException e) {
                     LOGGER.warn("Unable to check if the restoration is complete because the server is unreachable");
@@ -170,6 +193,7 @@ public class S3GlacierUtils {
                         throw e;
                     }
                 }
+
                 switch (restorationStatus) {
                     case RESTORE_PENDING -> {
                         LOGGER.info("Restoration of file {}/{} not succeeded yet. Waiting for restoration end.",
@@ -194,10 +218,6 @@ public class S3GlacierUtils {
                     }
                     case AVAILABLE -> {
                         LOGGER.info("Restoration succeeded for file {}/{}", s3Configuration.getBucket(), key);
-                        String taskId = "S3GlacierRestore_" + downloadedFileName + "_" + iterationNumber;
-                        if (!downloadFile(targetFilePath, key, s3Configuration, taskId)) {
-                            restorationStatus = RestorationStatus.NOT_AVAILABLE;
-                        }
                         retryAvailability = false;
                     }
                     case EXPIRED -> {
@@ -215,13 +235,69 @@ public class S3GlacierUtils {
                 }
             }
         } catch (NoSuchKeyException e) {
-            LOGGER.error("The requested file {} was not found on the server", downloadedFileName, e);
+            LOGGER.error("The requested file {} was not found on the server", key, e);
         } catch (InterruptedException e) {
             LOGGER.error("Sleep interrupted", e);
-        } catch (S3ClientException e) {
-            LOGGER.error("Unable to reach S3 Server to restore the file", e);
         }
-        return new GlacierFileStatus(restorationStatus, null);
+
+        return glacierFileStatus == null ?
+            new GlacierFileStatus(restorationStatus, null, null) :
+            new GlacierFileStatus(restorationStatus,
+                                  glacierFileStatus.getFileSize(),
+                                  glacierFileStatus.getExpirationDate());
+    }
+
+    /**
+     * Download a file after the checking if the restoration of a file is completed, either successfully or after the
+     * timeout is exceeded in internal cache.
+     *
+     * @param targetFilePath           path where the file will be downloaded
+     * @param key                      s3 key of the file to download
+     * @param s3Configuration          configuration of the s3 storage
+     * @param s3AccessTimeoutInSeconds time after which the restoration attempt will fail
+     * @param lockName                 name of the lock for renewal purpose
+     * @param lockCreationDate         creation date of the lock for renewal purpose
+     * @param renewCallDurationInMs    worst case scenario duration of the renewal call, necessary to prevent the lock from expiring between renewal call and renewal success
+     * @param lockService              lockService handling the lock renewal
+     * @return GlacierFileStatus
+     */
+    public static GlacierFileStatus downloadAfterRestoreFile(Path targetFilePath,
+                                                             String key,
+                                                             StorageConfig s3Configuration,
+                                                             int s3AccessTimeoutInSeconds,
+                                                             String lockName,
+                                                             Instant lockCreationDate,
+                                                             int renewMaxIterationWaitingPeriodInS,
+                                                             Long renewCallDurationInMs,
+                                                             @Nullable String standardStorageClassName,
+                                                             LockService lockService,
+                                                             S3HighLevelReactiveClient s3Client) {
+
+        GlacierFileStatus glacierFileStatus = checkRestorationComplete(key,
+                                                                       s3Configuration,
+                                                                       s3AccessTimeoutInSeconds,
+                                                                       lockName,
+                                                                       lockCreationDate,
+                                                                       renewMaxIterationWaitingPeriodInS,
+                                                                       renewCallDurationInMs,
+                                                                       standardStorageClassName,
+                                                                       lockService,
+                                                                       s3Client);
+
+        if (glacierFileStatus.getStatus() == RestorationStatus.AVAILABLE) {
+            String downloadedFileName = targetFilePath.getFileName().toString();
+            
+            try {
+                if (!downloadFile(targetFilePath, key, s3Configuration, "S3GlacierRestore_" + downloadedFileName)) {
+                    return new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE,
+                                                 glacierFileStatus.getFileSize(),
+                                                 glacierFileStatus.getExpirationDate());
+                }
+            } catch (NoSuchKeyException e) {
+                LOGGER.error("The requested file {} was not found on the server", downloadedFileName, e);
+            }
+        }
+        return glacierFileStatus;
     }
 
     /**
@@ -233,14 +309,13 @@ public class S3GlacierUtils {
                                        String key,
                                        StorageConfig s3Configuration,
                                        @Nullable String taskId) {
-        String finalTaskId = taskId;
-        if (finalTaskId == null) {
-            finalTaskId = "S3GlacierRestore_" + targetFilePath.getFileName().toString();
+        if (StringUtils.isBlank(taskId)) {
+            taskId = "S3GlacierRestore_" + targetFilePath.getFileName().toString();
         }
         try {
             InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
                                                                                 s3Configuration,
-                                                                                new StorageCommandID(finalTaskId,
+                                                                                new StorageCommandID(taskId,
                                                                                                      UUID.randomUUID()));
             FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
         } catch (IOException e) {

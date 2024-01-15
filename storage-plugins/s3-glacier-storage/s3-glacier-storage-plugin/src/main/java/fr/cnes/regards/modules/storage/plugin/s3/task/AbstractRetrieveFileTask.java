@@ -39,27 +39,27 @@ public abstract class AbstractRetrieveFileTask implements LockServiceTask<Void> 
 
     private static final Logger LOGGER = getLogger(AbstractRetrieveFileTask.class);
 
-    protected FileCacheRequest request;
+    protected FileCacheRequest fileCacheRequest;
 
     protected IRestorationProgressManager progressManager;
 
-    protected AbstractRetrieveFileTask(FileCacheRequest request, IRestorationProgressManager progressManager) {
-        this.request = request;
+    protected AbstractRetrieveFileTask(FileCacheRequest fileCacheRequest, IRestorationProgressManager progressManager) {
+        this.fileCacheRequest = fileCacheRequest;
         this.progressManager = progressManager;
     }
 
     protected void copyFileAndHandleSuccess(Path localFilePath) {
-        Path targetPath = Path.of(request.getRestorationDirectory()).resolve(request.getChecksum());
+        Path targetPath = Path.of(fileCacheRequest.getRestorationDirectory()).resolve(fileCacheRequest.getChecksum());
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(localFilePath, targetPath);
-            progressManager.restoreSucceededInternalCache(request, targetPath);
+            progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
         } catch (FileAlreadyExistsException e) { //NOSONAR
             LOGGER.warn("The restored file {} already exists in the target location {}", localFilePath, targetPath);
-            progressManager.restoreSucceededInternalCache(request, targetPath);
+            progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
         } catch (IOException e) {
             LOGGER.error("Error while copying {} to {}", localFilePath, targetPath, e);
-            progressManager.restoreFailed(request,
+            progressManager.restoreFailed(fileCacheRequest,
                                           String.format("The requested file %s was found locally but the"
                                                         + " copy to the target directory %s failed",
                                                         localFilePath,

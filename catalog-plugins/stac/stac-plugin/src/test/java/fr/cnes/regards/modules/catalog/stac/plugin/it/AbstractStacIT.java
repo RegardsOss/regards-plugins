@@ -31,6 +31,7 @@ import fr.cnes.regards.framework.random.GeneratorBuilder;
 import fr.cnes.regards.framework.test.integration.AbstractRegardsTransactionalIT;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.accessrights.client.ILicenseClient;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.dam.client.entities.IDatasetClient;
@@ -61,12 +62,14 @@ import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.search.dao.ISearchEngineConfRepository;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
+import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -172,6 +175,12 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     @Autowired
     private IdMappingService idMappingService;
+
+    @MockBean
+    protected ILicenseClient licenseClient;
+
+    @MockBean
+    protected IStorageRestClient storageRestClient;
 
     protected void cleanDatabase() {
         modelAttrAssocRepository.deleteAllInBatch();

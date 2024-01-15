@@ -107,7 +107,8 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                     RestoreResponse restoreResponse = S3GlacierUtils.restore(configuration.s3Client(),
                                                                              configuration.storageConfiguration(),
                                                                              archiveRelativePathAsString,
-                                                                             configuration.standardStorageClassName());
+                                                                             configuration.standardStorageClassName(),
+                                                                             null);
                     if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
                         LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
                                     + "considered successful", request.getFileReference().getLocation().getUrl());
@@ -187,7 +188,9 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
     }
 
     private boolean checkRestorationComplete(String archiveRelativePathAsString, Path archivePathInCache) {
-        GlacierFileStatus glacierFileStatus = S3GlacierUtils.checkRestorationComplete(archivePathInCache,
+        // Force the downloading in internal cache for small files because we must extract small files from archive in
+        // local after downloading of archive
+        GlacierFileStatus glacierFileStatus = S3GlacierUtils.downloadAfterRestoreFile(archivePathInCache,
                                                                                       archiveRelativePathAsString,
                                                                                       configuration.storageConfiguration(),
                                                                                       configuration.s3AccessTimeout(),

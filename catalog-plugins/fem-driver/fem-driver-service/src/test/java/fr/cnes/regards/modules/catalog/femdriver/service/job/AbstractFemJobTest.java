@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.jobs.dao.IJobInfoRepository;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.modules.accessrights.client.ILicenseClient;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
@@ -43,6 +44,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -77,6 +79,9 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
 
     @Autowired
     protected MultitenantFlattenedAttributeAdapterFactory gsonAttributeFactory;
+
+    @MockBean
+    private ILicenseClient licenseClient;
 
     @Captor
     protected ArgumentCaptor<List<ISubscribable>> recordsCaptor;

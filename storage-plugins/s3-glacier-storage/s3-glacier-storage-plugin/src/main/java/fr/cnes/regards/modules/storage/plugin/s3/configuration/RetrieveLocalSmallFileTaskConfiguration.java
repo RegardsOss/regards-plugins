@@ -21,6 +21,8 @@ package fr.cnes.regards.modules.storage.plugin.s3.configuration;
 import java.nio.file.Path;
 
 /**
+ * Data of configuration for the task in order to retrieve small file in workspace
+ *
  * @author Thibaud Michaudel
  **/
 public record RetrieveLocalSmallFileTaskConfiguration(Path fileRelativePath,
