@@ -58,5 +58,6 @@
         <module>s3-storage</module>
         <module>s3-glacier-storage</module>
         <module>s3-storage-common</module>
+        <module>s3-glacier-mock</module>
     </modules>
 </project>

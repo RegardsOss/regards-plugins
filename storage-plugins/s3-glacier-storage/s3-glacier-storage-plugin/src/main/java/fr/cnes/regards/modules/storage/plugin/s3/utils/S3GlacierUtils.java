@@ -385,6 +385,10 @@ public class S3GlacierUtils {
                                      @Nullable String rootPath,
                                      @Nullable String workspacePath,
                                      String node) {
+        if (node == null) {
+            // avoid null value on subdirectory param
+            node = "";
+        }
         String pathToLock;
         S3GlacierUrl dispatchedFilePath = dispatchS3FilePath(node);
         Path zipBuildingRootPath = workspacePath != null ? Path.of(workspacePath, S3Glacier.ZIP_DIR) : null;
@@ -447,8 +451,8 @@ public class S3GlacierUtils {
      * Dispatch an S3 Glacier path into two strings. First one contains stored file path. Second one contains optional
      * smallFile name like url = archive_path?fileName=smallFileName
      */
-    public static S3GlacierUrl dispatchS3FilePath(String fileName) {
-        String[] parts = fileName.split(Pattern.quote("?" + S3Glacier.SMALL_FILE_PARAMETER_NAME + "="));
+    public static S3GlacierUrl dispatchS3FilePath(String filePath) {
+        String[] parts = filePath.split(Pattern.quote("?" + S3Glacier.SMALL_FILE_PARAMETER_NAME + "="));
         String archiveName = parts[0];
         String smallFileName = null;
         if (parts.length > 1) {

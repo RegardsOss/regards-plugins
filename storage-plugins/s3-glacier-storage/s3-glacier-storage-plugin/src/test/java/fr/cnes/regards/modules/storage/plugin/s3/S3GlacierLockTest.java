@@ -96,8 +96,8 @@ public class S3GlacierLockTest {
     @Test
     public void test_store_small_file_on_same_node_locked() throws Exception {
         // Given
-        FileStorageRequestAggregationDto request1 = createStoreFileRequest("node1", true);
-        FileStorageRequestAggregationDto request2 = createStoreFileRequest("node1", true);
+        FileStorageRequestAggregationDto request1 = createStoreFileRequest(null, true);
+        FileStorageRequestAggregationDto request2 = createStoreFileRequest(null, true);
         FileStorageRequestAggregationDto request3 = createStoreFileRequest("node2", true);
         FileStorageRequestAggregationDto request4 = createStoreFileRequest("node2", true);
         // When
