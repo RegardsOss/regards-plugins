@@ -60,6 +60,22 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>spring-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
+            <artifactId>file-catalog-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.storage</groupId>
+            <artifactId>storage-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.project</groupId>
+            <artifactId>project-instance-client</artifactId>
+        </dependency>
         <!-- Provided: dependencies that are already included by the microservice -->
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
@@ -80,22 +96,6 @@
             <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
             <artifactId>plugins-domain</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
-            <artifactId>file-catalog-dto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.ingest</groupId>
-            <artifactId>ingest-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.project</groupId>
-            <artifactId>project-instance-client</artifactId>
         </dependency>
         <!-- Tests -->
         <dependency>
@@ -128,6 +128,7 @@
                                     <include>fr.cnes.regards.modules.filecatalog:file-catalog-amqp</include>
                                     <include>fr.cnes.regards.modules.project:project-instance-client</include>
                                     <include>fr.cnes.regards.modules.project:project-instance-domain</include>
+                                    <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin-dto</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

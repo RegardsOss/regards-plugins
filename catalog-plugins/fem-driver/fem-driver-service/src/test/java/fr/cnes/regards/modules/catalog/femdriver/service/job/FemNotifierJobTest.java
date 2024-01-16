@@ -29,11 +29,13 @@ import fr.cnes.regards.modules.catalog.femdriver.service.FemDriverService;
 import fr.cnes.regards.modules.feature.dto.event.in.FeatureNotificationRequestEvent;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.dto.SearchRequest;
+import fr.cnes.regards.modules.storage.client.IStorageClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -59,6 +61,9 @@ public class FemNotifierJobTest extends AbstractFemJobTest {
 
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
+
+    @MockBean
+    private IStorageClient storageClient;
 
     @Before
     public void init() throws ModuleException {

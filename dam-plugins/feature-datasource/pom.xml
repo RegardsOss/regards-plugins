@@ -49,6 +49,15 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
+            <artifactId>file-catalog-dto</artifactId>
+        </dependency>
+        <!-- Provided: dependencies that are already included by the microservice -->
+        <dependency>
             <groupId>fr.cnes.regards.modules.dam</groupId>
             <artifactId>dam-domain</artifactId>
             <scope>provided</scope>
@@ -57,14 +66,6 @@
             <groupId>fr.cnes.regards.framework.utils</groupId>
             <artifactId>spring-utils</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.feature</groupId>
-            <artifactId>feature-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.filecatalog</groupId>
-            <artifactId>file-catalog-dto</artifactId>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
@@ -102,6 +103,7 @@
                                     <include>fr.cnes.regards.modules.feature:feature-client</include>
                                     <include>fr.cnes.regards.modules.feature:feature-dto</include>
                                     <include>fr.cnes.regards.modules.feature:feature-domain</include>
+                                    <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin-dto</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

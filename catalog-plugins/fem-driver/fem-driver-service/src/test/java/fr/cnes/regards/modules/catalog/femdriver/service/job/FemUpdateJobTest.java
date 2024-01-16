@@ -30,11 +30,13 @@ import fr.cnes.regards.modules.feature.dto.event.in.FeatureUpdateRequestEvent;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.dto.SearchRequest;
+import fr.cnes.regards.modules.storage.client.IStorageClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
@@ -64,6 +66,9 @@ public class FemUpdateJobTest extends AbstractFemJobTest {
 
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
+
+    @MockBean
+    private IStorageClient storageClient;
 
     @Before
     public void init() throws ModuleException {
