@@ -18,7 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.s3.common.dto;
 
-import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 
 /**
  * Common Configuration DTO for S3 Storage Plugins

@@ -18,11 +18,11 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadException;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
-import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.filecatalog.dto.request.FileStorageRequestAggregationDto;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;

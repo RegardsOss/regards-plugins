@@ -18,11 +18,11 @@
  */
 package fr.cnes.regards.modules.storage.plugins.s3.mock;
 
+import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
+import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
+import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadException;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
-import fr.cnes.regards.modules.filecatalog.dto.FileLocationDto;
-import fr.cnes.regards.modules.filecatalog.dto.FileReferenceMetaInfoDto;
-import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 

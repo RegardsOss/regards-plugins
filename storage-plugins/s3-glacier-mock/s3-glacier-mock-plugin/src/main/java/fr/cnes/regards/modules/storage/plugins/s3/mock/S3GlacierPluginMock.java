@@ -1,10 +1,10 @@
 package fr.cnes.regards.modules.storage.plugins.s3.mock;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadException;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
-import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.filecatalog.dto.availability.NearlineFileStatusDto;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

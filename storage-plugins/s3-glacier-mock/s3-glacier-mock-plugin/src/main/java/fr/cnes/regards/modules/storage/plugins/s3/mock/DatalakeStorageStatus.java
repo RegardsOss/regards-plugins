@@ -18,7 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugins.s3.mock;
 
-import fr.cnes.regards.modules.filecatalog.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 
 import java.util.Arrays;
 

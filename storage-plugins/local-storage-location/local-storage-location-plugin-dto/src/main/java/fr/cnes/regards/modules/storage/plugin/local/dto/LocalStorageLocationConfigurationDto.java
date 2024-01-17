@@ -18,7 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local.dto;
 
-import fr.cnes.regards.modules.filecatalog.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 
 /**
  * Configuration DTO for Local Storage Plugin
