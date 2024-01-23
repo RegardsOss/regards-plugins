@@ -69,6 +69,10 @@
             <artifactId>ingest-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-dto</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.modules.storage</groupId>
             <artifactId>storage-client</artifactId>
         </dependency>
@@ -123,6 +127,7 @@
                                     <include>commons-beanutils:commons-beanutils</include>
                                     <include>fr.cnes.regards.modules.ingest:ingest-client</include>
                                     <include>fr.cnes.regards.modules.ingest:ingest-domain</include>
+                                    <include>fr.cnes.regards.modules.ingest:ingest-dto</include>
                                     <include>fr.cnes.regards.modules.storage:storage-client</include>
                                     <include>fr.cnes.regards.modules.fileaccess:file-access-dto</include>
                                     <include>fr.cnes.regards.modules.fileaccess:file-access-amqp</include>
