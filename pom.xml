@@ -29,12 +29,12 @@
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-oss-backend</artifactId>
-        <version>1.14.2</version>
+        <version>1.14.3</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <regards.version>1.14.2</regards.version>
+        <regards.version>1.14.3</regards.version>
         <revision>${regards.version}</revision>
     </properties>
 
