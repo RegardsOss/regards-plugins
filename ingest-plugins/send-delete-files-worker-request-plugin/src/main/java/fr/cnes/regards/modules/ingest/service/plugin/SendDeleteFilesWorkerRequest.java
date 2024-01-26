@@ -90,6 +90,7 @@ public class SendDeleteFilesWorkerRequest implements ISipPostprocessing {
                                                           session.getLeft(),
                                                           session.getRight(),
                                                           UUID.randomUUID().toString(),
+                                                          null,
                                                           DeleteFilesRequestDTO.build(urls),
                                                           gson);
 

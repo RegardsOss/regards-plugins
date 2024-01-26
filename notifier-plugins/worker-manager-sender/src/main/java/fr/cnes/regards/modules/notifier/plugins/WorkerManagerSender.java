@@ -130,6 +130,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
                                                        sessionNameAndOwner.sessionOwnerName(),
                                                        sessionNameAndOwner.sessionName(),
                                                        UUID.randomUUID().toString(),
+                                                       null,
                                                        feature.toString().getBytes(StandardCharsets.UTF_8)));
         }
         return messagesToSend;

@@ -234,6 +234,7 @@ public class WorkerManagerSenderIT {
                                                          messagesSent.get(count)
                                                                      .getMessageProperties()
                                                                      .getHeader(EventHeadersHelper.REQUEST_ID_HEADER),
+                                                         null,
                                                          reqPayloadStr.getBytes(StandardCharsets.UTF_8)));
             count++;
         }
