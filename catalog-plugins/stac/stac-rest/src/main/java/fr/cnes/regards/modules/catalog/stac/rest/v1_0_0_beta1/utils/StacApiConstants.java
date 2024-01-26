@@ -48,7 +48,7 @@ public interface StacApiConstants {
 
     String COLLECTIONS_QUERY_PARAM = "collections";
 
-    String SORTBY_QUERY_PARAM = "sortBy";
+    String SORTBY_QUERY_PARAM = "sortby";
 
     String STAC_PATH = "/stac";
 
