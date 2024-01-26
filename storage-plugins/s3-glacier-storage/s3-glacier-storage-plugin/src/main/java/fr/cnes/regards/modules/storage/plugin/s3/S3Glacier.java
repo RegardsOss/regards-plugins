@@ -908,25 +908,29 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
         boolean availability = false;
         OffsetDateTime dateExpiration = null;
+        String message;
 
         GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
                                                                         getEntryKey(fileReference),
                                                                         standardStorageClassName).block();
-
-        String fileName = fileReference.getMetaInfo().getFileName();
-        String message = switch (fileAvailable.getStatus()) {
-            case EXPIRED -> FILE + fileName + " is expired.";
-            case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
-            case NOT_AVAILABLE -> FILE + fileName + " is not available.";
-            // in all other cases, file is available
-            default -> {
-                availability = true;
-                dateExpiration = fileAvailable.getExpirationDate() == null ?
-                    null :
-                    fileAvailable.getExpirationDate().toOffsetDateTime();
-                yield FILE + fileName + " is available.";
-            }
-        };
+        if (fileAvailable != null) {
+            String fileName = fileReference.getMetaInfo().getFileName();
+            message = switch (fileAvailable.getStatus()) {
+                case EXPIRED -> FILE + fileName + " is expired.";
+                case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
+                case NOT_AVAILABLE -> FILE + fileName + " is not available.";
+                // in all other cases, file is available
+                default -> {
+                    availability = true;
+                    dateExpiration = fileAvailable.getExpirationDate() == null ?
+                        null :
+                        fileAvailable.getExpirationDate().toOffsetDateTime();
+                    yield FILE + fileName + " is available.";
+                }
+            };
+        } else {
+            message = "Error accessing s3 client. Please check service log for more information.";
+        }
 
         return new NearlineFileStatusDto(availability, dateExpiration, message);
     }
