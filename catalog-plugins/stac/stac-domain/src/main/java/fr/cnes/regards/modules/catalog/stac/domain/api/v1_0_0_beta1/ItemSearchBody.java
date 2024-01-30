@@ -19,6 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1;
 
+import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
 import io.vavr.collection.List;
@@ -55,6 +56,7 @@ public class ItemSearchBody {
 
     Map<String, SearchBody.QueryObject> query;
 
+    @SerializedName(value = "sortby", alternate = { "sortBy" })
     List<SearchBody.SortBy> sortBy;
 
 }

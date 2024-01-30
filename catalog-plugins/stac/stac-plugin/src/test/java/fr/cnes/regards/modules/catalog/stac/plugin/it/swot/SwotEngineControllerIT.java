@@ -259,7 +259,30 @@ public class SwotEngineControllerIT extends AbstractStacIT {
         ItemSearchBody body = ItemSearchBody.builder()
                                             .datetime(DateInterval.parseDateInterval(
                                                 "2022-01-01T00:00:00Z/2022-07-01T00:00:00Z").get().get())
+                                            .sortBy(io.vavr.collection.List.of(new SearchBody.SortBy("id",
+                                                                                                     SearchBody.SortBy.Direction.ASC)))
                                             .build();
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+    }
+
+    @Test
+    public void searchItemsAsPostWithSortBy() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("features[0].properties.version", "F");
+        ItemSearchBody body = ItemSearchBody.builder()
+                                            .sortBy(io.vavr.collection.List.of(new SearchBody.SortBy("version",
+                                                                                                     SearchBody.SortBy.Direction.DESC)))
+                                            .limit(2)
+                                            .build();
+        performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
+
+        customizer = customizer().expectStatusOk();
+        customizer.expectValue("features[0].properties.version", "01");
+        body = ItemSearchBody.builder()
+                             .sortBy(io.vavr.collection.List.of(new SearchBody.SortBy("version",
+                                                                                      SearchBody.SortBy.Direction.ASC)))
+                             .limit(2)
+                             .build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
