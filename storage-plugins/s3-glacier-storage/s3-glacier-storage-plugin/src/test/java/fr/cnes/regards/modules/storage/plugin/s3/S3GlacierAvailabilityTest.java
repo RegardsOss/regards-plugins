@@ -45,7 +45,7 @@ import java.util.UUID;
  * @author Stephane Cortine
  */
 @RunWith(MockitoJUnitRunner.class)
-public class S3ClacierAvailabilityTest {
+public class S3GlacierAvailabilityTest {
 
     private final String END_POINT_S3_GLACIER = "http://minio.cs:80";
 

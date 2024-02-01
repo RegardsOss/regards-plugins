@@ -7,9 +7,11 @@ import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadExceptio
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Plugins that simulate CNES datalake access
@@ -24,33 +26,26 @@ import java.io.InputStream;
         url = "https://regardsoss.github.io/")
 public class S3GlacierPluginMock extends S3Glacier {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(S3GlacierPluginMock.class);
+    private static final Logger LOGGER = getLogger(S3GlacierPluginMock.class);
+
+    @Autowired
+    private S3MockService s3MockService;
 
     @Override
     public InputStream download(FileReferenceWithoutOwnersDto fileReference)
         throws NearlineFileNotAvailableException, NearlineDownloadException {
-        DatalakeStorageStatus status = DatalakeStorageStatus.getStatusOf(fileReference);
-        LOGGER.info("[S3-MOCK] Try to download {} which is stored in {}",
-                    fileReference.getMetaInfo().getFileName(),
-                    status);
-        return switch (status) {
-            case T2, T3_RESTORED -> super.download(fileReference);
-            case T3 -> throw new NearlineFileNotAvailableException("T3 file not downloadable");
-            case NONE -> throw new NearlineDownloadException(" Not T3 or T2 file : " + fileReference.getMetaInfo()
-                                                                                                    .getFileName());
-        };
+        LOGGER.info("[S3-GLACIER-MOCK-PLUGIN] ask download of file {}", fileReference.getLocation().getUrl());
+        s3MockService.throwIfCannotDownload(fileReference);
+        return super.download(fileReference);
     }
 
     @Override
     public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
-        DatalakeStorageStatus status = DatalakeStorageStatus.getStatusOf(fileReference);
-        LOGGER.info("[S3-MOCK] Check availability of {} which is stored in {}",
-                    fileReference.getMetaInfo().getFileName(),
-                    status);
-        return switch (status) {
-            case T2 -> new NearlineFileStatusDto(true, null, null);
-            case T3_RESTORED -> new NearlineFileStatusDto(false, null, "This file is on T2 and needs to be restored");
-            default -> new NearlineFileStatusDto(false, null, "Not on T2");
-        };
+        LOGGER.info("[S3-GLACIER-MOCK-PLUGIN] check availability of file {}", fileReference.getLocation().getUrl());
+        NearlineFileStatusDto nearlineFileStatusDto = s3MockService.checkAvailability(this, fileReference);
+        if (nearlineFileStatusDto == null) {
+            nearlineFileStatusDto = super.checkAvailability(fileReference);
+        }
+        return nearlineFileStatusDto;
     }
 }
