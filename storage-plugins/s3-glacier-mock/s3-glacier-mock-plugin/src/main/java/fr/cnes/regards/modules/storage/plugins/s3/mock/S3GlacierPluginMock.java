@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -42,10 +43,7 @@ public class S3GlacierPluginMock extends S3Glacier {
     @Override
     public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
         LOGGER.info("[S3-GLACIER-MOCK-PLUGIN] check availability of file {}", fileReference.getLocation().getUrl());
-        NearlineFileStatusDto nearlineFileStatusDto = s3MockService.checkAvailability(this, fileReference);
-        if (nearlineFileStatusDto == null) {
-            nearlineFileStatusDto = super.checkAvailability(fileReference);
-        }
-        return nearlineFileStatusDto;
+        Optional<NearlineFileStatusDto> nearlineFileStatusDto = s3MockService.checkAvailability(fileReference);
+        return nearlineFileStatusDto.orElseGet(() -> super.checkAvailability(fileReference));
     }
 }

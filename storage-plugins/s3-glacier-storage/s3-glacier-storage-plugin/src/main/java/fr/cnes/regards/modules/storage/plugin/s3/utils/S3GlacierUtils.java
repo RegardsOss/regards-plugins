@@ -349,7 +349,7 @@ public class S3GlacierUtils {
      * Creates temporary extraction directory dir from archive file name.
      * If archive file name is <b>date.zip</b> so temp dir is <b>rs_zip_date</b>
      */
-    public static String createBuildDirectoryFromArchiveName(String archiveName) {
+    public static String computePathOfBuildDirectoryFromArchiveName(String archiveName) {
         return S3Glacier.BUILDING_DIRECTORY_PREFIX + archiveName.substring(0,
                                                                            archiveName.indexOf(S3Glacier.ARCHIVE_EXTENSION));
     }

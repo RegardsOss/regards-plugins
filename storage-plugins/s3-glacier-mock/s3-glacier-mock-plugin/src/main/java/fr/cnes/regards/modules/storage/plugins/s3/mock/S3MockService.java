@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.storage.plugins.s3.mock;
 
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
-import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineDownloadException;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
 import fr.cnes.regards.modules.storage.dao.FileReferenceSpecification;
 import fr.cnes.regards.modules.storage.dao.ICacheFileRepository;
@@ -33,15 +32,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author tguillou
  */
+@Service
 public class S3MockService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3MockService.class);
@@ -65,7 +67,7 @@ public class S3MockService {
     }
 
     public void throwIfCannotDownload(FileReferenceWithoutOwnersDto fileReference)
-        throws NearlineFileNotAvailableException, NearlineDownloadException {
+        throws NearlineFileNotAvailableException {
         String checksum = fileReference.getMetaInfo().getChecksum();
         if (T3FileChecksums.contains(checksum)) {
             if (!restoredFileChecksums.contains(checksum)) {
@@ -82,20 +84,21 @@ public class S3MockService {
         }
     }
 
-    public NearlineFileStatusDto checkAvailability(S3GlacierPluginMock s3GlacierPluginMock,
-                                                   FileReferenceWithoutOwnersDto fileReference) {
+    public Optional<NearlineFileStatusDto> checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
         String checksum = fileReference.getMetaInfo().getChecksum();
         if (T3FileChecksums.contains(checksum)) {
             if (!restoredFileChecksums.contains(checksum)) {
                 // file on T3 not restored
-                return new NearlineFileStatusDto(false, null, "This file is on T3 and needs to be restored");
+                return Optional.of(new NearlineFileStatusDto(false,
+                                                             null,
+                                                             "This file is on T3 and needs to be restored"));
             } else {
                 // file on T3 restored, which will return available status to true
-                return s3GlacierPluginMock.checkAvailability(fileReference);
+                return Optional.empty();
             }
         } else {
             // file on T2, call real plugin, which will return available status to true
-            return s3GlacierPluginMock.checkAvailability(fileReference);
+            return Optional.empty();
         }
     }
 

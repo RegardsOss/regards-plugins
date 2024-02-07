@@ -57,9 +57,9 @@ public class CheckPendingActionTask implements LockServiceTask<Void> {
 
     @Override
     public Void run() {
-        String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(configuration.archivePath()
-                                                                                         .getFileName()
-                                                                                         .toString());
+        String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(configuration.archivePath()
+                                                                                                .getFileName()
+                                                                                                .toString());
         Path localFilePath = Path.of(configuration.workspacePath(),
                                      S3Glacier.ZIP_DIR,
                                      configuration.archivePath().getParent().resolve(dirName).toString(),

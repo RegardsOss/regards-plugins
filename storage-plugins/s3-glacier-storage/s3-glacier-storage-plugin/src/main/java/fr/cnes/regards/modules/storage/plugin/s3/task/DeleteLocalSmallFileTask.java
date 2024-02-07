@@ -75,7 +75,7 @@ public class DeleteLocalSmallFileTask implements LockServiceTask<Void> {
         if (smallFileName.isPresent()) {
 
             // Name of the directory
-            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
+            String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
             // Path of the directory in the workspace containing the file to delete if it's not the current directory
             Path localPath = localPathWithArchiveDelimiter.getParent().resolve(dirName).resolve(smallFileName.get());
 

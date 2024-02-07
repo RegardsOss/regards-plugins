@@ -86,7 +86,7 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
 
             Path archiveRelativePath = Path.of(archiveRelativePathAsString);
             String archiveName = archiveRelativePath.getFileName().toString();
-            String directoryName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
+            String directoryName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
             //Relative directory path : /subdir/rs_zip_archive
             Path relativeDirectoryPath = archiveRelativePath.getParent().resolve(directoryName);
 
