@@ -66,7 +66,7 @@ public class RetrieveLocalSmallFileTask extends AbstractRetrieveFileTask {
         Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
         if (smallFileName.isPresent()) {
-            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
+            String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
             Path localPath = localPathWithArchiveDelimiter.getParent().resolve(dirName).resolve(smallFileName.get());
             Path localPathCurrent = localPathWithArchiveDelimiter.getParent()
                                                                  .resolve(dirName + S3Glacier.CURRENT_ARCHIVE_SUFFIX)

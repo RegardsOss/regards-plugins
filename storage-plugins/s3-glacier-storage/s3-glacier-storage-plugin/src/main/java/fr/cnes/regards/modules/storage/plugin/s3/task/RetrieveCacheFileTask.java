@@ -77,7 +77,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         long start = System.currentTimeMillis();
 
         if (configuration.isSmallFile()) {
-            //Samll files
+            //Small files
             retrieveSmallFile();
         } else {
             //Big files
@@ -95,7 +95,6 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
     }
 
     private void retrieveSmallFile() {
-
         S3GlacierUtils.S3GlacierUrl fileInfos = S3GlacierUtils.dispatchS3FilePath(configuration.fileRelativePath()
                                                                                                .toString());
 
@@ -105,7 +104,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
         Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
         if (smallFileName.isPresent()) {
-            String dirName = S3GlacierUtils.createBuildDirectoryFromArchiveName(archiveName);
+            String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
             Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
             if (Files.exists(localPath)) {
                 copyFileAndHandleSuccess(localPath);

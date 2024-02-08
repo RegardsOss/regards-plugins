@@ -33,16 +33,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -879,6 +875,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
     }
 
+    private boolean isSmallFile(FileReferenceWithoutOwnersDto fileReference) {
+        S3GlacierUtils.S3GlacierUrl s3GlacierUrl = S3GlacierUtils.dispatchS3FilePath(fileReference.getLocation()
+                                                                                                  .getUrl());
+        return s3GlacierUrl.isSmallFileUrl();
+    }
+
     @Override
     public InputStream download(FileReferenceWithoutOwnersDto fileReference)
         throws NearlineFileNotAvailableException, NearlineDownloadException {
@@ -889,14 +891,22 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.warn(nearlineFileStatusDto.getMessage());
             throw new NearlineFileNotAvailableException(nearlineFileStatusDto.getMessage());
         }
+        Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
         try {
-            return DownloadUtils.getInputStreamFromS3Source(entryKey,
-                                                            storageConfiguration,
-                                                            new StorageCommandID(String.format("%d",
-                                                                                               fileReference.getId()),
-                                                                                 UUID.randomUUID()));
-        } catch (FileNotFoundException e) {
-            LOGGER.error(FILE + fileReference.getMetaInfo().getFileName() + " cannot be download : " + e.getMessage());
+            if (smallFilePathInWorkspace.isPresent()) {
+                // download small file
+                // don't manage any lock here, if file is not accessible, the download just fail here.
+                return Files.newInputStream(smallFilePathInWorkspace.get(), StandardOpenOption.READ);
+            } else {
+                // download big file
+                return DownloadUtils.getInputStreamFromS3Source(entryKey,
+                                                                storageConfiguration,
+                                                                new StorageCommandID(String.format("%d",
+                                                                                                   fileReference.getId()),
+                                                                                     UUID.randomUUID()));
+            }
+        } catch (IOException e) { // NOSONAR
+            LOGGER.error(FILE + fileReference.getMetaInfo().getFileName() + " cannot be download ", e);
             throw new NearlineDownloadException(FILE
                                                 + fileReference.getMetaInfo().getFileName()
                                                 + " cannot be download : "
@@ -908,8 +918,30 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
         boolean availability = false;
         OffsetDateTime dateExpiration = null;
-        String message;
+        // manage case of small files
+        if (isSmallFile(fileReference)) {
+            Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
+            NearlineFileStatusDto status;
+            if (smallFilePathInWorkspace.isPresent()) {
+                LOGGER.debug("Small file available : {}", fileReference.getLocation().getUrl());
+                status = new NearlineFileStatusDto(true,
+                                                   null,
+                                                   "Small file "
+                                                   + fileReference.getMetaInfo().getFileName()
+                                                   + " is available.");
+            } else {
+                LOGGER.debug("Small file not available : {}", fileReference.getLocation().getUrl());
+                status = new NearlineFileStatusDto(false,
+                                                   null,
+                                                   "Small file "
+                                                   + fileReference.getMetaInfo().getFileName()
+                                                   + " is not available.");
+            }
+            return status;
+        }
 
+        // case of big files
+        String message;
         GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
                                                                         getEntryKey(fileReference),
                                                                         standardStorageClassName).block();
@@ -933,6 +965,41 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
 
         return new NearlineFileStatusDto(availability, dateExpiration, message);
+    }
+
+    private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference) {
+        Path s3FilePath = getServerPath().relativize(Path.of(fileReference.getLocation().getUrl()));
+        S3GlacierUtils.S3GlacierUrl fileInfo = S3GlacierUtils.dispatchS3FilePath(s3FilePath.toString());
+        if (fileReference.getLocation().isPendingActionRemaining()) {
+            // action remaining means that archive containing the small file isn't sent to S3 yet.
+            // so, we check in archive building workspace path (/zip) if file is present.
+            return findSmallFilePathInWorkspace(fileInfo, getArchiveBuildingWorkspacePath());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Path> findSmallFilePathInWorkspace(S3GlacierUtils.S3GlacierUrl fileInfos, String path) {
+        String relativeArchivePath = fileInfos.archiveFilePath();
+        Path archiveCachePath = Path.of(path, relativeArchivePath);
+        String archiveName = archiveCachePath.getFileName().toString();
+        Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
+
+        if (smallFileName.isPresent()) {
+            String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
+            Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
+            if (Files.exists(localPath)) {
+                return Optional.of(localPath);
+            }
+            // check in _current folder
+            Path localPathWithCurrent = archiveCachePath.getParent()
+                                                        .resolve(dirName.concat(CURRENT_ARCHIVE_SUFFIX))
+                                                        .resolve(smallFileName.get());
+            if (Files.exists(localPathWithCurrent)) {
+                return Optional.of(localPathWithCurrent);
+            }
+        }
+        // in all other cases return empty
+        return Optional.empty();
     }
 
     private RetrieveCacheFileTaskConfiguration createRetrieveCacheFileTaskConfiguration(Path fileRelativePath,

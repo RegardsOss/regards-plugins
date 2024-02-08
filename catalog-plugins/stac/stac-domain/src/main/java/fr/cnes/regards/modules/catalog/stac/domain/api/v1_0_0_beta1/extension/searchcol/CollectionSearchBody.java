@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol;
 
+import com.google.gson.annotations.SerializedName;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
@@ -57,6 +58,7 @@ public class CollectionSearchBody {
 
     Map<String, SearchBody.QueryObject> query;
 
+    @SerializedName(value = "sortby", alternate = { "sortBy" })
     List<SearchBody.SortBy> sortBy;
 
     // Item search body
