@@ -112,10 +112,6 @@ public class S3GlacierUtils {
             LOGGER.info("A restoration process is already in progress for key {}", key);
             return new RestoreResponse(RestoreStatus.SUCCESS);
         }
-        if (response.status().equals(RestoreStatus.RESTORE_ALREADY_IN_PROGRESS)) {
-            LOGGER.info("A restoration process is already in progress for key {}", key);
-            return new RestoreResponse(RestoreStatus.SUCCESS);
-        }
         return response;
 
     }
