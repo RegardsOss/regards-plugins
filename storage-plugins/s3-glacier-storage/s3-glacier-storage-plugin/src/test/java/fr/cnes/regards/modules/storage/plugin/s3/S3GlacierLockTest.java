@@ -486,8 +486,7 @@ public class S3GlacierLockTest {
                                                                                                           local,
                                                                                                           archiveName);
         return new FileCacheRequestDto(1L,
-                                       "groupId",
-
+                                       Set.of("groupId"),
                                        fileReferenceWithoutOwnersDto,
                                        fileReferenceWithoutOwnersDto.getChecksum(),
                                        fileReferenceWithoutOwnersDto.getOriginStorage(),
