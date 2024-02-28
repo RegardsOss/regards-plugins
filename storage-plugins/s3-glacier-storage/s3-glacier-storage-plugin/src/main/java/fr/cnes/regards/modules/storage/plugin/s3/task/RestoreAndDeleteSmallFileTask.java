@@ -28,7 +28,6 @@ import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.DeleteLocalSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.RestoreAndDeleteSmallFileTaskConfiguration;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreResponse;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.RestoreStatus;
 import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
 import org.slf4j.Logger;
 
@@ -109,32 +108,50 @@ public class RestoreAndDeleteSmallFileTask implements LockServiceTask<Void> {
                                                                              archiveRelativePathAsString,
                                                                              configuration.standardStorageClassName(),
                                                                              null);
-                    if (restoreResponse.status().equals(RestoreStatus.KEY_NOT_FOUND)) {
-                        LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
-                                    + "considered successful", request.getFileReference().getLocation().getUrl());
-                        progressManager.deletionSucceed(request);
-                        return null;
-                    }
 
-                    if (restoreResponse.status().equals(RestoreStatus.CLIENT_EXCEPTION)) {
-                        LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-                        progressManager.deletionFailed(request, "Unable to reach S3 server");
-                        return null;
-                    }
-                    if (!restoreResponse.status().equals(RestoreStatus.FILE_AVAILABLE)) {
-                        // Launch check restoration process
-                        boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
-                                                                               archivePathInCache);
-                        if (!restorationComplete) {
-                            progressManager.deletionFailed(request,
-                                                           String.format(
-                                                               "Unable to restore the archive %s containing the "
-                                                               + "file to delete",
-                                                               archiveRelativePathAsString));
+                    switch (restoreResponse.status()) {
+                        case KEY_NOT_FOUND -> {
+                            LOGGER.warn("The file to delete {} was not found on the server, the deletion will be "
+                                        + "considered successful", request.getFileReference().getLocation().getUrl());
+                            progressManager.deletionSucceed(request);
                             return null;
+                        }
+                        case CLIENT_EXCEPTION -> {
+                            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
+                            progressManager.deletionFailed(request, "Unable to reach S3 server");
+                            return null;
+                        }
+                        case FILE_AVAILABLE -> {
+                            // The archive is already available, just download it
+                            boolean success = S3GlacierUtils.downloadFile(archivePathInCache,
+                                                                          archiveRelativePathAsString,
+                                                                          configuration.storageConfiguration(),
+                                                                          null);
+                            if (!success) {
+                                progressManager.deletionFailed(request,
+                                                               String.format(
+                                                                   "Unable to download the archive %s containing the "
+                                                                   + "file to delete",
+                                                                   archiveRelativePathAsString));
+                                return null;
+                            }
+                        }
+                        default -> {
+                            // Launch check restoration process
+                            boolean restorationComplete = checkRestorationComplete(archiveRelativePathAsString,
+                                                                                   archivePathInCache);
+                            if (!restorationComplete) {
+                                progressManager.deletionFailed(request,
+                                                               String.format(
+                                                                   "Unable to restore the archive %s containing the "
+                                                                   + "file to delete",
+                                                                   archiveRelativePathAsString));
+                                return null;
+                            }
                         }
                     }
                 }
+
                 // Unzip the restored archive in the plugin workspace cache directory
                 // The extracted directory will be used to create the updated archive
                 // The presence of the files here allow the directory to be used to both restore the files and create
