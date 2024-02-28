@@ -286,6 +286,7 @@ public abstract class AbstractS3GlacierIT {
         switch (clientType) {
             case MockedS3ClientWithNoFileAvailable -> s3Client = new MockedS3ClientWithNoFileAvailable(scheduler);
             case MockedS3ClientWithoutRestore -> s3Client = new MockedS3ClientWithoutRestore(scheduler);
+            case MockedS3ClientAlreadyAvailable -> s3Client = new MockedS3ClientAlreadyAvailable(scheduler);
             case MockedS3Client -> s3Client = new MockedS3Client(scheduler);
             default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
         }
@@ -894,6 +895,20 @@ public abstract class AbstractS3GlacierIT {
         }
     }
 
+    private static class MockedS3ClientAlreadyAvailable extends MockedS3Client {
+
+        public MockedS3ClientAlreadyAvailable(Scheduler scheduler) {
+            super(scheduler);
+        }
+
+        @Override
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+                                                       String key,
+                                                       String standardStorageClassName) {
+            return Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, ZonedDateTime.now()));
+        }
+    }
+
     private static class MockedS3ClientWithoutRestore extends MockedS3Client {
 
         public MockedS3ClientWithoutRestore(Scheduler scheduler) {
@@ -948,6 +963,10 @@ public abstract class AbstractS3GlacierIT {
     }
 
     protected enum MockedS3ClientType {
-        MockedS3Client, MockedS3ClientWithoutRestore, MockedS3ClientWithNoFileAvailable, S3Client;
+        S3Client,
+        MockedS3Client,
+        MockedS3ClientWithoutRestore,
+        MockedS3ClientWithNoFileAvailable,
+        MockedS3ClientAlreadyAvailable
     }
 }

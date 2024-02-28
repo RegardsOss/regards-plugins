@@ -342,7 +342,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
     @Test
     @Purpose("Test that a big file that is not already present in the glacier is correctly retrieved after being "
              + "restored in external cache")
-    public void test_big_restore_glacier_externalCache() throws URISyntaxException, IOException {
+    public void test_big_restore_glacier_externalCache() throws URISyntaxException {
         // Given
         loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH, MockedS3ClientType.S3Client, false, true);
 

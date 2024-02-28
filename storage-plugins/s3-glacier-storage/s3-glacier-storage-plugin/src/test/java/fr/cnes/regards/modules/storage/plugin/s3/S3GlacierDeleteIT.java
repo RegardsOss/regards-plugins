@@ -177,7 +177,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
     }
 
     @Test
-    @Purpose("Test that a small file archived is correctly restored, then extracted and the file is then deleted")
+    @Purpose("Test that a small file archive is correctly restored, then extracted and the file is then deleted")
     public void test_restore_then_delete_small_file() throws IOException, URISyntaxException, NoSuchAlgorithmException {
         // Given
         loadPlugin(endPoint, region, key, secret, BUCKET_OUTPUT, ROOT_PATH);
@@ -198,6 +198,54 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         writeFileOnStorage(writeCmd);
 
         // When
+        FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
+                                                                      fileChecksum,
+                                                                      fileSize,
+                                                                      nodeName,
+                                                                      archiveName,
+                                                                      false);
+
+        FileDeletionRequestDto request = getFileDeletionRequestDto(reference);
+        FileDeletionWorkingSubset workingSubset = new FileDeletionWorkingSubset(List.of(request));
+        s3Glacier.delete(workingSubset, progressManager);
+
+        //Then
+        checkDeletionOfOneFileSuccessWithPending(progressManager, fileName2, fileChecksum, nodeName, archiveName);
+    }
+
+    @Test
+    @Purpose("Test that a small file archive present in an already restored archive is downloaded then extracted and "
+             + "the file is then deleted")
+    public void test_delete_small_file_already_restored()
+        throws IOException, URISyntaxException, NoSuchAlgorithmException {
+        // Given
+        loadPlugin(endPoint,
+                   region,
+                   key,
+                   secret,
+                   BUCKET_OUTPUT,
+                   ROOT_PATH,
+                   MockedS3ClientType.MockedS3ClientAlreadyAvailable,
+                   false,
+                   false);
+        TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
+
+        String fileName = "smallFile1.txt";
+        String fileName2 = "smallFile2.txt";
+        String fileChecksum = "83e93a40da8ad9e6ed0ab9ef852e7e39";
+        long fileSize = 446L;
+        String nodeName = "deep/dir/testNode";
+
+        // Create the archive that contain the file to retrieve
+        String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
+
+        StorageCommand.Write writeCmd = createTestArchiveAndBuildWriteCmd(List.of(fileName, fileName2),
+                                                                          nodeName,
+                                                                          archiveName);
+        writeFileOnStorage(writeCmd);
+
+        // When
+
         FileReferenceWithoutOwnersDto reference = createFileReference(fileName,
                                                                       fileChecksum,
                                                                       fileSize,
