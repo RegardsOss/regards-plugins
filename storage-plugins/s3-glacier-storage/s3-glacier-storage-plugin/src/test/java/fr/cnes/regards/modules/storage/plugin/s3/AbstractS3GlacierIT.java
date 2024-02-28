@@ -423,7 +423,7 @@ public abstract class AbstractS3GlacierIT {
                                                                       archiveName,
                                                                       pendingActionRemaining);
         FileCacheRequestDto request = new FileCacheRequestDto(random.nextLong(),
-                                                              "test-group-id",
+                                                              Set.of("test-group-id"),
                                                               reference,
                                                               fileChecksum,
                                                               "storage",
