@@ -34,11 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("s3-plugin-mock")
 public class S3GlacierMockController {
 
-    public static final String RESTORE = "/file/{namePattern}/restore";
+    public static final String RESTORE_ENDPOINT = "/file/{namePattern}/restore";
 
-    public static final String TO_T3 = "/file/{namePattern}/toT3";
+    public static final String TO_T3_ENDPOINT = "/file/{namePattern}/toT3";
 
-    public static final String SET_EXPIRED = "/file/{namePattern}/setExpired";
+    public static final String SET_EXPIRED_ENDPOINT = "/file/{namePattern}/setExpired";
 
     private final S3MockService s3MockService;
 
@@ -46,19 +46,19 @@ public class S3GlacierMockController {
         this.s3MockService = s3MockService;
     }
 
-    @GetMapping(path = RESTORE)
+    @GetMapping(path = RESTORE_ENDPOINT)
     public ResponseEntity<Void> restore(@PathVariable String namePattern) {
         s3MockService.restoreWithFileName(namePattern);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(path = TO_T3)
+    @GetMapping(path = TO_T3_ENDPOINT)
     public ResponseEntity<Void> toT3(@PathVariable String namePattern) {
         s3MockService.T2toT3forFileWithName(namePattern);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(path = SET_EXPIRED)
+    @GetMapping(path = SET_EXPIRED_ENDPOINT)
     public ResponseEntity<Void> setExpired(@PathVariable String namePattern) {
         s3MockService.setExpiredDateToFileWithName(namePattern);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
