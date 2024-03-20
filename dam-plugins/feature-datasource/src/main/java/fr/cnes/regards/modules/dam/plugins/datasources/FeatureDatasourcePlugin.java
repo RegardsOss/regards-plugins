@@ -21,10 +21,11 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 import fr.cnes.regards.framework.feign.security.FeignSecurityManager;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
+import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.PluginOverridenParamType;
 import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
-import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalDataSourcePlugin;
+import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalGeoJsonDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
 import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
 import fr.cnes.regards.modules.feature.dto.*;
@@ -70,7 +71,7 @@ import java.util.concurrent.ConcurrentHashMap;
         license = "GPLv3",
         owner = "CSSI",
         url = "https://github.com/RegardsOss")
-public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
+public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureDatasourcePlugin.class);
 
@@ -99,7 +100,8 @@ public class FeatureDatasourcePlugin implements IInternalDataSourcePlugin {
 
     @PluginParameter(name = DataSourcePluginConstants.MODEL_NAME_PARAM,
                      label = "Model name",
-                     description = "Associated data source model name")
+                     description = "Associated data source model name",
+                     type = PluginOverridenParamType.REGARDS_ENTITY_MODEL)
     protected String modelName;
 
     @Value("${prefix.path}")
