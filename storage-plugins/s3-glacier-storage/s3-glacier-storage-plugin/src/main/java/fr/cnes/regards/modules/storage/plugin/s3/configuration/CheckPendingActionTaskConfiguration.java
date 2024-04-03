@@ -18,7 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.configuration;
 
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 
 import java.nio.file.Path;
 
@@ -29,6 +29,6 @@ public record CheckPendingActionTaskConfiguration(String url,
                                                   Path archivePath,
                                                   String fileName,
                                                   String workspacePath,
-                                                  StorageConfig storageConfig) {
+                                                  StorageConfigDto storageConfig) {
 
 }

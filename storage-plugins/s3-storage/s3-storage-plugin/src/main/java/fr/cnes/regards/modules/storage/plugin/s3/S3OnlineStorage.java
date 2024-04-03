@@ -3,8 +3,8 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.storage.plugin.s3.dto.S3StorageConfigurationDTO;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
@@ -68,8 +68,8 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
     }
 
     @Override
-    public AbstractStoragePluginConfigurationDto createWorkerStoreConfiguration() {
-        return new S3StorageConfigurationDTO(allowPhysicalDeletion, multipartThresholdMb, nbParallelPartsUpload);
+    public IStoragePluginConfigurationDto createWorkerStoreConfiguration() {
+        return new S3StorageConfigurationDTO(storageConfiguration, multipartThresholdMb, nbParallelPartsUpload);
     }
 
 }

@@ -24,6 +24,7 @@ import ch.qos.logback.core.read.ListAppender;
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileRestorationWorkingSubset;
@@ -298,7 +299,8 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         // Create the archive that contain the file to retrieve
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
-        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+                                                      Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
         Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath,
@@ -355,7 +357,8 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         // Create the archive that contain the file to retrieve
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
-        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+                                                      Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
         Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath,
@@ -403,7 +406,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(0, progressManager.getRestoreFailed().size());
 
         Assertions.assertEquals(fileSize, progressManager.getFileSize());
-        Assertions.assertEquals(s3Glacier.storageConfiguration.entryKeyUrl(entryKey),
+        Assertions.assertEquals(StorageConfigUtils.entryKeyUrl(s3Glacier.storageConfiguration, entryKey),
                                 progressManager.getRestoredFileUrl());
         Assertions.assertNull(progressManager.getExpirationDate());
 

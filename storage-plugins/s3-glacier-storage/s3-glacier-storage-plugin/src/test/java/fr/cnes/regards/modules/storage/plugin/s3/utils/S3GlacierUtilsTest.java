@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.utils;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,8 +55,8 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#isFileAvailable(StorageConfig, String, String)} returns AVAILABLE.
-     * Method {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String, String, Integer)}
+     * Method {@link S3HighLevelReactiveClient#isFileAvailable(StorageConfigDto, String, String)} returns AVAILABLE.
+     * Method {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfigDto, String, String, Integer)}
      * returns FILE_AVAILABLE
      */
     @Test
@@ -80,8 +80,8 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#isFileAvailable(StorageConfig, String, String)} returns RESTORE_PENDING.
-     * Method {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String, String, Integer)}
+     * Method {@link S3HighLevelReactiveClient#isFileAvailable(StorageConfigDto, String, String)} returns RESTORE_PENDING.
+     * Method {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfigDto, String, String, Integer)}
      * returns SUCCESS
      */
     @Test
@@ -105,7 +105,7 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#restore(StorageConfig, String, Integer)} returns RESTORE_ALREADY_IN_PROGRESS.
+     * Method {@link S3HighLevelReactiveClient#restore(StorageConfigDto, String, Integer)} returns RESTORE_ALREADY_IN_PROGRESS.
      */
     @Test
     public void test_restore_SUCCESS_after_RESTORE_ALREADY_IN_PROGRESS() {
@@ -117,7 +117,7 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#restore(StorageConfig, String, Integer)} returns S3Exception.
+     * Method {@link S3HighLevelReactiveClient#restore(StorageConfigDto, String, Integer)} returns S3Exception.
      */
     @Test
     public void test_restore_CLIENT_EXCEPTION_after_S3Exception() {
@@ -129,7 +129,7 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#restore(StorageConfig, String, Integer)} returns WRONG_STORAGE_CLASS.
+     * Method {@link S3HighLevelReactiveClient#restore(StorageConfigDto, String, Integer)} returns WRONG_STORAGE_CLASS.
      */
     @Test
     public void test_restore_FILE_AVAILABLE_after_WRONG_STORAGE_CLASS() {
@@ -141,7 +141,7 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#restore(StorageConfig, String, Integer)} returns NoSuchKeyException.
+     * Method {@link S3HighLevelReactiveClient#restore(StorageConfigDto, String, Integer)} returns NoSuchKeyException.
      */
     @Test
     public void test_restore_KEY_NOT_FOUND_after_NoSuchKeyException() {
@@ -153,7 +153,7 @@ public class S3GlacierUtilsTest {
     }
 
     /**
-     * Method {@link S3HighLevelReactiveClient#restore(StorageConfig, String, Integer)} returns S3ClientException.
+     * Method {@link S3HighLevelReactiveClient#restore(StorageConfigDto, String, Integer)} returns S3ClientException.
      */
     @Test
     public void test_restore_CLIENT_EXCEPTION_after_S3ClientException() {

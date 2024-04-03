@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
@@ -57,7 +58,7 @@ import java.util.zip.ZipInputStream;
  **/
 @SpringBootTest
 public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
-    
+
     @Test
     @Purpose("Test that an archive is correctly sent when it is closed (not _current)")
     public void test_periodic_save_full_archive() throws IOException, URISyntaxException {
@@ -479,9 +480,9 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         Files.createSymbolicLink(symbolicLinkSourcePath, emptyDirPath);
 
         Assertions.assertTrue(Files.exists(emptyDirPath), "The building directory should exist");
-        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName,
-                                                                          archiveName + S3Glacier.ARCHIVE_EXTENSION)
-                                                                      .toString());
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+                                                      Path.of(nodeName, archiveName + S3Glacier.ARCHIVE_EXTENSION)
+                                                          .toString());
         Assertions.assertTrue(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
                               "The archive should exist on the server");
 

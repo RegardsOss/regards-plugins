@@ -23,6 +23,7 @@ import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageEntry;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
@@ -191,9 +192,8 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
 
             // Saving archive information
             progressManager.archiveStored(configuration.storageName(),
-                                          configuration.storageConfiguration()
-                                                       .entryKeyUrl(archivePathOnStorage)
-                                                       .toString(),
+                                          StorageConfigUtils.entryKeyUrl(configuration.storageConfiguration(),
+                                                                         archivePathOnStorage).toString(),
                                           checksum,
                                           fileSize);
         } catch (NoSuchAlgorithmException e) {
@@ -248,9 +248,10 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
                                  boolean storageSuccess) {
         filesList.forEach(file -> {
             if (storageSuccess) {
-                URL storedFileUrl = configuration.storageConfiguration()
-                                                 .entryKeyUrl(S3GlacierUtils.createSmallFilePath(archivePathOnStorage,
-                                                                                                 file.getName()));
+                URL storedFileUrl = StorageConfigUtils.entryKeyUrl(configuration.storageConfiguration(),
+                                                                   S3GlacierUtils.createSmallFilePath(
+                                                                       archivePathOnStorage,
+                                                                       file.getName()));
                 progressManager.storagePendingActionSucceed(storedFileUrl.toString());
             } else {
                 progressManager.storagePendingActionError(file.toPath());

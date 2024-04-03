@@ -20,7 +20,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.configuration;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -36,7 +36,7 @@ public record RestoreAndDeleteSmallFileTaskConfiguration(Path fileRelativePath,
                                                          String archiveBuildingWorkspacePath,
                                                          Path node,
                                                          String storageName,
-                                                         StorageConfig storageConfiguration,
+                                                         StorageConfigDto storageConfiguration,
                                                          S3HighLevelReactiveClient s3Client,
                                                          int s3AccessTimeout,
                                                          String lockName,

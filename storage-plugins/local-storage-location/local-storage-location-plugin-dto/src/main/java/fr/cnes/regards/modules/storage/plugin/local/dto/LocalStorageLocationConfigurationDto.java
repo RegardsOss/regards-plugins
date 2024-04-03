@@ -18,58 +18,26 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local.dto;
 
-import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
 
 /**
  * Configuration DTO for Local Storage Plugin
  *
  * @author Thibaud Michaudel
  **/
-public class LocalStorageLocationConfigurationDto extends AbstractStoragePluginConfigurationDto {
+public class LocalStorageLocationConfigurationDto implements IStoragePluginConfigurationDto {
 
     /**
      * Root directory where to store new files on this location
      */
     private String baseStorageLocationAsString;
 
-    /**
-     * If deletion is allowed, files are physically deleted else files are only removed from references
-     */
-    private Boolean allowPhysicalDeletion;
-
-    /**
-     * When storing a new file in this location, if the file size is less than this value, so the file is stored with other "small files" in a zip archive. The size is in octets.
-     */
-    private Long maxFileSizeForZip;
-
-    /**
-     * When storing a new file in this location, "small" files are stored in a zip archive which maximum size is configurable thanks this property. The size is in octets.
-     */
-    private Long maxZipSize;
-
-    public LocalStorageLocationConfigurationDto(Boolean allowPhysicalDeletion,
-                                                String baseStorageLocationAsString,
-                                                Long maxFileSizeForZip,
-                                                Long maxZipSize) {
-        super(allowPhysicalDeletion);
+    public LocalStorageLocationConfigurationDto(String baseStorageLocationAsString) {
         this.baseStorageLocationAsString = baseStorageLocationAsString;
-        this.maxFileSizeForZip = maxFileSizeForZip;
-        this.maxZipSize = maxZipSize;
     }
 
     public String getBaseStorageLocationAsString() {
         return baseStorageLocationAsString;
     }
 
-    public Boolean getAllowPhysicalDeletion() {
-        return allowPhysicalDeletion;
-    }
-
-    public Long getMaxFileSizeForZip() {
-        return maxFileSizeForZip;
-    }
-
-    public Long getMaxZipSize() {
-        return maxZipSize;
-    }
 }

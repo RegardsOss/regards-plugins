@@ -27,8 +27,8 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
@@ -665,11 +665,8 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public AbstractStoragePluginConfigurationDto createWorkerStoreConfiguration() {
-        return new LocalStorageLocationConfigurationDto(allowPhysicalDeletion,
-                                                        baseStorageLocationAsString,
-                                                        maxFileSizeForZip,
-                                                        maxZipSize);
+    public IStoragePluginConfigurationDto createWorkerStoreConfiguration() {
+        return new LocalStorageLocationConfigurationDto(baseStorageLocationAsString);
     }
 
     private static class RegardsIS extends InputStream {

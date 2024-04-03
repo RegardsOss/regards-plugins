@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.s3.domain.StorageCommand;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileRequestStatus;
@@ -147,7 +148,8 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
-        String entryKey = s3Glacier.storageConfiguration.entryKey(Path.of(nodeName, fileName).toString());
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+                                                      Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
         FileReferenceWithoutOwnersDto reference = createFileReference(createFileStorageRequestAggregation(nodeName,

@@ -23,7 +23,7 @@ import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
@@ -80,7 +80,7 @@ public class S3GlacierUtils {
      * @param availabilityHours lifetime of file in hours
      */
     public static RestoreResponse restore(S3HighLevelReactiveClient s3Client,
-                                          StorageConfig config,
+                                          StorageConfigDto config,
                                           String key,
                                           String standardStorageClassName,
                                           @Nullable Integer availabilityHours) {
@@ -158,7 +158,7 @@ public class S3GlacierUtils {
      * @return GlacierFileStatus
      */
     public static GlacierFileStatus checkRestorationComplete(String key,
-                                                             StorageConfig s3Configuration,
+                                                             StorageConfigDto s3Configuration,
                                                              int s3AccessTimeoutInSeconds,
                                                              String lockName,
                                                              Instant lockCreationDate,
@@ -263,7 +263,7 @@ public class S3GlacierUtils {
      */
     public static GlacierFileStatus downloadAfterRestoreFile(Path targetFilePath,
                                                              String key,
-                                                             StorageConfig s3Configuration,
+                                                             StorageConfigDto s3Configuration,
                                                              int s3AccessTimeoutInSeconds,
                                                              String lockName,
                                                              Instant lockCreationDate,
@@ -286,7 +286,7 @@ public class S3GlacierUtils {
 
         if (glacierFileStatus.getStatus() == RestorationStatus.AVAILABLE) {
             String downloadedFileName = targetFilePath.getFileName().toString();
-            
+
             try {
                 if (!downloadFile(targetFilePath, key, s3Configuration, "S3GlacierRestore_" + downloadedFileName)) {
                     return new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE,
@@ -307,7 +307,7 @@ public class S3GlacierUtils {
      */
     public static boolean downloadFile(Path targetFilePath,
                                        String key,
-                                       StorageConfig s3Configuration,
+                                       StorageConfigDto s3Configuration,
                                        @Nullable String taskId) {
         if (StringUtils.isBlank(taskId)) {
             taskId = "S3GlacierRestore_" + targetFilePath.getFileName().toString();

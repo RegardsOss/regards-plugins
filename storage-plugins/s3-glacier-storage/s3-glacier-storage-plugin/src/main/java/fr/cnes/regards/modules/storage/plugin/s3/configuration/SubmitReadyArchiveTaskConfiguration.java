@@ -18,7 +18,7 @@ package fr.cnes.regards.modules.storage.plugin.s3.configuration;/*
  */
 
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 
 import java.nio.file.Path;
@@ -31,7 +31,7 @@ public record SubmitReadyArchiveTaskConfiguration(Path dirPath,
                                                   int archiveMaxAge,
                                                   String rootPath,
                                                   String storageName,
-                                                  StorageConfig storageConfiguration,
+                                                  StorageConfigDto storageConfiguration,
                                                   int multipartThresholdMb,
                                                   IPeriodicActionProgressManager progressManager,
                                                   String tenant,

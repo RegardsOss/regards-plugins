@@ -22,7 +22,6 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
@@ -75,8 +74,6 @@ public class S3GlacierMock extends S3Glacier {
         Field workspaceField = S3Glacier.class.getDeclaredField("workspacePath");
         workspaceField.setAccessible(true);
         workspaceField.set(this, "/tmp");
-        this.storageConfiguration = Mockito.mock(StorageConfig.class);
-        Mockito.when(this.storageConfiguration.entryKey(Mockito.any())).thenReturn("");
     }
 
     @Override

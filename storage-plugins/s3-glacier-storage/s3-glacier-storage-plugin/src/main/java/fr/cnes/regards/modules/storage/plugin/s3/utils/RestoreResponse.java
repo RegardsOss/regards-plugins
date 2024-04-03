@@ -20,10 +20,11 @@ package fr.cnes.regards.modules.storage.plugin.s3.utils;
 
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 
 /**
- * Response from {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfig, String, String) GlacierUtils restore}
+ * Response from {@link S3GlacierUtils#restore(S3HighLevelReactiveClient, StorageConfigDto, String, String, Integer)
+ * GlacierUtils restore}
  *
  * @author Thibaud Michaudel
  **/

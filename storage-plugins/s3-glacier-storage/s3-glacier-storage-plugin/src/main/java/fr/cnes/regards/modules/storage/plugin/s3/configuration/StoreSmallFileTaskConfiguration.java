@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3.configuration;
 
 import fr.cnes.regards.framework.s3.domain.S3Server;
-import fr.cnes.regards.framework.s3.domain.StorageConfig;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
  **/
 public record StoreSmallFileTaskConfiguration(String workspacePath,
                                               List<S3Server> storages,
-                                              StorageConfig s3Configuration,
+                                              StorageConfigDto s3Configuration,
                                               int archiveMaxSize,
                                               String rootPath) {
 

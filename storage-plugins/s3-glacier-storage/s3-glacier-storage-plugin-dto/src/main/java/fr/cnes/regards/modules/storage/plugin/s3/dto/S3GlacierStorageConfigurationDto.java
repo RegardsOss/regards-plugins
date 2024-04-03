@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3.dto;
 
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
 
 /**
@@ -69,7 +70,7 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
      */
     private String standardStorageClassName;
 
-    public S3GlacierStorageConfigurationDto(boolean allowPhysicalDeletion,
+    public S3GlacierStorageConfigurationDto(StorageConfigDto storageConfig,
                                             int multipartThresholdMb,
                                             int nbParallelPartsUpload,
                                             String rawWorkspacePath,
@@ -80,7 +81,7 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
                                             int archiveCacheLifetime,
                                             int s3AccessTimeout,
                                             String standardStorageClassName) {
-        super(allowPhysicalDeletion, multipartThresholdMb, nbParallelPartsUpload);
+        super(storageConfig, multipartThresholdMb, nbParallelPartsUpload);
         this.rawWorkspacePath = rawWorkspacePath;
         this.smallFileMaxSize = smallFileMaxSize;
         this.archiveMaxSize = archiveMaxSize;

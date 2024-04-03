@@ -28,7 +28,9 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.framework.s3.exception.ChecksumDoesntMatchException;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
@@ -156,7 +158,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     /**
      * Configuration of S3 server
      */
-    public StorageConfig storageConfiguration;
+    public StorageConfigDto storageConfiguration;
 
     @Autowired
     protected IRuntimeTenantResolver runtimeTenantResolver;
@@ -190,10 +192,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                 rootPath = rootPath.substring(0, rootPath.length() - 1);
             }
         }
-        storageConfiguration = StorageConfig.builder(endpoint, region, key, secret)
-                                            .bucket(bucket)
-                                            .rootPath(rootPath)
-                                            .build();
+        storageConfiguration = new StorageConfigBuilder(endpoint, region, key, secret).bucket(bucket)
+                                                                                      .rootPath(rootPath)
+                                                                                      .build();
 
         Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", conf.getBusinessId()), 10);
         int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
@@ -278,7 +279,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
 
             request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
 
-            String entryKey = storageConfiguration.entryKey(getEntryKey(request));
+            String entryKey = StorageConfigUtils.entryKey(storageConfiguration, getEntryKey(request));
 
             StorageEntry storageEntry = buildStorageEntry(request, entryKey, buffers);
 
@@ -303,8 +304,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                          .doOnSuccess(success -> {
                              LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
                              progressManager.storageSucceed(request,
-                                                            storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*",
-                                                                                                                   "")),
+                                                            StorageConfigUtils.entryKeyUrl(storageConfiguration,
+                                                                                           entryKey.replaceFirst("^/*",
+                                                                                                                 "")),
                                                             success.getSize());
                          })
                          .block();

@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3.task;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceTask;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
@@ -274,8 +275,8 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
         String storedSmallFilePath = S3GlacierUtils.createSmallFilePath(storedArchivePath,
                                                                         request.getMetaInfo().getFileName());
         progressManager.storageSucceedWithPendingActionRemaining(request,
-                                                                 configuration.s3Configuration()
-                                                                              .entryKeyUrl(storedSmallFilePath),
+                                                                 StorageConfigUtils.entryKeyUrl(configuration.s3Configuration(),
+                                                                                                storedSmallFilePath),
                                                                  realFileSize,
                                                                  false);
     }

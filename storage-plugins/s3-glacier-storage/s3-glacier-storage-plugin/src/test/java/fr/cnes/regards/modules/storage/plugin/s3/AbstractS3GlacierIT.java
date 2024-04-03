@@ -29,9 +29,11 @@ import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.s3.test.S3BucketTestUtils;
 import fr.cnes.regards.framework.s3.test.S3FileTestUtils;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.test.integration.RegardsSpringRunner;
 import fr.cnes.regards.framework.utils.file.ChecksumUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
@@ -372,7 +374,8 @@ public abstract class AbstractS3GlacierIT {
         Path testWorkspace = workspace.getRoot().toPath().resolve("test");
         Path archiveTestPath = createTestArchive(filesNames, nodeName, archiveName, testWorkspace);
 
-        String entryKey = s3Glacier.storageConfiguration.entryKey(testWorkspace.relativize(archiveTestPath).toString());
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+                                                      testWorkspace.relativize(archiveTestPath).toString());
         String checksum = ChecksumUtils.computeHexChecksum(archiveTestPath, S3Glacier.MD5_CHECKSUM);
         Long archiveSize = Files.size(archiveTestPath);
 
@@ -657,13 +660,12 @@ public abstract class AbstractS3GlacierIT {
     }
 
     protected InputStream downloadFromS3(String url) throws FileNotFoundException {
-        StorageConfig.builder(endPoint, region, key, secret);
         return DownloadUtils.getInputStreamFromS3Source(getEntryKey(url),
-                                                        StorageConfig.builder(new S3Server(endPoint,
-                                                                                           region,
-                                                                                           key,
-                                                                                           secret,
-                                                                                           bucket)).build(),
+                                                        new StorageConfigBuilder(new S3Server(endPoint,
+                                                                                              region,
+                                                                                              key,
+                                                                                              secret,
+                                                                                              bucket)).build(),
                                                         new StorageCommandID("downloadTest", UUID.randomUUID()));
     }
 
@@ -902,7 +904,7 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfigDto config,
                                                        String key,
                                                        String standardStorageClassName) {
             return Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, ZonedDateTime.now()));
@@ -916,7 +918,7 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<RestoreObjectResponse> restore(StorageConfig config, String key) {
+        public Mono<RestoreObjectResponse> restore(StorageConfigDto config, String key) {
             LOGGER.debug("Ignoring restore for key {}", key);
             return Mono.just(RestoreObjectResponse.builder().build());
         }
@@ -932,7 +934,7 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfigDto config,
                                                        String key,
                                                        String standardStorageClassName) {
             if (tryCount >= 2) {
@@ -955,7 +957,7 @@ public abstract class AbstractS3GlacierIT {
         }
 
         @Override
-        public Mono<GlacierFileStatus> isFileAvailable(StorageConfig config,
+        public Mono<GlacierFileStatus> isFileAvailable(StorageConfigDto config,
                                                        String key,
                                                        String standardStorageClassName) {
             return Mono.just(new GlacierFileStatus(RestorationStatus.NOT_AVAILABLE, 10L, ZonedDateTime.now()));

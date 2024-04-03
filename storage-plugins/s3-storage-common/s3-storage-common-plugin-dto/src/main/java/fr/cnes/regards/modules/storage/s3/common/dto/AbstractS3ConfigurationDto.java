@@ -18,31 +18,34 @@
  */
 package fr.cnes.regards.modules.storage.s3.common.dto;
 
-import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
+import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
 
 /**
  * Common Configuration DTO for S3 Storage Plugins
  *
  * @author Thibaud Michaudel
  **/
-public class AbstractS3ConfigurationDto extends AbstractStoragePluginConfigurationDto {
+public class AbstractS3ConfigurationDto implements IStoragePluginConfigurationDto {
+
+    protected final StorageConfigDto storageConfigDto;
 
     /**
      * Number of Mb for a file size over which multipart upload is used
      */
-    protected int multipartThresholdMb;
+    protected final int multipartThresholdMb;
 
     /**
      * Number of parallel parts to upload
      */
-    protected int nbParallelPartsUpload;
+    protected final int nbParallelPartsUpload;
 
-    public AbstractS3ConfigurationDto(boolean allowPhysicalDeletion,
+    public AbstractS3ConfigurationDto(StorageConfigDto storageConfigDto,
                                       int multipartThresholdMb,
                                       int nbParallelPartsUpload) {
-        super(allowPhysicalDeletion);
         this.multipartThresholdMb = multipartThresholdMb;
         this.nbParallelPartsUpload = nbParallelPartsUpload;
+        this.storageConfigDto = storageConfigDto;
     }
 
     public int getMultipartThresholdMb() {
@@ -51,5 +54,9 @@ public class AbstractS3ConfigurationDto extends AbstractStoragePluginConfigurati
 
     public int getNbParallelPartsUpload() {
         return nbParallelPartsUpload;
+    }
+
+    public StorageConfigDto getStorageConfigDto() {
+        return storageConfigDto;
     }
 }

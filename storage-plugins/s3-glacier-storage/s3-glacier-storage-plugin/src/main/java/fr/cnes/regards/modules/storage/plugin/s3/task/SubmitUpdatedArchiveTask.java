@@ -23,6 +23,7 @@ import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.framework.s3.exception.S3ClientException;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.configuration.SubmitReadyArchiveTaskConfiguration;
@@ -95,7 +96,8 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
                                                                          e)))
                                                                      .block();
             if (result != null) {
-                String archiveUrl = configuration.storageConfiguration().entryKeyUrl(entryKey).toString();
+                String archiveUrl = StorageConfigUtils.entryKeyUrl(configuration.storageConfiguration(), entryKey)
+                                                      .toString();
                 return result.matchDeleteResult(r -> this.onDeleteSuccess(r, dirPath, archiveUrl),
                                                 r -> this.onStorageUnreachable(r, archiveUrl),
                                                 r -> this.onDeleteFailure(r, archiveUrl));
