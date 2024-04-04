@@ -20,23 +20,16 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.timeline;
 
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder.*;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
-import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
-import fr.cnes.regards.modules.dam.domain.entities.StaticProperties;
-import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
-import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 
 @Service
@@ -59,19 +52,31 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
     private ConfigurationAccessorFactory configurationAccessorFactory;
 
     @Autowired
-    private StacSearchCriterionBuilder searchCriterionBuilder;
-
-    @Autowired
     private ICatalogSearchService catalogSearchService;
 
     @Autowired
     private PropertyExtractionService propertyExtractionService;
 
     @Autowired
-    private IdMappingService idMappingService;
+    private TimelineCriteriaHelper timelineCriteriaHelper;
 
     @Override
-    public TimelineByCollectionResponse buildCollectionsTimeline(TimelineFiltersByCollection timelineFiltersByCollection) {
+    public TimelineByCollectionResponse buildCollectionTimelines(TimelineFiltersByCollection timelineFiltersByCollection) {
+
+        java.util.List<TimelineByCollectionResponse.CollectionTimeline> collectionTimelines;
+
+        // Handle parallel computation of timelines
+        if (timelineFiltersByCollection.getMode().isParallel) {
+            collectionTimelines = buildParallelCollectionTimelines(timelineFiltersByCollection);
+        } else {
+            collectionTimelines = buildSimpleCollectionTimelines(timelineFiltersByCollection);
+        }
+
+        return new TimelineByCollectionResponse(collectionTimelines);
+    }
+
+    private java.util.List<TimelineByCollectionResponse.CollectionTimeline> buildSimpleCollectionTimelines(
+        TimelineFiltersByCollection timelineFiltersByCollection) {
 
         java.util.List<TimelineByCollectionResponse.CollectionTimeline> collectionTimelines = new ArrayList<>();
 
@@ -80,8 +85,6 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
             // Retrieve configured item properties
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
-
-            ICriterion itemCriteria = getTimelineCriteria(collectionFilters, itemStacProperties);
 
             // Set pagination context (considering first page, index 1 in STAC paradigm)
             List<SearchBody.SortBy> sortBy = List.of(new SearchBody.SortBy(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
@@ -93,77 +96,72 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
             // Init timeline builder
             TimelineBuilder timelineBuilder = switch (timelineFiltersByCollection.getMode()) {
                 case BINARY, BINARY_MAP -> new LegacyBinaryTimelineBuilder(catalogSearchService,
-                                                                           propertyExtractionService).withTwoManyResultsThreshold(
+                                                                           propertyExtractionService,
+                                                                           timelineCriteriaHelper).withTwoManyResultsThreshold(
                     twoManyResultsThreshold);
                 case HISTOGRAM, HISTOGRAM_MAP -> new LegacyHistogramTimelineBuilder(catalogSearchService,
-                                                                                    propertyExtractionService).withTwoManyResultsThreshold(
+                                                                                    propertyExtractionService,
+                                                                                    timelineCriteriaHelper).withTwoManyResultsThreshold(
                     twoManyResultsThreshold);
                 case ES_BINARY, ES_BINARY_MAP ->
                     new ElasticsearchBinaryTimelineBuilder(configurationAccessor.getHistogramProperyPath(),
-                                                           catalogSearchService);
+                                                           catalogSearchService,
+                                                           timelineCriteriaHelper);
                 case ES_HISTOGRAM, ES_HISTOGRAM_MAP ->
                     new ElasticsearchHistogramTimelineBuilder(configurationAccessor.getHistogramProperyPath(),
-                                                              catalogSearchService);
+                                                              catalogSearchService,
+                                                              timelineCriteriaHelper);
                 default -> throw new StacException(String.format("Unexpected timeline mode %s",
                                                                  timelineFiltersByCollection.getMode()),
                                                    null,
                                                    StacFailureType.TIMELINE_RETRIEVE_MODE);
             };
 
-            java.util.Map<String, Long> timeline = timelineBuilder.buildTimeline(itemCriteria,
-                                                                                 pageable,
-                                                                                 collectionFilters.getCollectionId(),
-                                                                                 itemStacProperties,
-                                                                                 expandDatetime(
-                                                                                     timelineFiltersByCollection.getFrom()),
-                                                                                 expandDatetime(
-                                                                                     timelineFiltersByCollection.getTo()),
-                                                                                 ZoneOffset.ofHours(
-                                                                                     timelineFiltersByCollection.getTimezone()));
-            collectionTimelines.add(formatTimelineOutput(timeline,
-                                                         collectionFilters.getCollectionId(),
-                                                         collectionFilters.getCorrelationId(),
-                                                         timelineFiltersByCollection.getMode()));
+            TimelineByCollectionResponse.CollectionTimeline timeline = timelineBuilder.buildTimeline(
+                timelineFiltersByCollection.getMode(),
+                collectionFilters,
+                pageable,
+                itemStacProperties,
+                expandDatetime(timelineFiltersByCollection.getFrom()),
+                expandDatetime(timelineFiltersByCollection.getTo()),
+                ZoneId.of(timelineFiltersByCollection.getTimezone()));
+            collectionTimelines.add(timeline);
         });
 
-        return new TimelineByCollectionResponse(collectionTimelines);
+        return collectionTimelines;
     }
 
-    private TimelineByCollectionResponse.CollectionTimeline formatTimelineOutput(java.util.Map<String, Long> timeline,
-                                                                                 String collectionId,
-                                                                                 String correlationId,
-                                                                                 TimelineFiltersByCollection.TimelineMode mode) {
-        return switch (mode) {
-            case BINARY, ES_BINARY, HISTOGRAM, ES_HISTOGRAM ->
-                new TimelineByCollectionResponse.CollectionTimeline(collectionId, correlationId, timeline.values());
-            case BINARY_MAP, ES_BINARY_MAP, HISTOGRAM_MAP, ES_HISTOGRAM_MAP ->
-                new TimelineByCollectionResponse.CollectionTimeline(collectionId, correlationId, timeline);
-            default -> throw new StacException(String.format("Unexpected timeline mode %s", mode),
+    private java.util.List<TimelineByCollectionResponse.CollectionTimeline> buildParallelCollectionTimelines(
+        TimelineFiltersByCollection timelineFiltersByCollection) {
+
+        // Retrieve configured item properties
+        ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
+        List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
+
+        // Init timeline builder
+        MultipleTimelineBuilder timelineBuilder = switch (timelineFiltersByCollection.getMode()) {
+            case ES_PARALLEL_BINARY, ES_PARALLEL_BINARY_MAP -> new ElasticsearchMultipleBinaryTimelineBuilder(
+                configurationAccessor.getHistogramProperyPath(),
+                catalogSearchService,
+                timelineCriteriaHelper);
+            case ES_PARALLEL_HISTOGRAM, ES_PARALLEL_HISTOGRAM_MAP -> new ElasticsearchMultipleHistogramTimelineBuilder(
+                configurationAccessor.getHistogramProperyPath(),
+                catalogSearchService,
+                timelineCriteriaHelper);
+            default -> throw new StacException(String.format("Unexpected timeline mode %s",
+                                                             timelineFiltersByCollection.getMode()),
                                                null,
                                                StacFailureType.TIMELINE_RETRIEVE_MODE);
         };
-    }
 
-    private ICriterion getTimelineCriteria(FiltersByCollection.CollectionFilters collectionFilters,
-                                           List<StacProperty> itemStacProperties) {
-
-        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody =
-            collectionFilters.getFilters() == null ?
-                CollectionSearchBody.CollectionItemSearchBody.builder().build() :
-                collectionFilters.getFilters();
-
-        String urn_tag = idMappingService.getUrnByStacId(collectionFilters.getCollectionId());
-        if (urn_tag == null) {
-            throw new StacException(String.format("Unknown collection identifier %s",
-                                                  collectionFilters.getCollectionId()),
-                                    null,
-                                    StacFailureType.MAPPING_ID_FAILURE);
-        }
-
-        return ICriterion.and(ICriterion.eq(StaticProperties.FEATURE_TAGS, urn_tag, StringMatchType.KEYWORD),
-                              searchCriterionBuilder.buildCriterion(itemStacProperties, collectionItemSearchBody)
-                                                    .getOrElse(ICriterion.all()));
-
+        // Delegate aggregation
+        return timelineBuilder.buildTimelines(
+            timelineFiltersByCollection.getMode(),
+            timelineFiltersByCollection.getCollections(),
+            itemStacProperties,
+            expandDatetime(timelineFiltersByCollection.getFrom()),
+            expandDatetime(timelineFiltersByCollection.getTo()),
+            ZoneId.of(timelineFiltersByCollection.getTimezone()));
     }
 
     private String expandDatetime(String param) {

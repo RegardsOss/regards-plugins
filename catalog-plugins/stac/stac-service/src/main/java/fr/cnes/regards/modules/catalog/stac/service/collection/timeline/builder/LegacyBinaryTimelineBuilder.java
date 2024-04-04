@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Build a timeline with a simple flag 0 or 1 for each timeline entry
  */
+@Deprecated
 public class LegacyBinaryTimelineBuilder extends AbstractLegacyTimelineBuilder implements TimelineBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LegacyBinaryTimelineBuilder.class);
@@ -34,8 +35,9 @@ public class LegacyBinaryTimelineBuilder extends AbstractLegacyTimelineBuilder i
     private long reportingCount = 0;
 
     public LegacyBinaryTimelineBuilder(ICatalogSearchService catalogSearchService,
-                                       PropertyExtractionService propertyExtractionService) {
-        super(catalogSearchService, propertyExtractionService);
+                                       PropertyExtractionService propertyExtractionService,
+                                       TimelineCriteriaHelper timelineCriteriaHelper) {
+        super(catalogSearchService, propertyExtractionService, timelineCriteriaHelper);
     }
 
     /**

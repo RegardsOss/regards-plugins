@@ -21,12 +21,11 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 
-public class ElasticsearchBinaryTimelineBuilder extends AbstractElasticsearchTimelineBuilder
-    implements TimelineBuilder {
+public class ElasticsearchMultipleBinaryTimelineBuilder extends AbstractElasticsearchMultipleTimelineBuilder {
 
-    public ElasticsearchBinaryTimelineBuilder(String propertyPath,
-                                              ICatalogSearchService catalogSearchService,
-                                              TimelineCriteriaHelper timelineCriteriaHelper) {
+    public ElasticsearchMultipleBinaryTimelineBuilder(String propertyPath,
+                                                      ICatalogSearchService catalogSearchService,
+                                                      TimelineCriteriaHelper timelineCriteriaHelper) {
         super(propertyPath, catalogSearchService, timelineCriteriaHelper);
     }
 

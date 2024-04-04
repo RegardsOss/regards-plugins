@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -21,6 +21,9 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -42,62 +45,78 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuilder {
+/**
+ * Abstract class to build a timeline from a collection of items using search api
+ * @deprecated use {@link AbstractElasticsearchMultipleTimelineBuilder} instead
+ */
+@Deprecated
+public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLegacyTimelineBuilder.class);
 
+    protected final ICatalogSearchService catalogSearchService;
+
     private final PropertyExtractionService propertyExtractionService;
+
+    private final TimelineCriteriaHelper timelineCriteriaHelper;
 
     private long twoManyResultsThreshold = 30000;
 
     public AbstractLegacyTimelineBuilder(ICatalogSearchService catalogSearchService,
-                                         PropertyExtractionService propertyExtractionService) {
-        super(catalogSearchService);
+                                         PropertyExtractionService propertyExtractionService,
+                                         TimelineCriteriaHelper timelineCriteriaHelper) {
+        this.catalogSearchService = catalogSearchService;
         this.propertyExtractionService = propertyExtractionService;
+        this.timelineCriteriaHelper = timelineCriteriaHelper;
     }
 
     @Override
-    public Map<String, Long> buildTimeline(ICriterion itemCriteria,
-                                           Pageable pageable,
-                                           String collectionId,
-                                           List<StacProperty> itemStacProperties,
-                                           String from,
-                                           String to,
-                                           ZoneOffset timeZone) {
+    public TimelineByCollectionResponse.CollectionTimeline buildTimeline(TimelineFiltersByCollection.TimelineMode mode,
+                                                                         FiltersByCollection.CollectionFilters collectionFilters,
+                                                                         Pageable pageable,
+                                                                         List<StacProperty> itemStacProperties,
+                                                                         String from,
+                                                                         String to,
+                                                                         ZoneId zoneId) {
         // Locate the bounds to 00:00:00.
-        OffsetDateTime timelineStart = parseODT(from);
-        OffsetDateTime timelineEnd = parseODT(to);
+        OffsetDateTime timelineStart = parseODT(from, zoneId);
+        OffsetDateTime timelineEnd = parseODT(to, zoneId);
 
         // Initialize result map with 0
-        java.util.Map<String, Long> timeline = initTimeline(from, to);
+        java.util.Map<String, Long> timeline = initTimeline(from, to, zoneId);
 
         // Define STAC properties to extract
         List<StacProperty> datetimeStacProperties = itemStacProperties.filter(p -> p.getStacPropertyName()
                                                                                     .equals(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
-            || p.getStacPropertyName().equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
+                                                                                   || p.getStacPropertyName()
+                                                                                       .equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
 
         // Build timeline
-        // FIXME inject from/to criterion to only search on the requested period
-        long requestDuration = buildTimelineByPage(itemCriteria,
+        // Enhancement : inject from/to criterion to only search on the requested period
+        long requestDuration = buildTimelineByPage(timelineCriteriaHelper.getTimelineCriteria(collectionFilters,
+                                                                                              itemStacProperties),
                                                    pageable,
-                                                   collectionId,
+                                                   collectionFilters.getCollectionId(),
                                                    timeline,
                                                    timelineStart,
                                                    timelineEnd,
-                                                   timeZone,
+                                                   zoneId,
                                                    datetimeStacProperties);
         LOGGER.trace("---> All pages reported in {} ms", requestDuration);
 
-        return timeline;
+        return formatTimelineOutput(timeline,
+                                    collectionFilters.getCollectionId(),
+                                    collectionFilters.getCorrelationId(),
+                                    false,
+                                    null,
+                                    mode);
     }
 
     private long buildTimelineByPage(ICriterion itemCriteria,
@@ -106,7 +125,7 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                                      Map<String, Long> timeline,
                                      OffsetDateTime timelineStart,
                                      OffsetDateTime timelineEnd,
-                                     ZoneOffset timeZone,
+                                     ZoneId zoneId,
                                      List<StacProperty> datetimeStacProperties) {
 
         long requestStart = System.currentTimeMillis();
@@ -131,7 +150,7 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                                      timelineEnd,
                                      temporalExtent.get()._1,
                                      temporalExtent.get()._2,
-                                     timeZone,
+                                     zoneId,
                                      timeline);
             }
             return System.currentTimeMillis() - requestStart;
@@ -153,7 +172,7 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                     OffsetDateTime itemEnd = (OffsetDateTime) datetimeExtent.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME)
                                                                             .get();
                     // Report item temporal extent into timeline
-                    reportTemporalExtent(timelineStart, timelineEnd, itemStart, itemEnd, timeZone, timeline);
+                    reportTemporalExtent(timelineStart, timelineEnd, itemStart, itemEnd, zoneId, timeline);
                 }
             }
         });
@@ -170,7 +189,7 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                                                    timeline,
                                                    timelineStart,
                                                    timelineEnd,
-                                                   timeZone,
+                                                   zoneId,
                                                    datetimeStacProperties);
         }
         return requestDuration;
@@ -180,14 +199,14 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                                       OffsetDateTime timelineEnd,
                                       OffsetDateTime extentStart,
                                       OffsetDateTime extentEnd,
-                                      ZoneOffset timeZone,
+                                      ZoneId zoneId,
                                       Map<String, Long> timeline) {
         // Get intersection between feature temporal extent and timeline temporal extent
         Option<Tuple2<OffsetDateTime, OffsetDateTime>> intersection = getIntersection(timelineStart,
                                                                                       timelineEnd,
                                                                                       extentStart,
                                                                                       extentEnd,
-                                                                                      timeZone);
+                                                                                      zoneId);
         // Update timeline entries for each date of the intersection if any
         reportIntersection(intersection, timeline);
     }
@@ -202,13 +221,14 @@ public abstract class AbstractLegacyTimelineBuilder extends AbstractTimelineBuil
                                                                            OffsetDateTime timelineEnd,
                                                                            OffsetDateTime itemStart,
                                                                            OffsetDateTime itemEnd,
-                                                                           ZoneOffset timeZone) {
+                                                                           ZoneId zoneId) {
         // Get timezone from input parameters and apply offset to the item temporal extent
-        OffsetDateTime zonedItemStart = itemStart.withOffsetSameInstant(timeZone);
-        OffsetDateTime zonedItemEnd = itemEnd.withOffsetSameInstant(timeZone);
+        ZoneOffset zoneOffset = zoneId.getRules().getOffset(LocalDateTime.now());
+        OffsetDateTime zonedItemStart = itemStart.withOffsetSameInstant(zoneOffset);
+        OffsetDateTime zonedItemEnd = itemEnd.withOffsetSameInstant(zoneOffset);
 
-        if ((zonedItemEnd.isAfter(timelineStart) || zonedItemEnd.equals(timelineStart)) && (
-            zonedItemStart.isBefore(timelineEnd) || zonedItemStart.equals(timelineEnd))) {
+        if ((zonedItemEnd.isAfter(timelineStart) || zonedItemEnd.equals(timelineStart)) && (zonedItemStart.isBefore(
+            timelineEnd) || zonedItemStart.equals(timelineEnd))) {
             // Return max of start & min of end
             return Option.of(Tuple.of(timelineStart.isAfter(zonedItemStart) ? timelineStart : zonedItemStart,
                                       timelineEnd.isBefore(zonedItemEnd) ? timelineEnd : zonedItemEnd));

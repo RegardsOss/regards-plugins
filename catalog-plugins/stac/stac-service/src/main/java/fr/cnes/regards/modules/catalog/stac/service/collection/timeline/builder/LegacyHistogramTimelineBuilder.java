@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -26,11 +26,13 @@ import java.util.Map;
 /**
  * Build a timeline with a number of item matching for each timeline entry
  */
+@Deprecated
 public class LegacyHistogramTimelineBuilder extends AbstractLegacyTimelineBuilder implements TimelineBuilder {
 
     public LegacyHistogramTimelineBuilder(ICatalogSearchService catalogSearchService,
-                                          PropertyExtractionService propertyExtractionService) {
-        super(catalogSearchService, propertyExtractionService);
+                                          PropertyExtractionService propertyExtractionService,
+                                          TimelineCriteriaHelper timelineCriteriaHelper) {
+        super(catalogSearchService, propertyExtractionService, timelineCriteriaHelper);
     }
 
     @Override

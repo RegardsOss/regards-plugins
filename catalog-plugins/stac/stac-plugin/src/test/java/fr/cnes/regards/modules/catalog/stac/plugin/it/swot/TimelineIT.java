@@ -28,7 +28,6 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.se
 import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.plugin.it.AbstractStacIT;
 import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
-import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
@@ -56,6 +55,12 @@ import java.util.UUID;
 public class TimelineIT extends AbstractStacIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TimelineIT.class);
+
+    private static final String UTC = "UTC";
+
+    private static final String UTC_PLUS_1 = "UTC+1";
+
+    private static final String UTC_MINUS_1 = "UTC-1";
 
     @Before
     @Override
@@ -99,6 +104,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                        .build();
         TimelineFiltersByCollection body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
                                                                       .collections(List.of(collectionFilters))
+                                                                      .mode(TimelineFiltersByCollection.TimelineMode.ES_BINARY)
                                                                       .build();
 
         // THEN
@@ -113,7 +119,7 @@ public class TimelineIT extends AbstractStacIT {
     }
 
     @Test
-    public void nominal_timeline_timezone_014 () {
+    public void nominal_timeline_timezone_014() {
         // GIVEN
         Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
                                                             SearchBody.StringQueryObject.builder().eq("014").build());
@@ -122,7 +128,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -133,7 +139,7 @@ public class TimelineIT extends AbstractStacIT {
         TimelineFiltersByCollection body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
                                                                       .from("2020-03-01T00:00:00")
                                                                       .to("2020-03-03T00:00:00")
-                                                                      .timezone(2)
+                                                                      .timezone("UTC+2")
                                                                       .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM_MAP)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
@@ -151,7 +157,7 @@ public class TimelineIT extends AbstractStacIT {
     }
 
     @Test
-    public void nominal_timeline_timezone () {
+    public void nominal_timeline_timezone() {
         // GIVEN
         Map<String, SearchBody.QueryObject> iq = HashMap.of("version",
                                                             SearchBody.StringQueryObject.builder().eq("013").build());
@@ -160,7 +166,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -169,9 +175,9 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                        .build();
         // UTC-1
         TimelineFiltersByCollection body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
-                                                                          .from("2020-03-01T00:00:00")
+                                                                      .from("2020-03-01T00:00:00")
                                                                       .to("2020-03-03T23:59:59")
-                                                                      .timezone(-1)
+                                                                      .timezone("UTC-1")
                                                                       .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM_MAP)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
@@ -179,7 +185,8 @@ public class TimelineIT extends AbstractStacIT {
         // THEN
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         customizer.expectToHaveSize("timelines", 1);
-        customizer.expectToHaveToString("$.timelines[0].timeline", "{2020-03-01=1, 2020-03-02=1, 2020-03-03=0}");
+        customizer.expectToHaveToString("$.timelines[0].timeline",
+                                        "{2020-02-29=0, 2020-03-01=1, 2020-03-02=1, " + "2020-03-03=0}");
 
         // WHEN
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
@@ -210,7 +217,7 @@ public class TimelineIT extends AbstractStacIT {
         body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
                                           .from("2020-03-01T00:00:00")
                                           .to("2020-03-03T23:59:59")
-                                          .timezone(1)
+                                          .timezone("UTC+1")
                                           .mode(TimelineFiltersByCollection.TimelineMode.HISTOGRAM_MAP)
                                           .collections(List.of(collectionFilters))
                                           .build();
@@ -218,7 +225,8 @@ public class TimelineIT extends AbstractStacIT {
         // THEN
         customizer = customizer().expectStatusOk();
         customizer.expectToHaveSize("timelines", 1);
-        customizer.expectToHaveToString("$.timelines[0].timeline", "{2020-03-01=0, 2020-03-02=1, 2020-03-03=1}");
+        customizer.expectToHaveToString("$.timelines[0].timeline",
+                                        "{2020-03-01=0, 2020-03-02=1, 2020-03-03=1, 2020-03-04=0}");
 
         // WHEN
         performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
@@ -238,7 +246,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -276,7 +284,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -311,7 +319,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -348,7 +356,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                                                                                   iq)
                                                                                                                               .build();
 
-        Dataset collection = this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
+        this.getDatasets().get("SWOT_L2_HR_Raster_250m_timeline");
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            "SWOT_L2_HR_Raster_250m_timeline")
@@ -389,16 +397,63 @@ public class TimelineIT extends AbstractStacIT {
                                   TimelineFiltersByCollection.TimelineMode.ES_HISTOGRAM_MAP);
     }
 
+    @Test
+    public void test_timeline_consistency_with_elasticsearch_parallel() {
+        test_timeline_consistency(UTC,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY_MAP,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_HISTOGRAM_MAP);
+    }
+
+    @Test
+    public void test_timeline_consistency_with_elasticsearch_parallel_and_timezone() {
+        test_timeline_consistency(UTC_MINUS_1,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY_MAP,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_HISTOGRAM_MAP);
+    }
+
+    @Test
+    public void test_timeline_consistency_with_elasticsearch_parallel_and_timezone2() {
+        test_timeline_consistency(UTC_PLUS_1,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY_MAP,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_HISTOGRAM_MAP);
+    }
+
+    @Test
+    public void test_timeline_consistency_with_elasticsearch_parallel_and_timezone3() {
+        test_timeline_consistency("1989-12-31T23:00:00Z",
+                                  null,
+                                  UTC_PLUS_1,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY_MAP,
+                                  TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_HISTOGRAM_MAP);
+    }
+
     public void test_timeline_consistency(TimelineFiltersByCollection.TimelineMode binaryMode,
                                           TimelineFiltersByCollection.TimelineMode histogramMode) {
-        String start = "1990-01-01";
-        String end = "1990-01-10";
+        test_timeline_consistency(null, null, null, binaryMode, histogramMode);
+    }
+
+    public void test_timeline_consistency(String timezone,
+                                          TimelineFiltersByCollection.TimelineMode binaryMode,
+                                          TimelineFiltersByCollection.TimelineMode histogramMode) {
+        test_timeline_consistency(null, null, timezone, binaryMode, histogramMode);
+    }
+
+    public void test_timeline_consistency(String from,
+                                          String to,
+                                          String timezone,
+                                          TimelineFiltersByCollection.TimelineMode binaryMode,
+                                          TimelineFiltersByCollection.TimelineMode histogramMode) {
+        String start = from == null ? "1990-01-01" : from;
+        String end = to == null ? "1990-01-10" : to;
+        if (timezone == null) {
+            timezone = UTC;
+        }
         String datasetId = "SWOT_L2_HR_Raster_250m_timeline_consistency";
 
         // Prepare request
         // Data filenames are marked with its matching days (look at resources directory)
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        Dataset dataset = this.getDatasets().get(datasetId);
+        this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            datasetId)
@@ -412,6 +467,7 @@ public class TimelineIT extends AbstractStacIT {
                                                                       .from(start)
                                                                       .to(end)
                                                                       .mode(binaryMode)
+                                                                      .timezone(timezone)
                                                                       .collections(List.of(collectionFilters))
                                                                       .build();
         ResultActions resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
@@ -422,6 +478,7 @@ public class TimelineIT extends AbstractStacIT {
         // Do assertion
         String json = payload(resultActions);
         java.util.Map<String, Integer> timeline = JsonPath.read(json, "$.timelines[0].timeline");
+        assertByTimezone(timezone, null, null, 1, (Integer) timeline.get("1989-12-31"));
         Assert.assertEquals(1, (int) timeline.get("1990-01-01"));
         Assert.assertEquals(1, (int) timeline.get("1990-01-02"));
         Assert.assertEquals(1, (int) timeline.get("1990-01-03"));
@@ -431,13 +488,14 @@ public class TimelineIT extends AbstractStacIT {
         Assert.assertEquals(1, (int) timeline.get("1990-01-07"));
         Assert.assertEquals(1, (int) timeline.get("1990-01-08"));
         Assert.assertEquals(1, (int) timeline.get("1990-01-09"));
-        Assert.assertEquals(0, (int) timeline.get("1990-01-10"));
+        assertByTimezone(timezone, 0, 1, null, (Integer) timeline.get("1990-01-10"));
 
         // Do request with HISTOGRAM result
         body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
                                           .from(start)
                                           .to(end)
                                           .mode(histogramMode)
+                                          .timezone(timezone)
                                           .collections(List.of(collectionFilters))
                                           .build();
         resultActions = performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH
@@ -452,12 +510,92 @@ public class TimelineIT extends AbstractStacIT {
         Assert.assertEquals(3, (int) timeline.get("1990-01-02"));
         Assert.assertEquals(2, (int) timeline.get("1990-01-03"));
         Assert.assertEquals(3, (int) timeline.get("1990-01-04"));
-        Assert.assertEquals(2, (int) timeline.get("1990-01-05"));
-        Assert.assertEquals(1, (int) timeline.get("1990-01-06"));
+        assertByTimezone(timezone, 2, 3, 2, (int) timeline.get("1990-01-05"));
+        assertByTimezone(timezone, 1, 1, 2, (int) timeline.get("1990-01-06"));
         Assert.assertEquals(2, (int) timeline.get("1990-01-07"));
-        Assert.assertEquals(2, (int) timeline.get("1990-01-08"));
-        Assert.assertEquals(3, (int) timeline.get("1990-01-09"));
-        Assert.assertEquals(0, (int) timeline.get("1990-01-10"));
+        assertByTimezone(timezone, 2, 2, 3, (int) timeline.get("1990-01-08"));
+        assertByTimezone(timezone, 3, 3, 2, (int) timeline.get("1990-01-09"));
+        assertByTimezone(timezone, 0, 2, null, (Integer) timeline.get("1990-01-10"));
+    }
+
+    private void assertByTimezone(String timezone,
+                                  Integer expectedForUTC,
+                                  Integer expectedForUtcPlus1,
+                                  Integer expectedForUtcMinus1,
+                                  Integer value) {
+        switch (timezone) {
+            case UTC -> Assert.assertEquals(expectedForUTC, value);
+            case UTC_MINUS_1 -> Assert.assertEquals(expectedForUtcMinus1, value);
+            case UTC_PLUS_1 -> Assert.assertEquals(expectedForUtcPlus1, value);
+        }
+    }
+
+    @Test
+    public void testParallelTimelineComputation() {
+        String start = "1970-01-01";
+        String end = "2040-01-10";
+        String datasetId = "SWOT_L2_HR_Raster_250m_timeline_consistency";
+
+        // Prepare request
+        // Data filenames are marked with its matching days (look at resources directory)
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        this.getDatasets().get(datasetId);
+
+        // Search between 1 and 5
+        FiltersByCollection.CollectionFilters collectionFilters15 = buildCollectionFilter(datasetId,
+                                                                                          "1990-01-05T00:00:00Z");
+        // Do request with BINARY result
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters610 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters611 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters612 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters613 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters614 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        // Search between 6 and 10
+        FiltersByCollection.CollectionFilters collectionFilters615 = buildCollectionFilter(datasetId,
+                                                                                           "1990-01-10T00:00:00Z");
+        TimelineFiltersByCollection body = TimelineFiltersByCollection.timelineCollectionFiltersBuilder()
+                                                                      .from(start)
+                                                                      .to(end)
+                                                                      .mode(TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY)
+                                                                      .collections(List.of(collectionFilters15,
+                                                                                           collectionFilters610,
+                                                                                           collectionFilters611,
+                                                                                           collectionFilters612,
+                                                                                           collectionFilters613,
+                                                                                           collectionFilters614,
+                                                                                           collectionFilters615))
+                                                                      .build();
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_SEARCH_PATH + StacApiConstants.COLLECTIONS_TIMELINE,
+                           body,
+                           customizer,
+                           "Timeline retrieve " + "failed");
+    }
+
+    private FiltersByCollection.CollectionFilters buildCollectionFilter(String datasetId, String lteDate) {
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("end_datetime",
+                                                            SearchBody.DatetimeQueryObject.builder()
+                                                                                          .lte(OffsetDateTime.parse(
+                                                                                              lteDate))
+                                                                                          .build());
+        CollectionSearchBody.CollectionItemSearchBody collectionItemSearchBody = CollectionSearchBody.CollectionItemSearchBody.builder()
+                                                                                                                              .query(
+                                                                                                                                  iq)
+                                                                                                                              .build();
+        return FiltersByCollection.CollectionFilters.builder()
+                                                    .filters(collectionItemSearchBody)
+                                                    .collectionId(datasetId)
+                                                    .correlationId(UUID.randomUUID().toString())
+                                                    .build();
     }
 
     @Test
@@ -469,7 +607,7 @@ public class TimelineIT extends AbstractStacIT {
         // Prepare request
         // Data filenames are marked with its matching days (look at resources directory)
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        Dataset dataset = this.getDatasets().get(datasetId);
+        this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            datasetId)
@@ -540,7 +678,7 @@ public class TimelineIT extends AbstractStacIT {
         // Prepare request
         // Data filenames are marked with its matching days (look at resources directory)
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        Dataset dataset = this.getDatasets().get(datasetId);
+        this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            datasetId)
@@ -600,6 +738,11 @@ public class TimelineIT extends AbstractStacIT {
     @Test
     public void test_default_values_with_elasticsearch() {
         test_default_values(TimelineFiltersByCollection.TimelineMode.ES_BINARY);
+    }
+
+    @Test
+    public void test_default_values_with_elasticsearch_parallel() {
+        test_default_values(TimelineFiltersByCollection.TimelineMode.ES_PARALLEL_BINARY);
     }
 
     public void test_default_values(TimelineFiltersByCollection.TimelineMode timelineMode) {
@@ -796,7 +939,7 @@ public class TimelineIT extends AbstractStacIT {
 
         // Prepare timeline request
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        Dataset dataset = this.getDatasets().get(datasetId);
+        this.getDatasets().get(datasetId);
         FiltersByCollection.CollectionFilters collectionFilters = FiltersByCollection.CollectionFilters.builder()
                                                                                                        .collectionId(
                                                                                                            datasetId)

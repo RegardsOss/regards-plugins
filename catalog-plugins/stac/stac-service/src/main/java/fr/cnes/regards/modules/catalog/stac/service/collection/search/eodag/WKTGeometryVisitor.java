@@ -29,7 +29,7 @@ import java.util.StringJoiner;
  */
 public class WKTGeometryVisitor implements IGeometryVisitor<String> {
 
-    private static final String POINT_LONG_LAT_FORMAT = "%,.2f %,.2f";
+    private static final String POINT_LONG_LAT_FORMAT = "%,.5f %,.5f";
 
     private static final String COMMA = ",";
 

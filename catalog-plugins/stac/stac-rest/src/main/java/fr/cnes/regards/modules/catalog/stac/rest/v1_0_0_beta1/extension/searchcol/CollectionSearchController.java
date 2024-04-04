@@ -189,6 +189,6 @@ public class CollectionSearchController implements TryToResponseEntity {
                     produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TimelineByCollectionResponse> timelineCollections(
         @RequestBody TimelineFiltersByCollection timelineFiltersByCollection) {
-        return ResponseEntity.ok(timelineService.buildCollectionsTimeline(timelineFiltersByCollection));
+        return ResponseEntity.ok(timelineService.buildCollectionTimelines(timelineFiltersByCollection));
     }
 }

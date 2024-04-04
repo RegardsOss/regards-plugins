@@ -29,5 +29,5 @@ public interface TimelineService {
      * @param timelineFiltersByCollection Search criteria
      * @return the timelines and their associated collection.
      */
-    TimelineByCollectionResponse buildCollectionsTimeline(TimelineFiltersByCollection timelineFiltersByCollection);
+    TimelineByCollectionResponse buildCollectionTimelines(TimelineFiltersByCollection timelineFiltersByCollection);
 }

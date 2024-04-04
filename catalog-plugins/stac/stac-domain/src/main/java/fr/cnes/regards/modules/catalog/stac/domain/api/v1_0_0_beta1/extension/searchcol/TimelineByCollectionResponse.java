@@ -39,6 +39,10 @@ public class TimelineByCollectionResponse {
         /* This identifier is used as a discriminant when two collections have the same collectionID */
         private String correlationId;
 
+        private Boolean isFailure;
+
+        private String failureMessage;
+
         /**
          * Timeline format is linked to {@link TimelineFiltersByCollection.TimelineMode}
          * Map modes return key/value map timeline with date as key

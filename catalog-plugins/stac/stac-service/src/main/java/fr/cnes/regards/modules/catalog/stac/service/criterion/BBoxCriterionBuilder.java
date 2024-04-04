@@ -38,7 +38,7 @@ public class BBoxCriterionBuilder implements CriterionBuilder<BBox> {
     /**
      * Point textual representation with longitude & latitude
      */
-    private static final String POINT_LONG_LAT_FORMAT = "%,.2f %,.2f";
+    private static final String POINT_LONG_LAT_FORMAT = "%,.5f %,.5f";
 
     private static final String COMMA = ",";
 

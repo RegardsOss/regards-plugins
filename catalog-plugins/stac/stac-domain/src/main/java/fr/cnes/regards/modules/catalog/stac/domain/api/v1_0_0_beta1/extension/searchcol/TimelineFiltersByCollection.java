@@ -39,12 +39,16 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
 
     private String to;
 
-    private Integer timezone;
+    private String timezone;
 
     private TimelineMode mode;
 
     @Builder(builderMethodName = "timelineCollectionFiltersBuilder")
-    public TimelineFiltersByCollection(List<CollectionFilters> collections, String from, String to, Integer timezone, TimelineMode mode) {
+    public TimelineFiltersByCollection(List<CollectionFilters> collections,
+                                       String from,
+                                       String to,
+                                       String timezone,
+                                       TimelineMode mode) {
         super(collections, true);
         this.from = from;
         this.to = to;
@@ -62,23 +66,34 @@ public class TimelineFiltersByCollection extends FiltersByCollection {
         return to == null ? OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : to;
     }
 
-    public Integer getTimezone() {
-        return timezone == null ? 0 : timezone;
+    public String getTimezone() {
+        return timezone == null ? "UTC" : timezone;
     }
 
     public TimelineMode getMode() {
-        return mode == null ? TimelineMode.ES_BINARY : mode;
+        return mode == null ? TimelineMode.ES_PARALLEL_BINARY : mode;
     }
 
     public enum TimelineMode {
+
         // Compute a sorted array of 0/1 to specify if at least one item exists for each day of the timeline
-        BINARY, // Compute a sorted map of 0/1 to specify if at least one item exists for each day of the timeline
-        BINARY_MAP, // Compute a sorted array of 0/N to specify the number of items per day
-        HISTOGRAM, // Compute a sorted map of 0/N to specify the number of items per day
-        HISTOGRAM_MAP,
-        ES_BINARY,
-        ES_BINARY_MAP,
-        ES_HISTOGRAM,
-        ES_HISTOGRAM_MAP
+        BINARY(false), // Compute a sorted map of 0/1 to specify if at least one item exists for each day of the timeline
+        BINARY_MAP(false), // Compute a sorted array of 0/N to specify the number of items per day
+        HISTOGRAM(false), // Compute a sorted map of 0/N to specify the number of items per day
+        HISTOGRAM_MAP(false),
+        ES_BINARY(false),
+        ES_BINARY_MAP(false),
+        ES_HISTOGRAM(false),
+        ES_HISTOGRAM_MAP(false),
+        ES_PARALLEL_BINARY(true),
+        ES_PARALLEL_BINARY_MAP(true),
+        ES_PARALLEL_HISTOGRAM(true),
+        ES_PARALLEL_HISTOGRAM_MAP(true);
+
+        public final boolean isParallel;
+
+        private TimelineMode(Boolean isParallel) {
+            this.isParallel = isParallel;
+        }
     }
 }

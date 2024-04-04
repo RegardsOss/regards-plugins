@@ -18,23 +18,20 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder;
 
-import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
-import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class ElasticsearchHistogramTimelineBuilder extends AbstractElasticsearchTimelineBuilder
     implements TimelineBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchHistogramTimelineBuilder.class);
 
-    public ElasticsearchHistogramTimelineBuilder(String propertyPath, ICatalogSearchService catalogSearchService) {
-        super(propertyPath, catalogSearchService);
-
+    public ElasticsearchHistogramTimelineBuilder(String propertyPath,
+                                                 ICatalogSearchService catalogSearchService,
+                                                 TimelineCriteriaHelper timelineCriteriaHelper) {
+        super(propertyPath, catalogSearchService, timelineCriteriaHelper);
     }
 
     @Override
