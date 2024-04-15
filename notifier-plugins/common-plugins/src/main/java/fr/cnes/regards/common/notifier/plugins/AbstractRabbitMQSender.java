@@ -94,7 +94,7 @@ public abstract class AbstractRabbitMQSender implements IRecipientNotifier {
     @PluginParameter(
         label = "Blocking notification.",
         description = "Indicate whether this is a blocking notification or not. When value is True, the recipient "
-                      + "must acquire this notification to unblock this notification",
+                      + "must acquire this notification to unblock the original product",
         name = BLOCKING_REQUIRED_PARAM_NAME,
         optional = true,
         defaultValue = "false")
