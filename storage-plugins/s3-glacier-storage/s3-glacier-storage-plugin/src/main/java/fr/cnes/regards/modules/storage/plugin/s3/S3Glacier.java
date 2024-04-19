@@ -114,17 +114,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @Autowired
     private LockService lockService;
 
-    /**
-     * Parallel thread executor service for store actions.
-     * As store actions can use a lot of memory (depending on configuration) it has his own pool.
-     */
-    ExecutorService storeExecutorService;
-
-    /**
-     * Parallel thread executor service for all actions except store.
-     */
-    ExecutorService executorService;
-
     @PluginParameter(name = GLACIER_WORKSPACE_PATH,
                      description = "Local workspace for archive building and restoring cache",
                      label = "Workspace path")
@@ -221,6 +210,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private ThreadPoolTaskScheduler scheduler;
 
+    private BasicThreadFactory factory;
+
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
         if (runtimeTenantResolver != null) {
@@ -230,11 +221,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             // This will happen in tests
             workspacePath = rawWorkspacePath;
         }
-        BasicThreadFactory factory = new BasicThreadFactory.Builder().namingPattern("s3-glacier-threadpool-thread-%d")
-                                                                     .priority(Thread.MAX_PRIORITY)
-                                                                     .build();
-        storeExecutorService = Executors.newFixedThreadPool(storeParallelTaskNumber, factory);
-        executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
+        factory = new BasicThreadFactory.Builder().namingPattern("s3-glacier-threadpool-thread-%d")
+                                                  .priority(Thread.MAX_PRIORITY)
+                                                  .build();
         storageName = conf.getBusinessId();
         initWorkspaceCleanScheduler();
     }
@@ -257,14 +246,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.warn("Shutdown of the plugin, this may cause errors as the currently running tasks will be "
                     + "terminated");
         scheduler.shutdown();
-        storeExecutorService.shutdownNow();
-        executorService.shutdown();
     }
 
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
         LOGGER.info("Glacier store requests received");
+        ExecutorService storeExecutorService = null;
         try {
+            storeExecutorService = Executors.newFixedThreadPool(storeParallelTaskNumber, factory);
             String tenant = runtimeTenantResolver.getTenant();
             List<Future<LockServiceResponse<Void>>> taskResults = storeExecutorService.invokeAll(workingSet.getFileReferenceRequests()
                                                                                                            .stream()
@@ -283,6 +272,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error("Storage process interrupted");
         } catch (ExecutionException e) {
             LOGGER.error("Error during storage process", e);
+        } finally {
+            if (storeExecutorService != null) {
+                storeExecutorService.shutdownNow();
+            }
         }
         LOGGER.info("End handling store requests");
     }
@@ -337,7 +330,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public void retrieve(FileRestorationWorkingSubset workingSubset, IRestorationProgressManager progressManager) {
         LOGGER.info("Glacier retrieve requests received");
         String tenant = runtimeTenantResolver.getTenant();
+        ExecutorService executorService = null;
         try {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSubset.getFileRestorationRequests()
                                                                                                          .stream()
                                                                                                          .map(request -> doRetrieveTask(
@@ -354,6 +349,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error("Retrieval process interrupted");
         } catch (ExecutionException e) {
             LOGGER.error("Error during retrieval process", e);
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
         LOGGER.info("Handling of retrieve requests ended");
     }
@@ -425,8 +424,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
-        LOGGER.info("Glacier delete requests received");
+        LOGGER.info("S3Glacier delete received requests");
+        ExecutorService executorService = null;
         try {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             String tenant = runtimeTenantResolver.getTenant();
             List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSet.getFileDeletionRequests()
                                                                                                       .stream()
@@ -443,6 +444,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error("Deletion process interrupted");
         } catch (ExecutionException e) {
             LOGGER.error("Error during deletion process", e);
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
         LOGGER.info("Handling of delete requests ended");
     }
@@ -558,8 +563,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             progressManager,
             tenant,
             getS3Client());
-
+        ExecutorService executorService = null;
         try (Stream<Path> dirList = Files.walk(zipWorkspacePath)) {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             // Directory that will be stored are located in /<WORKSPACE>/<ZIP_DIR>/<NODE>/, they can be symbolic link
             // It is important to differentiate between actual directories and symbolic link to use locks correctly
             Map<Boolean, List<Path>> dirToProcessList = dirList.filter(dir -> dir.getFileName()
@@ -595,6 +601,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error(e.getMessage(), e);
         } catch (InterruptedException e) {
             LOGGER.error("Submit archives process interrupted");
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
     }
 
@@ -677,7 +687,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                         oldestAgeToKeep,
                                         cacheWorkspacePath,
                                         Paths.get(workspacePath, S3Glacier.ZIP_DIR));
+        ExecutorService executorService = null;
         try {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             executorService.invokeAll(directoriesWithFiles.stream()
                                                           .map(dirToProcess -> doCleanDirectory(cacheWorkspacePath,
                                                                                                 dirToProcess,
@@ -686,6 +698,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                           .toList());
         } catch (InterruptedException e) {
             LOGGER.error("Clean archive cache process interrupted");
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
     }
 
@@ -792,7 +808,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Glacier periodic pending actions started");
         String tenant = runtimeTenantResolver.getTenant();
         List<Future<LockServiceResponse<Void>>> taskResults = null;
+        ExecutorService executorService = null;
         try {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             taskResults = executorService.invokeAll(filesWithPendingActions.stream()
                                                                            .map(ref -> doCheckPendingAction(ref.getLocation()
                                                                                                                .getUrl(),
@@ -807,6 +825,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.error("Check pending action process interrupted");
         } catch (ExecutionException e) {
             LOGGER.error("Error during check pending action process", e);
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
         }
 
         LOGGER.info("Glacier periodic pending actions ended");
