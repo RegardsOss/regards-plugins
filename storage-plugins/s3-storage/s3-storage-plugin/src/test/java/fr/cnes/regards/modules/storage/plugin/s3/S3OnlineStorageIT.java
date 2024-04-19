@@ -126,7 +126,13 @@ public class S3OnlineStorageIT {
         S3BucketTestUtils.deleteBucket(createOutputS3Server());
     }
 
-    private void loadPlugin(String endpoint, String region, String key, String secret, String bucket, String rootPath) {
+    private void loadPlugin(String endpoint,
+                            String region,
+                            String key,
+                            String secret,
+                            String bucket,
+                            String rootPath,
+                            String namingStrategy) {
         StringPluginParam secretParam = IPluginParam.build(S3OnlineStorage.S3_SERVER_SECRET_PARAM_NAME, secret);
         secretParam.setValue(secret);
         // Set plugin configuration
@@ -140,7 +146,9 @@ public class S3OnlineStorageIT {
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_BUCKET_PARAM_NAME,
                                                                                   bucket),
                                                                IPluginParam.build(S3OnlineStorage.S3_SERVER_ROOT_PATH_PARAM_NAME,
-                                                                                  rootPath));
+                                                                                  rootPath),
+                                                               IPluginParam.build(S3OnlineStorage.FILE_NAMING_STRATEGY,
+                                                                                  namingStrategy));
 
         PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3OnlineStorage.class,
                                                                             "S3 Storage configuration plugin",
@@ -175,6 +183,13 @@ public class S3OnlineStorageIT {
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath() {
         givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto(""),
                                                           "/rootPath0/rootPath1/");
+    }
+
+    @Test
+    public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath_AndOriginalName() {
+        givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto(""),
+                                                          "/rootPath0/rootPath1/",
+                                                          S3OnlineStorage.FILENAME_STRATEGY);
     }
 
     @Test
@@ -232,8 +247,16 @@ public class S3OnlineStorageIT {
 
     private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregationDto fileStorageRequest,
                                                                    String rootPath) {
+        givenS3_whenReference_thenValidateAndRetrieveFile(fileStorageRequest,
+                                                          rootPath,
+                                                          S3OnlineStorage.CHECKSUM_STRATEGY);
+    }
+
+    private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregationDto fileStorageRequest,
+                                                                   String rootPath,
+                                                                   String namingStrategy) {
         // Given
-        loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath);
+        loadPlugin(endPoint, region, key, secret, bucketOutput, rootPath, namingStrategy);
 
         // When, then
         // Store file in S3 server
@@ -245,6 +268,11 @@ public class S3OnlineStorageIT {
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
+        String expectedFileName = S3OnlineStorage.FILENAME_STRATEGY.equals(namingStrategy) ? FILE_NAME
+                                                                                           : MD5_CHECKSUM_FILE;
+        Assert.assertEquals(String.format("Invalid S3 file name %s", expectedFileName),
+                            expectedFileName,
+                            new File(fileReference.getLocation().getUrl()).getName());
         Assert.assertEquals("Invalid file size", 427L, fileReference.getMetaInfo().getFileSize().longValue());
 
         // Get file as input stream from S3 server
@@ -365,8 +393,7 @@ public class S3OnlineStorageIT {
     private String buildFileLocationUrl(FileStorageRequestAggregationDto fileStorageRequest, String rootPath) {
         return endPoint + File.separator + bucketOutput + Paths.get(File.separator,
                                                                     rootPath,
-                                                                    fileStorageRequest.getSubDirectory())
-                                                               .resolve(fileStorageRequest.getMetaInfo().getChecksum());
+                                                                    s3OnlineStorage.getEntryKey(fileStorageRequest));
     }
 
     private S3Server createInputS3Server() {

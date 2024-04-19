@@ -93,6 +93,21 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     public static final String S3_ALLOW_DELETION = "S3_Allow_Deletion";
 
+    /**
+     * Determines file name format on target storage
+     */
+    public static final String FILE_NAMING_STRATEGY = "File_Naming_Strategy";
+
+    /**
+     * Filename is replaced by the checksum (default)
+     */
+    public static final String CHECKSUM_STRATEGY = "CHECKSUM";
+
+    /**
+     * Filename is kept as is
+     */
+    public static final String FILENAME_STRATEGY = "FILENAME";
+
     private static final Logger LOGGER = getLogger(AbstractS3Storage.class);
 
     @PluginParameter(name = S3_SERVER_ENDPOINT_PARAM_NAME,
@@ -150,6 +165,12 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      defaultValue = "false")
     protected Boolean allowPhysicalDeletion;
 
+    @PluginParameter(name = FILE_NAMING_STRATEGY,
+                     label = "File naming strategy",
+                     description = "Determines file name on target storage",
+                     defaultValue = CHECKSUM_STRATEGY)
+    protected String fileNamingStrategy;
+
     /**
      * s3Client
      */
@@ -177,6 +198,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     @PluginInit(hasConfiguration = true)
     public void init(PluginConfigurationDto conf) {
+        Assert.isTrue(CHECKSUM_STRATEGY.equals(fileNamingStrategy) || FILENAME_STRATEGY.equals(fileNamingStrategy),
+                      String.format("Invalid file naming strategy : %s (expected value : %s or %s)",
+                                    fileNamingStrategy,
+                                    CHECKSUM_STRATEGY,
+                                    FILENAME_STRATEGY));
         Assert.isTrue(multipartThresholdMb >= 5,
                       String.format("The parameter value %s must be at least 5. (actual : " + "%d)",
                                     UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
@@ -353,10 +379,18 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                             .substring(1);
     }
 
-    private String getEntryKey(FileStorageRequestAggregationDto request) {
-        String entryKey = request.getMetaInfo().getChecksum();
+    public String getEntryKey(FileStorageRequestAggregationDto request) {
+        // Handle naming strategy
+        String filename;
+        if (FILENAME_STRATEGY.equals(fileNamingStrategy)) {
+            filename = request.getMetaInfo().getFileName();
+        } else {
+            filename = request.getMetaInfo().getChecksum();
+        }
+
+        String entryKey = filename;
         if (request.getSubDirectory() != null && !request.getSubDirectory().isEmpty()) {
-            entryKey = Paths.get(request.getSubDirectory(), request.getMetaInfo().getChecksum()).toString();
+            entryKey = Paths.get(request.getSubDirectory(), filename).toString();
             if (entryKey.charAt(0) == '/') {
                 entryKey = entryKey.substring(1);
             }
