@@ -38,6 +38,7 @@ import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -310,24 +311,29 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
 
     private void handleDateRangeHistogramProperties(DataObjectFeature feature) {
         // Retrieve lower and upper bound
-        IProperty<?> lowerBound = feature.getProperty(dateRangeHistogramProperties.getLowerBoundPropertyPath());
-        IProperty<?> upperBound = feature.getProperty(dateRangeHistogramProperties.getUpperBoundPropertyPath());
-        // Check value exists else skip
-        if (lowerBound != null
-            && PropertyType.DATE_ISO8601.equals(lowerBound.getType())
-            && upperBound != null
-            && PropertyType.DATE_ISO8601.equals(upperBound.getType())
-            && (((OffsetDateTime) lowerBound.getValue()).isBefore((OffsetDateTime) upperBound.getValue())
-                || ((OffsetDateTime) lowerBound.getValue()).isEqual((OffsetDateTime) upperBound.getValue()))) {
-            feature.addProperty(IProperty.buildDateRange(dateRangeHistogramProperties.getTargetPropertyPath(),
-                                                         (OffsetDateTime) lowerBound.getValue(),
-                                                         (OffsetDateTime) upperBound.getValue()));
-        } else {
-            LOGGER.warn(
-                "Skipping reporting date range histogram for feature {}. At least one bound is missing or lower bound not less than or equals to upper bound : {} < {}",
-                feature.getProviderId(),
-                lowerBound,
-                upperBound);
+        if (!StringUtils.isEmpty(dateRangeHistogramProperties.getLowerBoundPropertyPath()) && !StringUtils.isEmpty(
+            dateRangeHistogramProperties.getUpperBoundPropertyPath()) && !StringUtils.isEmpty(
+            dateRangeHistogramProperties.getTargetPropertyPath())) {
+
+            IProperty<?> lowerBound = feature.getProperty(dateRangeHistogramProperties.getLowerBoundPropertyPath());
+            IProperty<?> upperBound = feature.getProperty(dateRangeHistogramProperties.getUpperBoundPropertyPath());
+            // Check value exists else skip
+            if (lowerBound != null
+                && PropertyType.DATE_ISO8601.equals(lowerBound.getType())
+                && upperBound != null
+                && PropertyType.DATE_ISO8601.equals(upperBound.getType())
+                && (((OffsetDateTime) lowerBound.getValue()).isBefore((OffsetDateTime) upperBound.getValue())
+                    || ((OffsetDateTime) lowerBound.getValue()).isEqual((OffsetDateTime) upperBound.getValue()))) {
+                feature.addProperty(IProperty.buildDateRange(dateRangeHistogramProperties.getTargetPropertyPath(),
+                                                             (OffsetDateTime) lowerBound.getValue(),
+                                                             (OffsetDateTime) upperBound.getValue()));
+            } else {
+                LOGGER.warn(
+                    "Skipping reporting date range histogram for feature {}. At least one bound is missing or lower bound not less than or equals to upper bound : {} < {}",
+                    feature.getProviderId(),
+                    lowerBound,
+                    upperBound);
+            }
         }
     }
 
