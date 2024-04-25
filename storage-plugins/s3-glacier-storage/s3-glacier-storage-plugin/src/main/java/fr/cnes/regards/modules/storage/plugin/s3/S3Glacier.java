@@ -876,7 +876,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                     multipartThresholdMb,
                                                     nbParallelPartsUpload,
                                                     FileNamingStrategy.valueOf(fileNamingStrategy),
-                                                    rawWorkspacePath,
+                                                    workspacePath,
                                                     smallFileMaxSize,
                                                     archiveMaxSize,
                                                     archiveMaxAge,
