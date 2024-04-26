@@ -24,19 +24,23 @@ import com.google.common.collect.Maps;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.storage.plugin.local.dto.LocalStorageLocationConfigurationDto;
+import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -92,6 +96,11 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     public static final int MAX_REQUESTS_PER_WORKING_SUBSET = 100;
 
+    /**
+     * Plugin parameter name that determines file name format on target storage
+     */
+    public static final String FILE_NAMING_STRATEGY = "File_Naming_Strategy";
+
     public static final String IOEXCEPTION_ERROR_MESSAGE_FORMAT = "Storage of StorageDataFile(%s) failed due to the following IOException: %s";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataStorage.class);
@@ -139,8 +148,23 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                      defaultValue = "500000000")
     private Long maxZipSize;
 
+    @PluginParameter(name = FILE_NAMING_STRATEGY,
+                     label = "File naming strategy",
+                     description =
+                         "Determines file name on target storage. List of possible values : CHECKSUM, FILENAME." ,
+                     defaultValue = FileNamingStrategy.Constants.CHECKSUM)
+    protected String fileNamingStrategy;
+
     @Autowired
     private S3StorageConfiguration knownS3Storages;
+
+    @PluginInit
+    public void initPlugin() {
+        Assert.isTrue(EnumUtils.isValidEnum(FileNamingStrategy.class, fileNamingStrategy),
+                      String.format("Invalid file naming strategy : %s (expected values : %s)",
+                                    fileNamingStrategy,
+                                    Arrays.toString(FileNamingStrategy.values())));
+    }
 
     @Override
     public Optional<Path> getRootPath() {
@@ -365,8 +389,12 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         if (Files.notExists(storageLocation)) {
             Files.createDirectories(storageLocation);
         }
-        // files are stored with the checksum as their name
-        return storageLocation.resolve(checksum);
+        // files are stored according to the file naming strategy
+        String filename = switch (FileNamingStrategy.valueOf(fileNamingStrategy)) {
+            case FILENAME -> request.getMetaInfo().getFileName();
+            case CHECKSUM -> request.getMetaInfo().getChecksum();
+        };
+        return storageLocation.resolve(filename);
     }
 
     public Path getStorageLocationForZip(FileStorageRequestAggregationDto request) throws IOException {
@@ -665,8 +693,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
     }
 
     @Override
-    public IStoragePluginConfigurationDto createWorkerStoreConfiguration() {
-        return new LocalStorageLocationConfigurationDto(baseStorageLocationAsString);
+    public AbstractStoragePluginConfigurationDto createWorkerStoreConfiguration() {
+        return new LocalStorageLocationConfigurationDto(baseStorageLocationAsString,
+                                                        FileNamingStrategy.valueOf(fileNamingStrategy));
     }
 
     private static class RegardsIS extends InputStream {

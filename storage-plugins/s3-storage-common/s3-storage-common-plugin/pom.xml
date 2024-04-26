@@ -69,6 +69,11 @@
             <artifactId>file-access-plugin-domain</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.fileaccess</groupId>
+            <artifactId>file-access-dto</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 

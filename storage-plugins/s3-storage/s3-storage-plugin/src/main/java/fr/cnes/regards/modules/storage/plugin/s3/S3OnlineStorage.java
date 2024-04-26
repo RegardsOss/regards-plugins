@@ -4,10 +4,11 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.storage.plugin.s3.dto.S3StorageConfigurationDTO;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
+import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -68,8 +69,11 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
     }
 
     @Override
-    public IStoragePluginConfigurationDto createWorkerStoreConfiguration() {
-        return new S3StorageConfigurationDTO(storageConfiguration, multipartThresholdMb, nbParallelPartsUpload);
+    public AbstractS3ConfigurationDto createWorkerStoreConfiguration() {
+        return new S3StorageConfigurationDTO(storageConfiguration,
+                                             multipartThresholdMb,
+                                             nbParallelPartsUpload,
+                                             FileNamingStrategy.valueOf(fileNamingStrategy));
     }
 
 }

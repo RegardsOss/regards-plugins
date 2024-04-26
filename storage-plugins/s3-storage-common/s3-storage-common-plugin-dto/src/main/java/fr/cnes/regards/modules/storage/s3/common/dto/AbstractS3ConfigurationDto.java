@@ -19,14 +19,15 @@
 package fr.cnes.regards.modules.storage.s3.common.dto;
 
 import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
-import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 
 /**
  * Common Configuration DTO for S3 Storage Plugins
  *
  * @author Thibaud Michaudel
  **/
-public class AbstractS3ConfigurationDto implements IStoragePluginConfigurationDto {
+public abstract class AbstractS3ConfigurationDto extends AbstractStoragePluginConfigurationDto {
 
     protected final StorageConfigDto storageConfigDto;
 
@@ -42,7 +43,9 @@ public class AbstractS3ConfigurationDto implements IStoragePluginConfigurationDt
 
     public AbstractS3ConfigurationDto(StorageConfigDto storageConfigDto,
                                       int multipartThresholdMb,
-                                      int nbParallelPartsUpload) {
+                                      int nbParallelPartsUpload,
+                                      FileNamingStrategy fileNamingStrategy) {
+        super(fileNamingStrategy);
         this.multipartThresholdMb = multipartThresholdMb;
         this.nbParallelPartsUpload = nbParallelPartsUpload;
         this.storageConfigDto = storageConfigDto;

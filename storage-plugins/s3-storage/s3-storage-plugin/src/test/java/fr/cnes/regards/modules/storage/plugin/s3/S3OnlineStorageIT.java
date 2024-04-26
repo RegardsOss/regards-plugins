@@ -33,6 +33,7 @@ import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileRequestStatus;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileDeletionWorkingSubset;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset;
@@ -189,7 +190,7 @@ public class S3OnlineStorageIT {
     public void givenS3_whenReference_thenValidateAndRetrieveFile_withRootPath_AndOriginalName() {
         givenS3_whenReference_thenValidateAndRetrieveFile(createFileStorageRequestAggregationDto(""),
                                                           "/rootPath0/rootPath1/",
-                                                          S3OnlineStorage.FILENAME_STRATEGY);
+                                                          FileNamingStrategy.Constants.FILENAME);
     }
 
     @Test
@@ -249,7 +250,7 @@ public class S3OnlineStorageIT {
                                                                    String rootPath) {
         givenS3_whenReference_thenValidateAndRetrieveFile(fileStorageRequest,
                                                           rootPath,
-                                                          S3OnlineStorage.CHECKSUM_STRATEGY);
+                                                          FileNamingStrategy.Constants.CHECKSUM);
     }
 
     private void givenS3_whenReference_thenValidateAndRetrieveFile(FileStorageRequestAggregationDto fileStorageRequest,
@@ -268,8 +269,9 @@ public class S3OnlineStorageIT {
         // Validate reference
         Assert.assertTrue(String.format("Invalid URL %s", fileReference.getLocation().getUrl()),
                           s3OnlineStorage.isValidUrl(fileReference.getLocation().getUrl(), new HashSet<>()));
-        String expectedFileName = S3OnlineStorage.FILENAME_STRATEGY.equals(namingStrategy) ? FILE_NAME
-                                                                                           : MD5_CHECKSUM_FILE;
+        String expectedFileName = FileNamingStrategy.Constants.FILENAME.equals(namingStrategy) ?
+            FILE_NAME :
+            MD5_CHECKSUM_FILE;
         Assert.assertEquals(String.format("Invalid S3 file name %s", expectedFileName),
                             expectedFileName,
                             new File(fileReference.getLocation().getUrl()).getName());

@@ -10,9 +10,10 @@ import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
@@ -870,10 +871,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @Override
-    public IStoragePluginConfigurationDto createWorkerStoreConfiguration() {
+    public AbstractStoragePluginConfigurationDto createWorkerStoreConfiguration() {
         return new S3GlacierStorageConfigurationDto(storageConfiguration,
                                                     multipartThresholdMb,
                                                     nbParallelPartsUpload,
+                                                    FileNamingStrategy.valueOf(fileNamingStrategy),
                                                     rawWorkspacePath,
                                                     smallFileMaxSize,
                                                     archiveMaxSize,

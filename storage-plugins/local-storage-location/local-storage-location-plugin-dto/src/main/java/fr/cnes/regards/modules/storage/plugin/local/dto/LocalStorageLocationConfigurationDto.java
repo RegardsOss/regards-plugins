@@ -18,21 +18,26 @@
  */
 package fr.cnes.regards.modules.storage.plugin.local.dto;
 
-import fr.cnes.regards.modules.fileaccess.dto.IStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
+
+import java.beans.ConstructorProperties;
 
 /**
  * Configuration DTO for Local Storage Plugin
  *
  * @author Thibaud Michaudel
  **/
-public class LocalStorageLocationConfigurationDto implements IStoragePluginConfigurationDto {
+public class LocalStorageLocationConfigurationDto extends AbstractStoragePluginConfigurationDto {
 
     /**
      * Root directory where to store new files on this location
      */
     private String baseStorageLocationAsString;
 
-    public LocalStorageLocationConfigurationDto(String baseStorageLocationAsString) {
+    @ConstructorProperties({ "baseStorageLocationAsString", "fileNamingStrategy" })
+    public LocalStorageLocationConfigurationDto(String baseStorageLocationAsString, FileNamingStrategy fileNamingStrategy) {
+        super(fileNamingStrategy);
         this.baseStorageLocationAsString = baseStorageLocationAsString;
     }
 

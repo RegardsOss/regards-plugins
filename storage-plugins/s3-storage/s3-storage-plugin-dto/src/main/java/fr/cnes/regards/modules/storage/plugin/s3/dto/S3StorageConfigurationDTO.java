@@ -19,7 +19,10 @@
 package fr.cnes.regards.modules.storage.plugin.s3.dto;
 
 import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
+
+import java.beans.ConstructorProperties;
 
 /**
  * Configuration DTO for Local Storage Plugin
@@ -28,9 +31,11 @@ import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
  **/
 public class S3StorageConfigurationDTO extends AbstractS3ConfigurationDto {
 
+    @ConstructorProperties({ "storageConfig", "multipartThresholdMb", "nbParallelPartsUpload", "fileNamingStrategy" })
     public S3StorageConfigurationDTO(StorageConfigDto storageConfig,
                                      int multipartThresholdMb,
-                                     int nbParallelPartsUpload) {
-        super(storageConfig, multipartThresholdMb, nbParallelPartsUpload);
+                                     int nbParallelPartsUpload,
+                                     FileNamingStrategy fileNamingStrategy) {
+        super(storageConfig, multipartThresholdMb, nbParallelPartsUpload, fileNamingStrategy);
     }
 }

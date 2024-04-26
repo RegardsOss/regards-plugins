@@ -29,6 +29,7 @@ import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileRequestStatus;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
@@ -76,6 +77,7 @@ public class LocalDataStorageTest {
         params.add(IPluginParam.build(LocalDataStorage.BASE_STORAGE_LOCATION_PLUGIN_PARAM_NAME, baseStorageLocation));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_DELETE_OPTION, true));
         params.add(IPluginParam.build(LocalDataStorage.LOCAL_STORAGE_TOTAL_SPACE, 10_000_000L));
+        params.add(IPluginParam.build(LocalDataStorage.FILE_NAMING_STRATEGY, FileNamingStrategy.Constants.CHECKSUM));
         plugin = PluginUtils.getPlugin(PluginConfiguration.build(LocalDataStorage.class, null, params),
                                        new ConcurrentHashMap<>());
 

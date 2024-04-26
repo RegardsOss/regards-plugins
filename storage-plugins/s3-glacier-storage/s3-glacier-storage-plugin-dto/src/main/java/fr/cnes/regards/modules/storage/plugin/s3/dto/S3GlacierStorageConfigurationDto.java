@@ -19,7 +19,10 @@
 package fr.cnes.regards.modules.storage.plugin.s3.dto;
 
 import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
+
+import java.beans.ConstructorProperties;
 
 /**
  * Configuration DTO for S3 Glacier Storage Plugin
@@ -70,9 +73,22 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
      */
     private String standardStorageClassName;
 
+    @ConstructorProperties({ "storageConfig",
+                             "multipartThresholdMb",
+                             "nbParallelPartsUpload",
+                             "fileNamingStrategy",
+                             "rawWorkspacePath",
+                             "smallFileMaxSize",
+                             "archiveMaxSize",
+                             "archiveMaxAge",
+                             "parallelTaskNumber",
+                             "archiveCacheLifetime",
+                             "s3AccessTimeout",
+                             "standardStorageClassName", })
     public S3GlacierStorageConfigurationDto(StorageConfigDto storageConfig,
                                             int multipartThresholdMb,
                                             int nbParallelPartsUpload,
+                                            FileNamingStrategy fileNamingStrategy,
                                             String rawWorkspacePath,
                                             int smallFileMaxSize,
                                             int archiveMaxSize,
@@ -81,7 +97,7 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
                                             int archiveCacheLifetime,
                                             int s3AccessTimeout,
                                             String standardStorageClassName) {
-        super(storageConfig, multipartThresholdMb, nbParallelPartsUpload);
+        super(storageConfig, multipartThresholdMb, nbParallelPartsUpload, fileNamingStrategy);
         this.rawWorkspacePath = rawWorkspacePath;
         this.smallFileMaxSize = smallFileMaxSize;
         this.archiveMaxSize = archiveMaxSize;
@@ -123,4 +139,5 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
     public String getStandardStorageClassName() {
         return standardStorageClassName;
     }
+
 }

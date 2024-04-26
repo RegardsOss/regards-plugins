@@ -31,8 +31,10 @@ import fr.cnes.regards.framework.s3.domain.*;
 import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.framework.s3.exception.ChecksumDoesntMatchException;
 import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
+import fr.cnes.regards.framework.utils.file.DownloadTmpConfigDto;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
@@ -40,6 +42,7 @@ import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
+import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -94,19 +97,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     public static final String S3_ALLOW_DELETION = "S3_Allow_Deletion";
 
     /**
-     * Determines file name format on target storage
+     * Plugin parameter name that determines the file name format on the target storage.
      */
     public static final String FILE_NAMING_STRATEGY = "File_Naming_Strategy";
-
-    /**
-     * Filename is replaced by the checksum (default)
-     */
-    public static final String CHECKSUM_STRATEGY = "CHECKSUM";
-
-    /**
-     * Filename is kept as is
-     */
-    public static final String FILENAME_STRATEGY = "FILENAME";
 
     private static final Logger LOGGER = getLogger(AbstractS3Storage.class);
 
@@ -167,8 +160,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
 
     @PluginParameter(name = FILE_NAMING_STRATEGY,
                      label = "File naming strategy",
-                     description = "Determines file name on target storage",
-                     defaultValue = CHECKSUM_STRATEGY)
+                     description = "Determines file name on target storage. List of possible values : CHECKSUM, FILENAME.",
+                     defaultValue = FileNamingStrategy.Constants.CHECKSUM)
     protected String fileNamingStrategy;
 
     /**
@@ -198,11 +191,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      */
     @PluginInit(hasConfiguration = true)
     public void init(PluginConfigurationDto conf) {
-        Assert.isTrue(CHECKSUM_STRATEGY.equals(fileNamingStrategy) || FILENAME_STRATEGY.equals(fileNamingStrategy),
-                      String.format("Invalid file naming strategy : %s (expected value : %s or %s)",
+        Assert.isTrue(EnumUtils.isValidEnum(FileNamingStrategy.class, fileNamingStrategy),
+                      String.format("Invalid file naming strategy : %s (expected values : %s)",
                                     fileNamingStrategy,
-                                    CHECKSUM_STRATEGY,
-                                    FILENAME_STRATEGY));
+                                    Arrays.toString(FileNamingStrategy.values())));
+
         Assert.isTrue(multipartThresholdMb >= 5,
                       String.format("The parameter value %s must be at least 5. (actual : " + "%d)",
                                     UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
@@ -299,8 +292,12 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                 runtimeTenantResolver.forceTenant(tenant);
                 return DownloadUtils.getInputStream(sourceUrl,
                                                     s3StorageSettings.getStorages(),
-                                                    multipartThresholdMb * 1024 * 1024L,
-                                                    workspaceService.getMicroserviceWorkspace());
+                                                    new DownloadTmpConfigDto(false,
+                                                                             multipartThresholdMb * 1024 * 1024L,
+                                                                             workspaceService.getMicroserviceWorkspace()
+                                                                                             .resolve(request.getMetaInfo()
+                                                                                                             .getChecksum()),
+                                                                             true));
             }, new DefaultDataBufferFactory(), 1024).map(DataBuffer::asByteBuffer);
 
             request.getMetaInfo().setFileSize(getFileSize(sourceUrl));
@@ -381,13 +378,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
 
     public String getEntryKey(FileStorageRequestAggregationDto request) {
         // Handle naming strategy
-        String filename;
-        if (FILENAME_STRATEGY.equals(fileNamingStrategy)) {
-            filename = request.getMetaInfo().getFileName();
-        } else {
-            filename = request.getMetaInfo().getChecksum();
-        }
-
+        String filename = switch (FileNamingStrategy.valueOf(fileNamingStrategy)) {
+            case FILENAME -> request.getMetaInfo().getFileName();
+            case CHECKSUM -> request.getMetaInfo().getChecksum();
+        };
         String entryKey = filename;
         if (request.getSubDirectory() != null && !request.getSubDirectory().isEmpty()) {
             entryKey = Paths.get(request.getSubDirectory(), filename).toString();
