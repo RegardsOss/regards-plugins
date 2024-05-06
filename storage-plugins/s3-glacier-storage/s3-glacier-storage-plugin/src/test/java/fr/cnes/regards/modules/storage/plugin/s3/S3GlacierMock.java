@@ -85,7 +85,7 @@ public class S3GlacierMock extends S3Glacier {
     }
 
     @Override
-    protected S3HighLevelReactiveClient getS3Client() {
+    protected S3HighLevelReactiveClient createS3Client() {
         S3HighLevelReactiveClient s3clientMock = Mockito.mock(S3HighLevelReactiveClient.class);
         Mockito.when(s3clientMock.write(Mockito.any()))
                .thenReturn(Mono.just(new StorageCommandResult.WriteSuccess(null, 50, null)));

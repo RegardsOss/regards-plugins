@@ -7,6 +7,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
+import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
@@ -206,8 +207,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private String workspacePath;
 
-    private String storageName;
-
     private ThreadPoolTaskScheduler scheduler;
 
     private BasicThreadFactory factory;
@@ -364,7 +363,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         return () -> {
             LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
             runtimeTenantResolver.forceTenant(tenant);
-            try {
+            try (S3HighLevelReactiveClient client = createS3Client()){
                 Path fileRelativePath = getServerPath().relativize(Path.of(fileCacheRequest.getFileReference()
                                                                                            .getLocation()
                                                                                            .getUrl()));
@@ -398,6 +397,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                 RetrieveCacheFileTask task = new RetrieveCacheFileTask(createRetrieveCacheFileTaskConfiguration(
                     fileRelativePath,
                     isSmallFile,
+                    client,
                     lockName), fileCacheRequest, progressManager);
 
                 LOGGER.debug("In thread {}, running RetrieveCacheFileTask from Glacier with lock",
@@ -469,7 +469,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private void handleDeleteSmallFileRequest(FileDeletionRequestDto request,
                                               IDeletionProgressManager progressManager) {
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()){
             Path serverRootPath = getServerPath();
             Path node = Path.of(request.getFileReference().getLocation().getUrl()).getParent();
             Path fileRelativePath = serverRootPath.relativize(Path.of(request.getFileReference()
@@ -483,7 +483,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     getArchiveBuildingWorkspacePath(),
                     storageName,
                     storageConfiguration,
-                    getS3Client());
+                    client);
                 DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(configuration, request, progressManager);
                 LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask from Glacier with lock",
                              Thread.currentThread().getName());
@@ -517,7 +517,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                     node,
                     storageName,
                     storageConfiguration,
-                    getS3Client(),
+                    client,
                     s3AccessTimeout,
                     lockName,
                     Instant.now(),
@@ -552,17 +552,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         if (!Files.exists(zipWorkspacePath)) {
             return;
         }
-        SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
-            zipWorkspacePath,
-            workspacePath,
-            archiveMaxAge,
-            rootPath,
-            storageName,
-            storageConfiguration,
-            multipartThresholdMb,
-            progressManager,
-            tenant,
-            getS3Client());
         ExecutorService executorService = null;
         try (Stream<Path> dirList = Files.walk(zipWorkspacePath)) {
             executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
@@ -626,46 +615,48 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                   String tenant,
                                                   boolean isSymLink) {
         return () -> {
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
-                dirPath,
-                workspacePath,
-                archiveMaxAge,
-                rootPath,
-                storageName,
-                storageConfiguration,
-                multipartThresholdMb,
-                progressManager,
-                tenant,
-                getS3Client());
+            try (S3HighLevelReactiveClient client = createS3Client()) {
+                LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+                runtimeTenantResolver.forceTenant(tenant);
+                SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
+                    dirPath,
+                    workspacePath,
+                    archiveMaxAge,
+                    rootPath,
+                    storageName,
+                    storageConfiguration,
+                    multipartThresholdMb,
+                    progressManager,
+                    tenant,
+                    client);
 
-            if (isSymLink) {
-                SubmitUpdatedArchiveTask task = new SubmitUpdatedArchiveTask(submitReadyArchiveTaskConfiguration,
+                if (isSymLink) {
+                    SubmitUpdatedArchiveTask task = new SubmitUpdatedArchiveTask(submitReadyArchiveTaskConfiguration,
+                                                                                 progressManager);
+
+                    /** Lock the building archive (with STORE LOCK) to prevent storage and deletion jobs to alter the archive
+                     * @see S3Glacier#doStoreTask} and {@link S3Glacier#doDeleteTask}
+                     */
+                    LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
+                                                                                                          null,
+                                                                                                          workspacePath,
+                                                                                                          dirPath.toString()),
+                                                                               task);
+                    return res.isExecuted() && res.getResponse();
+                } else {
+                    SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
                                                                              progressManager);
-
-                /** Lock the building archive (with STORE LOCK) to prevent storage and deletion jobs to alter the archive
-                 * @see S3Glacier#doStoreTask} and {@link S3Glacier#doDeleteTask}
-                 */
-                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                                                                      null,
-                                                                                                      workspacePath,
-                                                                                                      dirPath.toString()),
-                                                                           task);
-                return res.isExecuted() && res.getResponse();
-            } else {
-                SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
-                                                                         progressManager);
-                /** Lock the restored archive (with RESTORE LOCK) to prevent deletion jobs to alter the
-                 * archive while it is uploaded
-                 * @see {@link S3Glacier#doDeleteTask}
-                 */
-                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                                                      null,
-                                                                                                      workspacePath,
-                                                                                                      dirPath.toString()),
-                                                                           task);
-                return res.isExecuted() && res.getResponse();
+                    /** Lock the restored archive (with RESTORE LOCK) to prevent deletion jobs to alter the
+                     * archive while it is uploaded
+                     * @see {@link S3Glacier#doDeleteTask}
+                     */
+                    LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
+                                                                                                          null,
+                                                                                                          workspacePath,
+                                                                                                          dirPath.toString()),
+                                                                               task);
+                    return res.isExecuted() && res.getResponse();
+                }
             }
         };
     }
@@ -963,26 +954,27 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
 
         // case of big files
-        GlacierFileStatus fileAvailable = getS3Client().isFileAvailable(storageConfiguration,
-                                                                        getEntryKey(fileReference),
-                                                                        standardStorageClassName).block();
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            GlacierFileStatus fileAvailable = client.isFileAvailable(storageConfiguration,
+                                                                     getEntryKey(fileReference),
+                                                                     standardStorageClassName).block();
 
-        String fileName = fileReference.getMetaInfo().getFileName();
-        String message = switch (fileAvailable.getStatus()) {
-            case EXPIRED -> FILE + fileName + " is expired.";
-            case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
-            case NOT_AVAILABLE -> FILE + fileName + " is not available.";
-            // in all other cases, file is available
-            default -> {
-                availability = true;
-                dateExpiration = fileAvailable.getExpirationDate() == null ?
-                    null :
-                    fileAvailable.getExpirationDate().toOffsetDateTime();
-                yield FILE + fileName + " is available.";
-            }
-        };
-
-        return new NearlineFileStatusDto(availability, dateExpiration, message);
+            String fileName = fileReference.getMetaInfo().getFileName();
+            String message = switch (fileAvailable.getStatus()) {
+                case EXPIRED -> FILE + fileName + " is expired.";
+                case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
+                case NOT_AVAILABLE -> FILE + fileName + " is not available.";
+                // in all other cases, file is available
+                default -> {
+                    availability = true;
+                    dateExpiration = fileAvailable.getExpirationDate() == null ?
+                        null :
+                        fileAvailable.getExpirationDate().toOffsetDateTime();
+                    yield FILE + fileName + " is available.";
+                }
+            };
+            return new NearlineFileStatusDto(availability, dateExpiration, message);
+        }
     }
 
     private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference) {
@@ -1022,6 +1014,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private RetrieveCacheFileTaskConfiguration createRetrieveCacheFileTaskConfiguration(Path fileRelativePath,
                                                                                         boolean isSmallFile,
+                                                                                        S3HighLevelReactiveClient client,
                                                                                         String lockName) {
         return new RetrieveCacheFileTaskConfiguration(fileRelativePath,
                                                       getCachePath(),
@@ -1029,7 +1022,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                       s3AccessTimeout,
                                                       rootPath,
                                                       isSmallFile,
-                                                      getS3Client(),
+                                                      client,
                                                       lockName,
                                                       Instant.now(),
                                                       renewMaxIterationWaitingPeriodInS,

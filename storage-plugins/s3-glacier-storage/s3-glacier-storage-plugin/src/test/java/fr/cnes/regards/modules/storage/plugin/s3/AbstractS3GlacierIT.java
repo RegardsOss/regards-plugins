@@ -50,6 +50,7 @@ import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
+import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.apache.http.client.utils.URIBuilder;
@@ -170,9 +171,6 @@ public abstract class AbstractS3GlacierIT {
         // Settings for download in all available S3 servers
         s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
         Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
-
-        // Custom S3 Client that ignore restore call that are unavailable for tests in the regards test environment
-        Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
     }
 
     private LockService mockLockService() throws InterruptedException {
@@ -282,6 +280,7 @@ public abstract class AbstractS3GlacierIT {
         }
         Assert.assertNotNull(s3Glacier);
 
+        Mockito.spy(s3Glacier);
         Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
         switch (clientType) {
             case MockedS3ClientWithNoFileAvailable -> s3Client = new MockedS3ClientWithNoFileAvailable(scheduler);
@@ -290,6 +289,9 @@ public abstract class AbstractS3GlacierIT {
             case MockedS3Client -> s3Client = new MockedS3Client(scheduler);
             default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
         }
+
+        S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(s3Client);
 
         LockService lockService;
         try {
@@ -313,8 +315,8 @@ public abstract class AbstractS3GlacierIT {
         ReflectionTestUtils.setField(s3Glacier, "s3StorageSettings", s3StorageSettingsMock);
         ReflectionTestUtils.setField(s3Glacier, "lockService", lockService);
         ReflectionTestUtils.setField(s3Glacier, "runtimeTenantResolver", runtimeTenantResolver);
-        ReflectionTestUtils.setField(s3Glacier, "client", s3Client);
         ReflectionTestUtils.setField(s3Glacier, "workspaceService", workspaceService);
+        ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
 
     }
 
