@@ -165,6 +165,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String fileNamingStrategy;
 
     /**
+    /**
      * Configuration of S3 server
      */
     public StorageConfigDto storageConfiguration;
@@ -212,6 +213,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         storageConfiguration = new StorageConfigBuilder(endpoint, region, key, secret).bucket(bucket)
                                                                                       .rootPath(rootPath)
                                                                                       .build();
+        storageName = conf.getBusinessId();
+        storageConfiguration = StorageConfig.builder(endpoint, region, key, secret)
+                                            .bucket(bucket)
+                                            .rootPath(rootPath)
+                                            .build();
         storageName = conf.getBusinessId();
     }
 
@@ -279,7 +285,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
                                       S3HighLevelReactiveClient client,
                                       IStorageProgressManager progressManager) {
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()) {
             URL sourceUrl = new URL(request.getOriginUrl());
             String tenant = runtimeTenantResolver.getTenant();
 
@@ -308,6 +314,25 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                           storageEntry,
                                                                           request.getMetaInfo().getChecksum());
 
+            client.write(writeCmd)
+                  .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                       unreachable -> Mono.error(new RuntimeException(
+                                                                           "Unreachable endpoint")),
+                                                                       failure -> {
+                                                                           return handleWriteError(failure.getCause());
+                                                                       }))
+                  .doOnError(t -> {
+                      LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
+                      // Do not handle error here. Block method will throw the exception wrapped in a
+                      // RuntimeException. Error is handle in catch of this runtimeException here under.
+                  })
+                  .doOnSuccess(success -> {
+                      LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
+                      progressManager.storageSucceed(request,
+                                                     storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
+                                                     success.getSize());
+                  })
+                  .block();
             client.write(writeCmd)
                   .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
                                                                        unreachable -> Mono.error(new RuntimeException(
