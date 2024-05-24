@@ -21,14 +21,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
     <artifactId>fem-driver-plugin</artifactId>
     <packaging>jar</packaging>
     <description>Service layer of the Search module</description>
-
     <parent>
-        <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-        <artifactId>fem-driver</artifactId>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>oss-plugin-parent</artifactId>
         <version>${revision}</version>
+        <relativePath>../../../oss-plugin-parent</relativePath>
     </parent>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
@@ -51,6 +52,10 @@
             <organizationUrl>http://www.c-s.fr</organizationUrl>
         </developer>
     </developers>
+
+    <properties>
+        <regardsMs>catalog</regardsMs>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -98,29 +103,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <retryPushCount>0</retryPushCount>
-                    <skipDockerBuild>false</skipDockerBuild>
-                    <forceTags>true</forceTags>
-                    <imageName>${docker.registry.host}/rs-${project.artifactId}</imageName>
-                    <serverId>REGARDS-DockerHub</serverId>
-                    <registryUrl>${docker.registry.host}</registryUrl>
-                    <imageTags>
-                        <imageTag>${revision}</imageTag>
-                    </imageTags>
-                    <dockerDirectory>${project.basedir}/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>*-shaded.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
             </plugin>
         </plugins>
     </build>

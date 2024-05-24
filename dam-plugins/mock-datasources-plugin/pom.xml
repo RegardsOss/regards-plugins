@@ -1,16 +1,26 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES This file 
+	is part of REGARDS. REGARDS is free software: you can redistribute it and/or 
+	modify it under the terms of the GNU General Public License as published 
+	by the Free Software Foundation, either version 3 of the License, or (at 
+	your option) any later version. REGARDS is distributed in the hope that it 
+	will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+	of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General 
+	Public License for more details. You should have received a copy of the GNU 
+	General Public License along with REGARDS. If not, see <http://www.gnu.org/licenses/>. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-    <artifactId>local-storage-location-plugin</artifactId>
-    <description>Test plugin to mock S3 Glacier</description>
+    <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+    <artifactId>mock-datasources-plugin</artifactId>
+    <description>Contains mock datasources for test purposes</description>
     <parent>
         <groupId>fr.cnes.regards.plugins</groupId>
         <artifactId>oss-plugin-parent</artifactId>
         <version>${revision}</version>
-        <relativePath>../../../oss-plugin-parent</relativePath>
+        <relativePath>../../oss-plugin-parent</relativePath>
     </parent>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
@@ -35,42 +45,31 @@
     </developers>
 
     <properties>
-        <regardsMs>storage</regardsMs>
+        <regardsMs>dam</regardsMs>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>local-storage-location-plugin-dto</artifactId>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-domain</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework.utils</groupId>
-            <artifactId>file-utils</artifactId>
+            <artifactId>spring-utils</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>s3-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
-            <artifactId>file-access-plugin-domain</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- TEST dependencies -->
+        <!-- Tests -->
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
             <artifactId>regards-integration-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.framework.utils</groupId>
-            <artifactId>plugin-utils</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -83,12 +82,10 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
+                            <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>fr.cnes.regards.framework:s3-starter</include>
-                                    <include>fr.cnes.regards.modules.storage.plugins:local-storage-location-plugin-dto</include>
-                                    <include>fr.cnes.regards.modules.fileaccess.plugin:file-access-plugin-domain</include>
+                                    <include>commons-beanutils:commons-beanutils</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

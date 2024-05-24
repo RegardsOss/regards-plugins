@@ -25,7 +25,6 @@
     <artifactId>plugins</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
-
     <parent>
         <groupId>fr.cnes.regards</groupId>
         <artifactId>regards-oss-backend</artifactId>
@@ -155,12 +154,12 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-                <artifactId>feature-datasource</artifactId>
+                <artifactId>feature-datasource-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-                <artifactId>postgresql-datasource</artifactId>
+                <artifactId>postgresql-datasource-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -170,7 +169,7 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-                <artifactId>webservice-datasource</artifactId>
+                <artifactId>webservice-datasource-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -182,7 +181,7 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
-                <artifactId>custom-command-file-validation</artifactId>
+                <artifactId>custom-command-file-validation-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -223,17 +222,17 @@
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
-                <artifactId>chronos-recipient-sender</artifactId>
+                <artifactId>chronos-recipient-sender-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
-                <artifactId>rabbitmq-sender</artifactId>
+                <artifactId>rabbitmq-sender-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
-                <artifactId>dissemination-ack-sender</artifactId>
+                <artifactId>dissemination-ack-sender-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -315,5 +314,6 @@
         <module>ingest-plugins</module>
         <module>notifier-plugins</module>
         <module>processing-plugins</module>
+        <module>oss-plugin-parent</module>
     </modules>
 </project>

@@ -1,16 +1,17 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-    <artifactId>local-storage-location-plugin</artifactId>
-    <description>Test plugin to mock S3 Glacier</description>
+    <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+    <artifactId>dissemination-ack-sender-plugin</artifactId>
+    <description>Product dissemination acknowledge Sender</description>
     <parent>
         <groupId>fr.cnes.regards.plugins</groupId>
         <artifactId>oss-plugin-parent</artifactId>
         <version>${revision}</version>
-        <relativePath>../../../oss-plugin-parent</relativePath>
+        <relativePath>../../oss-plugin-parent</relativePath>
     </parent>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
@@ -35,33 +36,35 @@
     </developers>
 
     <properties>
-        <regardsMs>storage</regardsMs>
+        <regardsMs>notifier</regardsMs>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-            <artifactId>local-storage-location-plugin-dto</artifactId>
+            <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+            <artifactId>common-plugins</artifactId>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.framework.utils</groupId>
-            <artifactId>file-utils</artifactId>
-            <scope>provided</scope>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
         </dependency>
         <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
-            <artifactId>s3-starter</artifactId>
+            <artifactId>oais-dto</artifactId>
         </dependency>
         <dependency>
-            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
-            <artifactId>file-access-plugin-domain</artifactId>
-            <scope>provided</scope>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-domain</artifactId>
         </dependency>
-
-        <!-- TEST dependencies -->
+        <!-- Test dependencies -->
         <dependency>
-            <groupId>fr.cnes.regards.framework.test</groupId>
-            <artifactId>regards-integration-test</artifactId>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>jpa-multitenant-regards-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>geojson-starter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -70,7 +73,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -86,9 +88,11 @@
                             <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>fr.cnes.regards.framework:s3-starter</include>
-                                    <include>fr.cnes.regards.modules.storage.plugins:local-storage-location-plugin-dto</include>
-                                    <include>fr.cnes.regards.modules.fileaccess.plugin:file-access-plugin-domain</include>
+                                    <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
+                                    <include>fr.cnes.regards.modules.feature:feature-dto</include>
+                                    <include>fr.cnes.regards.framework:oais-dto</include>
+                                    <include>fr.cnes.regards.modules.ingest:ingest-domain</include>
+                                    <include>fr.cnes.regards.framework:urn-regards</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

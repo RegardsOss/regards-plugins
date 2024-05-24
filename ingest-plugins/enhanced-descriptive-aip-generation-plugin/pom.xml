@@ -17,25 +17,39 @@
  You should have received a copy of the GNU General Public License
  along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
-    <artifactId>notifier-plugins</artifactId>
-    <packaging>pom</packaging>
-
+    <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
+    <artifactId>enhanced-descriptive-aip-generation-plugin</artifactId>
     <parent>
         <groupId>fr.cnes.regards.plugins</groupId>
-        <artifactId>plugins</artifactId>
+        <artifactId>oss-plugin-parent</artifactId>
         <version>${revision}</version>
+        <relativePath>../../oss-plugin-parent</relativePath>
     </parent>
 
-    <modules>
-        <module>common-plugins</module>
-        <module>rabbitmq-sender-plugin</module>
-        <module>worker-manager-sender-plugin</module>
-        <module>dissemination-ack-sender-plugin</module>
-        <module>lta-request-sender-plugin</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ingest</groupId>
+            <artifactId>ingest-service</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <regardsMs>ingest</regardsMs>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

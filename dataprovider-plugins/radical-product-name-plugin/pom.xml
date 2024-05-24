@@ -21,10 +21,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.catalog.plugins</groupId>
-    <artifactId>download-plugin</artifactId>
-    <packaging>jar</packaging>
-    <description>Plugin to download files</description>
+    <groupId>fr.cnes.regards.modules.dataprovider.plugins.validation</groupId>
+    <artifactId>radical-product-name-plugin</artifactId>
+    <description>Plugin to Compute product name from filename pattern by removing some groups from given regex</description>
     <parent>
         <groupId>fr.cnes.regards.plugins</groupId>
         <artifactId>oss-plugin-parent</artifactId>
@@ -53,48 +52,33 @@
         </developer>
     </developers>
 
+    <properties>
+        <regardsMs>dataprovider</regardsMs>
+    </properties>
+
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules</groupId>
-            <artifactId>catalog-services-plugin</artifactId>
+            <groupId>fr.cnes.regards.modules.acquisition</groupId>
+            <artifactId>acquisition-domain</artifactId>
+            <scope>provided</scope>
         </dependency>
-
         <dependency>
-            <groupId>fr.cnes.regards.modules.storage</groupId>
-            <artifactId>storage-client</artifactId>
+            <groupId>fr.cnes.regards.framework.modules.workspace</groupId>
+            <artifactId>workspace-service</artifactId>
+            <scope>provided</scope>
         </dependency>
+        <!-- Tests -->
         <dependency>
             <groupId>fr.cnes.regards.framework.test</groupId>
             <artifactId>regards-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <properties>
-        <regardsMs>catalog</regardsMs>
-    </properties>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>false</minimizeJar>
-                            <artifactSet>
-                                <includes>
-                                    <include>fr.cnes.regards.modules.catalog.plugins:*</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

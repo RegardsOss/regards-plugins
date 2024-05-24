@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+    <artifactId>lta-request-sender-plugin</artifactId>
+    <description>Recipient sender for lta request</description>
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>oss-plugin-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../oss-plugin-parent</relativePath>
+    </parent>
+
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Group</organization>
+            <organizationUrl>https://www.csgroup.eu</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <regardsMs>notifier</regardsMs>
+    </properties>
+
+    <dependencies>
+        <!-- Regards dependencies -->
+        <dependency>
+            <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+            <artifactId>common-plugins</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.feature</groupId>
+            <artifactId>feature-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.ltamanager</groupId>
+            <artifactId>lta-manager-dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>gson-regards</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.model</groupId>
+            <artifactId>model-gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.notifier</groupId>
+            <artifactId>notifier-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.workermanager</groupId>
+            <artifactId>worker-manager-amqp</artifactId>
+        </dependency>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>jpa-multitenant-regards-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>plugin-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-dto</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <!-- Needs to include manually these adapters otherwise there are removed by minimizeJar -->
+                            <!-- These dependencies allows gson to convert from JSON payload an URN -->
+                            <filters>
+                                <filter>
+                                    <excludeDefaults>false</excludeDefaults>
+                                    <artifact>fr.cnes.regards.modules.feature:feature-dto</artifact>
+                                    <includes>
+                                        <include>fr/cnes/regards/modules/feature/dto/urn/converter/FeatureUrnAdapter</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                            <artifactSet>
+                                <includes>
+                                    <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
+                                    <include>fr.cnes.regards.framework:urn-regards</include>
+                                    <include>com.jayway.jsonpath:json-path</include>
+                                    <include>fr.cnes.regards.modules.feature:feature-dto</include>
+                                    <include>fr.cnes.regards.modules.notifier:notifier-utils</include>
+                                    <include>fr.cnes.regards.modules.workermanager:worker-manager-amqp</include>
+                                    <include>fr.cnes.regards.modules.ltamanager:lta-manager-dto</include>
+                                    <include>fr.cnes.regards.modules.model:model-gson</include>
+                                    <include>fr.cnes.regards.modules.model:model-dto</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

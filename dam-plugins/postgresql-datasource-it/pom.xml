@@ -54,7 +54,7 @@
     <dependencies>
         <dependency>
             <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
-            <artifactId>postgresql-datasource</artifactId>
+            <artifactId>postgresql-datasource-plugin</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -3,13 +3,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
-        <artifactId>s3-storage</artifactId>
-        <version>${revision}</version>
-    </parent>
-
+    <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
     <artifactId>s3-storage-plugin</artifactId>
+    <description>Plugin to deal with S3 server</description>
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>oss-plugin-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../../oss-plugin-parent</relativePath>
+    </parent>
 
     <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
     <inceptionYear>2016</inceptionYear>
@@ -31,6 +33,10 @@
             <organizationUrl>https://www.csgroup.eu</organizationUrl>
         </developer>
     </developers>
+
+    <properties>
+        <regardsMs>storage</regardsMs>
+    </properties>
 
     <dependencies>
         <!-- Regards -->
@@ -168,29 +174,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <retryPushCount>0</retryPushCount>
-                    <skipDockerBuild>false</skipDockerBuild>
-                    <forceTags>true</forceTags>
-                    <imageName>${docker.registry.host}/rs-${project.artifactId}</imageName>
-                    <serverId>REGARDS-DockerHub</serverId>
-                    <registryUrl>${docker.registry.host}</registryUrl>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                    </imageTags>
-                    <dockerDirectory>${project.basedir}/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>*-shaded.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
             </plugin>
         </plugins>
     </build>

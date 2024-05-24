@@ -54,12 +54,12 @@
     </developers>
 
     <modules>
-        <module>aip-datasource</module>
+        <module>aip-datasource-plugin</module>
         <module>db-datasource-common</module>
-        <module>postgresql-datasource</module>
+        <module>postgresql-datasource-plugin</module>
         <module>postgresql-datasource-it</module>
-        <module>feature-datasource</module>
-        <module>webservice-datasource</module>
-        <module>mock-datasources</module>
+        <module>feature-datasource-plugin</module>
+        <module>webservice-datasource-plugin</module>
+        <module>mock-datasources-plugin</module>
     </modules>
 </project>

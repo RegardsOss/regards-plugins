@@ -28,8 +28,8 @@
  * @author Marc SORDI
  * @see https://jenkins.io/doc/book/pipeline/jenkinsfile/
  */
-@Library('regards/pluginPipeline') _
-pluginPipeline {
+@Library('regards/pluginPipelinev2') _
+pluginPipelinev2 {
     upstreamProjects = 'regards-oss-backend-gitlab'
     COTS = 'rs-elasticsearch:9300 rs-rabbitmq:5672 rs-postgres:5432 rs-minio:9000'
 }

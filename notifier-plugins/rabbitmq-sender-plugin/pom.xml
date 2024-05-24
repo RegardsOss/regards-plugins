@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fr.cnes.regards.modules.ingest.plugins</groupId>
-    <artifactId>send-delete-files-worker-request-plugin</artifactId>
-    <description>Send a request to worker manager with all files contained inside the SIP in order to remove them</description>
+    <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+    <artifactId>rabbitmq-sender-plugin</artifactId>
+    <description>Default recipient sender</description>
     <parent>
         <groupId>fr.cnes.regards.plugins</groupId>
         <artifactId>oss-plugin-parent</artifactId>
@@ -16,24 +16,34 @@
 
     <dependencies>
         <dependency>
-            <groupId>fr.cnes.regards.modules.ingest</groupId>
-            <artifactId>ingest-service</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.cnes.regards.modules.workermanager</groupId>
-            <artifactId>worker-manager-amqp</artifactId>
+            <groupId>fr.cnes.regards.modules.notifier.plugins</groupId>
+            <artifactId>common-plugins</artifactId>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
-            <groupId>fr.cnes.regards.framework.test</groupId>
-            <artifactId>regards-test</artifactId>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>geojson-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>jpa-multitenant-regards-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>plugin-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-dto</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <properties>
-        <regardsMs>ingest</regardsMs>
+        <regardsMs>notifier</regardsMs>
     </properties>
 
     <build>
@@ -51,7 +61,7 @@
                             <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>fr.cnes.regards.modules.workermanager:worker-manager-amqp</include>
+                                    <include>fr.cnes.regards.modules.notifier.plugins:common-plugins</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -60,5 +70,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

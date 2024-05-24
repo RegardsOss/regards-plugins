@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.cnes.regards.modules.dam.plugins.datasources</groupId>
+    <artifactId>webservice-datasource-plugin</artifactId>
+    <description>Webservice datasource. Those datasources pull data from an opensearch webservice and convert them in
+        REGARDS DATA. They allow user specifying authentication to pull data and use corresponding files.
+    </description>
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>oss-plugin-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../oss-plugin-parent</relativePath>
+    </parent>
+
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Systèmes d'Information</organization>
+            <organizationUrl>http://www.c-s.fr</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <regardsMs>dam</regardsMs>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>spring-utils</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Provided: dependencies that are already included by the microservice -->
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>feign-regards-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>proxy-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>geojson-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.dam</groupId>
+            <artifactId>dam-service</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-domain</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Notification templates -->
+        <dependency>
+            <groupId>fr.cnes.regards.modules.templates</groupId>
+            <artifactId>templates-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>fr.cnes.regards.framework.test</groupId>
+            <artifactId>regards-integration-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <artifactSet>
+                                <includes>
+                                    <include>fr.cnes.regards.modules.templates:*</include>
+                                    <include>org.freemarker:freemarker</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
