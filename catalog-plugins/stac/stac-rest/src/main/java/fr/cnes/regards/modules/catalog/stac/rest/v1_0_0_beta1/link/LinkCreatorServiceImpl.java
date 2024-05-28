@@ -37,7 +37,6 @@ import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
-import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,11 +207,6 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
                                                                              .otherPage(itemBodyB64, i))
                                                     .toUri()).flatMapTry(uriParamAdder.appendAuthParams())
-                                                             .flatMapTry(uriParamAdder.appendParams(HashMap.of(
-                                                                 SEARCH_ITEMBODY_QUERY_PARAM,
-                                                                 itemBodyB64,
-                                                                 PAGE_QUERY_PARAM,
-                                                                 "" + i)))
                                                              .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
                                                              .onFailure(t -> error(LOGGER,
                                                                                    FAILURE_PATTERN_MESSAGE,
@@ -255,27 +249,21 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             private Option<URI> createPageLink(int i) {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class)
                                                                              .features(collectionId,
-                                                                                       i,
                                                                                        null,
                                                                                        null,
-                                                                                       null)).toUri()).flatMapTry(
-                                                                                                          uriParamAdder.appendAuthParams())
-                                                                                                      .flatMapTry(
-                                                                                                          uriParamAdder.appendParams(
-                                                                                                              HashMap.of(
-                                                                                                                  PAGE_QUERY_PARAM,
-                                                                                                                  ""
-                                                                                                                  + i)))
-                                                                                                      .onSuccess(u -> debug(
-                                                                                                          LOGGER,
-                                                                                                          URI_PATTERN_MESSAGE,
-                                                                                                          u))
-                                                                                                      .onFailure(t -> error(
-                                                                                                          LOGGER,
-                                                                                                          FAILURE_PATTERN_MESSAGE,
-                                                                                                          t.getMessage(),
-                                                                                                          t))
-                                                                                                      .toOption();
+                                                                                       null,
+                                                                                       i)).toUri()).flatMapTry(
+                                                                                                       uriParamAdder.appendAuthParams())
+                                                                                                   .onSuccess(u -> debug(
+                                                                                                       LOGGER,
+                                                                                                       URI_PATTERN_MESSAGE,
+                                                                                                       u))
+                                                                                                   .onFailure(t -> error(
+                                                                                                       LOGGER,
+                                                                                                       FAILURE_PATTERN_MESSAGE,
+                                                                                                       t.getMessage(),
+                                                                                                       t))
+                                                                                                   .toOption();
             }
 
             @Override
@@ -324,11 +312,6 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(CollectionSearchController.class)
                                                                              .otherPage(collectionBodyB64, i))
                                                     .toUri()).flatMapTry(uriParamAdder.appendAuthParams())
-                                                             .flatMapTry(uriParamAdder.appendParams(HashMap.of(
-                                                                 SEARCH_COLLECTIONBODY_QUERY_PARAM,
-                                                                 collectionBodyB64,
-                                                                 PAGE_QUERY_PARAM,
-                                                                 "" + i)))
                                                              .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
                                                              .onFailure(t -> error(LOGGER,
                                                                                    FAILURE_PATTERN_MESSAGE,
