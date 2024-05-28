@@ -54,7 +54,7 @@
     </dependencies>
 
     <properties>
-        <regardsMs>notifier</regardsMs>
+        <regardsMs>storage</regardsMs>
     </properties>
 
     <build>
