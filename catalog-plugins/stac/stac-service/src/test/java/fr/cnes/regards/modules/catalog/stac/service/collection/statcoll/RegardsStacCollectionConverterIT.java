@@ -55,7 +55,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
 
-    OffsetDateTime offsetDateTimeFrom = OffsetDateTime.of(LocalDateTime.of(2017, 05, 12, 05, 45), ZoneOffset.UTC);
+    OffsetDateTime offsetDateTimeFrom = OffsetDateTime.of(LocalDateTime.of(2017, 5, 12, 5, 45), ZoneOffset.UTC);
 
     OffsetDateTime offsetDateTimeTo = OffsetDateTime.now();
 

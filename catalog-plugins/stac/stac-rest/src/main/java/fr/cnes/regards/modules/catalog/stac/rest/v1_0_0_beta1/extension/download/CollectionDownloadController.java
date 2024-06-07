@@ -37,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.vavr.control.Try;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -104,7 +104,7 @@ public class CollectionDownloadController implements TryToResponseEntity {
     @RequestMapping(value = STAC_DOWNLOAD_ALL_COLLECTIONS_AS_ZIPSTREAM_SUFFIX,
                     method = RequestMethod.GET,
                     produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<StreamingResponseBody> downloadAllCollectionsAsZipStream(final HttpServletResponse response,
+    public ResponseEntity<StreamingResponseBody> downloadAllCollectionsAsZipStream(HttpServletResponse response,
                                                                                    @RequestParam(name = "tinyurl")
                                                                                    String tinyurl,
                                                                                    @RequestParam(name = "filename",

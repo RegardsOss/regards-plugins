@@ -208,8 +208,10 @@ public class S3GlacierLockTest {
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting a lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "3 distinct locks taken");
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveLocalSmallFileTask one");
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveCacheFileTask one");
     }
 
     @Test
@@ -225,8 +227,10 @@ public class S3GlacierLockTest {
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting a lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "3 distinct locks taken");
-        Assert.isTrue(!lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()));
+        Assert.isTrue(!lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()),
+                      "acquired locks must not contain a RetrieveLocalSmallFileTask one");
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveCacheFileTask one");
     }
 
     @Test
@@ -244,9 +248,12 @@ public class S3GlacierLockTest {
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1, "There should be on restore task waiting for lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "There should be 3 distinct locks taken");
-        Assert.isTrue(!lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(RetrieveCacheFileTask.class.getName()));
+        Assert.isTrue(!lockServiceMock.getLockAcquired().containsValue(RetrieveLocalSmallFileTask.class.getName()),
+                      "acquired locks must not contain a RetrieveLocalSmallFileTask one");
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveCacheFileTask one");
+        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "waiting locks must contain a RetrieveCacheFileTask one");
     }
 
     @Test
@@ -290,8 +297,10 @@ public class S3GlacierLockTest {
         glacier.doDeleteTask(deleteRequest2, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should 2 different locks taken");
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RestoreAndDeleteSmallFileTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveCacheFileTask one");
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RestoreAndDeleteSmallFileTask.class.getName()),
+                      "acquired locks must not contain a RestoreAndDeleteSmallFileTask one");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1,
                       " There should one lock deleteSmallTask waiting for lock");
         Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(RestoreAndDeleteSmallFileTask.class.getName()),
@@ -340,9 +349,11 @@ public class S3GlacierLockTest {
         glacier.doStoreTask(storeRequest, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, " There should one taken");
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()),
+                      "acquired locks must contain a SubmitReadyArchiveTask one");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1, " There should one taken");
-        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(StoreSmallFileTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(StoreSmallFileTask.class.getName()),
+                      "waiting locks must contain a StoreSmallFileTask one");
     }
 
     @Test
@@ -357,8 +368,10 @@ public class S3GlacierLockTest {
         glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be two taken");
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()));
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()),
+                      "acquired locks must contain a SubmitReadyArchiveTask one");
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "acquired locks must contain a RetrieveCacheFileTask one");
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting for lock");
     }
 
@@ -374,9 +387,11 @@ public class S3GlacierLockTest {
         glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, " There should one taken");
-        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitUpdatedArchiveTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitUpdatedArchiveTask.class.getName()),
+                      "acquired locks must contain a SubmitUpdatedArchiveTask one");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1, "One task should be waiting for a lock");
-        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(RetrieveCacheFileTask.class.getName()));
+        Assert.isTrue(lockServiceMock.getWaitingLock().containsValue(RetrieveCacheFileTask.class.getName()),
+                      "waiting locks must contain a RetrieveCacheFileTask one");
     }
 
     @Test

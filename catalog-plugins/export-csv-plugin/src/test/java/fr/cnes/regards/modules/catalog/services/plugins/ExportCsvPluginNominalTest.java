@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.catalog.services.plugins.service.ExportCsvService
 import fr.cnes.regards.modules.catalog.services.plugins.utils.DataInitHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.utils.PluginHelper;
 import fr.cnes.regards.modules.catalog.services.plugins.utils.StreamHelper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +38,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;

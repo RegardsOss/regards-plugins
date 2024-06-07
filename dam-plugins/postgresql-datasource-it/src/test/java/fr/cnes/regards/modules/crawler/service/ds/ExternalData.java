@@ -1,6 +1,6 @@
 package fr.cnes.regards.modules.crawler.service.ds;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 /**
@@ -12,11 +12,12 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "t_data")
+@SequenceGenerator(name = "seq", initialValue = 1, sequenceName = "hibernate_sequence")
 public class ExternalData {
 
     @Id
     @Column
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq")
     private Long id;
 
     @Column

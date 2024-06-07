@@ -19,8 +19,9 @@
 
 package fr.cnes.regards.db.datasources.plugins.common;
 
-import com.nurkiewicz.jdbcrepository.TableDescription;
-import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
+import com.google.common.base.Strings;
+import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.jdbc.sql.SqlGenerator;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.modules.dam.domain.datasources.Column;
 import fr.cnes.regards.modules.dam.domain.datasources.CrawlingCursor;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -48,7 +49,6 @@ import java.util.Map;
  * This {@link Plugin} used a {@link IDBConnectionPlugin} to define the connection to the Database.
  *
  * @author Christophe Mertz
- * @since 1.0-SNAPSHOT
  */
 public abstract class AbstractDBDataSourceFromSingleTablePlugin extends AbstractDataObjectMapping
     implements IDBDataSourceFromSingleTablePlugin {
@@ -82,8 +82,6 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
 
     protected abstract SqlGenerator buildSqlGenerator();
 
-    protected abstract SqlGenerator buildSqlGenerator(String allColumnsClause);
-
     /**
      * This method initialize the {@link SqlGenerator} used to request the database.<br>
      *
@@ -91,26 +89,25 @@ public abstract class AbstractDBDataSourceFromSingleTablePlugin extends Abstract
      */
     @Override
     public void initializePluginMapping(String table) {
-
         // reset the number of data element hosted by the datasource
         this.reset();
 
-        tableDescription = new TableDescription(table, null, orderByColumn);
-
-        if (columns.isEmpty()) {
-            sqlGenerator = buildSqlGenerator();
-        } else {
-            if ("".equals(orderByColumn)) {
+        if (!columns.isEmpty()) {
+            if (Strings.isNullOrEmpty(orderByColumn)) {
                 orderByColumn = columns.get(0);
             }
-            sqlGenerator = buildSqlGenerator(buildColumnClause(columns.toArray(new String[0])));
+            tableDescription = new TableDescription(table,
+                                                    buildColumnClause(columns.toArray(new String[0])),
+                                                    orderByColumn);
+        } else {
+            tableDescription = new TableDescription(table, orderByColumn);
         }
+        sqlGenerator = buildSqlGenerator();
     }
 
     protected void initDataSourceColumns(IDBConnectionPlugin dbConnection) {
         // Retrieve all data types from DatabaseMetaData
-        columnTypeMap = dbConnection.getColumns(tableDescription.getName());
-
+        columnTypeMap = dbConnection.getColumns(tableDescription.getTableName());
     }
 
     protected Integer getTypeDs(String colName) {

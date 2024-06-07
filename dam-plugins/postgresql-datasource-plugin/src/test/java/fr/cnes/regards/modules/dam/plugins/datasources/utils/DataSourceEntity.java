@@ -22,8 +22,8 @@ import fr.cnes.regards.framework.jpa.IIdentifiable;
 import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourcePlugin;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

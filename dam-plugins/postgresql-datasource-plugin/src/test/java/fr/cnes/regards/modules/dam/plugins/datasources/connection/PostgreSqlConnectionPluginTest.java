@@ -96,7 +96,7 @@ public class PostgreSqlConnectionPluginTest extends AbstractRegardsIT {
 
         Assert.assertNotNull(sqlConn);
 
-        // Do not launch tests is Database is not available
+        // Do not launch tests if Database is not available
         Assume.assumeTrue(sqlConn.testConnection());
     }
 

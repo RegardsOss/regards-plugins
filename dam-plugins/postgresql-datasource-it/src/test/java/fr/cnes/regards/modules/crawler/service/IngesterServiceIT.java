@@ -368,7 +368,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         for (DatasourceIngestion dsi : dsIngestions) {
             System.out.print(dsi.getStackTrace());
             Assert.assertEquals(IngestionStatus.FINISHED, dsi.getStatus());
-            Assert.assertEquals(new Integer(0), dsi.getSavedObjectsCount());
+            Assert.assertEquals(Integer.valueOf(0), dsi.getSavedObjectsCount());
             Assert.assertNotNull("Datasource ingest last ingest date should not be null", dsi.getLastIngestDate());
         }
 

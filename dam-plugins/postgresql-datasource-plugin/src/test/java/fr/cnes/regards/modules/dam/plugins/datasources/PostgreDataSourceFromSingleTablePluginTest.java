@@ -246,7 +246,7 @@ public class PostgreDataSourceFromSingleTablePluginTest extends AbstractRegardsI
 
         features.forEach(d -> Assert.assertNotNull(d.getId()));
         features.forEach(d -> Assert.assertNotNull(d.getProviderId()));
-        features.forEach(d -> Assert.assertTrue(0 < d.getProperties().size()));
+        features.forEach(d -> Assert.assertFalse(d.getProperties().isEmpty()));
 
         // Get second page
         features = plgDBDataSource.findAll(getDefaultTenant(), new CrawlingCursor(1, 2), null, OffsetDateTime.now());

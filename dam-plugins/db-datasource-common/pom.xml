@@ -56,7 +56,6 @@
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/cz.jirutka.spring/spring-data-jdbc-repository -->
         <dependency>
             <groupId>cz.jirutka.spring</groupId>
             <artifactId>spring-data-jdbc-repository</artifactId>

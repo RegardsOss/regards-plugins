@@ -612,7 +612,7 @@ public abstract class AbstractDataObjectMapping extends AbstractDataSourcePlugin
         }
 
         attributesMapping.forEach(d -> {
-            if ((0 > d.getNameDS().toLowerCase().lastIndexOf(AS)) && !d.isPrimaryKey()) {
+            if ((d.getNameDS().toLowerCase().lastIndexOf(AS) == -1) && !d.isPrimaryKey()) {
                 columns.add(d.getNameDS() + BLANK + AS + d.getName() + "_");
             } else {
                 columns.add(d.getNameDS());

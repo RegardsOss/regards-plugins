@@ -19,7 +19,8 @@
 
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
-import com.nurkiewicz.jdbcrepository.sql.SqlGenerator;
+import cz.jirutka.spring.data.jdbc.sql.LimitOffsetSqlGenerator;
+import cz.jirutka.spring.data.jdbc.sql.SqlGenerator;
 import fr.cnes.regards.db.datasources.plugins.common.AbstractDBDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
@@ -30,7 +31,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceException;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IDBConnectionPlugin;
-import fr.cnes.regards.modules.dam.plugins.datasources.utils.PostgreSqlGenerator;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Class PostgreDataSourceFromSingleTablePlugin A {@link Plugin} to discover the tables, columns and indexes to a
+ * Class PostgreDataSourceFromSingleTablePlugin A {@link Plugin} to discover the tables, columns and indexes of a
  * PostgreSQL Database.<br>
  * This {@link Plugin} used a {@link IDBConnectionPlugin} to define to connection to the dataSource.
  *
@@ -110,12 +110,7 @@ public class PostgreDataSourceFromSingleTablePlugin extends AbstractDBDataSource
 
     @Override
     protected SqlGenerator buildSqlGenerator() {
-        return new PostgreSqlGenerator();
-    }
-
-    @Override
-    protected SqlGenerator buildSqlGenerator(String allColumnsClause) {
-        return new PostgreSqlGenerator(allColumnsClause);
+        return new LimitOffsetSqlGenerator();
     }
 
     @Override

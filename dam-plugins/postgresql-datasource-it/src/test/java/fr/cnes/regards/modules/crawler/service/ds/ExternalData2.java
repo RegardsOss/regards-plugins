@@ -2,7 +2,7 @@ package fr.cnes.regards.modules.crawler.service.ds;
 
 import fr.cnes.regards.framework.jpa.converters.OffsetDateTimeAttributeConverter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 
 /**
@@ -14,11 +14,12 @@ import java.time.OffsetDateTime;
  */
 @Entity
 @Table(name = "t_data_2")
+@SequenceGenerator(name = "seq2", initialValue = 1, sequenceName = "hibernate_sequence")
 public class ExternalData2 {
 
     @Id
     @Column
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq2")
     private Long id;
 
     @Column

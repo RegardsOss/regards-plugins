@@ -20,12 +20,13 @@
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.interceptor;
 
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.handler.WebRequestHandlerInterceptorAdapter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
@@ -33,7 +34,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorre
 /**
  * Logs calls to the STAC REST layer and positions a correlation ID for the request.
  */
-public class LogAndCorrelationIdInterceptor extends HandlerInterceptorAdapter {
+public class LogAndCorrelationIdInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAndCorrelationIdInterceptor.class);
 

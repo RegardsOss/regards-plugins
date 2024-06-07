@@ -70,7 +70,7 @@ public interface GsonAwareTest {
         builder.addSerializationExclusionStrategy(new GsonIgnoreExclusionStrategy());
         builder.registerTypeAdapter(Health.class, new HealthAdapter());
         builder.registerTypeAdapter(BeansEndpoint.BeanDescriptor.class, new BeanDescriptorAdapter());
-        builder.registerTypeAdapter(MappingsEndpoint.ApplicationMappings.class, new ApplicationMappingsAdapter());
+        builder.registerTypeAdapter(MappingsEndpoint.ApplicationMappingsDescriptor.class, new ApplicationMappingsAdapter());
         VavrGson.registerAll(builder);
 
         builder = updateGsonBuilder(builder);

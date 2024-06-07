@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.time.ZonedDateTime;
 
 /**
