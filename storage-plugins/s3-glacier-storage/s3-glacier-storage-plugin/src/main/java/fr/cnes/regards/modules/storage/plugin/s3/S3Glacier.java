@@ -248,6 +248,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @Override
+    public boolean isInternalCache() {
+        return !useExternalCache;
+    }
+
+    @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
         LOGGER.info("Glacier store requests received");
         ExecutorService storeExecutorService = null;
