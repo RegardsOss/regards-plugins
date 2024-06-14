@@ -167,7 +167,7 @@ public class S3GlacierUtils {
                                                              @Nullable String standardStorageClassName,
                                                              LockService lockService,
                                                              S3HighLevelReactiveClient s3Client) {
-        int lockTimeToLive = lockService.getTimeToLive();
+        int lockTimeToLiveInMs = lockService.getTimeToLiveInSeconds() * 1000;
 
         RestorationStatus restorationStatus = RestorationStatus.NOT_AVAILABLE;
 
@@ -206,7 +206,7 @@ public class S3GlacierUtils {
                         } else {
                             WaitingLock lock = new WaitingLock(lockName,
                                                                lockCreationDate,
-                                                               lockTimeToLive,
+                                                               lockTimeToLiveInMs,
                                                                renewCallDurationInMs,
                                                                lockService);
                             LOGGER.debug("Next try in {}", delay);

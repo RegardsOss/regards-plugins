@@ -187,7 +187,7 @@ public abstract class AbstractS3GlacierIT {
             LockServiceTask task = mock.getArgument(1);
             return new LockServiceResponse<>(true, task.run());
         }).when(lockService).tryRunWithLock(any(), any(), anyInt(), any());
-        Mockito.doAnswer((mock) -> 60000).when(lockService).getTimeToLive();
+        Mockito.doAnswer((mock) -> 60).when(lockService).getTimeToLiveInSeconds();
         return lockService;
     }
 
@@ -195,7 +195,7 @@ public abstract class AbstractS3GlacierIT {
         LockService lockService = Mockito.mock(LockService.class);
         Mockito.doThrow(SimulatedException.class).when(lockService).runWithLock(any(), any());
         Mockito.doThrow(SimulatedException.class).when(lockService).tryRunWithLock(any(), any(), anyInt(), any());
-        Mockito.doThrow(SimulatedException.class).when(lockService).getTimeToLive();
+        Mockito.doThrow(SimulatedException.class).when(lockService).getTimeToLiveInSeconds();
         return lockService;
     }
 
