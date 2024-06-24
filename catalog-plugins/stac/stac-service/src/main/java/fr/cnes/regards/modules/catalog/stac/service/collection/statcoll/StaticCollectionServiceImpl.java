@@ -176,10 +176,8 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
             links = List.of(linkCreator.createRootLink(),
                             parentCollectionId,
                             getItemsLinks(resourceName, linkCreator),
-                            children.flatMap(child -> linkCreator.createCollectionLinkWithRel(child.getIpId()
-                                                                                                   .toString(),
-                                                                                              child.getLabel(),
-                                                                                              CHILD))).flatMap(t -> t);
+                            children.flatMap(child -> linkCreator.createCollectionLinkWithRel(idMappingService.getStacIdByUrn(
+                                child.getIpId().toString()), child.getLabel(), CHILD))).flatMap(t -> t);
 
         } else if (resourceName.getEntityType().equals(EntityType.DATASET)) {
             links = List.of(linkCreator.createRootLink(), getItemsLinks(resourceName, linkCreator)).flatMap(t -> t);
