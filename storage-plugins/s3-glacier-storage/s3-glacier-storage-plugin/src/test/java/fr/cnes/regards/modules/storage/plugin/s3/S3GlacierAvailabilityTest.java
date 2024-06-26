@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
+import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +52,9 @@ public class S3GlacierAvailabilityTest {
 
     private final String BUCKET_S3_GLACIER = "bucket";
 
+    @Mock
+    private S3ClientCreatorService s3ClientService;
+
     @InjectMocks
     private S3Glacier s3Glacier;
 
@@ -61,6 +65,10 @@ public class S3GlacierAvailabilityTest {
     public void init() {
         ReflectionTestUtils.setField(s3Glacier, "endpoint", END_POINT_S3_GLACIER);
         ReflectionTestUtils.setField(s3Glacier, "bucket", BUCKET_S3_GLACIER);
+
+        Mockito.when(s3ClientService.createS3Client(Mockito.any(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(s3Client);
+
+        ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
     }
 
     @Test

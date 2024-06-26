@@ -40,6 +40,7 @@ import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
@@ -178,6 +179,11 @@ public class S3OnlineStorageIT {
         S3StorageConfiguration s3StorageSettingsMock = Mockito.mock(S3StorageConfiguration.class);
         Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
         ReflectionTestUtils.setField(s3OnlineStorage, "s3StorageSettings", s3StorageSettingsMock);
+
+
+        S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt())).thenCallRealMethod();
+        ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
     }
 
     @Test

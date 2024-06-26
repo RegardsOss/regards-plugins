@@ -19,7 +19,6 @@
 package fr.cnes.regards.modules.storage.s3.common;
 
 import com.google.common.collect.Maps;
-import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
@@ -39,6 +38,7 @@ import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregat
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
+import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
@@ -53,8 +53,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import software.amazon.awssdk.utils.StringUtils;
 
 import java.io.File;
@@ -127,6 +125,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      label = "S3 server bucket")
     protected String bucket;
 
+    protected String storageName;
+
     /**
      * Parameter used for URL validation. Only URL starting with {endpoint}/{bucket}/{root_path} is valid.
      * As a file can be accessible at the root of the bucket, this parameter is optional.
@@ -165,11 +165,6 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String fileNamingStrategy;
 
     /**
-     * s3Client
-     */
-    private S3HighLevelReactiveClient client;
-
-    /**
      * Configuration of S3 server
      */
     public StorageConfigDto storageConfiguration;
@@ -185,6 +180,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
 
     @Autowired
     protected WorkspaceService workspaceService;
+
+    @Autowired
+    private S3ClientCreatorService s3ClientService;
 
     /**
      * Initialize the storage configuration of S3 server
@@ -214,22 +212,17 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         storageConfiguration = new StorageConfigBuilder(endpoint, region, key, secret).bucket(bucket)
                                                                                       .rootPath(rootPath)
                                                                                       .build();
-
-        Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", conf.getBusinessId()), 10);
-        int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
-        client = new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
-    }
-
-    @PluginDestroy
-    void dispose() {
-        client.close();
+        storageName = conf.getBusinessId();
     }
 
     /**
+     * Create a new S3 Client.
+     * The client must be deleted after use.
+     *
      * @return the client S3
      */
-    protected S3HighLevelReactiveClient getS3Client() {
-        return client;
+    protected S3HighLevelReactiveClient createS3Client() {
+        return s3ClientService.createS3Client(storageName, multipartThresholdMb, nbParallelPartsUpload);
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
@@ -249,41 +242,43 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
                                                                          cmdId,
                                                                          getEntryKey(request.getFileReference()));
-        getS3Client().delete(deleteCmd)
-                     .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
-                                                                             unreachable -> Mono.error(new RuntimeException(
-                                                                                 "Unreachable endpoint")),
-                                                                             failure -> Mono.error(new RuntimeException(
-                                                                                 "Delete failure in S3 storage"))))
-                     .doOnError(t -> {
-                         try {
-                             runtimeTenantResolver.forceTenant(tenant);
-                             LOGGER.error("End deleting {} with location {}",
-                                          request.getFileReference().getMetaInfo().getFileName(),
-                                          request.getFileReference().getLocation().getUrl(),
-                                          t);
-                             progressManager.deletionFailed(request, "Delete failure in S3 storage");
-                         } finally {
-                             runtimeTenantResolver.clearTenant();
-                         }
-                     })
-                     .doOnSuccess(success -> {
-                         try {
-                             runtimeTenantResolver.forceTenant(tenant);
-                             LOGGER.info("End deleting {} with location {}",
-                                         request.getFileReference().getMetaInfo().getFileName(),
-                                         request.getFileReference().getLocation().getUrl());
-                             progressManager.deletionSucceed(request);
-                         } finally {
-                             runtimeTenantResolver.clearTenant();
-                         }
-                     })
-                     .block();
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            client.delete(deleteCmd)
+                  .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
+                                                                          unreachable -> Mono.error(new RuntimeException(
+                                                                              "Unreachable endpoint")),
+                                                                          failure -> Mono.error(new RuntimeException(
+                                                                              "Delete failure in S3 storage"))))
+                  .doOnError(t -> {
+                      try {
+                          runtimeTenantResolver.forceTenant(tenant);
+                          LOGGER.error("End deleting {} with location {}",
+                                       request.getFileReference().getMetaInfo().getFileName(),
+                                       request.getFileReference().getLocation().getUrl(),
+                                       t);
+                          progressManager.deletionFailed(request, "Delete failure in S3 storage");
+                      } finally {
+                          runtimeTenantResolver.clearTenant();
+                      }
+                  })
+                  .doOnSuccess(success -> {
+                      try {
+                          runtimeTenantResolver.forceTenant(tenant);
+                          LOGGER.info("End deleting {} with location {}",
+                                      request.getFileReference().getMetaInfo().getFileName(),
+                                      request.getFileReference().getLocation().getUrl());
+                          progressManager.deletionSucceed(request);
+                      } finally {
+                          runtimeTenantResolver.clearTenant();
+                      }
+                  })
+                  .block();
+        }
     }
 
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
                                       IStorageProgressManager progressManager) {
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()) {
             URL sourceUrl = new URL(request.getOriginUrl());
             String tenant = runtimeTenantResolver.getTenant();
 
@@ -312,27 +307,26 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                           storageEntry,
                                                                           request.getMetaInfo().getChecksum());
 
-            getS3Client().write(writeCmd)
-                         .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
-                                                                              unreachable -> Mono.error(new RuntimeException(
-                                                                                  "Unreachable endpoint")),
-                                                                              failure -> {
-                                                                                  return handleWriteError(failure.getCause());
-                                                                              }))
-                         .doOnError(t -> {
-                             LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
-                             // Do not handle error here. Block method will throw the exception wrapped in a
-                             // RuntimeException. Error is handle in catch of this runtimeException here under.
-                         })
-                         .doOnSuccess(success -> {
-                             LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
-                             progressManager.storageSucceed(request,
-                                                            StorageConfigUtils.entryKeyUrl(storageConfiguration,
-                                                                                           entryKey.replaceFirst("^/*",
-                                                                                                                 "")),
-                                                            success.getSize());
-                         })
-                         .block();
+            client.write(writeCmd)
+                  .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                       unreachable -> Mono.error(new RuntimeException(
+                                                                           "Unreachable endpoint")),
+                                                                       failure -> {
+                                                                           return handleWriteError(failure.getCause());
+                                                                       }))
+                  .doOnError(t -> {
+                      LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
+                      // Do not handle error here. Block method will throw the exception wrapped in a
+                      // RuntimeException. Error is handle in catch of this runtimeException here under.
+                  })
+                  .doOnSuccess(success -> {
+                      LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
+                      progressManager.storageSucceed(request,
+                                                     StorageConfigUtils.entryKeyUrl(storageConfiguration,
+                                                                                    entryKey.replaceFirst("^/*", "")),
+                                                     success.getSize());
+                  })
+                  .block();
 
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);

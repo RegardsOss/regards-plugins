@@ -32,22 +32,22 @@ public class WaitingLock {
 
     private Instant creationDate;
 
-    private final long maxTimeToLiveInMs;
+    private final long maxTimeToLiveInSeconds;
 
     private final LockService lockService;
 
-    private final long renewCallDuration;
+    private final long renewCallDurationInMs;
 
     public WaitingLock(String lockName,
                        Instant creationDate,
-                       long maxTimeToLiveInMs,
-                       long renewCallDuration,
+                       long maxTimeToLiveInSeconds,
+                       long renewCallDurationInMs,
                        LockService lockService) {
         this.lockName = lockName;
         this.creationDate = creationDate;
-        this.maxTimeToLiveInMs = maxTimeToLiveInMs;
+        this.maxTimeToLiveInSeconds = maxTimeToLiveInSeconds;
         this.lockService = lockService;
-        this.renewCallDuration = renewCallDuration;
+        this.renewCallDurationInMs = renewCallDurationInMs;
     }
 
     /**
@@ -77,8 +77,8 @@ public class WaitingLock {
      */
     private long getLockRemainingTime() {
         long currentTime = Instant.now().toEpochMilli();
-        Instant expirationDate = creationDate.plusMillis(maxTimeToLiveInMs
-                                                         - renewCallDuration); //Use an expiration date a bit earlier than the real one to account for renew time
+        Instant expirationDate = creationDate.plusMillis(maxTimeToLiveInSeconds * 1000
+                                                          - renewCallDurationInMs); //Use an expiration date a bit earlier than the real one to account for renew time
         return Duration.between(Instant.ofEpochMilli(currentTime), expirationDate).toMillis();
     }
 
