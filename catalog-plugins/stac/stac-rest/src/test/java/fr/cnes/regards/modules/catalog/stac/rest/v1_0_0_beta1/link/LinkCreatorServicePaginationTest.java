@@ -68,7 +68,7 @@ public class LinkCreatorServicePaginationTest {
         SearchPageLinkCreator pageLinkCreator = linkCreatorService.makeSearchPageLinkCreator(2, null);
 
         SearchPageLinkCreator collectionItemsPageLinkCreator = linkCreatorService.makeCollectionItemsPageLinkCreator(2,
-                                                                                                                     null);
+                                                                                                                     "URN:FEATURE:toto:123-123-123:V1");
 
         SearchPageLinkCreator collectionPageLinkCreator = linkCreatorService.makeSearchCollectionPageLinkCreation(2,
                                                                                                                   null);
