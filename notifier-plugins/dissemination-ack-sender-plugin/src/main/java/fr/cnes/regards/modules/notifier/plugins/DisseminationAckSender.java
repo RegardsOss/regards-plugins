@@ -71,6 +71,10 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
 
+    public static final String FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
+
+    public static final String AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
+
     /**
      * Path to feature origin urn in notification payload (used for GeoJson notified products).
      */
@@ -96,11 +100,23 @@ public class DisseminationAckSender implements IRecipientNotifier {
                      description = "Acknowledge sender label. Used by destination system to identify the current system")
     private String senderLabel;
 
-    @PluginParameter(label = "RabbitMQ queue name", name = FEATURE_QUEUE_PARAM_NAME, optional = true)
+    @PluginParameter(label = "RabbitMQ queue name for features dissemination",
+                     name = FEATURE_QUEUE_PARAM_NAME,
+                     optional = true)
     private String featureQueueName;
 
-    @PluginParameter(label = "RabbitMQ queue name", name = AIP_QUEUE_PARAM_NAME, optional = true)
+    @PluginParameter(label = "RabbitMQ queue name for aip dissemination", name = AIP_QUEUE_PARAM_NAME, optional = true)
     private String aipQueueName;
+
+    @PluginParameter(label = "RabbitMQ queue name for features dissemination",
+                     name = FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME,
+                     optional = true)
+    private boolean featureQueueDedicatedDlq;
+
+    @PluginParameter(label = "RabbitMQ queue name for aip dissemination",
+                     name = AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME,
+                     optional = true)
+    private boolean aipQueueDedicatedDlq;
 
     /**
      * Check configuration before start. One cohesive couple exchange-queue must be defined
@@ -157,7 +173,11 @@ public class DisseminationAckSender implements IRecipientNotifier {
         String featureRecipientTenant = UniformResourceName.fromString(featureUrns.get(0)).getTenant();
         Map<String, Object> headers = new HashMap<>();
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, featureRecipientTenant);
-        sendEvents(featureExchange, featureQueueName, featuresToSend, headers);
+        sendEvents(featureExchange,
+                   featureQueueName,
+                   featureQueueDedicatedDlq ? Optional.of(featureQueueName + ".DLQ") : Optional.empty(),
+                   featuresToSend,
+                   headers);
     }
 
     private void sendAipEvents(List<String> aipUrns) {
@@ -172,7 +192,11 @@ public class DisseminationAckSender implements IRecipientNotifier {
         String aipRecipientTenant = UniformResourceName.fromString(aipUrns.get(0)).getTenant();
         Map<String, Object> headers = new HashMap<>();
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, aipRecipientTenant);
-        sendEvents(aipExchange, aipQueueName, aipsToSend, headers);
+        sendEvents(aipExchange,
+                   aipQueueName,
+                   aipQueueDedicatedDlq ? Optional.of(aipQueueName + ".dlq") : Optional.empty(),
+                   aipsToSend,
+                   headers);
     }
 
     private Optional<String> computeUrnString(NotificationRequest request) {
@@ -201,12 +225,13 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public <T extends IEvent> Set<NotificationRequest> sendEvents(String exchange,
                                                                   String queueName,
+                                                                  Optional<String> dedicatedDlq,
                                                                   List<T> toSend,
                                                                   Map<String, Object> headers) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     Optional.empty(),
-                                    Optional.empty(),
+                                    dedicatedDlq,
                                     0,
                                     toSend,
                                     headers);
