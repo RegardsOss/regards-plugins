@@ -71,6 +71,8 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
 
+    public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
+
     public static final String FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
 
     public static final String AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
@@ -99,6 +101,12 @@ public class DisseminationAckSender implements IRecipientNotifier {
                      name = SENDER_LABEL_PARAM_NAME,
                      description = "Acknowledge sender label. Used by destination system to identify the current system")
     private String senderLabel;
+
+    @PluginParameter(label = "Recipient label (must be unique).",
+                     description = "When not specified, the emitter wont know what's the recipient label that should receive its events",
+                     name = RECIPIENT_LABEL_PARAM_NAME,
+                     optional = true)
+    private String recipientLabel;
 
     @PluginParameter(label = "RabbitMQ queue name for features dissemination",
                      name = FEATURE_QUEUE_PARAM_NAME,
@@ -242,7 +250,7 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     @Override
     public String getRecipientLabel() {
-        return null;
+        return recipientLabel;
     }
 
     @Override
