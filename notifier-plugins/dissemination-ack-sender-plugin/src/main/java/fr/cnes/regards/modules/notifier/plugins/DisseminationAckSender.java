@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -157,7 +157,11 @@ public class DisseminationAckSender implements IRecipientNotifier {
         String featureRecipientTenant = UniformResourceName.fromString(featureUrns.get(0)).getTenant();
         Map<String, Object> headers = new HashMap<>();
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, featureRecipientTenant);
-        sendEvents(featureExchange, featureQueueName, featuresToSend, headers);
+        sendEvents(featureExchange,
+                   featureQueueName,
+                   featureQueueDedicatedDlq ? Optional.of(featureQueueName + ".DLQ") : Optional.empty(),
+                   featuresToSend,
+                   headers);
     }
 
     private void sendAipEvents(List<String> aipUrns) {
@@ -172,7 +176,11 @@ public class DisseminationAckSender implements IRecipientNotifier {
         String aipRecipientTenant = UniformResourceName.fromString(aipUrns.get(0)).getTenant();
         Map<String, Object> headers = new HashMap<>();
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, aipRecipientTenant);
-        sendEvents(aipExchange, aipQueueName, aipsToSend, headers);
+        sendEvents(aipExchange,
+                   aipQueueName,
+                   aipQueueDedicatedDlq ? Optional.of(aipQueueName + ".dlq") : Optional.empty(),
+                   aipsToSend,
+                   headers);
     }
 
     private Optional<String> computeUrnString(NotificationRequest request) {
@@ -201,12 +209,13 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public <T extends IEvent> Set<NotificationRequest> sendEvents(String exchange,
                                                                   String queueName,
+                                                                  Optional<String> dedicatedDlq,
                                                                   List<T> toSend,
                                                                   Map<String, Object> headers) {
         this.publisher.broadcastAll(exchange,
                                     Optional.ofNullable(queueName),
                                     Optional.empty(),
-                                    Optional.empty(),
+                                    dedicatedDlq,
                                     0,
                                     toSend,
                                     headers);
@@ -217,7 +226,7 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     @Override
     public String getRecipientLabel() {
-        return null;
+        return recipientLabel;
     }
 
     @Override
