@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
  *
  * This file is part of REGARDS.
  *
@@ -71,12 +71,6 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public static final String SENDER_LABEL_PARAM_NAME = "senderLabel";
 
-    public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
-
-    public static final String FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
-
-    public static final String AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
-
     /**
      * Path to feature origin urn in notification payload (used for GeoJson notified products).
      */
@@ -102,29 +96,11 @@ public class DisseminationAckSender implements IRecipientNotifier {
                      description = "Acknowledge sender label. Used by destination system to identify the current system")
     private String senderLabel;
 
-    @PluginParameter(label = "Recipient label (must be unique).",
-                     description = "When not specified, the emitter wont know what's the recipient label that should receive its events",
-                     name = RECIPIENT_LABEL_PARAM_NAME,
-                     optional = true)
-    private String recipientLabel;
-
-    @PluginParameter(label = "RabbitMQ queue name for features dissemination",
-                     name = FEATURE_QUEUE_PARAM_NAME,
-                     optional = true)
+    @PluginParameter(label = "RabbitMQ queue name", name = FEATURE_QUEUE_PARAM_NAME, optional = true)
     private String featureQueueName;
 
-    @PluginParameter(label = "RabbitMQ queue name for aip dissemination", name = AIP_QUEUE_PARAM_NAME, optional = true)
+    @PluginParameter(label = "RabbitMQ queue name", name = AIP_QUEUE_PARAM_NAME, optional = true)
     private String aipQueueName;
-
-    @PluginParameter(label = "RabbitMQ queue name for features dissemination",
-                     name = FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME,
-                     optional = true)
-    private boolean featureQueueDedicatedDlq;
-
-    @PluginParameter(label = "RabbitMQ queue name for aip dissemination",
-                     name = AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME,
-                     optional = true)
-    private boolean aipQueueDedicatedDlq;
 
     /**
      * Check configuration before start. One cohesive couple exchange-queue must be defined
