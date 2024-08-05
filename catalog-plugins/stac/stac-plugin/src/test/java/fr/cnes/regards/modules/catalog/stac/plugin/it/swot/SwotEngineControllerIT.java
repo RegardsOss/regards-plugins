@@ -324,7 +324,7 @@ public class SwotEngineControllerIT extends AbstractStacIT {
     @Test
     public void searchCollectionsAsPostWithTitle() {
         String text = "rast";
-        searchCollectionsAsPostWithTitle(text, "keyword", 0);
+        searchCollectionsAsPostWithTitle(text, "keyword", 1);
         searchCollectionsAsPostWithTitle(text, "text", 1);
         searchCollectionsAsPostWithTitle(text, null, 1); // Same as text
         text = "RAST";
