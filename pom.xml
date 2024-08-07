@@ -302,6 +302,13 @@
                 <artifactId>s3-storage-common-plugin-dto</artifactId>
                 <version>${revision}</version>
             </dependency>
+
+            <!-- Test plugins -->
+            <dependency>
+                <groupId>fr.cnes.regards.modules.test.plugins</groupId>
+                <artifactId>batch-retry-test-service</artifactId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
