@@ -482,7 +482,6 @@ public class S3GlacierLockTest {
                                                     session,
                                                     "jobId",
                                                     null,
-                                                    FileRequestStatus.TO_DO,
                                                     null,
                                                     new HashSet<>(List.of(groupId)));
     }

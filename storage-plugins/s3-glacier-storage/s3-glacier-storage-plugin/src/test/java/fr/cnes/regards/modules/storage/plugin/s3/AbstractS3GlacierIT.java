@@ -55,6 +55,7 @@ import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
+import jakarta.annotation.Nullable;
 import org.apache.http.client.utils.URIBuilder;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
@@ -79,7 +80,6 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
 
-import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -293,7 +293,8 @@ public abstract class AbstractS3GlacierIT {
         }
 
         S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(s3Client);
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+               .thenReturn(s3Client);
 
         LockService lockService;
         try {
@@ -537,7 +538,6 @@ public abstract class AbstractS3GlacierIT {
                                                                                                    "session",
                                                                                                    "jobId",
                                                                                                    null,
-                                                                                                   FileRequestStatus.TO_DO,
                                                                                                    null,
                                                                                                    null);
 

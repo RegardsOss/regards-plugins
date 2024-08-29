@@ -495,7 +495,6 @@ public class LocalDataStorageTest {
                                                     session,
                                                     "0",
                                                     null,
-                                                    FileRequestStatus.TO_DO,
                                                     null,
                                                     new HashSet<>(List.of(groupId)));
 

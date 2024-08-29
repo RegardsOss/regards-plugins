@@ -180,9 +180,9 @@ public class S3OnlineStorageIT {
         Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
         ReflectionTestUtils.setField(s3OnlineStorage, "s3StorageSettings", s3StorageSettingsMock);
 
-
         S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt())).thenCallRealMethod();
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+               .thenCallRealMethod();
         ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
     }
 
@@ -325,7 +325,6 @@ public class S3OnlineStorageIT {
                                                     "session",
                                                     null,
                                                     null,
-                                                    FileRequestStatus.TO_DO,
                                                     null,
                                                     null);
     }
@@ -355,7 +354,6 @@ public class S3OnlineStorageIT {
                                                     "session",
                                                     null,
                                                     null,
-                                                    FileRequestStatus.TO_DO,
                                                     null,
                                                     null);
     }
