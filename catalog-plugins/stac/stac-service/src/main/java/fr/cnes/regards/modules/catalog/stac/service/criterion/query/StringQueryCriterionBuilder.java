@@ -66,9 +66,13 @@ public class StringQueryCriterionBuilder extends AbstractQueryObjectCriterionBui
                              Option.of(adaptCase(queryObject.getContainsAll(), stringMatchType))
                                    .flatMap(in -> in.map(d -> contains(attr, d, stringMatchType))
                                                     .reduceLeftOption(ICriterion::and)),
-                             Option.of(adaptCase(queryObject.getIn(), stringMatchType))
-                                   .flatMap(in -> in.map(d -> eq(attr, d, stringMatchType))
-                                                    .reduceLeftOption(ICriterion::or)));
+                             Option.of(adaptCase(queryObject.getIn(), stringMatchType)).flatMap(in -> {
+                                 List<ICriterion> criteria = in.map(d -> eq(attr, d, stringMatchType));
+                                 return criteria.isEmpty() ?
+                                     Option.none() :
+                                     Option.of(ICriterion.or(criteria.asJava()));
+                             }));
+
     }
 
     @Override
