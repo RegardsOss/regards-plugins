@@ -40,10 +40,7 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
-import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileRequestStatus;
+import fr.cnes.regards.modules.fileaccess.dto.*;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
@@ -360,7 +357,11 @@ public abstract class AbstractS3GlacierIT {
                                                                          MimeType.valueOf("text/plain").toString(),
                                                                          null);
 
-        FileLocationDto location = new FileLocationDto("glacier", storedFileUrl.toString(), pendingActionRemaining);
+        FileLocationDto location = new FileLocationDto("glacier",
+                                                       storedFileUrl.toString(),
+                                                       pendingActionRemaining ?
+                                                           FileArchiveStatus.TO_STORE :
+                                                           FileArchiveStatus.STORED);
         FileReferenceWithoutOwnersDto reference = new FileReferenceWithoutOwnersDto(random.nextLong(),
                                                                                     null,
                                                                                     metaInfo,

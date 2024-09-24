@@ -21,10 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.domain.S3Server;
-import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
-import fr.cnes.regards.modules.fileaccess.dto.FileRequestStatus;
+import fr.cnes.regards.modules.fileaccess.dto.*;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IDeletionProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
@@ -534,7 +531,7 @@ public class S3GlacierLockTest {
                                                        + "/"
                                                        + node
                                                        + fileName,
-                                                       local);
+                                                       local ? FileArchiveStatus.TO_STORE : FileArchiveStatus.STORED);
         return new FileReferenceWithoutOwnersDto(null, metaInfo, location);
     }
 

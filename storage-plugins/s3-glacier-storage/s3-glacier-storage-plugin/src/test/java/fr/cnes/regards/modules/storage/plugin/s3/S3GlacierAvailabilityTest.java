@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
+import fr.cnes.regards.modules.fileaccess.dto.FileArchiveStatus;
 import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
@@ -66,7 +67,8 @@ public class S3GlacierAvailabilityTest {
         ReflectionTestUtils.setField(s3Glacier, "endpoint", END_POINT_S3_GLACIER);
         ReflectionTestUtils.setField(s3Glacier, "bucket", BUCKET_S3_GLACIER);
 
-        Mockito.when(s3ClientService.createS3Client(Mockito.any(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(s3Client);
+        Mockito.when(s3ClientService.createS3Client(Mockito.any(), Mockito.anyInt(), Mockito.anyInt()))
+               .thenReturn(s3Client);
 
         ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
     }
@@ -162,7 +164,7 @@ public class S3GlacierAvailabilityTest {
                                                                          null);
         FileLocationDto location = new FileLocationDto("S3Glacier",
                                                        END_POINT_S3_GLACIER + "/" + BUCKET_S3_GLACIER + "/file",
-                                                       false);
+                                                       FileArchiveStatus.STORED);
         return new FileReferenceWithoutOwnersDto(OffsetDateTime.now(), metaInfo, location);
     }
 
