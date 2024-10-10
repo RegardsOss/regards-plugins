@@ -73,9 +73,9 @@ public class DisseminationAckSender implements IRecipientNotifier {
 
     public static final String RECIPIENT_LABEL_PARAM_NAME = "recipientLabel";
 
-    public static final String FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
+    public static final String FEATURE_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
 
-    public static final String AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
+    public static final String AIP_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
 
     /**
      * Path to feature origin urn in notification payload (used for GeoJson notified products).
@@ -116,15 +116,15 @@ public class DisseminationAckSender implements IRecipientNotifier {
     @PluginParameter(label = "RabbitMQ queue name for aip dissemination", name = AIP_QUEUE_PARAM_NAME, optional = true)
     private String aipQueueName;
 
-    @PluginParameter(label = "RabbitMQ queue name for features dissemination",
-                     name = FEATURE_QUEUE_DEDICATED_DLQ_PARAM_NAME,
+    @PluginParameter(label = "Use the features dissemination custom DLQ",
+                     name = FEATURE_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME,
                      optional = true)
-    private boolean featureQueueDedicatedDlq;
+    private boolean featureUseDedicatedDlq;
 
-    @PluginParameter(label = "RabbitMQ queue name for aip dissemination",
-                     name = AIP_QUEUE_DEDICATED_DLQ_PARAM_NAME,
+    @PluginParameter(label = "Use the aip dissemination custom DLQ",
+                     name = AIP_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME,
                      optional = true)
-    private boolean aipQueueDedicatedDlq;
+    private boolean aipUseDedicatedDlq;
 
     /**
      * Check configuration before start. One cohesive couple exchange-queue must be defined
@@ -183,7 +183,7 @@ public class DisseminationAckSender implements IRecipientNotifier {
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, featureRecipientTenant);
         sendEvents(featureExchange,
                    featureQueueName,
-                   featureQueueDedicatedDlq ? Optional.of(featureQueueName + ".DLQ") : Optional.empty(),
+                   featureUseDedicatedDlq ? Optional.of(featureQueueName + ".DLQ") : Optional.empty(),
                    featuresToSend,
                    headers);
     }
@@ -202,7 +202,7 @@ public class DisseminationAckSender implements IRecipientNotifier {
         headers.put(AmqpConstants.REGARDS_TENANT_HEADER, aipRecipientTenant);
         sendEvents(aipExchange,
                    aipQueueName,
-                   aipQueueDedicatedDlq ? Optional.of(aipQueueName + ".dlq") : Optional.empty(),
+                   aipUseDedicatedDlq ? Optional.of(aipQueueName + ".dlq") : Optional.empty(),
                    aipsToSend,
                    headers);
     }

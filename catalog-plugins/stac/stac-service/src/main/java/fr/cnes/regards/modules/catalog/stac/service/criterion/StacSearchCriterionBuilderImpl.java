@@ -33,11 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Function;
-
-import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
-
 /**
  * Base implementation for {@link StacSearchCriterionBuilder}.
  */
@@ -95,8 +90,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                              fieldsCriterionBuilder.buildCriterion(properties, itemSearchBody.getFields()),
                              identitiesCriterionBuilder.buildCriterion(properties, itemSearchBody.getIds()),
                              geometryCriterionBuilder.buildCriterion(properties, itemSearchBody.getIntersects()),
-                             queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery())).flatMap(
-            addAccessCriteria());
+                             queryObjectCriterionBuilder.buildCriterion(properties, itemSearchBody.getQuery()));
     }
 
     @Override
@@ -112,9 +106,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                                                                        idMappingService.getUrnsByStacIds(
                                                                            collectionSearchBody.getIds())),
                              geometryCriterionBuilder.buildCriterion(properties, collectionSearchBody.getIntersects()),
-                             queryObjectCriterionBuilder.buildCriterion(properties,
-                                                                        collectionSearchBody.getQuery())).flatMap(
-            addAccessCriteria());
+                             queryObjectCriterionBuilder.buildCriterion(properties, collectionSearchBody.getQuery()));
     }
 
     @Override
@@ -130,15 +122,7 @@ public class StacSearchCriterionBuilderImpl implements StacSearchCriterionBuilde
                              geometryCriterionBuilder.buildCriterion(properties,
                                                                      collectionItemSearchBody.getIntersects()),
                              queryObjectCriterionBuilder.buildCriterion(properties,
-                                                                        collectionItemSearchBody.getQuery())).flatMap(
-            addAccessCriteria());
-    }
-
-    public Function<ICriterion, Option<? extends ICriterion>> addAccessCriteria() {
-        return c -> trying(() -> accessRightFilter.addAccessRights(c)).onFailure(t -> error(LOGGER,
-                                                                                            "Failed to add access rights to search: {}",
-                                                                                            t.getMessage(),
-                                                                                            t)).toOption();
+                                                                        collectionItemSearchBody.getQuery()));
     }
 
     @Override
