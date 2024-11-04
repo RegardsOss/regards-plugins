@@ -54,6 +54,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -180,9 +181,20 @@ public class S3OnlineStorageIT {
         Mockito.when(s3StorageSettingsMock.getStorages()).thenReturn(Collections.singletonList(createInputS3Server()));
         ReflectionTestUtils.setField(s3OnlineStorage, "s3StorageSettings", s3StorageSettingsMock);
 
-        S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
+        // Create the s3 creator service
+
+        S3ClientCreatorService s3ClientService = Mockito.spy(S3ClientCreatorService.class);
+
+        try {
+            Field field = S3ClientCreatorService.class.getDeclaredField("parallelNumber");
+            field.setAccessible(true);
+            field.set(s3ClientService, 10);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalArgumentException(e);
+        }
         Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
                .thenCallRealMethod();
+
         ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
     }
 

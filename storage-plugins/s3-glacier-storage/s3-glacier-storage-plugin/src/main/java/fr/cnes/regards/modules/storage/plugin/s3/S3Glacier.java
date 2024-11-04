@@ -212,6 +212,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private BasicThreadFactory factory;
 
+    /**
+     * S3 client used for {@link this#checkAvailability} checkAvailability} method only.
+     */
+    private S3HighLevelReactiveClient checkAvailabilityClient;
+
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
         if (runtimeTenantResolver != null) {
@@ -257,13 +262,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
         LOGGER.info("Glacier store requests received");
         ExecutorService storeExecutorService = null;
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()) {
             storeExecutorService = Executors.newFixedThreadPool(storeParallelTaskNumber, factory);
             String tenant = runtimeTenantResolver.getTenant();
             List<Future<LockServiceResponse<Void>>> taskResults = storeExecutorService.invokeAll(workingSet.getFileReferenceRequests()
                                                                                                            .stream()
                                                                                                            .map(request -> doStoreTask(
                                                                                                                request,
+                                                                                                               client,
                                                                                                                progressManager,
                                                                                                                tenant))
                                                                                                            .toList());
@@ -286,6 +292,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequestAggregationDto request,
+                                                           S3HighLevelReactiveClient client,
                                                            IStorageProgressManager progressManager,
                                                            String tenant) {
 
@@ -296,7 +303,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                 request.getMetaInfo().setFileSize(getFileSize(new URL(request.getOriginUrl())));
                 if (request.getMetaInfo().getFileSize() > smallFileMaxSize) {
                     LOGGER.info("Storing file on S3 using standard upload");
-                    handleStoreRequest(request, progressManager);
+                    handleStoreRequest(request, client, progressManager);
                     LOGGER.info("End Storing file on S3");
                 } else {
                     StoreSmallFileTaskConfiguration configuration = new StoreSmallFileTaskConfiguration(workspacePath,
@@ -336,12 +343,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.info("Glacier retrieve requests received");
         String tenant = runtimeTenantResolver.getTenant();
         ExecutorService executorService = null;
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()) {
             executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSubset.getFileRestorationRequests()
                                                                                                          .stream()
                                                                                                          .map(request -> doRetrieveTask(
                                                                                                              request,
+                                                                                                             client,
                                                                                                              progressManager,
                                                                                                              tenant))
                                                                                                          .toList());
@@ -363,13 +371,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequestDto fileCacheRequest,
+                                                              S3HighLevelReactiveClient client,
                                                               IRestorationProgressManager progressManager,
                                                               String tenant) {
 
         return () -> {
             LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
             runtimeTenantResolver.forceTenant(tenant);
-            try (S3HighLevelReactiveClient client = createS3Client()) {
+            try {
                 Path fileRelativePath = getServerPath().relativize(Path.of(fileCacheRequest.getFileReference()
                                                                                            .getLocation()
                                                                                            .getUrl()));
@@ -432,13 +441,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
         LOGGER.info("S3Glacier delete received requests");
         ExecutorService executorService = null;
-        try {
+        try (S3HighLevelReactiveClient client = createS3Client()) {
             executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             String tenant = runtimeTenantResolver.getTenant();
             List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSet.getFileDeletionRequests()
                                                                                                       .stream()
                                                                                                       .map(request -> doDeleteTask(
                                                                                                           request,
+                                                                                                          client,
                                                                                                           progressManager,
                                                                                                           tenant))
                                                                                                       .toList());
@@ -459,23 +469,25 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     public Callable<LockServiceResponse<Void>> doDeleteTask(FileDeletionRequestDto request,
+                                                            S3HighLevelReactiveClient client,
                                                             IDeletionProgressManager progressManager,
                                                             String tenant) {
         return () -> {
             LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
             runtimeTenantResolver.forceTenant(tenant);
             if (!isASmallFileUrl(request.getFileReference().getLocation().getUrl())) {
-                handleDeleteRequest(request, progressManager);
+                handleDeleteRequest(request, client, progressManager);
             } else {
-                handleDeleteSmallFileRequest(request, progressManager);
+                handleDeleteSmallFileRequest(request, client, progressManager);
             }
             return null;
         };
     }
 
     private void handleDeleteSmallFileRequest(FileDeletionRequestDto request,
+                                              S3HighLevelReactiveClient client,
                                               IDeletionProgressManager progressManager) {
-        try (S3HighLevelReactiveClient client = createS3Client()) {
+        try {
             Path serverRootPath = getServerPath();
             Path node = Path.of(request.getFileReference().getLocation().getUrl()).getParent();
             Path fileRelativePath = serverRootPath.relativize(Path.of(request.getFileReference()
@@ -559,7 +571,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             return;
         }
         ExecutorService executorService = null;
-        try (Stream<Path> dirList = Files.walk(zipWorkspacePath)) {
+        try (Stream<Path> dirList = Files.walk(zipWorkspacePath); S3HighLevelReactiveClient client = createS3Client()) {
             executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             // Directory that will be stored are located in /<WORKSPACE>/<ZIP_DIR>/<NODE>/, they can be symbolic link
             // It is important to differentiate between actual directories and symbolic link to use locks correctly
@@ -573,6 +585,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                                        .stream()
                                                                                        .map(dir -> doSubmitReadyArchive(
                                                                                            dir,
+                                                                                           client,
                                                                                            progressManager,
                                                                                            tenant,
                                                                                            entry.getKey())))
@@ -617,52 +630,51 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
      * </ul>
      */
     public Callable<Boolean> doSubmitReadyArchive(Path dirPath,
+                                                  S3HighLevelReactiveClient client,
                                                   IPeriodicActionProgressManager progressManager,
                                                   String tenant,
                                                   boolean isSymLink) {
         return () -> {
-            try (S3HighLevelReactiveClient client = createS3Client()) {
-                LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-                runtimeTenantResolver.forceTenant(tenant);
-                SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
-                    dirPath,
-                    workspacePath,
-                    archiveMaxAge,
-                    rootPath,
-                    storageName,
-                    storageConfiguration,
-                    multipartThresholdMb,
-                    progressManager,
-                    tenant,
-                    client);
+            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
+            runtimeTenantResolver.forceTenant(tenant);
+            SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
+                dirPath,
+                workspacePath,
+                archiveMaxAge,
+                rootPath,
+                storageName,
+                storageConfiguration,
+                multipartThresholdMb,
+                progressManager,
+                tenant,
+                client);
 
-                if (isSymLink) {
-                    SubmitUpdatedArchiveTask task = new SubmitUpdatedArchiveTask(submitReadyArchiveTaskConfiguration,
-                                                                                 progressManager);
-
-                    /** Lock the building archive (with STORE LOCK) to prevent storage and deletion jobs to alter the archive
-                     * @see S3Glacier#doStoreTask} and {@link S3Glacier#doDeleteTask}
-                     */
-                    LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                                                                          null,
-                                                                                                          workspacePath,
-                                                                                                          dirPath.toString()),
-                                                                               task);
-                    return res.isExecuted() && res.getResponse();
-                } else {
-                    SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
+            if (isSymLink) {
+                SubmitUpdatedArchiveTask task = new SubmitUpdatedArchiveTask(submitReadyArchiveTaskConfiguration,
                                                                              progressManager);
-                    /** Lock the restored archive (with RESTORE LOCK) to prevent deletion jobs to alter the
-                     * archive while it is uploaded
-                     * @see {@link S3Glacier#doDeleteTask}
-                     */
-                    LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                                                          null,
-                                                                                                          workspacePath,
-                                                                                                          dirPath.toString()),
-                                                                               task);
-                    return res.isExecuted() && res.getResponse();
-                }
+
+                /** Lock the building archive (with STORE LOCK) to prevent storage and deletion jobs to alter the archive
+                 * @see S3Glacier#doStoreTask} and {@link S3Glacier#doDeleteTask}
+                 */
+                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
+                                                                                                      null,
+                                                                                                      workspacePath,
+                                                                                                      dirPath.toString()),
+                                                                           task);
+                return res.isExecuted() && res.getResponse();
+            } else {
+                SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
+                                                                         progressManager);
+                /** Lock the restored archive (with RESTORE LOCK) to prevent deletion jobs to alter the
+                 * archive while it is uploaded
+                 * @see {@link S3Glacier#doDeleteTask}
+                 */
+                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
+                                                                                                      null,
+                                                                                                      workspacePath,
+                                                                                                      dirPath.toString()),
+                                                                           task);
+                return res.isExecuted() && res.getResponse();
             }
         };
     }
@@ -960,33 +972,40 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             return status;
         }
 
+        S3HighLevelReactiveClient client = getCheckAvailabilityClient();
+
         // case of big files
         String message;
-        try (S3HighLevelReactiveClient client = createS3Client()) {
-            GlacierFileStatus fileAvailable = client.isFileAvailable(storageConfiguration,
-                                                                     getEntryKey(fileReference),
-                                                                     standardStorageClassName).block();
-            if (fileAvailable != null) {
-                String fileName = fileReference.getMetaInfo().getFileName();
-                message = switch (fileAvailable.getStatus()) {
-                    case EXPIRED -> FILE + fileName + " is expired.";
-                    case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
-                    case NOT_AVAILABLE -> FILE + fileName + " is not available.";
-                    // in all other cases, file is available
-                    default -> {
-                        availability = true;
-                        dateExpiration = fileAvailable.getExpirationDate() == null ?
-                            null :
-                            fileAvailable.getExpirationDate().toOffsetDateTime();
-                        yield FILE + fileName + " is available.";
-                    }
-                };
-            } else {
-                message = "Error accessing s3 client. Please check service log for more information.";
-            }
+        GlacierFileStatus fileAvailable = client.isFileAvailable(storageConfiguration,
+                                                                 getEntryKey(fileReference),
+                                                                 standardStorageClassName).block();
+        if (fileAvailable != null) {
+            String fileName = fileReference.getMetaInfo().getFileName();
+            message = switch (fileAvailable.getStatus()) {
+                case EXPIRED -> FILE + fileName + " is expired.";
+                case RESTORE_PENDING -> "Restoration of file " + fileName + " is pending.";
+                case NOT_AVAILABLE -> FILE + fileName + " is not available.";
+                // in all other cases, file is available
+                default -> {
+                    availability = true;
+                    dateExpiration = fileAvailable.getExpirationDate() == null ?
+                        null :
+                        fileAvailable.getExpirationDate().toOffsetDateTime();
+                    yield FILE + fileName + " is available.";
+                }
+            };
+        } else {
+            message = "Error accessing s3 client. Please check service log for more information.";
         }
 
         return new NearlineFileStatusDto(availability, dateExpiration, message);
+    }
+
+    private synchronized S3HighLevelReactiveClient getCheckAvailabilityClient() {
+        if (checkAvailabilityClient == null) {
+            checkAvailabilityClient = createS3Client();
+        }
+        return checkAvailabilityClient;
     }
 
     private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference) {

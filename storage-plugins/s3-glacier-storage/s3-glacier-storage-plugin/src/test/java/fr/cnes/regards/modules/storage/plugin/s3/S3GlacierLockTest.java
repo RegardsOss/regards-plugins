@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
+import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.S3Server;
 import fr.cnes.regards.modules.fileaccess.dto.*;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
@@ -52,6 +53,8 @@ public class S3GlacierLockTest {
 
     private S3GlacierMock glacier;
 
+    private S3HighLevelReactiveClient client;
+
     public S3GlacierLockTest() {
     }
 
@@ -67,6 +70,7 @@ public class S3GlacierLockTest {
                                     "https://s3.datalake-qualif.cnes.fr",
                                     "bucket",
                                     Mockito.mock(IRuntimeTenantResolver.class));
+        client = glacier.createS3Client();
     }
 
     @Test
@@ -78,11 +82,11 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request4 = createStoreFileRequest("node1", false);
         // When
         glacier.mockBigFile();
-        glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(request2, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(request3, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request1, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request2, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request3, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         glacier.mockSmallFile();
-        glacier.doStoreTask(request4, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request4, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No lock should exists");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, "One lock should exists");
@@ -99,10 +103,10 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request4 = createStoreFileRequest("node2", true);
         // When
         glacier.mockSmallFile();
-        glacier.doStoreTask(request1, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(request2, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(request3, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(request4, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request1, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request2, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request3, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request4, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 2, "There should 2 task waiting for lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, "There should 2 distinct locks taken");
@@ -114,8 +118,8 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
         FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, true);
         // When
-        glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(cacheRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1,
                       "There should be one task waiting for lock available.");
@@ -132,8 +136,8 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
         FileCacheRequestDto cacheRequest = createRestoreFileRequest("node2", true, true);
         // When
-        glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(cacheRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No locked task should exists");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be 2 distinct locks acquired");
@@ -149,8 +153,8 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
         FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
-        glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(cacheRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No locked task should exists");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be 2 distinct locks acquired");
@@ -166,8 +170,8 @@ public class S3GlacierLockTest {
         FileStorageRequestAggregationDto request = createStoreFileRequest("node1", true);
         FileCacheRequestDto cacheRequest = createRestoreFileRequest("node1", true, false);
         // When
-        glacier.doStoreTask(request, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(cacheRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doStoreTask(request, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(cacheRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No locked task should exists");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be 2 distinct locks acquired");
@@ -184,9 +188,9 @@ public class S3GlacierLockTest {
         FileCacheRequestDto request2 = createRestoreFileRequest("node1", false, false);
         FileCacheRequestDto request3 = createRestoreFileRequest("node1", false, false);
         // When
-        glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request3, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request1, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request2, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request3, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting a lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "3 distinct locks taken");
@@ -199,9 +203,9 @@ public class S3GlacierLockTest {
         FileCacheRequestDto request2 = createRestoreFileRequest("node1", false, false);
         FileCacheRequestDto request3 = createRestoreFileRequest("node1", false, false);
         // When
-        glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request3, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request1, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request2, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request3, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting a lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "3 distinct locks taken");
@@ -218,9 +222,9 @@ public class S3GlacierLockTest {
         FileCacheRequestDto request2 = createRestoreFileRequest("node1", true, false);
         FileCacheRequestDto request3 = createRestoreFileRequest("node1", true, false);
         // When
-        glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request3, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request1, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request2, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request3, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), "No task should be waiting a lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "3 distinct locks taken");
@@ -238,10 +242,10 @@ public class S3GlacierLockTest {
         FileCacheRequestDto request3 = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         FileCacheRequestDto request4 = createRestoreFileRequest("node2", true, false, Optional.of("archive1"));
         // When
-        glacier.doRetrieveTask(request1, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request2, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request3, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doRetrieveTask(request4, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request1, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request2, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request3, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(request4, client, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1, "There should be on restore task waiting for lock");
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 3, "There should be 3 distinct locks taken");
@@ -258,7 +262,7 @@ public class S3GlacierLockTest {
         // Given
         FileDeletionRequestDto request = createDeletionRequest("node1", false, false, Optional.empty());
         // When
-        glacier.doDeleteTask(request, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(request, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().isEmpty(), " There should ne lock for big file deletion task");
         Assert.isTrue(lockServiceMock.getWaitingLock().isEmpty(), " There should ne lock for big file deletion task");
@@ -271,9 +275,9 @@ public class S3GlacierLockTest {
         FileDeletionRequestDto request2 = createDeletionRequest("node1", true, true, Optional.empty());
         FileDeletionRequestDto request3 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
         // When
-        glacier.doDeleteTask(request, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(request2, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(request3, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(request, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(request2, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(request3, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should 2 different locks taken");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1,
@@ -289,9 +293,10 @@ public class S3GlacierLockTest {
         FileDeletionRequestDto deleteRequest = createDeletionRequest("node1", true, false, Optional.of("archive1"));
         FileDeletionRequestDto deleteRequest2 = createDeletionRequest("node1", true, false, Optional.empty());
         // When
-        glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(deleteRequest, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(deleteRequest2, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(restoreRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant")
+               .call();
+        glacier.doDeleteTask(deleteRequest, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(deleteRequest2, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should 2 different locks taken");
         Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(RetrieveCacheFileTask.class.getName()),
@@ -313,10 +318,10 @@ public class S3GlacierLockTest {
         FileDeletionRequestDto deleteRequest2 = createDeletionRequest("node2", true, true, Optional.of("archive1"));
         // When
         glacier.mockSmallFile();
-        glacier.doStoreTask(storeRequest, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doStoreTask(storeRequest2, Mockito.mock(IStorageProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(deleteRequest, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
-        glacier.doDeleteTask(deleteRequest2, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doStoreTask(storeRequest, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(storeRequest2, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(deleteRequest, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
+        glacier.doDeleteTask(deleteRequest2, client, Mockito.mock(IDeletionProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should one taken");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 2, " There should one task waiting for lock");
@@ -340,10 +345,11 @@ public class S3GlacierLockTest {
         // when
         glacier.mockSmallFile();
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1"),
+                                     client,
                                      Mockito.mock(IPeriodicActionProgressManager.class),
                                      "tenant",
                                      false).call();
-        glacier.doStoreTask(storeRequest, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(storeRequest, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, " There should one taken");
         Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()),
@@ -359,10 +365,12 @@ public class S3GlacierLockTest {
         FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // when
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
+                                     client,
                                      Mockito.mock(IPeriodicActionProgressManager.class),
                                      "tenant",
                                      false).call();
-        glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(restoreRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant")
+               .call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be two taken");
         Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitReadyArchiveTask.class.getName()),
@@ -378,10 +386,12 @@ public class S3GlacierLockTest {
         FileCacheRequestDto restoreRequest = createRestoreFileRequest("node1", true, false, Optional.of("archive1"));
         // when
         glacier.doSubmitReadyArchive(Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
+                                     client,
                                      Mockito.mock(IPeriodicActionProgressManager.class),
                                      "tenant",
                                      true).call();
-        glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(restoreRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant")
+               .call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, " There should one taken");
         Assert.isTrue(lockServiceMock.getLockAcquired().containsValue(SubmitUpdatedArchiveTask.class.getName()),
@@ -401,7 +411,7 @@ public class S3GlacierLockTest {
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
                                  Instant.now(),
                                  "tenant").call();
-        glacier.doStoreTask(storeRequest, Mockito.mock(IStorageProgressManager.class), "tenant").call();
+        glacier.doStoreTask(storeRequest, client, Mockito.mock(IStorageProgressManager.class), "tenant").call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 2, " There should be 2 locks taken");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 0, " There should be 0 task waiting for lock");
@@ -420,7 +430,8 @@ public class S3GlacierLockTest {
                                  Paths.get("/tmp/zip", ROOT_PATH, "node1/rs_zip_archive1"),
                                  Instant.now(),
                                  "tenant").call();
-        glacier.doRetrieveTask(restoreRequest, Mockito.mock(IRestorationProgressManager.class), "tenant").call();
+        glacier.doRetrieveTask(restoreRequest, client, Mockito.mock(IRestorationProgressManager.class), "tenant")
+               .call();
         // Then
         Assert.isTrue(lockServiceMock.getLockAcquired().size() == 1, " There should be 1 locks taken");
         Assert.isTrue(lockServiceMock.getWaitingLock().size() == 1, " There should be 1 task waiting for lock");
