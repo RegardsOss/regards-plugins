@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
 import static java.time.ZoneOffset.UTC;
@@ -61,27 +62,32 @@ public class RegardsPropertyAccessorFactoryTest implements GsonAwareTest {
         model.setName("theModelName");
         dataObject = new DataObject(model, "theTenant", "theProviderId", "theLabel");
         dataObject.addProperty(IProperty.buildString("someStringProp", "someStringValue"));
-        when(finder.findByName("someStringProp")).thenAnswer(i -> new AttributeModelBuilder("someStringProp", PropertyType.STRING, "").build());
-
+        when(finder.findByNameOptional("someStringProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder("someStringProp",
+                                                                                             PropertyType.STRING, "").build()));
         dataObject.addProperty(IProperty.buildBoolean("someBooleanProp", false));
-        when(finder.findByName("someBooleanProp")).thenAnswer(i -> new AttributeModelBuilder("someBooleanProp", PropertyType.BOOLEAN, "").build());
+        when(finder.findByNameOptional("someBooleanProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder(
+            "someBooleanProp", PropertyType.BOOLEAN, "").build()));
 
         dataObject.addProperty(IProperty.buildDouble("someDoubleProp", 15d));
-        when(finder.findByName("someDoubleProp")).thenAnswer(i -> new AttributeModelBuilder("someDoubleProp", PropertyType.DOUBLE, "").build());
+        when(finder.findByNameOptional("someDoubleProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder(
+            "someDoubleProp" , PropertyType.DOUBLE, "").build()));
 
         dataObject.addProperty(IProperty.buildUrl("someURLProp", "http://xkcd.com/1"));
-        when(finder.findByName("someURLProp")).thenAnswer(i -> new AttributeModelBuilder("someURLProp", PropertyType.URL, "").build());
+        when(finder.findByNameOptional("someURLProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder(
+            "someURLProp", PropertyType.URL, "").build()));
 
         dataObject.addProperty(IProperty.buildDate("someDateProp", now));
-        when(finder.findByName("someDateProp")).thenAnswer(i -> new AttributeModelBuilder("someDateProp", PropertyType.DATE_ISO8601, "").build());
+        when(finder.findByNameOptional("someDateProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder(
+            "someDateProp", PropertyType.DATE_ISO8601, "").build()));
 
         dataObject.addProperty(IProperty.buildJson("someJsonObjectProp", jsonObject));
-        when(finder.findByName("someJsonObjectProp")).thenAnswer(i -> new AttributeModelBuilder("someJsonObjectProp", PropertyType.JSON, "").build());
+        when(finder.findByNameOptional("someJsonObjectProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder(
+            "someJsonObjectProp", PropertyType.JSON, "").build()));
 
         dataObject.addProperty(IProperty.buildObject("anObject", IProperty.buildString("anObjectStringProp", "anObjectStringPropValue"),
                                                                  IProperty.buildString("anotherObjectStringProp", "anotherObjectStringPropValue")));
-        when(finder.findByName("anObject.anObjectStringProp")).thenAnswer(i -> new AttributeModelBuilder("anObjectStringProp", PropertyType.STRING, "")
-            .setFragment(Fragment.buildFragment("anObject", "")).build());
+        when(finder.findByNameOptional("anObject.anObjectStringProp")).thenAnswer(i -> Optional.of(new AttributeModelBuilder("anObjectStringProp", PropertyType.STRING, "")
+            .setFragment(Fragment.buildFragment("anObject", "")).build()));
     }
 
     @Test

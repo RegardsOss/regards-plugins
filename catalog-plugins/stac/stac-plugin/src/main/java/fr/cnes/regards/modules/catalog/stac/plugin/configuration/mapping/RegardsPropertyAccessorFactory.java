@@ -126,7 +126,7 @@ public class RegardsPropertyAccessorFactory {
     private AttributeModel loadAttribute(String attrName,
                                          StacSourcePropertyConfiguration sPropConfig,
                                          StacPropertyType sPropType) {
-        AttributeModel attribute = Try.of(() -> finder.findByName(attrName)).getOrElseGet(t -> {
+        return finder.findByNameOptional(attrName).orElseGet(() -> {
             AttributeModel result = new AttributeModel();
             result.setName(attrName);
             result.setType(sPropType.getPropertyType());
@@ -134,7 +134,6 @@ public class RegardsPropertyAccessorFactory {
             result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
             return result;
         });
-        return attribute;
     }
 
     private Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> makeValueTypeAndExtractionFn(
