@@ -285,7 +285,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
                                       S3HighLevelReactiveClient client,
                                       IStorageProgressManager progressManager) {
-        try (S3HighLevelReactiveClient client = createS3Client()) {
+        try {
             URL sourceUrl = new URL(request.getOriginUrl());
             String tenant = runtimeTenantResolver.getTenant();
 
