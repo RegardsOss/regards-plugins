@@ -62,6 +62,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -250,6 +251,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
                                                                          cmdId,
                                                                          getEntryKey(request.getFileReference()));
+        long start = Instant.now().toEpochMilli();
         client.delete(deleteCmd)
               .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
                                                                       unreachable -> Mono.error(new RuntimeException(
@@ -280,6 +282,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                   }
               })
               .block();
+        LOGGER.info("[S3 Monitoring] Deletion of {} took {} ms", key, Instant.now().toEpochMilli() - start);
     }
 
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
@@ -314,6 +317,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                           storageEntry,
                                                                           request.getMetaInfo().getChecksum());
 
+            long start = Instant.now().toEpochMilli();
             client.write(writeCmd)
                   .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
                                                                        unreachable -> Mono.error(new RuntimeException(
@@ -333,26 +337,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                      success.getSize());
                   })
                   .block();
-            client.write(writeCmd)
-                  .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
-                                                                       unreachable -> Mono.error(new RuntimeException(
-                                                                           "Unreachable endpoint")),
-                                                                       failure -> {
-                                                                           return handleWriteError(failure.getCause());
-                                                                       }))
-                  .doOnError(t -> {
-                      LOGGER.debug("[{}] End storing {}", request.getJobId(), request.getOriginUrl(), t);
-                      // Do not handle error here. Block method will throw the exception wrapped in a
-                      // RuntimeException. Error is handle in catch of this runtimeException here under.
-                  })
-                  .doOnSuccess(success -> {
-                      LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
-                      progressManager.storageSucceed(request,
-                                                     StorageConfigUtils.entryKeyUrl(storageConfiguration,
-                                                                                    entryKey.replaceFirst("^/*", "")),
-                                                     success.getSize());
-                  })
-                  .block();
+            LOGGER.info("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
 
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -84,6 +85,7 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
                                                                                               UUID.randomUUID()),
                                                                          entryKey);
         try {
+            long start = Instant.now().toEpochMilli();
             StorageCommandResult.DeleteSuccess result = configuration.s3client()
                                                                      .delete(deleteCmd)
                                                                      .flatMap(deleteResult -> deleteResult.matchDeleteResult(
@@ -95,6 +97,7 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
                                                                      .onErrorResume(e -> Mono.error(new S3ClientException(
                                                                          e)))
                                                                      .block();
+            LOGGER.info("[S3 Monitoring] Deletion of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
             if (result != null) {
                 String archiveUrl = StorageConfigUtils.entryKeyUrl(configuration.storageConfiguration(), entryKey)
                                                       .toString();

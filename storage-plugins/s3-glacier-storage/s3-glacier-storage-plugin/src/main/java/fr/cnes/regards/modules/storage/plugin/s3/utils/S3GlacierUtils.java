@@ -84,7 +84,11 @@ public class S3GlacierUtils {
                                           String key,
                                           String standardStorageClassName,
                                           @Nullable Integer availabilityHours) {
+        long start = Instant.now().toEpochMilli();
         GlacierFileStatus glacierFileStatus = s3Client.isFileAvailable(config, key, standardStorageClassName).block();
+        LOGGER.info("[S3 Monitoring] Checking availability of {} took {} ms",
+                    key,
+                    Instant.now().toEpochMilli() - start);
 
         if (RestorationStatus.AVAILABLE == glacierFileStatus.getStatus()) {
             return new RestoreResponse(RestoreStatus.FILE_AVAILABLE, glacierFileStatus);
@@ -92,6 +96,7 @@ public class S3GlacierUtils {
         if (RestorationStatus.RESTORE_PENDING == glacierFileStatus.getStatus()) {
             return new RestoreResponse(RestoreStatus.SUCCESS, glacierFileStatus);
         }
+        start = Instant.now().toEpochMilli();
         RestoreResponse response = s3Client.restore(config, key, computeDaysFromHours(availabilityHours))
                                            .map(result -> new RestoreResponse(RestoreStatus.SUCCESS, glacierFileStatus))
                                            .onErrorResume(InvalidObjectStateException.class,
@@ -116,6 +121,9 @@ public class S3GlacierUtils {
                                                                                                    glacierFileStatus,
                                                                                                    new Exception(error))))
                                            .block();
+        LOGGER.info("[S3 Monitoring] Requesting restoration of {} took {} ms",
+                    key,
+                    Instant.now().toEpochMilli() - start);
         if (RestoreStatus.WRONG_STORAGE_CLASS == response.status()) {
             LOGGER.warn("The requested file {} is present but its storage class is not "
                         + "the expected one. This most likely means that you are using the glacier plugin (intended for t3 storage) on a t2 storage."
@@ -183,8 +191,12 @@ public class S3GlacierUtils {
                 LOGGER.debug("Checking if restoration succeeded");
 
                 try {
+                    long start = Instant.now().toEpochMilli();
                     glacierFileStatus = s3Client.isFileAvailable(s3Configuration, key, standardStorageClassName)
                                                 .block();
+                    LOGGER.info("[S3 Monitoring] Checking availability of {} took {} ms",
+                                key,
+                                Instant.now().toEpochMilli() - start);
                     restorationStatus = glacierFileStatus.getStatus();
                     reachServerAttempt = 0;
                 } catch (S3ClientException e) {

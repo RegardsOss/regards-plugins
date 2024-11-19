@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -220,6 +221,7 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
                                                                       storageEntry);
 
         LOGGER.info("Glacier accessing S3 to send small file archive");
+        long start = Instant.now().toEpochMilli();
         configuration.s3client()
                      .write(writeCmd)
                      .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
@@ -235,6 +237,7 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
                          LOGGER.info("[{}] End storing {}", taskId, archiveToCreate.getFileName());
                      })
                      .block();
+        LOGGER.info("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
         LOGGER.info("Glacier S3 access ended");
 
     }
