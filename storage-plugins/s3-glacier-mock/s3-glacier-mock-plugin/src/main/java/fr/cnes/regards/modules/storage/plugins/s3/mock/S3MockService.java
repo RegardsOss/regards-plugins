@@ -89,7 +89,8 @@ public class S3MockService {
         if (T3FileChecksums.contains(checksum)) {
             if (!restoredFileChecksums.contains(checksum)) {
                 // file on T3 not restored
-                return Optional.of(new NearlineFileStatusDto(false,
+                return Optional.of(new NearlineFileStatusDto(fileReference.getChecksum(),
+                                                             false,
                                                              null,
                                                              "This file is on T3 and needs to be restored"));
             } else {

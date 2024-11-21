@@ -41,6 +41,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -78,7 +79,8 @@ public class S3GlacierAvailabilityTest {
                .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, dateExpiration)));
 
         // When
-        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(createFakeFileReference());
+        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(List.of(createFakeFileReference()))
+                                                               .get(0);
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);
@@ -95,7 +97,8 @@ public class S3GlacierAvailabilityTest {
                .thenReturn(Mono.just(new GlacierFileStatus(RestorationStatus.AVAILABLE, 10L, null)));
 
         // When
-        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(createFakeFileReference());
+        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(List.of(createFakeFileReference()))
+                                                               .get(0);
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);
@@ -136,7 +139,8 @@ public class S3GlacierAvailabilityTest {
 
     public void test_file_availability() {
         // When
-        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(createFakeFileReference());
+        NearlineFileStatusDto nearlineFileStatusDto = s3Glacier.checkAvailability(List.of(createFakeFileReference()))
+                                                               .get(0);
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);

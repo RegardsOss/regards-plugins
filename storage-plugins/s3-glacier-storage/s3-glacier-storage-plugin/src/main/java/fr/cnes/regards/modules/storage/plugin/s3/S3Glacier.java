@@ -934,7 +934,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         throws NearlineFileNotAvailableException, NearlineDownloadException {
         String entryKey = getEntryKey(fileReference);
 
-        NearlineFileStatusDto nearlineFileStatusDto = checkAvailability(fileReference);
+        NearlineFileStatusDto nearlineFileStatusDto = doCheckAvailability(fileReference, createS3Client());
         if (!nearlineFileStatusDto.isAvailable()) {
             LOGGER.warn(nearlineFileStatusDto.getMessage());
             throw new NearlineFileNotAvailableException(nearlineFileStatusDto.getMessage());
@@ -963,7 +963,42 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @Override
-    public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
+    public List<NearlineFileStatusDto> checkAvailability(List<FileReferenceWithoutOwnersDto> fileReferences) {
+        List<NearlineFileStatusDto> results = new ArrayList<>();
+        ExecutorService executorService = null;
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
+            List<Future<NearlineFileStatusDto>> availabilitiesResults = executorService.invokeAll(fileReferences.stream()
+                                                                                                                .map(
+                                                                                                                    fileReference -> doCheckAvailabilityCallable(
+                                                                                                                        fileReference,
+                                                                                                                        client))
+                                                                                                                .toList());
+            // Wait for all tasks to complete
+            for (Future<NearlineFileStatusDto> future : availabilitiesResults) {
+                results.add(future.get());
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error("Check availability process interrupted");
+            addNonAvailableResultsForUnprocessedFiles(results, fileReferences);
+        } catch (ExecutionException e) {
+            LOGGER.error("Error during check availability process", e);
+            addNonAvailableResultsForUnprocessedFiles(results, fileReferences);
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
+        }
+        return results;
+    }
+
+    public Callable<NearlineFileStatusDto> doCheckAvailabilityCallable(FileReferenceWithoutOwnersDto fileReference,
+                                                                       S3HighLevelReactiveClient client) {
+        return () -> doCheckAvailability(fileReference, client);
+    }
+
+    public NearlineFileStatusDto doCheckAvailability(FileReferenceWithoutOwnersDto fileReference,
+                                                     S3HighLevelReactiveClient client) {
         boolean availability = false;
         OffsetDateTime dateExpiration = null;
         // manage case of small files
@@ -972,14 +1007,16 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             NearlineFileStatusDto status;
             if (smallFilePathInWorkspace.isPresent()) {
                 LOGGER.debug("Small file available : {}", fileReference.getLocation().getUrl());
-                status = new NearlineFileStatusDto(true,
+                status = new NearlineFileStatusDto(fileReference.getChecksum(),
+                                                   true,
                                                    null,
                                                    "Small file "
                                                    + fileReference.getMetaInfo().getFileName()
                                                    + " is available.");
             } else {
                 LOGGER.debug("Small file not available : {}", fileReference.getLocation().getUrl());
-                status = new NearlineFileStatusDto(false,
+                status = new NearlineFileStatusDto(fileReference.getChecksum(),
+                                                   false,
                                                    null,
                                                    "Small file "
                                                    + fileReference.getMetaInfo().getFileName()
@@ -987,8 +1024,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             }
             return status;
         }
-
-        S3HighLevelReactiveClient client = getCheckAvailabilityClient();
 
         // case of big files
         long start = Instant.now().toEpochMilli();
@@ -1018,7 +1053,28 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         } else {
             message = "Error accessing s3 client. Please check service log for more information.";
         }
-        return new NearlineFileStatusDto(availability, dateExpiration, message);
+        return new NearlineFileStatusDto(fileReference.getChecksum(), availability, dateExpiration, message);
+    }
+
+    /**
+     * Consider files that couldn't be processed as unavailable
+     *
+     * @param results results of the check availability process, this list will be modified by this method
+     */
+    private void addNonAvailableResultsForUnprocessedFiles(List<NearlineFileStatusDto> results,
+                                                           List<FileReferenceWithoutOwnersDto> fileReferences) {
+        List<String> processedChecksums = results.stream().map(NearlineFileStatusDto::getChecksum).toList();
+        List<FileReferenceWithoutOwnersDto> unprocessedFiles = fileReferences.stream()
+                                                                             .filter(file -> !processedChecksums.contains(
+                                                                                 file.getChecksum()))
+                                                                             .toList();
+        results.addAll(unprocessedFiles.stream()
+                                       .map(file -> new NearlineFileStatusDto(file.getChecksum(),
+                                                                              false,
+                                                                              null,
+                                                                              "Error during the check availability "
+                                                                              + "process"))
+                                       .toList());
     }
 
     private synchronized S3HighLevelReactiveClient getCheckAvailabilityClient() {

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -41,9 +43,20 @@ public class S3GlacierPluginMock extends S3Glacier {
     }
 
     @Override
-    public NearlineFileStatusDto checkAvailability(FileReferenceWithoutOwnersDto fileReference) {
-        LOGGER.info("[S3-GLACIER-MOCK-PLUGIN] check availability of file {}", fileReference.getLocation().getUrl());
-        Optional<NearlineFileStatusDto> nearlineFileStatusDto = s3MockService.checkAvailability(fileReference);
-        return nearlineFileStatusDto.orElseGet(() -> super.checkAvailability(fileReference));
+    public List<NearlineFileStatusDto> checkAvailability(List<FileReferenceWithoutOwnersDto> fileReferences) {
+        List<NearlineFileStatusDto> results = new ArrayList<>();
+        List<FileReferenceWithoutOwnersDto> filesToCheck = new ArrayList<>();
+        for (FileReferenceWithoutOwnersDto fileReference : fileReferences) {
+            LOGGER.info("[S3-GLACIER-MOCK-PLUGIN] check availability of file {}", fileReference.getLocation().getUrl());
+            Optional<NearlineFileStatusDto> oNearlineFileStatusDto = s3MockService.checkAvailability(fileReference);
+            if (oNearlineFileStatusDto.isPresent()) {
+                results.add(oNearlineFileStatusDto.get());
+            } else {
+                filesToCheck.add(fileReference);
+            }
+        }
+        results.addAll(super.checkAvailability(filesToCheck));
+
+        return results;
     }
 }
