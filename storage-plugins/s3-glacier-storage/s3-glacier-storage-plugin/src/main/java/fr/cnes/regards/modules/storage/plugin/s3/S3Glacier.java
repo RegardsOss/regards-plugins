@@ -15,6 +15,7 @@ import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfiguration
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
 import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
+import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDtoStatus;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
@@ -211,11 +212,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private ThreadPoolTaskScheduler scheduler;
 
     private BasicThreadFactory factory;
-
-    /**
-     * S3 client used for {@link this#checkAvailability} checkAvailability} method only.
-     */
-    private S3HighLevelReactiveClient checkAvailabilityClient;
 
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
@@ -935,7 +931,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         String entryKey = getEntryKey(fileReference);
 
         NearlineFileStatusDto nearlineFileStatusDto = doCheckAvailability(fileReference, createS3Client());
-        if (!nearlineFileStatusDto.isAvailable()) {
+        if (!nearlineFileStatusDto.getAvailable().equals(NearlineFileStatusDtoStatus.AVAILABLE)) {
             LOGGER.warn(nearlineFileStatusDto.getMessage());
             throw new NearlineFileNotAvailableException(nearlineFileStatusDto.getMessage());
         }
@@ -1008,7 +1004,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             if (smallFilePathInWorkspace.isPresent()) {
                 LOGGER.debug("Small file available : {}", fileReference.getLocation().getUrl());
                 status = new NearlineFileStatusDto(fileReference.getChecksum(),
-                                                   true,
+                                                   NearlineFileStatusDtoStatus.AVAILABLE,
                                                    null,
                                                    "Small file "
                                                    + fileReference.getMetaInfo().getFileName()
@@ -1016,7 +1012,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             } else {
                 LOGGER.debug("Small file not available : {}", fileReference.getLocation().getUrl());
                 status = new NearlineFileStatusDto(fileReference.getChecksum(),
-                                                   false,
+                                                   NearlineFileStatusDtoStatus.UNAVAILABLE,
                                                    null,
                                                    "Small file "
                                                    + fileReference.getMetaInfo().getFileName()
@@ -1052,8 +1048,17 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             };
         } else {
             message = "Error accessing s3 client. Please check service log for more information.";
+            return new NearlineFileStatusDto(fileReference.getChecksum(),
+                                             NearlineFileStatusDtoStatus.ERROR,
+                                             null,
+                                             null);
         }
-        return new NearlineFileStatusDto(fileReference.getChecksum(), availability, dateExpiration, message);
+        return new NearlineFileStatusDto(fileReference.getChecksum(),
+                                         availability ?
+                                             NearlineFileStatusDtoStatus.AVAILABLE :
+                                             NearlineFileStatusDtoStatus.UNAVAILABLE,
+                                         dateExpiration,
+                                         message);
     }
 
     /**
@@ -1070,18 +1075,11 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                              .toList();
         results.addAll(unprocessedFiles.stream()
                                        .map(file -> new NearlineFileStatusDto(file.getChecksum(),
-                                                                              false,
+                                                                              NearlineFileStatusDtoStatus.ERROR,
                                                                               null,
                                                                               "Error during the check availability "
                                                                               + "process"))
                                        .toList());
-    }
-
-    private synchronized S3HighLevelReactiveClient getCheckAvailabilityClient() {
-        if (checkAvailabilityClient == null) {
-            checkAvailabilityClient = createS3Client();
-        }
-        return checkAvailabilityClient;
     }
 
     private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference) {

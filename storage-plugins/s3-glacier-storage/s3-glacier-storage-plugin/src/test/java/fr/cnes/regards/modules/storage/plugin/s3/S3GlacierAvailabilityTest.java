@@ -26,6 +26,7 @@ import fr.cnes.regards.modules.fileaccess.dto.FileLocationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceMetaInfoDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
+import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDtoStatus;
 import fr.cnes.regards.modules.storage.s3.common.service.S3ClientCreatorService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -84,7 +85,7 @@ public class S3GlacierAvailabilityTest {
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);
-        Assert.assertTrue(nearlineFileStatusDto.isAvailable());
+        Assert.assertEquals(NearlineFileStatusDtoStatus.AVAILABLE, nearlineFileStatusDto.getAvailable());
 
         Assert.assertNotNull(nearlineFileStatusDto.getExpirationDate());
         Assert.assertTrue(dateExpiration.toOffsetDateTime().isEqual(nearlineFileStatusDto.getExpirationDate()));
@@ -102,7 +103,7 @@ public class S3GlacierAvailabilityTest {
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);
-        Assert.assertTrue(nearlineFileStatusDto.isAvailable());
+        Assert.assertEquals(NearlineFileStatusDtoStatus.AVAILABLE, nearlineFileStatusDto.getAvailable());
 
         Assert.assertNull(nearlineFileStatusDto.getExpirationDate());
     }
@@ -144,7 +145,7 @@ public class S3GlacierAvailabilityTest {
 
         // Then
         Assert.assertNotNull(nearlineFileStatusDto);
-        Assert.assertFalse(nearlineFileStatusDto.isAvailable());
+        Assert.assertEquals(NearlineFileStatusDtoStatus.UNAVAILABLE, nearlineFileStatusDto.getAvailable());
 
         Assert.assertNull(nearlineFileStatusDto.getExpirationDate());
     }

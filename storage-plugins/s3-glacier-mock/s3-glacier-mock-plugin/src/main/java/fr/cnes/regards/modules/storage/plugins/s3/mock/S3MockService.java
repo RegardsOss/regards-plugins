@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.storage.plugins.s3.mock;
 
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
+import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDtoStatus;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.NearlineFileNotAvailableException;
 import fr.cnes.regards.modules.storage.dao.FileReferenceSpecification;
 import fr.cnes.regards.modules.storage.dao.ICacheFileRepository;
@@ -90,7 +91,7 @@ public class S3MockService {
             if (!restoredFileChecksums.contains(checksum)) {
                 // file on T3 not restored
                 return Optional.of(new NearlineFileStatusDto(fileReference.getChecksum(),
-                                                             false,
+                                                             NearlineFileStatusDtoStatus.UNAVAILABLE,
                                                              null,
                                                              "This file is on T3 and needs to be restored"));
             } else {
