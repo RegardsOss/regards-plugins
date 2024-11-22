@@ -97,7 +97,7 @@ public class SubmitUpdatedArchiveTask extends AbstractSubmitArchiveTask implemen
                                                                      .onErrorResume(e -> Mono.error(new S3ClientException(
                                                                          e)))
                                                                      .block();
-            LOGGER.info("[S3 Monitoring] Deletion of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
+            LOGGER.trace("[S3 Monitoring] Deletion of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
             if (result != null) {
                 String archiveUrl = StorageConfigUtils.entryKeyUrl(configuration.storageConfiguration(), entryKey)
                                                       .toString();

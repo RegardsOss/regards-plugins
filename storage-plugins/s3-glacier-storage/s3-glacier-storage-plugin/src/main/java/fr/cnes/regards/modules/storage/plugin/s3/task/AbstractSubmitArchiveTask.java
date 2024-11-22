@@ -237,7 +237,7 @@ public abstract class AbstractSubmitArchiveTask implements LockServiceTask<Boole
                          LOGGER.info("[{}] End storing {}", taskId, archiveToCreate.getFileName());
                      })
                      .block();
-        LOGGER.info("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
+        LOGGER.trace("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
         LOGGER.info("Glacier S3 access ended");
 
     }

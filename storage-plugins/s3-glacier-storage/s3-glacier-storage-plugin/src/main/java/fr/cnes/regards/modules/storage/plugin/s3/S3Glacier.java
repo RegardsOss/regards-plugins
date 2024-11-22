@@ -326,9 +326,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                        workspacePath,
                                                                        request.getSubDirectory()),
                                             new StoreSmallFileTask(configuration, request, progressManager));
-                    LOGGER.info("[S3 Monitoring] Storage task for {} took {} ms",
-                                request.getOriginUrl(),
-                                Instant.now().toEpochMilli() - start);
+                    LOGGER.trace("[S3 Monitoring] Storage task for {} took {} ms",
+                                 request.getOriginUrl(),
+                                 Instant.now().toEpochMilli() - start);
                 }
             } catch (MalformedURLException e) {
                 LOGGER.error(e.getMessage(), e);
@@ -406,9 +406,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                        null,
                                                                        workspacePath,
                                                                        fileRelativePath.getParent().toString()), task);
-                    LOGGER.info("[S3 Monitoring] Retrieval task for {} took {} ms",
-                                fileCacheRequest.getFileReference().getLocation().getUrl(),
-                                Instant.now().toEpochMilli() - start);
+                    LOGGER.trace("[S3 Monitoring] Retrieval task for {} took {} ms",
+                                 fileCacheRequest.getFileReference().getLocation().getUrl(),
+                                 Instant.now().toEpochMilli() - start);
                     return null;
                 }
 
@@ -489,9 +489,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             } else {
                 handleDeleteSmallFileRequest(request, client, progressManager);
             }
-            LOGGER.info("[S3 Monitoring] Deletion task for {} took {} ms",
-                        request.getFileReference().getLocation().getUrl(),
-                        Instant.now().toEpochMilli() - start);
+            LOGGER.trace("[S3 Monitoring] Deletion task for {} took {} ms",
+                         request.getFileReference().getLocation().getUrl(),
+                         Instant.now().toEpochMilli() - start);
             return null;
         };
     }
@@ -687,9 +687,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                                                       workspacePath,
                                                                                                       dirPath.toString()),
                                                                            task);
-                LOGGER.info("[S3 Monitoring] Archive submission task for {} took {} ms",
-                            dirPath,
-                            Instant.now().toEpochMilli() - start);
+                LOGGER.trace("[S3 Monitoring] Archive submission task for {} took {} ms",
+                             dirPath,
+                             Instant.now().toEpochMilli() - start);
                 return res.isExecuted() && res.getResponse();
             }
         };
@@ -1030,9 +1030,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         GlacierFileStatus fileAvailable = client.isFileAvailable(storageConfiguration,
                                                                  getEntryKey(fileReference),
                                                                  standardStorageClassName).block();
-        LOGGER.info("[S3 Monitoring] Checking availability of {} took {} ms",
-                    getEntryKey(fileReference),
-                    Instant.now().toEpochMilli() - start);
+        LOGGER.trace("[S3 Monitoring] Checking availability of {} took {} ms",
+                     getEntryKey(fileReference),
+                     Instant.now().toEpochMilli() - start);
 
         String message;
         if (fileAvailable != null) {

@@ -282,7 +282,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                   }
               })
               .block();
-        LOGGER.info("[S3 Monitoring] Deletion of {} took {} ms", key, Instant.now().toEpochMilli() - start);
+        LOGGER.trace("[S3 Monitoring] Deletion of {} took {} ms", key, Instant.now().toEpochMilli() - start);
     }
 
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
@@ -337,7 +337,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                      success.getSize());
                   })
                   .block();
-            LOGGER.info("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
+            LOGGER.trace("[S3 Monitoring] Writing of {} took {} ms", entryKey, Instant.now().toEpochMilli() - start);
 
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage(), e);
