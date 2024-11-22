@@ -253,7 +253,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.warn("Shutdown of the plugin, this may cause errors as the currently running tasks will be "
                     + "terminated");
         scheduler.shutdown();
-        checkAvailabilityClient.close();
+        if (checkAvailabilityClient != null) {
+            checkAvailabilityClient.close();
+        }
     }
 
     @Override

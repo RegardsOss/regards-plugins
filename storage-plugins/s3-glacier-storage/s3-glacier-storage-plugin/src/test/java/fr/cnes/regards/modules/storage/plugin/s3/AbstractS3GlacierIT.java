@@ -661,7 +661,7 @@ public abstract class AbstractS3GlacierIT {
     protected S3HighLevelReactiveClient createS3Client() {
         Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
         int maxBytesPerPart = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB * 1024 * 1024;
-        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, MULTIPART_PARALLEL_PART);
+        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, MULTIPART_PARALLEL_PART, 50);
     }
 
     protected InputStream downloadFromS3(String url) throws FileNotFoundException {
@@ -934,7 +934,7 @@ public abstract class AbstractS3GlacierIT {
         private int tryCount;
 
         public MockedS3Client(Scheduler scheduler) {
-            super(scheduler, 10 * 1024 * 1024, 10);
+            super(scheduler, 10 * 1024 * 1024, 10, 50);
             tryCount = 0;
         }
 
@@ -957,7 +957,7 @@ public abstract class AbstractS3GlacierIT {
         private int tryCount;
 
         public MockedS3ClientWithNoFileAvailable(Scheduler scheduler) {
-            super(scheduler, 10 * 1024 * 1024, 10);
+            super(scheduler, 10 * 1024 * 1024, 10, 50);
             tryCount = 0;
         }
 
