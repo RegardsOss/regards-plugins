@@ -213,6 +213,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private BasicThreadFactory factory;
 
+    /**
+     * S3 client used for {@link this#download(FileReferenceWithoutOwnersDto)} download} method to check for file
+     * availability.
+     */
+    private S3HighLevelReactiveClient checkAvailabilityClient;
+
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
         if (runtimeTenantResolver != null) {
@@ -247,6 +253,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         LOGGER.warn("Shutdown of the plugin, this may cause errors as the currently running tasks will be "
                     + "terminated");
         scheduler.shutdown();
+        checkAvailabilityClient.close();
     }
 
     @Override
@@ -962,7 +969,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public List<NearlineFileStatusDto> checkAvailability(List<FileReferenceWithoutOwnersDto> fileReferences) {
         List<NearlineFileStatusDto> results = new ArrayList<>();
         ExecutorService executorService = null;
-        try (S3HighLevelReactiveClient client = createS3Client()) {
+        try (S3HighLevelReactiveClient client = getCheckAvailabilityClient()) {
             executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
             List<Future<NearlineFileStatusDto>> availabilitiesResults = executorService.invokeAll(fileReferences.stream()
                                                                                                                 .map(
@@ -1115,6 +1122,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
         // in all other cases return empty
         return Optional.empty();
+    }
+
+    private synchronized S3HighLevelReactiveClient getCheckAvailabilityClient() {
+        if (checkAvailabilityClient == null) {
+            checkAvailabilityClient = createS3Client();
+        }
+        return checkAvailabilityClient;
     }
 
     private RetrieveCacheFileTaskConfiguration createRetrieveCacheFileTaskConfiguration(Path fileRelativePath,
