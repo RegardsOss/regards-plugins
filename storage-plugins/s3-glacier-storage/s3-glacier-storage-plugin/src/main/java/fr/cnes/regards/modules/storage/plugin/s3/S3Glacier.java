@@ -78,6 +78,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     public static final String GLACIER_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER = "Glacier_Parallel_Restore_Number";
 
+    public static final String GLACIER_PARALLEL_AVAILABILITY_TASK_NUMBER = "Glacier_Parallel_Availability_Number";
+
     public static final String GLACIER_PARALLEL_STORE_TASK_NUMBER = "Glacier_Parallel_Upload_Number";
 
     public static final String GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS = "Glacier_Local_Workspace_File_Lifetime_In_Hours";
@@ -147,6 +149,12 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                      label = "Number of file to restore or to delete in parallel",
                      defaultValue = "20")
     private int parallelTaskNumber;
+
+    @PluginParameter(name = GLACIER_PARALLEL_AVAILABILITY_TASK_NUMBER,
+                     description = "Number of parallel tasks for file availability.",
+                     label = "Number of availability requests in parallel",
+                     defaultValue = "10")
+    private int availabilityParallelTaskNumber;
 
     @PluginParameter(name = GLACIER_PARALLEL_STORE_TASK_NUMBER,
                      description = "Number of parallel files to store. A high number of parallel files needs to raise"
@@ -972,7 +980,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         List<NearlineFileStatusDto> results = new ArrayList<>();
         ExecutorService executorService = null;
         try (S3HighLevelReactiveClient client = getCheckAvailabilityClient()) {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
+            executorService = Executors.newFixedThreadPool(availabilityParallelTaskNumber, factory);
             List<Future<NearlineFileStatusDto>> availabilitiesResults = executorService.invokeAll(fileReferences.stream()
                                                                                                                 .map(
                                                                                                                     fileReference -> doCheckAvailabilityCallable(

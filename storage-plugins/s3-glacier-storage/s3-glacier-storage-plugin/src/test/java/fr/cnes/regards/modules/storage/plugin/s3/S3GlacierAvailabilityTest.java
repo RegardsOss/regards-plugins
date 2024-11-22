@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
 import fr.cnes.regards.framework.s3.domain.RestorationStatus;
@@ -69,6 +70,8 @@ public class S3GlacierAvailabilityTest {
         ReflectionTestUtils.setField(s3Glacier, "endpoint", END_POINT_S3_GLACIER);
         ReflectionTestUtils.setField(s3Glacier, "bucket", BUCKET_S3_GLACIER);
         ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
+
+        s3Glacier.initGlacier(new PluginConfigurationDto("pluginId", null, null, null, null, null, null, null, null));
     }
 
     @Test

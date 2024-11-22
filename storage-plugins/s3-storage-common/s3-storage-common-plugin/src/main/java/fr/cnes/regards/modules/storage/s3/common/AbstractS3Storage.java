@@ -166,6 +166,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
     protected String fileNamingStrategy;
 
     private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
+    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 50;
 
     /**
     /**
