@@ -286,12 +286,14 @@ public abstract class AbstractS3GlacierIT {
             case MockedS3ClientWithoutRestore -> s3Client = new MockedS3ClientWithoutRestore(scheduler);
             case MockedS3ClientAlreadyAvailable -> s3Client = new MockedS3ClientAlreadyAvailable(scheduler);
             case MockedS3Client -> s3Client = new MockedS3Client(scheduler);
-            default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
+            default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10, 50);
         }
 
         S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
-               .thenReturn(s3Client);
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(),
+                                                    Mockito.anyInt(),
+                                                    Mockito.anyInt(),
+                                                    Mockito.anyInt())).thenReturn(s3Client);
 
         LockService lockService;
         try {

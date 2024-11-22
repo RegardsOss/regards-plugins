@@ -165,6 +165,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      defaultValue = FileNamingStrategy.Constants.CHECKSUM)
     protected String fileNamingStrategy;
 
+    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
+
     /**
     /**
      * Configuration of S3 server
@@ -229,7 +231,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      * @return the client S3
      */
     protected S3HighLevelReactiveClient createS3Client() {
-        return s3ClientService.createS3Client(storageName, multipartThresholdMb, nbParallelPartsUpload);
+        return s3ClientService.createS3Client(storageName,
+                                              multipartThresholdMb,
+                                              nbParallelPartsUpload,
+                                              S3_MAX_HTTP_CONCURRENT_ACCESS);
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {

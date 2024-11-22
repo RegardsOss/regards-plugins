@@ -192,8 +192,10 @@ public class S3OnlineStorageIT {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
-               .thenCallRealMethod();
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(),
+                                                    Mockito.anyInt(),
+                                                    Mockito.anyInt(),
+                                                    Mockito.anyInt())).thenCallRealMethod();
 
         ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
     }
