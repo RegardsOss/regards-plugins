@@ -45,6 +45,7 @@ import io.vavr.control.Option;
 import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -167,6 +168,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
 
     private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
     private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 50;
+    @Value("${regards.glacier.s3.maximum.concurrent_access:500}")
+    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
 
     /**
     /**
