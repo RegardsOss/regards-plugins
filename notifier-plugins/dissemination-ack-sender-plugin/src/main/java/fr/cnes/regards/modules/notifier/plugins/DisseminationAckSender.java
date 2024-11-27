@@ -18,6 +18,8 @@
  */
 package fr.cnes.regards.modules.notifier.plugins;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import fr.cnes.regards.framework.amqp.IPublisher;
 import fr.cnes.regards.framework.amqp.configuration.AmqpConstants;
@@ -27,7 +29,9 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
+import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
@@ -86,6 +90,16 @@ public class DisseminationAckSender implements IRecipientNotifier {
      * Path to feature origin urn in notification payload (used for AIP notified products).
      */
     public static final String FEATURE_PATH_TO_ORIGIN_URN = "originUrn";
+
+    /**
+     * Path to feature origin urn in notification payload
+     */
+    public static final String FEATURE_PROPERTY_PATH_TO_URN = "propertyPathToUrn";
+
+    @PluginParameter(label = "Alternative property from which to extract the urn",
+                     name = FEATURE_PROPERTY_PATH_TO_URN,
+                     optional = true)
+    private String featurePropertyPathToUrn;
 
     @PluginParameter(label = "RabbitMQ exchange name for features dissemination",
                      name = FEATURE_EXCHANGE_PARAM_NAME,
@@ -208,8 +222,21 @@ public class DisseminationAckSender implements IRecipientNotifier {
     }
 
     private Optional<String> computeUrnString(NotificationRequest request) {
+
+        // Try to extract URN from a custom property if set
+        if (featurePropertyPathToUrn != null && !featurePropertyPathToUrn.isEmpty()) {
+            JsonPrimitive urnNode = getPropertyByPath(request.getPayload(), featurePropertyPathToUrn);
+            if (urnNode != null && urnNode.getAsString() != null) {
+                return Optional.of(urnNode.getAsString());
+            } else {
+                LOGGER.error("Unable to find urn in provided property path {}.", featurePropertyPathToUrn);
+                // Stop here not to try to extract URN from other ways
+                return Optional.empty();
+            }
+        }
+
         // Check we can retrieve the URN, and it's valid field
-        // The request playload can be :
+        // The request payload can be :
         // - A Feature notification from FEM
         // - An AIP notification from INGEST
         // Retrieve urn from urn property (from FEM Feature format) or null if notification is not a FEM feature
@@ -225,6 +252,27 @@ public class DisseminationAckSender implements IRecipientNotifier {
             LOGGER.error("Unable to find urn in provided feature in order to send feature update request.");
             return Optional.empty();
         }
+    }
+
+    private static JsonPrimitive getPropertyByPath(JsonObject jsonObject, String propertyPath) {
+        // Navigate to the final element in the path.
+        String[] properties = propertyPath.split("\\.");
+        int depth = properties.length;
+
+        JsonElement currentElement = jsonObject;
+        for (String property : properties) {
+            // Ensure the current element is not null and is a JSON object.
+            if (currentElement != null && currentElement.isJsonObject()) {
+                // Result may be null if the property does not exist in the JSON.
+                currentElement = currentElement.getAsJsonObject().get(property);
+                depth--;
+            } else {
+                break;
+            }
+        }
+        return currentElement != null && currentElement.isJsonPrimitive() && depth == 0 ?
+            currentElement.getAsJsonPrimitive() :
+            null; // Path does not exist in the JSON.
     }
 
     private static boolean isValidUrn(String urn) {

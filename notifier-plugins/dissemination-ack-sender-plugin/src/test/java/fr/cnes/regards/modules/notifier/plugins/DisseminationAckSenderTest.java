@@ -27,6 +27,7 @@ import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPlugin
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
+import fr.cnes.regards.modules.feature.dto.event.in.DisseminationAckEvent;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
 import org.junit.Assert;
@@ -110,6 +111,88 @@ public class DisseminationAckSenderTest {
 
     @Captor
     private ArgumentCaptor<Map<String, Object>> headersCaptor;
+
+    @Test
+    public void testAlternativeUrnPathDissemination() throws NotAvailablePluginConfigurationException {
+        Mockito.clearInvocations(publisher);
+
+        PluginUtils.setup();
+        String featureDisseminationExchange = "featureDisseminationExchange";
+        String senderLabel = "senderLabel";
+        String featureQueueName = "featureQueueName";
+
+        String properties = "properties";
+        String providerURN = "providerURN";
+        String expectedURN = "URN:FEATURE:DATA:sprid:321bb8ba-d319-3b64-951f-28d893eaec85:V1";
+
+        // Plugin parameters
+        Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.build(DisseminationAckSender.FEATURE_PROPERTY_PATH_TO_URN,
+                                                                           String.format("%s.%s",
+                                                                                         properties,
+                                                                                         providerURN)),
+                                                        IPluginParam.build(DisseminationAckSender.FEATURE_EXCHANGE_PARAM_NAME,
+                                                                           featureDisseminationExchange),
+                                                        IPluginParam.build(DisseminationAckSender.SENDER_LABEL_PARAM_NAME,
+                                                                           senderLabel),
+                                                        IPluginParam.build(DisseminationAckSender.FEATURE_QUEUE_PARAM_NAME,
+                                                                           featureQueueName));
+
+        // Instantiate plugin
+        IRecipientNotifier plugin = PluginUtils.getPlugin(PluginConfiguration.build(DisseminationAckSender.class,
+                                                                                    UUID.randomUUID().toString(),
+                                                                                    parameters),
+                                                          new ConcurrentHashMap<>());
+        Assert.assertNotNull(plugin);
+
+        // Request with custom URN path
+        NotificationRequest notificationRequestWithCustomProperty = new NotificationRequest();
+        JsonObject validFeature = new JsonObject();
+        JsonObject propertiesObject = new JsonObject();
+        propertiesObject.addProperty(providerURN, expectedURN);
+        validFeature.add(properties, propertiesObject);
+        notificationRequestWithCustomProperty.setPayload(validFeature);
+
+        Collection<NotificationRequest> requestError = plugin.send(Lists.newArrayList(notificationRequestWithCustomProperty));
+        Assert.assertEquals("should not return error", 0, requestError.size());
+
+        Mockito.verify(publisher, Mockito.times(1))
+               .broadcastAll(exchangeNameCaptor.capture(),
+                             queueNameCaptor.capture(),
+                             routingKeyCaptor.capture(),
+                             dlkCaptor.capture(),
+                             priorityCaptor.capture(),
+                             messagesCaptor.capture(),
+                             headersCaptor.capture());
+
+        // Check sent message
+        Optional<DisseminationAckEvent> event = messagesCaptor.getValue().stream().findFirst();
+        Assert.assertTrue("should send a message", event.isPresent());
+        Assert.assertEquals("should retrieve good URN",
+                            "URN:FEATURE:DATA:sprid:321bb8ba-d319-3b64-951f-28d893eaec85:V1",
+                            event.get().getUrn());
+
+
+        // Test missing property
+        Mockito.clearInvocations(publisher);
+
+        NotificationRequest notificationRequestWithMissingProperty = new NotificationRequest();
+        JsonObject missingFeature = new JsonObject();
+        notificationRequestWithMissingProperty.setPayload(missingFeature);
+
+        Collection<NotificationRequest> requestErrorMissingProperty = plugin.send(Lists.newArrayList(notificationRequestWithMissingProperty));
+        Assert.assertEquals("should return error", 1, requestErrorMissingProperty.size());
+        
+        // Test properties is a string (JsonPrimitive)
+        Mockito.clearInvocations(publisher);
+
+        NotificationRequest notificationRequestWithPrimitiveProperty = new NotificationRequest();
+        JsonObject primitiveFeature = new JsonObject();
+        primitiveFeature.addProperty(properties, "URN:FEATURE:DATA:fake:321bb8ba-d319-3b64-951f-28d893eaec85:V1");
+        notificationRequestWithPrimitiveProperty.setPayload(primitiveFeature);
+
+        Collection<NotificationRequest> requestErrorPrimitiveProperty = plugin.send(Lists.newArrayList(notificationRequestWithPrimitiveProperty));
+        Assert.assertEquals("should return error", 1, requestErrorPrimitiveProperty.size());
+    }
 
     @Test
     public void testFeatureDisseminationAckSender() throws NotAvailablePluginConfigurationException {
