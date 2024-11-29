@@ -947,7 +947,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         throws NearlineFileNotAvailableException, NearlineDownloadException {
         String entryKey = getEntryKey(fileReference);
 
-        NearlineFileStatusDto nearlineFileStatusDto = doCheckAvailability(fileReference, createS3Client());
+        NearlineFileStatusDto nearlineFileStatusDto = doCheckAvailability(fileReference, getCheckAvailabilityClient());
         if (!nearlineFileStatusDto.getAvailable().equals(NearlineFileStatusDtoStatus.AVAILABLE)) {
             LOGGER.warn(nearlineFileStatusDto.getMessage());
             throw new NearlineFileNotAvailableException(nearlineFileStatusDto.getMessage());
@@ -979,7 +979,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     public List<NearlineFileStatusDto> checkAvailability(List<FileReferenceWithoutOwnersDto> fileReferences) {
         List<NearlineFileStatusDto> results = new ArrayList<>();
         ExecutorService executorService = null;
-        try (S3HighLevelReactiveClient client = getCheckAvailabilityClient()) {
+        try {
+            S3HighLevelReactiveClient client = getCheckAvailabilityClient();
             executorService = Executors.newFixedThreadPool(availabilityParallelTaskNumber, factory);
             List<Future<NearlineFileStatusDto>> availabilitiesResults = executorService.invokeAll(fileReferences.stream()
                                                                                                                 .map(
@@ -1044,8 +1045,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                  getEntryKey(fileReference),
                                                                  standardStorageClassName).block();
         LOGGER.trace("[S3 Monitoring] Checking availability of {} took {} ms",
-                     getEntryKey(fileReference),
-                     Instant.now().toEpochMilli() - start);
+                    getEntryKey(fileReference),
+                    Instant.now().toEpochMilli() - start);
 
         String message;
         if (fileAvailable != null) {
