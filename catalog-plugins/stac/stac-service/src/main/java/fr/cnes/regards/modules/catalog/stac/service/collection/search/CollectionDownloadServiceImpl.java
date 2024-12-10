@@ -74,6 +74,8 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
 
     private static final String UNKNOWN_CRC32 = "-";
 
+    private static final String UNKNOWN_CLASS = "Unknown class %s";
+
     private static final int MAX_PAGE_SIZE = 1000;
 
     private static final String STORAGE_DOWNLOAD_FILE_PATH = "/%s/resources/%s/download?token=%s";
@@ -193,7 +195,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
                         }
                     } catch (ClassNotFoundException e) {
-                        throw new StacException(String.format("Unknown class %s", tu.getClassOfContext()),
+                        throw new StacException(String.format(UNKNOWN_CLASS, tu.getClassOfContext()),
                                                 e,
                                                 StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
                     }
@@ -203,7 +205,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 }
             }
         } catch (ClassNotFoundException e) {
-            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()),
+            throw new StacException(String.format(UNKNOWN_CLASS, tiny.getClassOfContext()),
                                     e,
                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
         }
@@ -287,7 +289,7 @@ public class CollectionDownloadServiceImpl implements CollectionDownloadService 
                 tinyUrlUuids.forEach(t -> addFilesToDescriptor(downloadLinkCreator, writer, Optional.empty(), t));
             }
         } catch (ClassNotFoundException e) {
-            throw new StacException(String.format("Unknown class %s", tiny.getClassOfContext()),
+            throw new StacException(String.format(UNKNOWN_CLASS, tiny.getClassOfContext()),
                                     e,
                                     StacFailureType.DOWNLOAD_UNKNOWN_CLASS_OF_TINYURL);
         }

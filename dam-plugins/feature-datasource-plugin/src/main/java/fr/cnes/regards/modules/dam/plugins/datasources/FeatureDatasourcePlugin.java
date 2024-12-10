@@ -318,10 +318,12 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
             IProperty<?> lowerBound = feature.getProperty(dateRangeHistogramProperties.getLowerBoundPropertyPath());
             IProperty<?> upperBound = feature.getProperty(dateRangeHistogramProperties.getUpperBoundPropertyPath());
             // Check value exists else skip
-            if (lowerBound != null
-                && PropertyType.DATE_ISO8601.equals(lowerBound.getType())
-                && upperBound != null
-                && PropertyType.DATE_ISO8601.equals(upperBound.getType())
+            // Check if both bounds are valid
+            boolean validBounds = lowerBound != null
+                                  && PropertyType.DATE_ISO8601.equals(lowerBound.getType())
+                                  && upperBound != null
+                                  && PropertyType.DATE_ISO8601.equals(upperBound.getType());
+            if (validBounds
                 && (((OffsetDateTime) lowerBound.getValue()).isBefore((OffsetDateTime) upperBound.getValue())
                     || ((OffsetDateTime) lowerBound.getValue()).isEqual((OffsetDateTime) upperBound.getValue()))) {
                 feature.addProperty(IProperty.buildDateRange(dateRangeHistogramProperties.getTargetPropertyPath(),

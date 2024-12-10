@@ -44,6 +44,7 @@ public class StringEnhancedDescriptiveAipGeneration extends AbstractEnhancedDesc
         private String secondValue;
 
         public SecondDescriptiveInformation() {
+            //empty constructor for serialization/deserialization
         }
 
         public String getSecondDescriptiveInfoName() {

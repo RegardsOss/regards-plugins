@@ -62,6 +62,12 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
     public static final int INITIAL_DELAY = 1000;
 
+    private static final String UNABLE_TO_REACH_S3_SERVER = "Unable to reach S3 server";
+
+    private static final String SPECIFIC_KEY_DOES_NOT_EXIST = "The specified key %s does not exists on the server.";
+
+    private static final String TIMEOUT_EXCEEDED = "Error while trying to restore file, timeout exceeded";
+
     private final RetrieveCacheFileTaskConfiguration configuration;
 
     public RetrieveCacheFileTask(RetrieveCacheFileTaskConfiguration configuration,
@@ -126,15 +132,14 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                      null);
 
             if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
-                LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-                progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+                LOGGER.error(UNABLE_TO_REACH_S3_SERVER, restoreResponse.exception());
+                progressManager.restoreFailed(fileCacheRequest, UNABLE_TO_REACH_S3_SERVER);
                 return;
             }
 
             if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
                 progressManager.restoreFailed(fileCacheRequest,
-                                              String.format("The specified key %s does not exists on the server.",
-                                                            relativeArchivePath));
+                                              String.format(SPECIFIC_KEY_DOES_NOT_EXIST, relativeArchivePath));
                 return;
             }
 
@@ -155,8 +160,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                 if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
                     extractThenCopyFileAndHandleSuccess(localPath, archivePath);
                 } else {
-                    progressManager.restoreFailed(fileCacheRequest,
-                                                  "Error while trying to restore file, timeout exceeded");
+                    progressManager.restoreFailed(fileCacheRequest, TIMEOUT_EXCEEDED);
                 }
             } else {
                 // File available, just download file to local directory
@@ -198,15 +202,14 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                  configuration.standardStorageClassName(),
                                                                  null);
         if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
-            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-            progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+            LOGGER.error(UNABLE_TO_REACH_S3_SERVER, restoreResponse.exception());
+            progressManager.restoreFailed(fileCacheRequest, UNABLE_TO_REACH_S3_SERVER);
             return;
         }
 
         if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
             progressManager.restoreFailed(fileCacheRequest,
-                                          String.format("The specified key %s does not exists on the server.",
-                                                        configuration.fileRelativePath()));
+                                          String.format(SPECIFIC_KEY_DOES_NOT_EXIST, configuration.fileRelativePath()));
             return;
         }
 
@@ -239,7 +242,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
             if (RestorationStatus.AVAILABLE == fileStatus.getStatus()) {
                 progressManager.restoreSucceededInternalCache(fileCacheRequest, targetPath);
             } else {
-                progressManager.restoreFailed(fileCacheRequest, "Error while trying to restore file, timeout exceeded");
+                progressManager.restoreFailed(fileCacheRequest, TIMEOUT_EXCEEDED);
             }
         }
     }
@@ -255,8 +258,8 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                  availabilityHours);
 
         if (RestoreStatus.CLIENT_EXCEPTION == restoreResponse.status()) {
-            LOGGER.error("Unable to reach S3 server", restoreResponse.exception());
-            progressManager.restoreFailed(fileCacheRequest, "Unable to reach S3 server");
+            LOGGER.error(UNABLE_TO_REACH_S3_SERVER, restoreResponse.exception());
+            progressManager.restoreFailed(fileCacheRequest, UNABLE_TO_REACH_S3_SERVER);
             return;
         }
 
@@ -275,8 +278,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
 
         if (RestoreStatus.KEY_NOT_FOUND == restoreResponse.status()) {
             progressManager.restoreFailed(fileCacheRequest,
-                                          String.format("The specified key %s does not exists on the server.",
-                                                        urlBigFile.toString()));
+                                          String.format(SPECIFIC_KEY_DOES_NOT_EXIST, urlBigFile.toString()));
             return;
         }
 
@@ -311,7 +313,7 @@ public class RetrieveCacheFileTask extends AbstractRetrieveFileTask {
                                                                   null :
                                                                   fileStatus.getExpirationDate().toOffsetDateTime());
             } else {
-                progressManager.restoreFailed(fileCacheRequest, "Error while trying to restore file, timeout exceeded");
+                progressManager.restoreFailed(fileCacheRequest, TIMEOUT_EXCEEDED);
             }
         }
     }

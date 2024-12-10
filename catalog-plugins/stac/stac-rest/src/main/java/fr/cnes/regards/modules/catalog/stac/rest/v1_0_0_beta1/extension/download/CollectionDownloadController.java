@@ -75,6 +75,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
     @Autowired
     private FeignSecurityManager feignSecurityManager;
 
+    public static final String CONTENT_DISPOSITION_ATTACHMENT_FORMAT = "attachment; filename=%s";
+
     @Operation(summary = "Compute information for downloading a set of collections as zip at once or one by one",
                description =
                    "For each collection and its item query parameters, a download link, the forecast download size and item number are given plus a"
@@ -252,7 +254,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Activate mod_zip on NGINX
         response.addHeader("X-Archive-Files", "zip");
         // Define zip output file name
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                           String.format(CONTENT_DISPOSITION_ATTACHMENT_FORMAT, filename));
         // Prepare mod_zip descriptor file
         return collectionDownloadService.prepareDescriptorAsStream(collectionId,
                                                                    tinyurl,
@@ -277,7 +280,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
         // Activate mod_zip on NGINX
         response.addHeader("X-Archive-Files", "zip");
         // Define zip output file name
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                           String.format(CONTENT_DISPOSITION_ATTACHMENT_FORMAT, filename));
         // Prepare mod_zip descriptor file
         try {
             collectionDownloadService.prepareDescriptor(response.getOutputStream(),
@@ -297,7 +301,8 @@ public class CollectionDownloadController implements TryToResponseEntity {
                                                  final String tinyurl,
                                                  final String filename) {
         LOGGER.debug("Generating download script...");
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", filename));
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                           String.format(CONTENT_DISPOSITION_ATTACHMENT_FORMAT, filename));
         try {
             collectionDownloadService.generateEOdagScript(searchPageLinkCreator,
                                                           response.getOutputStream(),

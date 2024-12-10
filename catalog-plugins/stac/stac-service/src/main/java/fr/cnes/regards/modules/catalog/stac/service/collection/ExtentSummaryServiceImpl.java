@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
@@ -326,14 +327,13 @@ public class ExtentSummaryServiceImpl implements ExtentSummaryService {
     }
 
     private boolean isExtentAggregation(StacProperty prop) {
-        return (prop == NWPOINT_PROP)
-               || (prop == NWPOINTLAT_PROP)
-               || (prop == NWPOINTLON_PROP)
-               || (prop
-                   == SEPOINT_PROP)
-               || (prop == SEPOINTLAT_PROP)
-               || (prop == SEPOINTLON_PROP)
-               || prop.getStacPropertyName().equals(DATETIME_PROPERTY_NAME);
+        Set<StacProperty> extentProperties = Set.of(NWPOINT_PROP,
+                                                    NWPOINTLAT_PROP,
+                                                    NWPOINTLON_PROP,
+                                                    SEPOINT_PROP,
+                                                    SEPOINTLAT_PROP,
+                                                    SEPOINTLON_PROP);
+        return extentProperties.contains(prop) || prop.getStacPropertyName().equals(DATETIME_PROPERTY_NAME);
     }
 
     private List<StacProperty> summaryStacProps(List<StacProperty> otherProps) {
