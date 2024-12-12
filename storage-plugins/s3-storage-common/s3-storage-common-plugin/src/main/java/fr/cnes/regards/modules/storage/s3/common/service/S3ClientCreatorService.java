@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.storage.s3.common.service;
 
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -26,16 +27,23 @@ import reactor.core.scheduler.Schedulers;
 /**
  * Service to create {@link S3HighLevelReactiveClient s3 clients}. The client reactor scheduler will be named
  * <i>storageName</i>-s3-reactive-client
+ *
  * @author Thibaud Michaudel
  **/
 @Service
 public class S3ClientCreatorService {
 
+    @Value("${regards.s3.client.parallel.number:10}")
+    private int parallelNumber;
+
     /**
      * Create a new {@link S3HighLevelReactiveClient s3 client}
      */
-    public S3HighLevelReactiveClient createS3Client(String storageName, int multipartThresholdMb, int nbParallelPartsUpload) {
-        Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", storageName), 10);
+    public S3HighLevelReactiveClient createS3Client(String storageName,
+                                                    int multipartThresholdMb,
+                                                    int nbParallelPartsUpload) {
+        Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", storageName),
+                                                     parallelNumber);
         int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
         return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
     }

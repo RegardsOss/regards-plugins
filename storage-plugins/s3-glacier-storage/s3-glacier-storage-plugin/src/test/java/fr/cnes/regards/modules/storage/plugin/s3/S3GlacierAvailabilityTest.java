@@ -66,10 +66,6 @@ public class S3GlacierAvailabilityTest {
     public void init() {
         ReflectionTestUtils.setField(s3Glacier, "endpoint", END_POINT_S3_GLACIER);
         ReflectionTestUtils.setField(s3Glacier, "bucket", BUCKET_S3_GLACIER);
-
-        Mockito.when(s3ClientService.createS3Client(Mockito.any(), Mockito.anyInt(), Mockito.anyInt()))
-               .thenReturn(s3Client);
-
         ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
     }
 

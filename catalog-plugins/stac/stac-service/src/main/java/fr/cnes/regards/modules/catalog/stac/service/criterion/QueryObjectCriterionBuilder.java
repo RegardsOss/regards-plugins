@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 
 /**
@@ -194,12 +195,14 @@ public class QueryObjectCriterionBuilder implements CriterionBuilder<Map<String,
     }
 
     private Option<ICriterion> ignoreQueryField(Option<AttributeModel> attr, String stacPropName) {
-        warn(LOGGER,
-             attr.map(a -> String.format("Unacceptable type %s for query field %s. Ignoring it!",
-                                         a.getType().name(),
-                                         stacPropName))
-                 .getOrElse(() -> String.format("Unknown target attribute for query field %s. Ignoring it!",
-                                                stacPropName)));
+        if (attr.isDefined()) {
+            warn(LOGGER,
+                 String.format("Unacceptable type %s for query field %s. Ignoring it!",
+                               attr.get().getType().name(),
+                               stacPropName));
+        } else {
+            info(LOGGER, String.format("Unknown target attribute for query field %s. Ignoring it!", stacPropName));
+        }
         return Option.none();
     }
 

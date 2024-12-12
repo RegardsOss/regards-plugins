@@ -101,6 +101,7 @@ public class S3GlacierMock extends S3Glacier {
 
     @Override
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
+                                      S3HighLevelReactiveClient client,
                                       IStorageProgressManager progressManager) {
         // Nothing to do
     }

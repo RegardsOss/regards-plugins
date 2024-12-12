@@ -1,6 +1,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
+import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
@@ -37,10 +38,12 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
         String tenant = runtimeTenantResolver.getTenant();
-        workingSet.getFileReferenceRequests().forEach(request -> {
-            runtimeTenantResolver.forceTenant(tenant);
-            handleStoreRequest(request, progressManager);
-        });
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            workingSet.getFileReferenceRequests().forEach(request -> {
+                runtimeTenantResolver.forceTenant(tenant);
+                handleStoreRequest(request, client, progressManager);
+            });
+        }
     }
 
     /**
@@ -65,7 +68,9 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
      */
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
-        workingSet.getFileDeletionRequests().forEach(r -> handleDeleteRequest(r, progressManager));
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            workingSet.getFileDeletionRequests().forEach(r -> handleDeleteRequest(r, client, progressManager));
+        }
     }
 
     @Override
