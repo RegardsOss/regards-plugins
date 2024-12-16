@@ -397,9 +397,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
             runtimeTenantResolver.forceTenant(tenant);
             try {
-                Path fileRelativePath = getServerPath().relativize(Path.of(fileCacheRequest.getFileReference()
-                                                                                           .getLocation()
-                                                                                           .getUrl()));
+                Path fileRelativePath = Path.of(getEntryKey(fileCacheRequest.getFileReference()));
                 boolean isSmallFile = isASmallFileUrl(fileCacheRequest.getFileReference().getLocation().getUrl());
                 if (isSmallFile && fileCacheRequest.getFileReference().getLocation().isPendingActionRemaining()) {
                     // The file has not been saved to S3 yet, it's still in the local archive building workspace
@@ -441,6 +439,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
                 lockService.runWithLock(lockName, task);
 
+            } catch (MalformedURLException e) {
+                LOGGER.error(e.getMessage(), e);
+                progressManager.restoreFailed(fileCacheRequest, "The requested file url is invalid.");
             } catch (InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
                 progressManager.restoreFailed(fileCacheRequest,
@@ -513,11 +514,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                               S3HighLevelReactiveClient client,
                                               IDeletionProgressManager progressManager) {
         try {
-            Path serverRootPath = getServerPath();
             Path node = Path.of(request.getFileReference().getLocation().getUrl()).getParent();
-            Path fileRelativePath = serverRootPath.relativize(Path.of(request.getFileReference()
-                                                                             .getLocation()
-                                                                             .getUrl()));
+            Path fileRelativePath = Path.of(getEntryKey(request.getFileReference()));
 
             if (request.getFileReference().getLocation().isPendingActionRemaining()) {
                 // The small file is still in the local building directory, it is not necessary to restore it
@@ -575,6 +573,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                              Thread.currentThread().getName());
                 lockService.runWithLock(lockName, task);
             }
+        } catch (MalformedURLException e) {
+            LOGGER.error(e.getMessage(), e);
+            progressManager.deletionFailed(request, "The file to delete url is invalid.");
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage(), e);
             progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
@@ -884,7 +885,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                              + "the S3Glacier", url);
                 return null;
             }
-            Path archiveRelativePath = getServerPath().relativize(Path.of(s3GlacierUrl.archiveFilePath()));
+            Path archiveRelativePath = Path.of(getEntryKey(s3GlacierUrl.archiveFilePath()));
             CheckPendingActionTaskConfiguration checkPendingActionTaskConfiguration = new CheckPendingActionTaskConfiguration(
                 url,
                 archiveRelativePath,
@@ -923,10 +924,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                     standardStorageClassName);
     }
 
-    private Path getServerPath() {
-        return Paths.get(endpoint, bucket);
-    }
-
     private boolean isASmallFileUrl(String url) {
         try {
             return S3GlacierUtils.dispatchS3Url(url).isSmallFileUrl();
@@ -945,15 +942,16 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @Override
     public InputStream download(FileReferenceWithoutOwnersDto fileReference)
         throws NearlineFileNotAvailableException, NearlineDownloadException {
-        String entryKey = getEntryKey(fileReference);
 
         NearlineFileStatusDto nearlineFileStatusDto = doCheckAvailability(fileReference, getCheckAvailabilityClient());
         if (!nearlineFileStatusDto.getAvailable().equals(NearlineFileStatusDtoStatus.AVAILABLE)) {
             LOGGER.warn(nearlineFileStatusDto.getMessage());
             throw new NearlineFileNotAvailableException(nearlineFileStatusDto.getMessage());
         }
-        Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
+
         try {
+            String entryKey = getEntryKey(fileReference);
+            Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
             if (smallFilePathInWorkspace.isPresent()) {
                 // download small file
                 // don't manage any lock here, if file is not accessible, the download just fail here.
@@ -967,10 +965,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                                      UUID.randomUUID()));
             }
         } catch (IOException e) { // NOSONAR
-            LOGGER.error(FILE + fileReference.getMetaInfo().getFileName() + " cannot be download ", e);
+            LOGGER.error(FILE + "{} cannot be downloaded ", fileReference.getMetaInfo().getFileName(), e);
             throw new NearlineDownloadException(FILE
                                                 + fileReference.getMetaInfo().getFileName()
-                                                + " cannot be download : "
+                                                + " cannot be downloaded : "
                                                 + e.getMessage());
         }
     }
@@ -1016,37 +1014,46 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         boolean availability = false;
         OffsetDateTime dateExpiration = null;
         // manage case of small files
-        if (isSmallFile(fileReference)) {
-            Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
-            NearlineFileStatusDto status;
-            if (smallFilePathInWorkspace.isPresent()) {
-                LOGGER.debug("Small file available : {}", fileReference.getLocation().getUrl());
-                status = new NearlineFileStatusDto(fileReference.getChecksum(),
-                                                   NearlineFileStatusDtoStatus.AVAILABLE,
-                                                   null,
-                                                   "Small file "
-                                                   + fileReference.getMetaInfo().getFileName()
-                                                   + " is available.");
-            } else {
-                LOGGER.debug("Small file not available : {}", fileReference.getLocation().getUrl());
-                status = new NearlineFileStatusDto(fileReference.getChecksum(),
-                                                   NearlineFileStatusDtoStatus.UNAVAILABLE,
-                                                   null,
-                                                   "Small file "
-                                                   + fileReference.getMetaInfo().getFileName()
-                                                   + " is not available.");
+        GlacierFileStatus fileAvailable;
+        try {
+            if (isSmallFile(fileReference)) {
+                Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
+                NearlineFileStatusDto status;
+                if (smallFilePathInWorkspace.isPresent()) {
+                    LOGGER.debug("Small file available : {}", fileReference.getLocation().getUrl());
+                    status = new NearlineFileStatusDto(fileReference.getChecksum(),
+                                                       NearlineFileStatusDtoStatus.AVAILABLE,
+                                                       null,
+                                                       "Small file "
+                                                       + fileReference.getMetaInfo().getFileName()
+                                                       + " is available.");
+                } else {
+                    LOGGER.debug("Small file not available : {}", fileReference.getLocation().getUrl());
+                    status = new NearlineFileStatusDto(fileReference.getChecksum(),
+                                                       NearlineFileStatusDtoStatus.UNAVAILABLE,
+                                                       null,
+                                                       "Small file "
+                                                       + fileReference.getMetaInfo().getFileName()
+                                                       + " is not available.");
+                }
+                return status;
             }
-            return status;
-        }
 
-        // case of big files
-        long start = Instant.now().toEpochMilli();
-        GlacierFileStatus fileAvailable = client.isFileAvailable(storageConfiguration,
-                                                                 getEntryKey(fileReference),
-                                                                 standardStorageClassName).block();
-        LOGGER.trace("[S3 Monitoring] Checking availability of {} took {} ms",
-                    getEntryKey(fileReference),
-                    Instant.now().toEpochMilli() - start);
+            // case of big files
+            long start = Instant.now().toEpochMilli();
+
+            fileAvailable = client.isFileAvailable(storageConfiguration,
+                                                   getEntryKey(fileReference),
+                                                   standardStorageClassName).block();
+            LOGGER.trace("[S3 Monitoring] Checking availability of {} took {} ms",
+                         getEntryKey(fileReference),
+                         Instant.now().toEpochMilli() - start);
+        } catch (MalformedURLException e) {
+            return new NearlineFileStatusDto(fileReference.getChecksum(),
+                                             NearlineFileStatusDtoStatus.ERROR,
+                                             null,
+                                             "Unable to check file availability because the url is invalid ");
+        }
 
         String message;
         if (fileAvailable != null) {
@@ -1069,7 +1076,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             return new NearlineFileStatusDto(fileReference.getChecksum(),
                                              NearlineFileStatusDtoStatus.ERROR,
                                              null,
-                                             null);
+                                             message);
         }
         return new NearlineFileStatusDto(fileReference.getChecksum(),
                                          availability ?
@@ -1100,8 +1107,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                        .toList());
     }
 
-    private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference) {
-        Path s3FilePath = getServerPath().relativize(Path.of(fileReference.getLocation().getUrl()));
+    private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference)
+        throws MalformedURLException {
+        Path s3FilePath = Path.of(getEntryKey(fileReference.getLocation().getUrl()));
         S3GlacierUtils.S3GlacierUrl fileInfo = S3GlacierUtils.dispatchS3FilePath(s3FilePath.toString());
         if (fileReference.getLocation().isPendingActionRemaining()) {
             // action remaining means that archive containing the small file isn't sent to S3 yet.

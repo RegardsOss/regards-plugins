@@ -13,6 +13,7 @@ import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.UUID;
 
 /**
@@ -54,10 +55,15 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
      */
     @Override
     public InputStream retrieve(FileReferenceWithoutOwnersDto fileReference) throws FileNotFoundException {
-        return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
-                                                        storageConfiguration,
-                                                        new StorageCommandID(String.format("%d", fileReference.getId()),
-                                                                             UUID.randomUUID()));
+        try {
+            return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
+                                                            storageConfiguration,
+                                                            new StorageCommandID(String.format("%d",
+                                                                                               fileReference.getId()),
+                                                                                 UUID.randomUUID()));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

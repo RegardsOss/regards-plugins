@@ -43,6 +43,7 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -257,16 +258,21 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                     request.getFileReference().getLocation().getUrl());
         StorageCommandID cmdId = new StorageCommandID(request.getJobId(), UUID.randomUUID());
 
-        StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
-                                                                         cmdId,
-                                                                         getEntryKey(request.getFileReference()));
+        StorageCommand.Delete deleteCmd = null;
+        try {
+            deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
+                                                       cmdId,
+                                                       getEntryKey(request.getFileReference()));
+        } catch (MalformedURLException e) {
+            progressManager.deletionFailed(request, "Impossible to delete the file because its url is invalid");
+        }
         long start = Instant.now().toEpochMilli();
         client.delete(deleteCmd)
               .flatMap(deleteResult -> deleteResult.matchDeleteResult(Mono::just,
                                                                       unreachable -> Mono.error(new RuntimeException(
                                                                           "Unreachable endpoint")),
                                                                       failure -> Mono.error(new RuntimeException(
-                                                                          "Delete failure in S3 storage"))))
+                                                                          "Deletion failure in S3 storage"))))
               .doOnError(t -> {
                   try {
                       runtimeTenantResolver.forceTenant(tenant);
@@ -274,7 +280,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                    request.getFileReference().getMetaInfo().getFileName(),
                                    request.getFileReference().getLocation().getUrl(),
                                    t);
-                      progressManager.deletionFailed(request, "Delete failure in S3 storage");
+                      progressManager.deletionFailed(request, "Deletion failure in S3 storage");
                   } finally {
                       runtimeTenantResolver.clearTenant();
                   }
@@ -382,12 +388,20 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         return new StorageCommandID(taskId, UUID.randomUUID());
     }
 
-    protected String getEntryKey(FileReferenceWithoutOwnersDto fileReference) {
-        return fileReference.getLocation()
-                            .getUrl()
-                            .replaceFirst(Pattern.quote(endpoint) + "(:[0-9]*)?/*", "")
-                            .replaceFirst(Pattern.quote(bucket), "")
-                            .substring(1);
+    /**
+     * Return the "entry key" from an url as String.
+     * Note that if the given url is a small file one (endpoint/bucket/path/to/archive.zip?fileName=smallFile.txt), the
+     * return entryKey will contain the query ?fileName=... which is not a valid S3 entry key and need further
+     * processing from the plugin (/path/to/archive.zip?fileName=smallFile.txt)
+     */
+    protected String getEntryKey(String url) throws MalformedURLException {
+        URL urlAsURL = new URL(url);
+        String entryKey = urlAsURL.getPath().replaceFirst(Pattern.quote(bucket), "").substring(2);
+        if (Strings.isBlank(urlAsURL.getQuery())) {
+            return entryKey;
+        } else {
+            return entryKey + "?" + urlAsURL.getQuery();
+        }
     }
 
     public String getEntryKey(FileStorageRequestAggregationDto request) {
