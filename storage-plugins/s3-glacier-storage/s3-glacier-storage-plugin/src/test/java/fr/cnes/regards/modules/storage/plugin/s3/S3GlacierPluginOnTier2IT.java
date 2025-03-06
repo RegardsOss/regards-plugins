@@ -176,7 +176,7 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
         // Create the archive that contain the file to retrieve
         String archiveName = OffsetDateTime.now().format(DateTimeFormatter.ofPattern(S3Glacier.ARCHIVE_DATE_FORMAT));
 
-        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.getStorageConfiguration(),
                                                       Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 
@@ -186,14 +186,14 @@ public class S3GlacierPluginOnTier2IT extends AbstractS3GlacierIT {
                                                   .map(DataBuffer::asByteBuffer);
 
         StorageEntry storageEntry = StorageEntry.builder()
-                                                .config(s3Glacier.storageConfiguration)
+                                                .config(s3Glacier.getStorageConfiguration())
                                                 .fullPath(entryKey)
                                                 .checksum(Option.some(Tuple.of(S3Glacier.MD5_CHECKSUM, fileChecksum)))
                                                 .size(Option.some(fileSize))
                                                 .data(buffers)
                                                 .build();
         String taskId = "S3GlacierRestore" + archiveName;
-        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.storageConfiguration,
+        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.getStorageConfiguration(),
                                                                       new StorageCommandID(taskId, UUID.randomUUID()),
                                                                       entryKey,
                                                                       storageEntry);

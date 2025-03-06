@@ -480,10 +480,10 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         Files.createSymbolicLink(symbolicLinkSourcePath, emptyDirPath);
 
         Assertions.assertTrue(Files.exists(emptyDirPath), "The building directory should exist");
-        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.getStorageConfiguration(),
                                                       Path.of(nodeName, archiveName + S3Glacier.ARCHIVE_EXTENSION)
                                                           .toString());
-        Assertions.assertTrue(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
+        Assertions.assertTrue(DownloadUtils.existsS3(entryKey, s3Glacier.getStorageConfiguration()),
                               "The archive should exist on the server");
 
         // When
@@ -495,7 +495,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
 
         Assertions.assertFalse(Files.exists(emptyDirPath),
                                "The building directory should have been deleted as it is now empty");
-        Assertions.assertFalse(DownloadUtils.existsS3(entryKey, s3Glacier.storageConfiguration),
+        Assertions.assertFalse(DownloadUtils.existsS3(entryKey, s3Glacier.getStorageConfiguration()),
                                "The archive should have been deleted from the server");
 
     }

@@ -14,8 +14,8 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto;
-import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDtoStatus;
+import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
@@ -962,7 +962,8 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                                 storageConfiguration,
                                                                 new StorageCommandID(String.format("%d",
                                                                                                    fileReference.getId()),
-                                                                                     UUID.randomUUID()));
+                                                                                     UUID.randomUUID()),
+                                                                10);
             }
         } catch (IOException e) { // NOSONAR
             LOGGER.error(FILE + "{} cannot be downloaded ", fileReference.getMetaInfo().getFileName(), e);

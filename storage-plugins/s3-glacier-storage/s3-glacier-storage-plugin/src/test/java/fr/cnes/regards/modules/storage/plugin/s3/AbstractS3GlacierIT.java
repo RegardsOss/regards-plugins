@@ -196,7 +196,7 @@ public abstract class AbstractS3GlacierIT {
 
     @After
     public void cleanBucket() {
-        S3FileTestUtils.deleteAllFilesFromRoot(s3Glacier.storageConfiguration, rootPath);
+        S3FileTestUtils.deleteAllFilesFromRoot(s3Glacier.getStorageConfiguration(), rootPath);
     }
 
     @After
@@ -286,14 +286,12 @@ public abstract class AbstractS3GlacierIT {
             case MockedS3ClientWithoutRestore -> s3Client = new MockedS3ClientWithoutRestore(scheduler);
             case MockedS3ClientAlreadyAvailable -> s3Client = new MockedS3ClientAlreadyAvailable(scheduler);
             case MockedS3Client -> s3Client = new MockedS3Client(scheduler);
-            default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10, 50);
+            default -> s3Client = new S3HighLevelReactiveClient(scheduler, 10 * 1024 * 1024, 10);
         }
 
         S3ClientCreatorService s3ClientService = Mockito.mock(S3ClientCreatorService.class);
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(),
-                                                    Mockito.anyInt(),
-                                                    Mockito.anyInt(),
-                                                    Mockito.anyInt())).thenReturn(s3Client);
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+               .thenReturn(s3Client);
 
         LockService lockService;
         try {
@@ -380,7 +378,7 @@ public abstract class AbstractS3GlacierIT {
         Path testWorkspace = workspace.getRoot().toPath().resolve("test");
         Path archiveTestPath = createTestArchive(filesNames, nodeName, archiveName, testWorkspace);
 
-        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.getStorageConfiguration(),
                                                       testWorkspace.relativize(archiveTestPath).toString());
         String checksum = ChecksumUtils.computeHexChecksum(archiveTestPath, S3Glacier.MD5_CHECKSUM);
         Long archiveSize = Files.size(archiveTestPath);
@@ -391,14 +389,14 @@ public abstract class AbstractS3GlacierIT {
                                                   .map(DataBuffer::asByteBuffer);
 
         StorageEntry storageEntry = StorageEntry.builder()
-                                                .config(s3Glacier.storageConfiguration)
+                                                .config(s3Glacier.getStorageConfiguration())
                                                 .fullPath(entryKey)
                                                 .checksum(Option.some(Tuple.of(S3Glacier.MD5_CHECKSUM, checksum)))
                                                 .size(Option.some(archiveSize))
                                                 .data(buffers)
                                                 .build();
         String taskId = "S3GlacierRestore" + archiveName;
-        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.storageConfiguration,
+        StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(s3Glacier.getStorageConfiguration(),
                                                                       new StorageCommandID(taskId, UUID.randomUUID()),
                                                                       entryKey,
                                                                       storageEntry);
@@ -661,7 +659,7 @@ public abstract class AbstractS3GlacierIT {
     protected S3HighLevelReactiveClient createS3Client() {
         Scheduler scheduler = Schedulers.newParallel("s3-reactive-client", 10);
         int maxBytesPerPart = UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB * 1024 * 1024;
-        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, MULTIPART_PARALLEL_PART, 50);
+        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, MULTIPART_PARALLEL_PART);
     }
 
     protected InputStream downloadFromS3(String url) throws FileNotFoundException {
@@ -671,7 +669,8 @@ public abstract class AbstractS3GlacierIT {
                                                                                               key,
                                                                                               secret,
                                                                                               bucket)).build(),
-                                                        new StorageCommandID("downloadTest", UUID.randomUUID()));
+                                                        new StorageCommandID("downloadTest", UUID.randomUUID()),
+                                                        10);
     }
 
     protected String getEntryKey(String url) {
@@ -934,7 +933,7 @@ public abstract class AbstractS3GlacierIT {
         private int tryCount;
 
         public MockedS3Client(Scheduler scheduler) {
-            super(scheduler, 10 * 1024 * 1024, 10, 50);
+            super(scheduler, 10 * 1024 * 1024, 10);
             tryCount = 0;
         }
 
@@ -957,7 +956,7 @@ public abstract class AbstractS3GlacierIT {
         private int tryCount;
 
         public MockedS3ClientWithNoFileAvailable(Scheduler scheduler) {
-            super(scheduler, 10 * 1024 * 1024, 10, 50);
+            super(scheduler, 10 * 1024 * 1024, 10);
             tryCount = 0;
         }
 

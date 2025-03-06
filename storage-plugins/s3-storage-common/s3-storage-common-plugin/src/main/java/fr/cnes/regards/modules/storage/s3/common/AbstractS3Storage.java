@@ -46,7 +46,6 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -167,16 +166,10 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      defaultValue = FileNamingStrategy.Constants.CHECKSUM)
     protected String fileNamingStrategy;
 
-    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
-    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 50;
-    @Value("${regards.glacier.s3.maximum.concurrent_access:500}")
-    private final int S3_MAX_HTTP_CONCURRENT_ACCESS = 500;
-
-    /**
     /**
      * Configuration of S3 server
      */
-    public StorageConfigDto storageConfiguration;
+    protected StorageConfigDto storageConfiguration;
 
     @Autowired
     protected IRuntimeTenantResolver runtimeTenantResolver;
@@ -222,11 +215,6 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                                                                                       .rootPath(rootPath)
                                                                                       .build();
         storageName = conf.getBusinessId();
-        storageConfiguration = StorageConfig.builder(endpoint, region, key, secret)
-                                            .bucket(bucket)
-                                            .rootPath(rootPath)
-                                            .build();
-        storageName = conf.getBusinessId();
     }
 
     /**
@@ -236,10 +224,11 @@ public abstract class AbstractS3Storage implements IStorageLocation {
      * @return the client S3
      */
     protected S3HighLevelReactiveClient createS3Client() {
-        return s3ClientService.createS3Client(storageName,
-                                              multipartThresholdMb,
-                                              nbParallelPartsUpload,
-                                              S3_MAX_HTTP_CONCURRENT_ACCESS);
+        return s3ClientService.createS3Client(storageName, multipartThresholdMb, nbParallelPartsUpload);
+    }
+
+    public StorageConfigDto getStorageConfiguration() {
+        return storageConfiguration;
     }
 
     private Mono<InputStream> toInputStream(StorageCommandResult.ReadingPipe pipe) {
@@ -348,7 +337,8 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                   .doOnSuccess(success -> {
                       LOGGER.info("[{}] End storing {}", request.getJobId(), request.getOriginUrl());
                       progressManager.storageSucceed(request,
-                                                     storageConfiguration.entryKeyUrl(entryKey.replaceFirst("^/*", "")),
+                                                     StorageConfigUtils.entryKeyUrl(storageConfiguration,
+                                                                                    entryKey.replaceFirst("^/*", "")),
                                                      success.getSize());
                   })
                   .block();
@@ -404,20 +394,33 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         }
     }
 
+    /**
+     * Return the "entry key" from a file reference
+     * Note that if the given url is a small file one (endpoint/bucket/path/to/archive.zip?fileName=smallFile.txt), the
+     * return entryKey will contain the query ?fileName=... which is not a valid S3 entry key and need further
+     * processing from the plugin (/path/to/archive.zip?fileName=smallFile.txt)
+     */
+    protected String getEntryKey(FileReferenceWithoutOwnersDto fileReference) throws MalformedURLException {
+        return getEntryKey(fileReference.getLocation().getUrl());
+    }
+
+    /**
+     * Create and return the entryKey that will be used to store a file in the S3 Storage
+     */
     public String getEntryKey(FileStorageRequestAggregationDto request) {
         // Handle naming strategy
         String filename = switch (FileNamingStrategy.valueOf(fileNamingStrategy)) {
             case FILENAME -> request.getMetaInfo().getFileName();
             case CHECKSUM -> request.getMetaInfo().getChecksum();
         };
-        String entryKey = filename;
         if (request.getSubDirectory() != null && !request.getSubDirectory().isEmpty()) {
-            entryKey = Paths.get(request.getSubDirectory(), filename).toString();
+            String entryKey = Paths.get(request.getSubDirectory(), filename).toString();
             if (entryKey.charAt(0) == '/') {
                 entryKey = entryKey.substring(1);
             }
+            return entryKey;
         }
-        return entryKey;
+        return filename;
     }
 
     private Option<Long> entrySize(FileStorageRequestAggregationDto request) {

@@ -18,6 +18,7 @@
  */
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
 import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.StringPluginParam;
@@ -192,10 +193,8 @@ public class S3OnlineStorageIT {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
-        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(),
-                                                    Mockito.anyInt(),
-                                                    Mockito.anyInt(),
-                                                    Mockito.anyInt())).thenCallRealMethod();
+        Mockito.when(s3ClientService.createS3Client(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+               .thenCallRealMethod();
 
         ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
     }
@@ -301,7 +300,7 @@ public class S3OnlineStorageIT {
         try {
             InputStream inputStream = s3OnlineStorage.retrieve(fileReference);
             Assert.assertNotNull(inputStream);
-        } catch (FileNotFoundException e) {
+        } catch (ModuleException | FileNotFoundException e) {
             Assert.fail("Test Failure : file does not store in S3 server");
         }
 

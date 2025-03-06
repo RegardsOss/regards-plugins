@@ -41,14 +41,10 @@ public class S3ClientCreatorService {
      */
     public S3HighLevelReactiveClient createS3Client(String storageName,
                                                     int multipartThresholdMb,
-                                                    int nbParallelPartsUpload,
-                                                    int s3clientHttpMaxConcurrency) {
+                                                    int nbParallelPartsUpload) {
         Scheduler scheduler = Schedulers.newParallel(String.format("%s-s3-reactive-client", storageName),
                                                      parallelNumber);
         int maxBytesPerPart = multipartThresholdMb * 1024 * 1024;
-        return new S3HighLevelReactiveClient(scheduler,
-                                             maxBytesPerPart,
-                                             nbParallelPartsUpload,
-                                             s3clientHttpMaxConcurrency);
+        return new S3HighLevelReactiveClient(scheduler, maxBytesPerPart, nbParallelPartsUpload);
     }
 }

@@ -28,6 +28,7 @@ import fr.cnes.regards.framework.s3.exception.S3ClientException;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.storage.plugin.s3.S3Glacier;
 import fr.cnes.regards.modules.storage.plugin.s3.task.RetrieveCacheFileTask;
+import jakarta.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
@@ -38,7 +39,6 @@ import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -328,7 +328,8 @@ public class S3GlacierUtils {
             InputStream sourceStream = DownloadUtils.getInputStreamFromS3Source(key,
                                                                                 s3Configuration,
                                                                                 new StorageCommandID(taskId,
-                                                                                                     UUID.randomUUID()));
+                                                                                                     UUID.randomUUID()),
+                                                                                10);
             FileUtils.copyInputStreamToFile(sourceStream, targetFilePath.toFile());
         } catch (IOException e) {
             LOGGER.error(String.format("Error downloading file %s from s3 server to local directory", key), e);

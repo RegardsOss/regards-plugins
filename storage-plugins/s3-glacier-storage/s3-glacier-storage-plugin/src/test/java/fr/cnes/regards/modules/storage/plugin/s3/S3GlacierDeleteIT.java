@@ -148,7 +148,7 @@ public class S3GlacierDeleteIT extends AbstractS3GlacierIT {
         String nodeName = "deep/dir/testNode";
         TestDeletionProgressManager progressManager = new TestDeletionProgressManager();
 
-        String entryKey = StorageConfigUtils.entryKey(s3Glacier.storageConfiguration,
+        String entryKey = StorageConfigUtils.entryKey(s3Glacier.getStorageConfiguration(),
                                                       Path.of(nodeName, fileName).toString());
         Path filePath = Path.of(S3GlacierRestoreIT.class.getResource("/files/" + fileName).toURI());
 

@@ -20,7 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Plugins that simulate CNES datalake access
  */
 @Plugin(author = "REGARDS Team",
-        description = "Plugin MOCK for handling the storage on S3",
+        description = "Plugin MOCK for handling the storage on S3 T3",
         id = "S3GlacierMock",
         version = "1.0",
         contact = "regards@c-s.fr",

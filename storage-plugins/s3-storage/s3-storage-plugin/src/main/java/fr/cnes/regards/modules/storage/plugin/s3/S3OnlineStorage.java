@@ -1,5 +1,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
+import fr.cnes.regards.framework.module.rest.exception.EntityInvalidException;
+import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
 import fr.cnes.regards.framework.s3.domain.StorageCommandID;
@@ -54,15 +56,17 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
      * @return the input stream of file reference
      */
     @Override
-    public InputStream retrieve(FileReferenceWithoutOwnersDto fileReference) throws FileNotFoundException {
+    public InputStream retrieve(FileReferenceWithoutOwnersDto fileReference)
+        throws ModuleException, FileNotFoundException {
         try {
             return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
                                                             storageConfiguration,
                                                             new StorageCommandID(String.format("%d",
                                                                                                fileReference.getId()),
-                                                                                 UUID.randomUUID()));
+                                                                                 UUID.randomUUID()),
+                                                            10);
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new EntityInvalidException(e.getMessage());
         }
     }
 
