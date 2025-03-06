@@ -364,11 +364,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                     FileNamingStrategy.valueOf(fileNamingStrategy),
                                                     workspacePath,
                                                     smallFileMaxSize,
-                                                    archiveMaxSize,
-                                                    archiveMaxAge,
-                                                    parallelTaskNumber,
-                                                    archiveCacheLifetime,
-                                                    s3AccessTimeout,
                                                     standardStorageClassName);
     }
 

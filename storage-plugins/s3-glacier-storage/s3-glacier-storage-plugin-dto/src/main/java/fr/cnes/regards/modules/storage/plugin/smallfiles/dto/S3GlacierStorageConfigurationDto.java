@@ -42,33 +42,6 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
     private int smallFileMaxSize;
 
     /**
-     * Threshold beyond which a small files archive is considered as full and closed, in bytes.
-     */
-    private int archiveMaxSize;
-
-    /**
-     * Determines when the current small files archive is considered too old and should be closed, in hours
-     */
-    private int archiveMaxAge;
-
-    /**
-     * Number of tasks that can be handled at the same time in each job. The different tasks (Store, Restore, Delete) use the same thread pool
-     */
-    private int parallelTaskNumber;
-
-    /**
-     * Duration in hours for which the restored small file archives and their
-     * content will be kept in the archive cache in order to limit multiple
-     * restoration of the same archive
-     */
-    private int archiveCacheLifetime;
-
-    /**
-     * Timeout in seconds during S3 access after which the job will return an error
-     */
-    private int s3AccessTimeout;
-
-    /**
      * The name of the standard storage class if different from STANDARD
      */
     private String standardStorageClassName;
@@ -79,11 +52,6 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
                              "fileNamingStrategy",
                              "rawWorkspacePath",
                              "smallFileMaxSize",
-                             "archiveMaxSize",
-                             "archiveMaxAge",
-                             "parallelTaskNumber",
-                             "archiveCacheLifetime",
-                             "s3AccessTimeout",
                              "standardStorageClassName", })
     public S3GlacierStorageConfigurationDto(StorageConfigDto storageConfig,
                                             int multipartThresholdMb,
@@ -91,20 +59,10 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
                                             FileNamingStrategy fileNamingStrategy,
                                             String rawWorkspacePath,
                                             int smallFileMaxSize,
-                                            int archiveMaxSize,
-                                            int archiveMaxAge,
-                                            int parallelTaskNumber,
-                                            int archiveCacheLifetime,
-                                            int s3AccessTimeout,
                                             String standardStorageClassName) {
         super(storageConfig, multipartThresholdMb, nbParallelPartsUpload, fileNamingStrategy);
         this.rawWorkspacePath = rawWorkspacePath;
         this.smallFileMaxSize = smallFileMaxSize;
-        this.archiveMaxSize = archiveMaxSize;
-        this.archiveMaxAge = archiveMaxAge;
-        this.parallelTaskNumber = parallelTaskNumber;
-        this.archiveCacheLifetime = archiveCacheLifetime;
-        this.s3AccessTimeout = s3AccessTimeout;
         this.standardStorageClassName = standardStorageClassName;
     }
 
@@ -114,26 +72,6 @@ public class S3GlacierStorageConfigurationDto extends AbstractS3ConfigurationDto
 
     public int getSmallFileMaxSize() {
         return smallFileMaxSize;
-    }
-
-    public int getArchiveMaxSize() {
-        return archiveMaxSize;
-    }
-
-    public int getArchiveMaxAge() {
-        return archiveMaxAge;
-    }
-
-    public int getParallelTaskNumber() {
-        return parallelTaskNumber;
-    }
-
-    public int getArchiveCacheLifetime() {
-        return archiveCacheLifetime;
-    }
-
-    public int getS3AccessTimeout() {
-        return s3AccessTimeout;
     }
 
     public String getStandardStorageClassName() {
