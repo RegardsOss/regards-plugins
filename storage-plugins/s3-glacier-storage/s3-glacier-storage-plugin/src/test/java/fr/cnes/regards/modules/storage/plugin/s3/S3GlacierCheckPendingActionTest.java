@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.s3.domain.StorageCommand;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.AbstractSmallFileFacade;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Test;
@@ -145,7 +146,7 @@ public class S3GlacierCheckPendingActionTest extends AbstractS3GlacierIT {
 
         copyFileToWorkspace(ROOT_PATH, oldCurrentDirName, nodeName, fileName, S3Glacier.ZIP_DIR);
 
-        Logger glacierLogger = (Logger) getLogger(S3Glacier.class);
+        Logger glacierLogger = (Logger) getLogger(AbstractSmallFileFacade.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         glacierLogger.addAppender(listAppender);

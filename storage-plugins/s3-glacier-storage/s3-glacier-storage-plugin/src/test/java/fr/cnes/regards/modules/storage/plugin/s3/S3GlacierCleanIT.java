@@ -20,13 +20,14 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.AbstractSmallFileFacade;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.configuration.PeriodicActionSmallFileTaskConfiguration;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -166,11 +167,16 @@ public class S3GlacierCleanIT extends AbstractS3GlacierIT {
         Files.createDirectories(dirBuildingWorkspacePath.getParent());
         Files.createSymbolicLink(dirBuildingWorkspacePath, fileCachePath.getParent());
 
-        Method cleanMethod = s3Glacier.getClass().getDeclaredMethod("cleanArchiveCache");
-        cleanMethod.setAccessible(true);
+        AbstractSmallFileFacade facade = s3Glacier.getSmallFilesFacade(null);
 
         // When
-        cleanMethod.invoke(s3Glacier, null);
+        facade.cleanArchiveCache(new PeriodicActionSmallFileTaskConfiguration(ROOT_PATH,
+                                                                              workspace.getRoot().toString(),
+                                                                              "storageName",
+                                                                              5,
+                                                                              5,
+                                                                              5,
+                                                                              5));
 
         // Then
         Assertions.assertTrue(Files.exists(fileCachePath),

@@ -67,6 +67,10 @@
             <artifactId>s3-starter</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+            <artifactId>common-smallfiles-storage-plugin</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.cnes.regards.framework</groupId>
             <artifactId>jpa-multitenant-regards</artifactId>
         </dependency>

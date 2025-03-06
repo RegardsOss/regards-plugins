@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
+    <artifactId>common-smallfiles-storage-plugin</artifactId>
+    <description>Plugin to deal with small files in storage</description>
+    <parent>
+        <groupId>fr.cnes.regards.plugins</groupId>
+        <artifactId>oss-plugin-parent</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../../oss-plugin-parent</relativePath>
+    </parent>
+
+    <url>https://github.com/RegardsOss/RegardsOss.github.io</url>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU General Public License (GNU GPL)</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/fr</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>REGARDS Team</name>
+            <organization>CS Group</organization>
+            <organizationUrl>https://www.csgroup.eu</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <regardsMs>storage</regardsMs>
+    </properties>
+
+    <dependencies>
+        <!-- Regards -->
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.plugins</groupId>
+            <artifactId>plugins-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.modules.fileaccess.plugin</groupId>
+            <artifactId>file-access-plugin-domain</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>file-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.modules.workspace</groupId>
+            <artifactId>workspace-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework</groupId>
+            <artifactId>jpa-multitenant-regards</artifactId>
+        </dependency>
+
+        <!-- External -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.test</groupId>
+            <artifactId>regards-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.cnes.regards.framework.utils</groupId>
+            <artifactId>plugin-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

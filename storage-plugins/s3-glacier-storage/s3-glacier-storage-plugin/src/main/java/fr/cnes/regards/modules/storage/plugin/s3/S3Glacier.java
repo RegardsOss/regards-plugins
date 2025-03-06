@@ -1,15 +1,36 @@
+/*
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ *
+ * This file is part of REGARDS.
+ *
+ * REGARDS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * REGARDS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ *
+ **/
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
-import fr.cnes.regards.framework.jpa.multitenant.lock.LockServiceResponse;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginDestroy;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.modules.plugins.dto.PluginConfigurationDto;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
-import fr.cnes.regards.framework.s3.domain.GlacierFileStatus;
-import fr.cnes.regards.framework.s3.domain.StorageCommandID;
+import fr.cnes.regards.framework.s3.domain.*;
+import fr.cnes.regards.framework.s3.exception.S3ClientException;
+import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.AbstractStoragePluginConfigurationDto;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
@@ -18,38 +39,49 @@ import fr.cnes.regards.modules.fileaccess.dto.availability.NearlineFileStatusDto
 import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
-import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileDeletionRequestDto;
-import fr.cnes.regards.modules.storage.plugin.s3.configuration.*;
-import fr.cnes.regards.modules.storage.plugin.s3.dto.S3GlacierStorageConfigurationDto;
-import fr.cnes.regards.modules.storage.plugin.s3.task.*;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.LockTypeEnum;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.AbstractSmallFileFacade;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.ISmallFilesStorage;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.configuration.DeleteSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.configuration.PeriodicActionSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.configuration.RetrieveSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.configuration.StoreSmallFileTaskConfiguration;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.dto.S3GlacierStorageConfigurationDto;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.utils.RestoreResponse;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.utils.SmallFilesUtils;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
-import org.apache.commons.io.FileUtils;
+import io.vavr.Tuple;
+import io.vavr.control.Option;
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static fr.cnes.regards.modules.storage.plugin.smallfiles.ISmallFilesStorage.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -68,23 +100,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private static final Logger LOGGER = getLogger(S3Glacier.class);
 
-    public static final String GLACIER_WORKSPACE_PATH = "Glacier_Workspace_Path";
-
-    public static final String GLACIER_SMALL_FILE_MAX_SIZE = "Glacier_Small_File_Max_Size";
-
-    public static final String GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE = "Glacier_Small_File_Archive_Max_Size";
-
-    public static final String GLACIER_SMALL_FILE_ARCHIVE_DURATION_IN_HOURS = "Glacier_Small_File_Archive_Duration_In_Hours";
-
-    public static final String GLACIER_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER = "Glacier_Parallel_Restore_Number";
+    public static final String GLACIER_S3_ACCESS_TRY_TIMEOUT = "Glacier_S3_Access_Try_Timeout";
 
     public static final String GLACIER_PARALLEL_AVAILABILITY_TASK_NUMBER = "Glacier_Parallel_Availability_Number";
-
-    public static final String GLACIER_PARALLEL_STORE_TASK_NUMBER = "Glacier_Parallel_Upload_Number";
-
-    public static final String GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS = "Glacier_Local_Workspace_File_Lifetime_In_Hours";
-
-    public static final String GLACIER_S3_ACCESS_TRY_TIMEOUT = "Glacier_S3_Access_Try_Timeout";
 
     public static final String ZIP_DIR = "zip";
 
@@ -100,51 +118,41 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     public static final String ARCHIVE_EXTENSION = ".zip";
 
-    public static final String LOCK_PREFIX = "LOCK_";
-
-    public static final String LOCK_STORE_SUFFIX = "_STORE";
-
-    public static final String LOCK_RESTORE_SUFFIX = "_RESTORE";
-
-    public static final String TENANT_LOG = "In thread {}, forcing tenant to {}";
-
     public static final String SMALL_FILE_PARAMETER_NAME = "fileName";
 
     private static final String STANDARD_STORAGE_CLASS_NAME = "standardStorageClassName";
 
     private static final String FILE = "File ";
 
-    public static final String USE_EXTERNAL_CACHE_NAME = "useExternalCacheName";
-
     @Autowired
-    private LockService lockService;
+    protected LockService lockService;
 
-    @PluginParameter(name = GLACIER_WORKSPACE_PATH,
+    @PluginParameter(name = SMALL_FILES_WORKSPACE_PATH,
                      description = "Local workspace for archive building and restoring cache",
                      label = "Workspace path")
     private String rawWorkspacePath;
 
-    @PluginParameter(name = GLACIER_SMALL_FILE_MAX_SIZE,
+    @PluginParameter(name = SMALL_FILES_MAX_SIZE,
                      description = "Threshold under which files are categorized as small files, in bytes.",
                      label = "Small file max size in bytes.",
                      defaultValue = "1048576")
     private int smallFileMaxSize;
 
-    @PluginParameter(name = GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
+    @PluginParameter(name = SMALL_FILES_ARCHIVE_MAX_SIZE,
                      description = "Threshold beyond which a small files archive is considered as full and closed, in"
                                    + " bytes.",
                      label = "Archive max size in bytes.",
                      defaultValue = "10485760")
     private int archiveMaxSize;
 
-    @PluginParameter(name = GLACIER_SMALL_FILE_ARCHIVE_DURATION_IN_HOURS,
+    @PluginParameter(name = SMALL_FILES_ARCHIVE_DURATION_IN_HOURS,
                      description = "Determines when the current small files archive is considered too old and should "
                                    + "be closed, in hours",
                      label = "Archive max age in hours",
                      defaultValue = "24")
     private int archiveMaxAge;
 
-    @PluginParameter(name = GLACIER_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER,
+    @PluginParameter(name = SMALL_FILES_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER,
                      description = "Number of parallel tasks for file restoration and deletion.",
                      label = "Number of file to restore or to delete in parallel",
                      defaultValue = "20")
@@ -156,14 +164,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                      defaultValue = "10")
     private int availabilityParallelTaskNumber;
 
-    @PluginParameter(name = GLACIER_PARALLEL_STORE_TASK_NUMBER,
+    @PluginParameter(name = SMALL_FILES_PARALLEL_STORE_TASK_NUMBER,
                      description = "Number of parallel files to store. A high number of parallel files needs to raise"
                                    + " microservice available memory resource.",
                      label = "Number of files to store in parallel",
                      defaultValue = "5")
     private int storeParallelTaskNumber;
 
-    @PluginParameter(name = GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
+    @PluginParameter(name = SMALL_FILES_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
                      description = "Duration in hours for which the restored small file archives and their "
                                    + "content will be kept in the archive cache in order to limit multiple "
                                    + "restoration of the same archive",
@@ -204,13 +212,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private int renewCallDurationInMs = 1000;
 
     /**
-     * Timeout to acquire a new lock to run a {@link CleanDirectoryTask}
+     * Timeout to acquire a new lock to run a {@link fr.cnes.regards.modules.storage.plugin.smallfiles.task.CleanDirectoryTask}
      */
     @Value("${regards.glacier.clean.cache.task.lock.acquire.timeout:60}")
     private int cleanCacheTaskLockAcquireTimeout = 60;
 
     /**
-     * Scheduler periodic time to run {@link CleanDirectoryTask}
+     * Scheduler periodic time to run {@link fr.cnes.regards.modules.storage.plugin.smallfiles.task.CleanDirectoryTask}
      */
     @Value("${regards.glacier.scheduled.cache.clean.minutes:60}")
     private int scheduledCacheClean = 60;
@@ -219,13 +227,14 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     private ThreadPoolTaskScheduler scheduler;
 
-    private BasicThreadFactory factory;
-
     /**
      * S3 client used for {@link this#download(FileReferenceWithoutOwnersDto)} download} method to check for file
      * availability.
      */
     private S3HighLevelReactiveClient checkAvailabilityClient;
+
+    private BasicThreadFactory factory = new BasicThreadFactory.Builder().namingPattern(
+        "s3-glacier-availability-thread-%d").priority(Thread.MAX_PRIORITY).build();
 
     @PluginInit(hasConfiguration = true)
     public void initGlacier(PluginConfigurationDto conf) {
@@ -236,9 +245,6 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             // This will happen in tests
             workspacePath = rawWorkspacePath;
         }
-        factory = new BasicThreadFactory.Builder().namingPattern("s3-glacier-threadpool-thread-%d")
-                                                  .priority(Thread.MAX_PRIORITY)
-                                                  .build();
         storageName = conf.getBusinessId();
         initWorkspaceCleanScheduler();
     }
@@ -250,7 +256,15 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
         Runnable cleanTask = () -> {
             LOGGER.info("Starting scheduled workspace cleaning");
-            cleanArchiveCache();
+            PeriodicActionSmallFileTaskConfiguration configuration = new PeriodicActionSmallFileTaskConfiguration(
+                rootPath,
+                workspacePath,
+                storageName,
+                parallelTaskNumber,
+                archiveMaxAge,
+                archiveCacheLifetime,
+                cleanCacheTaskLockAcquireTimeout);
+            getSmallFilesFacade(null).cleanArchiveCache(configuration);
             LOGGER.info("End of scheduled workspace cleaning");
         };
         scheduler.schedule(cleanTask, trigger);
@@ -273,567 +287,59 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
 
     @Override
     public void store(FileStorageWorkingSubset workingSet, IStorageProgressManager progressManager) {
-        LOGGER.info("Glacier store requests received");
-        ExecutorService storeExecutorService = null;
         try (S3HighLevelReactiveClient client = createS3Client()) {
-            storeExecutorService = Executors.newFixedThreadPool(storeParallelTaskNumber, factory);
-            String tenant = runtimeTenantResolver.getTenant();
-            List<Future<LockServiceResponse<Void>>> taskResults = storeExecutorService.invokeAll(workingSet.getFileReferenceRequests()
-                                                                                                           .stream()
-                                                                                                           .map(request -> doStoreTask(
-                                                                                                               request,
-                                                                                                               client,
-                                                                                                               progressManager,
-                                                                                                               tenant))
-                                                                                                           .toList());
-
-            // Wait for all tasks to complete
-            for (Future<LockServiceResponse<Void>> future : taskResults) {
-                future.get();
-            }
-
-        } catch (InterruptedException e) {
-            LOGGER.error("Storage process interrupted");
-        } catch (ExecutionException e) {
-            LOGGER.error("Error during storage process", e);
-        } finally {
-            if (storeExecutorService != null) {
-                storeExecutorService.shutdownNow();
-            }
+            getSmallFilesFacade(client).store(workingSet,
+                                              progressManager,
+                                              new StoreSmallFileTaskConfiguration(workspacePath,
+                                                                                  s3StorageSettings.getStorages(),
+                                                                                  archiveMaxSize,
+                                                                                  rootPath,
+                                                                                  storeParallelTaskNumber,
+                                                                                  smallFileMaxSize));
         }
-        LOGGER.info("End handling store requests");
-    }
-
-    public Callable<LockServiceResponse<Void>> doStoreTask(FileStorageRequestAggregationDto request,
-                                                           S3HighLevelReactiveClient client,
-                                                           IStorageProgressManager progressManager,
-                                                           String tenant) {
-
-        return () -> {
-            long start = Instant.now().toEpochMilli();
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            try {
-                request.getMetaInfo().setFileSize(getFileSize(new URL(request.getOriginUrl())));
-                if (request.getMetaInfo().getFileSize() > smallFileMaxSize) {
-                    LOGGER.info("Storing file on S3 using standard upload");
-                    handleStoreRequest(request, client, progressManager);
-                    LOGGER.info("End Storing file on S3");
-                } else {
-                    StoreSmallFileTaskConfiguration configuration = new StoreSmallFileTaskConfiguration(workspacePath,
-                                                                                                        s3StorageSettings.getStorages(),
-                                                                                                        storageConfiguration,
-                                                                                                        archiveMaxSize,
-                                                                                                        rootPath);
-                    LOGGER.debug("In thread {}, running StoreSmallFileTask from Glacier with lock",
-                                 Thread.currentThread().getName());
-                    /**
-                     * Lock the node directory (with LOCK_STORE) where the file will be stored to prevent other storage 
-                     * jobs to handle the same node.
-                     * @see S3Glacier#doStoreTask
-                     **/
-
-                    // the same node (there is one _current building archive per node)
-                    lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                       rootPath,
-                                                                       workspacePath,
-                                                                       request.getSubDirectory()),
-                                            new StoreSmallFileTask(configuration, request, progressManager));
-                    LOGGER.trace("[S3 Monitoring] Storage task for {} took {} ms",
-                                 request.getOriginUrl(),
-                                 Instant.now().toEpochMilli() - start);
-                }
-            } catch (MalformedURLException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.storageFailed(request, String.format("Invalid source url %s", request.getOriginUrl()));
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.storageFailed(request, "The storage task was interrupted before completion.");
-                Thread.currentThread().interrupt();
-            }
-            return null;
-        };
     }
 
     @Override
     public void retrieve(FileRestorationWorkingSubset workingSubset, IRestorationProgressManager progressManager) {
-        LOGGER.info("Glacier retrieve requests received");
-        String tenant = runtimeTenantResolver.getTenant();
-        ExecutorService executorService = null;
         try (S3HighLevelReactiveClient client = createS3Client()) {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
-            List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSubset.getFileRestorationRequests()
-                                                                                                         .stream()
-                                                                                                         .map(request -> doRetrieveTask(
-                                                                                                             request,
-                                                                                                             client,
-                                                                                                             progressManager,
-                                                                                                             tenant))
-                                                                                                         .toList());
-            // Wait for all tasks to complete
-            for (Future<LockServiceResponse<Void>> future : taskResults) {
-                future.get();
-            }
-
-        } catch (InterruptedException e) {
-            LOGGER.error("Retrieval process interrupted");
-        } catch (ExecutionException e) {
-            LOGGER.error("Error during retrieval process", e);
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
+            getSmallFilesFacade(client).retrieve(workingSubset,
+                                                 progressManager,
+                                                 new RetrieveSmallFileTaskConfiguration(rootPath,
+                                                                                        workspacePath,
+                                                                                        storeParallelTaskNumber,
+                                                                                        renewMaxIterationWaitingPeriodInS,
+                                                                                        renewCallDurationInMs,
+                                                                                        useExternalCache));
         }
-        LOGGER.info("Handling of retrieve requests ended");
-    }
-
-    public Callable<LockServiceResponse<Void>> doRetrieveTask(FileCacheRequestDto fileCacheRequest,
-                                                              S3HighLevelReactiveClient client,
-                                                              IRestorationProgressManager progressManager,
-                                                              String tenant) {
-
-        return () -> {
-            long start = Instant.now().toEpochMilli();
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            try {
-                Path fileRelativePath = Path.of(getEntryKey(fileCacheRequest.getFileReference()));
-                boolean isSmallFile = isASmallFileUrl(fileCacheRequest.getFileReference().getLocation().getUrl());
-                if (isSmallFile && fileCacheRequest.getFileReference().getLocation().isPendingActionRemaining()) {
-                    // The file has not been saved to S3 yet, it's still in the local archive building workspace
-                    RetrieveLocalSmallFileTaskConfiguration configuration = new RetrieveLocalSmallFileTaskConfiguration(
-                        fileRelativePath,
-                        getArchiveBuildingWorkspacePath());
-                    RetrieveLocalSmallFileTask task = new RetrieveLocalSmallFileTask(configuration,
-                                                                                     fileCacheRequest,
-                                                                                     progressManager);
-                    LOGGER.debug("In thread {}, running RetrieveLocalSmallFileTask from Glacier with lock",
-                                 Thread.currentThread().getName());
-                    /** Lock the small file archive (with LOCK_STORE) to prevent delete or sendArchiveJob to
-                     * alter archive during copy to cache (LOCK_STORE is used by both delete and store jobs)
-                     * @see S3Glacier#doDeleteTask and {@link S3Glacier#doStoreTask}
-                     **/
-                    lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                       null,
-                                                                       workspacePath,
-                                                                       fileRelativePath.getParent().toString()), task);
-                    LOGGER.trace("[S3 Monitoring] Retrieval task for {} took {} ms",
-                                 fileCacheRequest.getFileReference().getLocation().getUrl(),
-                                 Instant.now().toEpochMilli() - start);
-                    return null;
-                }
-
-                String lockName = S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                             null,
-                                                             workspacePath,
-                                                             fileRelativePath.toString());
-
-                RetrieveCacheFileTask task = new RetrieveCacheFileTask(createRetrieveCacheFileTaskConfiguration(
-                    fileRelativePath,
-                    isSmallFile,
-                    client,
-                    lockName), fileCacheRequest, progressManager);
-
-                LOGGER.debug("In thread {}, running RetrieveCacheFileTask from Glacier with lock",
-                             Thread.currentThread().getName());
-
-                lockService.runWithLock(lockName, task);
-
-            } catch (MalformedURLException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.restoreFailed(fileCacheRequest, "The requested file url is invalid.");
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-                progressManager.restoreFailed(fileCacheRequest,
-                                              "The restoration task was interrupted before completion.");
-            }
-            return null;
-        };
-    }
-
-    private String getArchiveBuildingWorkspacePath() {
-        return workspacePath + File.separator + ZIP_DIR;
-    }
-
-    private String getCachePath() {
-        return workspacePath + File.separator + TMP_DIR;
     }
 
     @Override
     public void delete(FileDeletionWorkingSubset workingSet, IDeletionProgressManager progressManager) {
-        LOGGER.info("S3Glacier delete received requests");
-        ExecutorService executorService = null;
         try (S3HighLevelReactiveClient client = createS3Client()) {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
-            String tenant = runtimeTenantResolver.getTenant();
-            List<Future<LockServiceResponse<Void>>> taskResults = executorService.invokeAll(workingSet.getFileDeletionRequests()
-                                                                                                      .stream()
-                                                                                                      .map(request -> doDeleteTask(
-                                                                                                          request,
-                                                                                                          client,
-                                                                                                          progressManager,
-                                                                                                          tenant))
-                                                                                                      .toList());
-            // Wait for all tasks to complete
-            for (Future<LockServiceResponse<Void>> future : taskResults) {
-                future.get();
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error("Deletion process interrupted");
-        } catch (ExecutionException e) {
-            LOGGER.error("Error during deletion process", e);
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
-        }
-        LOGGER.info("Handling of delete requests ended");
-    }
-
-    public Callable<LockServiceResponse<Void>> doDeleteTask(FileDeletionRequestDto request,
-                                                            S3HighLevelReactiveClient client,
-                                                            IDeletionProgressManager progressManager,
-                                                            String tenant) {
-        return () -> {
-            long start = Instant.now().toEpochMilli();
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            if (!isASmallFileUrl(request.getFileReference().getLocation().getUrl())) {
-                handleDeleteRequest(request, client, progressManager);
-            } else {
-                handleDeleteSmallFileRequest(request, client, progressManager);
-            }
-            LOGGER.trace("[S3 Monitoring] Deletion task for {} took {} ms",
-                         request.getFileReference().getLocation().getUrl(),
-                         Instant.now().toEpochMilli() - start);
-            return null;
-        };
-    }
-
-    private void handleDeleteSmallFileRequest(FileDeletionRequestDto request,
-                                              S3HighLevelReactiveClient client,
-                                              IDeletionProgressManager progressManager) {
-        try {
-            Path node = Path.of(request.getFileReference().getLocation().getUrl()).getParent();
-            Path fileRelativePath = Path.of(getEntryKey(request.getFileReference()));
-
-            if (request.getFileReference().getLocation().isPendingActionRemaining()) {
-                // The small file is still in the local building directory, it is not necessary to restore it
-                DeleteLocalSmallFileTaskConfiguration configuration = new DeleteLocalSmallFileTaskConfiguration(
-                    fileRelativePath,
-                    getArchiveBuildingWorkspacePath(),
-                    storageName,
-                    storageConfiguration,
-                    client);
-                DeleteLocalSmallFileTask task = new DeleteLocalSmallFileTask(configuration, request, progressManager);
-                LOGGER.debug("In thread {}, running DeleteLocalSmallFileTask from Glacier with lock",
-                             Thread.currentThread().getName());
-                /** Lock the building archive (with STORE LOCK) to prevent Pending Action Job to close and send the
-                 * archive.
-                 * @see {@link S3Glacier#doSubmitReadyArchive}
-                 **/
-                lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                   null,
-                                                                   workspacePath,
-                                                                   fileRelativePath.getParent() != null ?
-                                                                       fileRelativePath.getParent().toString() :
-                                                                       ""), task);
-
-            } else {
-                /**
-                 * Lock the archive (with RESTORE LOCK) to prevent other deletion jobs or restore jobs to retrieve
-                 * the same archive
-                 * @see {@link S3Glacier#doDeleteTask} and {@link S3Glacier#doRetrieveTask}
-                 */
-                String lockName = S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                             null,
-                                                             workspacePath,
-                                                             fileRelativePath.toString());
-
-                RestoreAndDeleteSmallFileTaskConfiguration configuration = new RestoreAndDeleteSmallFileTaskConfiguration(
-                    fileRelativePath,
-                    getCachePath(),
-                    rootPath,
-                    getArchiveBuildingWorkspacePath(),
-                    node,
-                    storageName,
-                    storageConfiguration,
-                    client,
-                    s3AccessTimeout,
-                    lockName,
-                    Instant.now(),
-                    renewMaxIterationWaitingPeriodInS,
-                    renewCallDurationInMs,
-                    standardStorageClassName,
-                    lockService);
-                RestoreAndDeleteSmallFileTask task = new RestoreAndDeleteSmallFileTask(configuration,
-                                                                                       request,
-                                                                                       progressManager);
-                LOGGER.debug("In thread {}, running RestoreAndDeleteSmallFileTask from S3Glacier with lock",
-                             Thread.currentThread().getName());
-                lockService.runWithLock(lockName, task);
-            }
-        } catch (MalformedURLException e) {
-            LOGGER.error(e.getMessage(), e);
-            progressManager.deletionFailed(request, "The file to delete url is invalid.");
-        } catch (InterruptedException e) {
-            LOGGER.error(e.getMessage(), e);
-            progressManager.deletionFailed(request, "The deletion task was interrupted before completion.");
+            getSmallFilesFacade(client).delete(workingSet,
+                                               progressManager,
+                                               new DeleteSmallFileTaskConfiguration(rootPath,
+                                                                                    workspacePath,
+                                                                                    storageName,
+                                                                                    storeParallelTaskNumber,
+                                                                                    renewMaxIterationWaitingPeriodInS,
+                                                                                    renewCallDurationInMs));
         }
     }
 
     @Override
     public void runPeriodicAction(IPeriodicActionProgressManager progressManager) {
-        LOGGER.info("Glacier periodic actions started");
-        submitReadyArchives(progressManager);
-        cleanArchiveCache();
-        LOGGER.info("Glacier periodic actions ended");
-    }
-
-    private void submitReadyArchives(IPeriodicActionProgressManager progressManager) {
-        Path zipWorkspacePath = Paths.get(workspacePath, S3Glacier.ZIP_DIR);
-        String tenant = runtimeTenantResolver.getTenant();
-        if (!Files.exists(zipWorkspacePath)) {
-            return;
-        }
-        ExecutorService executorService = null;
-        try (Stream<Path> dirList = Files.walk(zipWorkspacePath); S3HighLevelReactiveClient client = createS3Client()) {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
-            // Directory that will be stored are located in /<WORKSPACE>/<ZIP_DIR>/<NODE>/, they can be symbolic link
-            // It is important to differentiate between actual directories and symbolic link to use locks correctly
-            Map<Boolean, List<Path>> dirToProcessList = dirList.filter(dir -> dir.getFileName()
-                                                                                 .toString()
-                                                                                 .startsWith(S3Glacier.BUILDING_DIRECTORY_PREFIX))
-                                                               .collect(Collectors.groupingBy(Files::isSymbolicLink));
-            List<Callable<Boolean>> processes = dirToProcessList.entrySet()
-                                                                .stream()
-                                                                .flatMap(entry -> entry.getValue()
-                                                                                       .stream()
-                                                                                       .map(dir -> doSubmitReadyArchive(
-                                                                                           dir,
-                                                                                           client,
-                                                                                           progressManager,
-                                                                                           tenant,
-                                                                                           entry.getKey())))
-                                                                .toList();
-            List<Future<Boolean>> res = executorService.invokeAll(processes);
-            boolean success = res.stream().allMatch(futureRes -> {
-                try {
-                    return futureRes.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    LOGGER.error(e.getMessage(), e);
-                    return false;
-                }
-            });
-            if (success) {
-                progressManager.allPendingActionSucceed(storageName);
-            }
-
-        } catch (IOException e) {
-            LOGGER.error("Error while attempting to access small files archives workspace during periodic "
-                         + "actions, no archives will be submitted to S3 and no request will be updated");
-            LOGGER.error(e.getMessage(), e);
-        } catch (InterruptedException e) {
-            LOGGER.error("Submit archives process interrupted");
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
-        }
-    }
-
-    /**
-     * Submit to the S3 an archive containing the file present in the given folder.
-     * An archive is considered ready if one of the following is true for its directory :
-     * <ul>
-     * <li>The directory is full (size > archiveMaxSize), in which case the directory doesn't have the  _current
-     * suffix</li>
-     * <li>The directory is already present on the server and it has been modified (one of the file has been
-     * deleted), in which case the directory doesn't have the _current suffix and its a symbolic link to the actual
-     * directory in the /tmp workspace</li>
-     * <li>The directory is the _current directory but is is old enough to be sent even if not full (age >
-     *     archiveMaxAge, in which case it has the _current suffix and will be renamed to remove it</li>
-     * </ul>
-     */
-    public Callable<Boolean> doSubmitReadyArchive(Path dirPath,
-                                                  S3HighLevelReactiveClient client,
-                                                  IPeriodicActionProgressManager progressManager,
-                                                  String tenant,
-                                                  boolean isSymLink) {
-        return () -> {
-            long start = Instant.now().toEpochMilli();
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            SubmitReadyArchiveTaskConfiguration submitReadyArchiveTaskConfiguration = new SubmitReadyArchiveTaskConfiguration(
-                dirPath,
-                workspacePath,
-                archiveMaxAge,
+        try (S3HighLevelReactiveClient client = createS3Client()) {
+            PeriodicActionSmallFileTaskConfiguration configuration = new PeriodicActionSmallFileTaskConfiguration(
                 rootPath,
+                workspacePath,
                 storageName,
-                storageConfiguration,
-                multipartThresholdMb,
-                progressManager,
-                tenant,
-                client);
-
-            if (isSymLink) {
-                SubmitUpdatedArchiveTask task = new SubmitUpdatedArchiveTask(submitReadyArchiveTaskConfiguration,
-                                                                             progressManager);
-
-                /** Lock the building archive (with STORE LOCK) to prevent storage and deletion jobs to alter the archive
-                 * @see S3Glacier#doStoreTask} and {@link S3Glacier#doDeleteTask}
-                 */
-                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                                                                      null,
-                                                                                                      workspacePath,
-                                                                                                      dirPath.toString()),
-                                                                           task);
-                return res.isExecuted() && res.getResponse();
-            } else {
-                SubmitReadyArchiveTask task = new SubmitReadyArchiveTask(submitReadyArchiveTaskConfiguration,
-                                                                         progressManager);
-                /** Lock the restored archive (with RESTORE LOCK) to prevent deletion jobs to alter the
-                 * archive while it is uploaded
-                 * @see {@link S3Glacier#doDeleteTask}
-                 */
-                LockServiceResponse<Boolean> res = lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_STORE,
-                                                                                                      null,
-                                                                                                      workspacePath,
-                                                                                                      dirPath.toString()),
-                                                                           task);
-                LOGGER.trace("[S3 Monitoring] Archive submission task for {} took {} ms",
-                             dirPath,
-                             Instant.now().toEpochMilli() - start);
-                return res.isExecuted() && res.getResponse();
-            }
-        };
-    }
-
-    /**
-     * Clean the cache containing the restored archive. This will remove archives and their extracted content if they
-     * are older than the age defined in plugin parameter (age > archiveCacheLifetime).
-     */
-    private void cleanArchiveCache() {
-        Path cacheWorkspacePath = Paths.get(workspacePath, S3Glacier.TMP_DIR);
-        String tenant = runtimeTenantResolver.getTenant();
-        if (!Files.exists(cacheWorkspacePath)) {
-            return;
+                parallelTaskNumber,
+                archiveMaxAge,
+                archiveCacheLifetime,
+                cleanCacheTaskLockAcquireTimeout);
+            getSmallFilesFacade(client).runPeriodicAction(progressManager, configuration);
         }
-        Instant oldestAgeToKeep = OffsetDateTime.now().minusHours(archiveCacheLifetime).toInstant();
-        List<Path> directoriesWithFiles = new ArrayList<>();
-        getDirectoriesWithFilesToDelete(directoriesWithFiles,
-                                        cacheWorkspacePath,
-                                        oldestAgeToKeep,
-                                        cacheWorkspacePath,
-                                        Paths.get(workspacePath, S3Glacier.ZIP_DIR));
-        ExecutorService executorService = null;
-        try {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
-            executorService.invokeAll(directoriesWithFiles.stream()
-                                                          .map(dirToProcess -> doCleanDirectory(cacheWorkspacePath,
-                                                                                                dirToProcess,
-                                                                                                oldestAgeToKeep,
-                                                                                                tenant))
-                                                          .toList());
-        } catch (InterruptedException e) {
-            LOGGER.error("Clean archive cache process interrupted");
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
-        }
-    }
-
-    public Callable<LockServiceResponse<Void>> doCleanDirectory(Path cacheWorkspacePath,
-                                                                Path dirPath,
-                                                                Instant oldestAgeToKeep,
-                                                                String tenant) {
-        return () -> {
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            CleanDirectoryTaskConfiguration cleanDirectoryTaskConfiguration = new CleanDirectoryTaskConfiguration(
-                dirPath,
-                oldestAgeToKeep);
-            CleanDirectoryTask task = new CleanDirectoryTask(cleanDirectoryTaskConfiguration);
-            String dirToClean = cacheWorkspacePath.relativize(dirPath).toString();
-            /**
-             * Lock the archive (with RESTORE LOCK) to prevent retrieve jobs or delete jobs to access it while
-             * it's being deleted.
-             * @see S3Glacier#doRetrieveTask and {@link S3Glacier#doDeleteTask}
-             */
-            boolean processRun = lockService.tryRunWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                                                       null,
-                                                                                       workspacePath,
-                                                                                       dirPath.toString()),
-                                                            task,
-                                                            cleanCacheTaskLockAcquireTimeout,
-                                                            TimeUnit.SECONDS).isExecuted();
-            if (!processRun) {
-                LOGGER.warn("Unable to acquire lock on {} to clean the directory, this should mean that a restoration"
-                            + " process on the directory is currently running. The directory won't be cleaned before "
-                            + "the next scheduled cleaning", dirToClean);
-            }
-            return null;
-        };
-    }
-
-    /**
-     * A directory need to be deleted if it fulfills the following :
-     * <ul>
-     *     <li>It has the rs_zip_ prefix</li>
-     *     <li>It is NOT used to update an archive following a deletion, this means there is no symbolic link in
-     *     the building workspace to this directory</li>
-     *     <li>It is older than the oldest age to keep</li>
-     * </ul>
-     */
-    private void getDirectoriesWithFilesToDelete(List<Path> directoriesWithFiles,
-                                                 Path directoryPath,
-                                                 Instant oldestAgeToKeep,
-                                                 Path cachePath,
-                                                 Path buildingPath) {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath)) {
-            for (Path path : stream) {
-                if (Files.isDirectory(path)) {
-                    // Check directory with conditions :
-                    // - directory is a building directory like rs_zip_*
-                    // - directory contains at least one file to expired or directory is empty
-                    // - directory is not associated to a current building archive so no symbolic link exists in
-                    // building directory.
-                    if (path.getFileName().toString().startsWith(BUILDING_DIRECTORY_PREFIX) && (hasFilesTooOld(path,
-                                                                                                               oldestAgeToKeep)
-                                                                                                || FileUtils.isEmptyDirectory(
-                        path.toFile())) && !hasSymLink(path, cachePath, buildingPath)) {
-                        directoriesWithFiles.add(path);
-                    } else {
-                        // Else handle recursive subdirectories
-                        getDirectoriesWithFilesToDelete(directoriesWithFiles,
-                                                        path,
-                                                        oldestAgeToKeep,
-                                                        cachePath,
-                                                        buildingPath);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Error while getting directories to clean", e);
-        }
-    }
-
-    private boolean hasSymLink(Path path, Path cachePath, Path buildingPath) {
-        Path pathInBuildingWorkspace = buildingPath.resolve(cachePath.relativize(path));
-        return Files.isSymbolicLink(pathInBuildingWorkspace);
-    }
-
-    private boolean hasFilesTooOld(Path directoryPath, Instant oldestAgeToKeep) throws IOException {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath)) {
-            for (Path path : stream) {
-                BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-                if (Files.isRegularFile(path) && attr.lastModifiedTime().toInstant().isBefore(oldestAgeToKeep)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     @Override
@@ -844,68 +350,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     @Override
     public void runCheckPendingAction(IPeriodicActionProgressManager progressManager,
                                       Set<FileReferenceWithoutOwnersDto> filesWithPendingActions) {
-        LOGGER.info("Glacier periodic pending actions started");
-        String tenant = runtimeTenantResolver.getTenant();
-        List<Future<LockServiceResponse<Void>>> taskResults = null;
-        ExecutorService executorService = null;
-        try {
-            executorService = Executors.newFixedThreadPool(parallelTaskNumber, factory);
-            taskResults = executorService.invokeAll(filesWithPendingActions.stream()
-                                                                           .map(ref -> doCheckPendingAction(ref.getLocation()
-                                                                                                               .getUrl(),
-                                                                                                            progressManager,
-                                                                                                            tenant))
-                                                                           .toList());
-            // Wait for all tasks to complete
-            for (Future<LockServiceResponse<Void>> future : taskResults) {
-                future.get();
-            }
-        } catch (InterruptedException e) {
-            LOGGER.error("Check pending action process interrupted");
-        } catch (ExecutionException e) {
-            LOGGER.error("Error during check pending action process", e);
-        } finally {
-            if (executorService != null) {
-                executorService.shutdown();
-            }
-        }
-
-        LOGGER.info("Glacier periodic pending actions ended");
-    }
-
-    public Callable<LockServiceResponse<Void>> doCheckPendingAction(String url,
-                                                                    IPeriodicActionProgressManager progressManager,
-                                                                    String tenant) {
-        return () -> {
-            LOGGER.debug(TENANT_LOG, Thread.currentThread().getName(), tenant);
-            runtimeTenantResolver.forceTenant(tenant);
-            S3GlacierUtils.S3GlacierUrl s3GlacierUrl = S3GlacierUtils.dispatchS3Url(url);
-            if (!s3GlacierUrl.isSmallFileUrl()) {
-                LOGGER.error("The URL {} is not a small file url and has a pending action which is not supported by "
-                             + "the S3Glacier", url);
-                return null;
-            }
-            Path archiveRelativePath = Path.of(getEntryKey(s3GlacierUrl.archiveFilePath()));
-            CheckPendingActionTaskConfiguration checkPendingActionTaskConfiguration = new CheckPendingActionTaskConfiguration(
-                url,
-                archiveRelativePath,
-                s3GlacierUrl.smallFileNameInArchive().get(),
-                workspacePath,
-                storageConfiguration);
-            CheckPendingActionTask task = new CheckPendingActionTask(checkPendingActionTaskConfiguration,
-                                                                     progressManager);
-            /**
-             * Lock the archive (with RESTORE LOCK) to prevent Deletion Job from deleting the file we are checking
-             * the validity of pending actions.
-             *
-             */
-            lockService.runWithLock(S3GlacierUtils.getLockName(LockTypeEnum.LOCK_RESTORE,
-                                                               null,
-                                                               workspacePath,
-                                                               archiveRelativePath.toString()), task);
-            return null;
-        };
-
+        getSmallFilesFacade(null).runCheckPendingAction(progressManager,
+                                                        filesWithPendingActions,
+                                                        parallelTaskNumber,
+                                                        workspacePath);
     }
 
     @Override
@@ -924,18 +372,9 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
                                                     standardStorageClassName);
     }
 
-    private boolean isASmallFileUrl(String url) {
-        try {
-            return S3GlacierUtils.dispatchS3Url(url).isSmallFileUrl();
-        } catch (URISyntaxException e) {
-            LOGGER.error(e.getMessage(), e);
-            return false;
-        }
-    }
-
     private boolean isSmallFile(FileReferenceWithoutOwnersDto fileReference) {
-        S3GlacierUtils.S3GlacierUrl s3GlacierUrl = S3GlacierUtils.dispatchS3FilePath(fileReference.getLocation()
-                                                                                                  .getUrl());
+        SmallFilesUtils.GlacierUrl s3GlacierUrl = SmallFilesUtils.dispatchFilePath(fileReference.getLocation()
+                                                                                                .getUrl());
         return s3GlacierUrl.isSmallFileUrl();
     }
 
@@ -1111,7 +550,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     private Optional<Path> findSmallFilePathInWorkspace(FileReferenceWithoutOwnersDto fileReference)
         throws MalformedURLException {
         Path s3FilePath = Path.of(getEntryKey(fileReference.getLocation().getUrl()));
-        S3GlacierUtils.S3GlacierUrl fileInfo = S3GlacierUtils.dispatchS3FilePath(s3FilePath.toString());
+        SmallFilesUtils.GlacierUrl fileInfo = SmallFilesUtils.dispatchFilePath(s3FilePath.toString());
         if (fileReference.getLocation().isPendingActionRemaining()) {
             // action remaining means that archive containing the small file isn't sent to S3 yet.
             // so, we check in archive building workspace path (/zip) if file is present.
@@ -1120,14 +559,18 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         return Optional.empty();
     }
 
-    private Optional<Path> findSmallFilePathInWorkspace(S3GlacierUtils.S3GlacierUrl fileInfos, String path) {
+    private String getArchiveBuildingWorkspacePath() {
+        return workspacePath + File.separator + ZIP_DIR;
+    }
+
+    private Optional<Path> findSmallFilePathInWorkspace(SmallFilesUtils.GlacierUrl fileInfos, String path) {
         String relativeArchivePath = fileInfos.archiveFilePath();
         Path archiveCachePath = Path.of(path, relativeArchivePath);
         String archiveName = archiveCachePath.getFileName().toString();
         Optional<String> smallFileName = fileInfos.smallFileNameInArchive();
 
         if (smallFileName.isPresent()) {
-            String dirName = S3GlacierUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
+            String dirName = SmallFilesUtils.computePathOfBuildDirectoryFromArchiveName(archiveName);
             Path localPath = archiveCachePath.getParent().resolve(dirName).resolve(smallFileName.get());
             if (Files.exists(localPath)) {
                 return Optional.of(localPath);
@@ -1151,23 +594,206 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         return checkAvailabilityClient;
     }
 
-    private RetrieveCacheFileTaskConfiguration createRetrieveCacheFileTaskConfiguration(Path fileRelativePath,
-                                                                                        boolean isSmallFile,
-                                                                                        S3HighLevelReactiveClient client,
-                                                                                        String lockName) {
-        return new RetrieveCacheFileTaskConfiguration(fileRelativePath,
-                                                      getCachePath(),
-                                                      storageConfiguration,
-                                                      s3AccessTimeout,
-                                                      rootPath,
-                                                      isSmallFile,
-                                                      client,
-                                                      lockName,
-                                                      Instant.now(),
-                                                      renewMaxIterationWaitingPeriodInS,
-                                                      renewCallDurationInMs,
-                                                      standardStorageClassName,
-                                                      lockService,
-                                                      useExternalCache);
+    public AbstractSmallFileFacade getSmallFilesFacade(S3HighLevelReactiveClient client) {
+        return new S3SmallFilesFacade(client);
+    }
+
+    public class S3SmallFilesFacade extends AbstractSmallFileFacade {
+
+        private static final Logger LOGGER = getLogger(S3SmallFilesFacade.class);
+
+        private final S3HighLevelReactiveClient client;
+
+        public S3SmallFilesFacade(S3HighLevelReactiveClient s3Client) {
+            super(runtimeTenantResolver, lockService);
+            this.client = s3Client;
+        }
+
+        @Override
+        public void handleDeleteFileRequest(FileDeletionRequestDto request, IDeletionProgressManager progressManager) {
+            handleDeleteRequest(request, client, progressManager);
+        }
+
+        @Override
+        public String getThreadNamingPattern() {
+            return "s3-glacier-threadpool-thread-%d";
+        }
+
+        @Override
+        public RestoreResponse restore(String key, @Nullable Integer availabilityHours) {
+            return SmallFilesUtils.restore(client, storageConfiguration, key, standardStorageClassName, null);
+        }
+
+        @Override
+        public boolean downloadFile(Path targetFilePath, String key, @Nullable String taskId) {
+            return SmallFilesUtils.downloadFile(targetFilePath, key, storageConfiguration, null);
+        }
+
+        @Override
+        public GlacierFileStatus downloadAfterRestoreFile(Path targetFilePath,
+                                                          String key,
+                                                          String lockName,
+                                                          Instant lockCreationDate,
+                                                          int renewMaxIterationWaitingPeriodInS,
+                                                          Long renewCallDurationInMs,
+                                                          LockService lockService) {
+            return SmallFilesUtils.downloadAfterRestoreFile(targetFilePath,
+                                                            key,
+                                                            storageConfiguration,
+                                                            s3AccessTimeout,
+                                                            lockName,
+                                                            lockCreationDate,
+                                                            renewMaxIterationWaitingPeriodInS,
+                                                            renewCallDurationInMs,
+                                                            standardStorageClassName,
+                                                            lockService,
+                                                            client);
+        }
+
+        @Override
+        public GlacierFileStatus checkRestorationComplete(String key,
+                                                          String lockName,
+                                                          Instant lockCreationDate,
+                                                          int renewMaxIterationWaitingPeriodInS,
+                                                          Long renewCallDurationInMs,
+                                                          LockService lockService) {
+            return SmallFilesUtils.checkRestorationComplete(key,
+                                                            storageConfiguration,
+                                                            s3AccessTimeout,
+                                                            lockName,
+                                                            lockCreationDate,
+                                                            renewMaxIterationWaitingPeriodInS,
+                                                            renewCallDurationInMs,
+                                                            standardStorageClassName,
+                                                            lockService,
+                                                            client);
+        }
+
+        @Override
+        public Path getFileRelativePath(String fileUrl) throws MalformedURLException {
+            return Path.of(getEntryKey(fileUrl));
+        }
+
+        @Override
+        public boolean deleteArchive(String taskId, String entryKey) {
+            StorageCommand.Delete deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
+                                                                             new StorageCommandID(taskId,
+                                                                                                  UUID.randomUUID()),
+                                                                             entryKey);
+            try {
+                StorageCommandResult.DeleteSuccess result = client.delete(deleteCmd)
+                                                                  .flatMap(deleteResult -> deleteResult.matchDeleteResult(
+                                                                      Mono::just,
+                                                                      unreachable -> Mono.error(new RuntimeException(
+                                                                          "Unreachable endpoint")),
+                                                                      failure -> Mono.error(new RuntimeException(
+                                                                          "Delete failure in S3 storage"))))
+                                                                  .onErrorResume(e -> Mono.error(new S3ClientException(e)))
+                                                                  .block();
+                if (result != null) {
+                    String archiveUrl = StorageConfigUtils.entryKeyUrl(storageConfiguration, entryKey).toString();
+                    return result.matchDeleteResult(r -> onDeleteSuccess(entryKey, archiveUrl),
+                                                    r -> onStorageUnreachable(r, archiveUrl),
+                                                    r -> onDeleteFailure(archiveUrl));
+                } else {
+                    return false;
+                }
+            } catch (S3ClientException e) {
+                LOGGER.error("Error while deleting empty archive in S3 Storage", e);
+                return false;
+            }
+        }
+
+        private Boolean onDeleteFailure(String archiveUrl) {
+            LOGGER.error("Deletion failure for archive {}", archiveUrl);
+            return false;
+        }
+
+        private Boolean onStorageUnreachable(StorageCommandResult.UnreachableStorage unreachableStorage,
+                                             String archiveUrl) {
+            LOGGER.error("Deletion failure for archive {}", archiveUrl);
+            LOGGER.error(unreachableStorage.getThrowable().getMessage(), unreachableStorage.getThrowable());
+            return false;
+        }
+
+        public Boolean onDeleteSuccess(String dirPath, String archiveUrl) {
+            LOGGER.info(
+                "Archive {} successfully deleted from remote S3 storage. Deleting local archive {} and reference in database.",
+                archiveUrl,
+                dirPath);
+            return true;
+        }
+
+        @Override
+        public URL getStorageUrl(String entryKey) {
+            return StorageConfigUtils.entryKeyUrl(storageConfiguration, entryKey);
+        }
+
+        @Override
+        public String storeFile(Path filePath, String filePathOnStorage, String checksum, Long fileSize)
+            throws IOException {
+            Flux<ByteBuffer> buffers = DataBufferUtils.read(filePath, new DefaultDataBufferFactory(), 1024)
+                                                      .map(DataBuffer::asByteBuffer);
+
+            StorageEntry storageEntry = StorageEntry.builder()
+                                                    .config(storageConfiguration)
+                                                    .fullPath(filePathOnStorage)
+                                                    .checksum(Option.some(Tuple.of(ISmallFilesStorage.MD5_CHECKSUM,
+                                                                                   checksum)))
+                                                    .size(Option.some(fileSize))
+                                                    .data(buffers)
+                                                    .build();
+            String taskId = "GlacierPeriodicAction" + OffsetDateTime.now()
+                                                                    .format(DateTimeFormatter.ofPattern(
+                                                                        ISmallFilesStorage.ARCHIVE_DATE_FORMAT));
+
+            // Sending archive
+            handleArchiveToSend(filePath, filePathOnStorage, storageEntry, taskId);
+
+            return StorageConfigUtils.entryKeyUrl(storageConfiguration, filePathOnStorage).toString();
+        }
+
+        @Override
+        public boolean existsStorageUrl(Path path) {
+            return DownloadUtils.existsS3(path.toString(), storageConfiguration);
+        }
+
+        /**
+         * Send the archive to the server
+         */
+        private void handleArchiveToSend(Path archiveToCreate,
+                                         String entryKey,
+                                         StorageEntry storageEntry,
+                                         String taskId) throws S3ClientException {
+            StorageCommand.Write writeCmd = new StorageCommand.Write.Impl(storageConfiguration,
+                                                                          new StorageCommandID(taskId,
+                                                                                               UUID.randomUUID()),
+                                                                          entryKey,
+                                                                          storageEntry);
+            LOGGER.info("Glacier accessing S3 to send small file archive");
+            client.write(writeCmd)
+                  .flatMap(writeResult -> writeResult.matchWriteResult(Mono::just,
+                                                                       unreachable -> Mono.error(new RuntimeException(
+                                                                           "Unreachable endpoint")),
+                                                                       failure -> Mono.error(new RuntimeException(
+                                                                           "Write failure in S3 storage"))))
+                  .onErrorResume(e -> {
+                      LOGGER.error("[{}] End storing {}", taskId, archiveToCreate.getFileName(), e);
+                      return Mono.error(new S3ClientException(e));
+                  })
+                  .doOnSuccess(success -> {
+                      LOGGER.info("[{}] End storing {}", taskId, archiveToCreate.getFileName());
+                  })
+                  .block();
+            LOGGER.info("Glacier S3 access ended");
+
+        }
+
+        @Override
+        public void handleStoreFileRequest(FileStorageRequestAggregationDto request,
+                                           IStorageProgressManager progressManager,
+                                           String s3RootPath) {
+            handleStoreRequest(request, client, progressManager, s3RootPath);
+        }
     }
 }

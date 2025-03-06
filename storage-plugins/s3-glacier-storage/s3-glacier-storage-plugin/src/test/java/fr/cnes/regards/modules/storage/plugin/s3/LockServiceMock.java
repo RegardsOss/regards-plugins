@@ -16,6 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
+/**
+ * @author JC HUNOUT
+ **/
+
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;

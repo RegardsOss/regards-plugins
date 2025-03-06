@@ -95,6 +95,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import static fr.cnes.regards.modules.storage.plugin.smallfiles.ISmallFilesStorage.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -245,27 +246,27 @@ public abstract class AbstractS3GlacierIT {
                                                                                   bucket),
                                                                IPluginParam.build(AbstractS3Storage.S3_SERVER_ROOT_PATH_PARAM_NAME,
                                                                                   rootPath),
-                                                               IPluginParam.build(S3Glacier.GLACIER_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
+                                                               IPluginParam.build(SMALL_FILES_ARCHIVE_CACHE_FILE_LIFETIME_IN_HOURS,
                                                                                   CACHE_DURATION_IN_HOURS),
-                                                               IPluginParam.build(S3Glacier.GLACIER_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER,
+                                                               IPluginParam.build(SMALL_FILES_PARALLEL_DELETE_AND_RESTORE_TASK_NUMBER,
                                                                                   10),
-                                                               IPluginParam.build(S3Glacier.GLACIER_PARALLEL_STORE_TASK_NUMBER,
+                                                               IPluginParam.build(SMALL_FILES_PARALLEL_STORE_TASK_NUMBER,
                                                                                   1),
-                                                               IPluginParam.build(S3Glacier.GLACIER_WORKSPACE_PATH,
+                                                               IPluginParam.build(SMALL_FILES_WORKSPACE_PATH,
                                                                                   workspace.getRoot().toString()),
                                                                IPluginParam.build(S3Glacier.GLACIER_S3_ACCESS_TRY_TIMEOUT,
                                                                                   4),
-                                                               IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_ARCHIVE_MAX_SIZE,
+                                                               IPluginParam.build(SMALL_FILES_ARCHIVE_MAX_SIZE,
                                                                                   1600),
-                                                               IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_MAX_SIZE,
+                                                               IPluginParam.build(SMALL_FILES_MAX_SIZE,
                                                                                   500),
-                                                               IPluginParam.build(S3Glacier.GLACIER_SMALL_FILE_ARCHIVE_DURATION_IN_HOURS,
+                                                               IPluginParam.build(SMALL_FILES_ARCHIVE_DURATION_IN_HOURS,
                                                                                   ARCHIVE_DURATION_IN_HOURS),
                                                                IPluginParam.build(S3Glacier.UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB_PARAM_NAME,
                                                                                   UPLOAD_WITH_MULTIPART_THRESHOLD_IN_MB),
                                                                IPluginParam.build(S3Glacier.MULTIPART_PARALLEL_PARAM_NAME,
                                                                                   MULTIPART_PARALLEL_PART),
-                                                               IPluginParam.build(S3Glacier.USE_EXTERNAL_CACHE_NAME,
+                                                               IPluginParam.build(USE_EXTERNAL_CACHE_NAME,
                                                                                   useExternalCache));
 
         PluginConfiguration pluginConfiguration = PluginConfiguration.build(S3Glacier.class,

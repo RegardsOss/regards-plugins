@@ -30,6 +30,7 @@ import fr.cnes.regards.framework.utils.file.ZipUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileRestorationWorkingSubset;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IRestorationProgressManager;
 import fr.cnes.regards.modules.fileaccess.plugin.dto.FileCacheRequestDto;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.AbstractSmallFileFacade;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.awaitility.Awaitility;
@@ -450,7 +451,7 @@ public class S3GlacierRestoreIT extends AbstractS3GlacierIT {
 
         FileRestorationWorkingSubset workingSubset = new FileRestorationWorkingSubset(List.of(request));
 
-        Logger fooLogger = (Logger) LoggerFactory.getLogger(S3Glacier.class);
+        Logger fooLogger = (Logger) LoggerFactory.getLogger(AbstractSmallFileFacade.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         fooLogger.addAppender(listAppender);

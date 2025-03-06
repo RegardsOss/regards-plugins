@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.storage.plugin.s3;
 
 import fr.cnes.regards.framework.jpa.multitenant.lock.LockService;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.WaitingLock;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.utils.WaitingLock;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -32,7 +32,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 
 /**
- * Test for the {@link WaitingLock} class
+ * Test for the {@link fr.cnes.regards.modules.storage.plugin.smallfiles.utils.WaitingLock} class
  *
  * @author Thibaud Michaudel
  **/

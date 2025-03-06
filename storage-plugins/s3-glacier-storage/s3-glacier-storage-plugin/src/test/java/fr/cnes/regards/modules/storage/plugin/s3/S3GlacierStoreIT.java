@@ -24,7 +24,7 @@ import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.FileStorageWorkingSubset;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.utils.SmallFilesUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;
@@ -137,8 +137,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(1,
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 1 success with pending action");
-        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
-        Assertions.assertEquals(createExpectedURL(nodeName, S3GlacierUtils.removePrefix(archiveName), file1Name),
+        String archiveName = SmallFilesUtils.removeSuffix(currentDir.getName());
+        Assertions.assertEquals(createExpectedURL(nodeName, SmallFilesUtils.removePrefix(archiveName), file1Name),
                                 storageProgressManager.getStorageSucceedWithPendingAction().get(0),
                                 "The success url is not the expected one");
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());
@@ -210,15 +210,15 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 3 success with pending action");
 
-        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
+        String archiveName = SmallFilesUtils.removeSuffix(currentDir.getName());
         List<URL> expectedUrls = List.of(createExpectedURL(nodeName,
-                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           SmallFilesUtils.removePrefix(archiveName),
                                                            "smallFile1.txt"),
                                          createExpectedURL(nodeName,
-                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           SmallFilesUtils.removePrefix(archiveName),
                                                            "smallFile1_2.txt"),
                                          createExpectedURL(nodeName,
-                                                           S3GlacierUtils.removePrefix(archiveName),
+                                                           SmallFilesUtils.removePrefix(archiveName),
                                                            "smallFile1_3.txt"));
         Assertions.assertTrue(storageProgressManager.getStorageSucceedWithPendingAction().containsAll(expectedUrls));
         Assertions.assertTrue(expectedUrls.containsAll(storageProgressManager.getStorageSucceedWithPendingAction()));
@@ -285,8 +285,8 @@ public class S3GlacierStoreIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(1,
                                 storageProgressManager.getStorageSucceedWithPendingAction().size(),
                                 "There should be 1 success with pending action");
-        String archiveName = S3GlacierUtils.removeSuffix(currentDir.getName());
-        Assertions.assertEquals(createExpectedURL(nodeName, S3GlacierUtils.removePrefix(archiveName), file1Name),
+        String archiveName = SmallFilesUtils.removeSuffix(currentDir.getName());
+        Assertions.assertEquals(createExpectedURL(nodeName, SmallFilesUtils.removePrefix(archiveName), file1Name),
                                 storageProgressManager.getStorageSucceedWithPendingAction().get(0),
                                 "The success url is not the expected one");
         Assertions.assertEquals(0, storageProgressManager.getStorageFailed().size());

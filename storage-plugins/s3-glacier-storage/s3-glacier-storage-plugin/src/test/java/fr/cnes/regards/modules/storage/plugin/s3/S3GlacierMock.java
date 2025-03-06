@@ -21,15 +21,18 @@ package fr.cnes.regards.modules.storage.plugin.s3;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.s3.S3StorageConfiguration;
 import fr.cnes.regards.framework.s3.client.S3HighLevelReactiveClient;
+import fr.cnes.regards.framework.s3.domain.S3Server;
 import fr.cnes.regards.framework.s3.domain.StorageCommandResult;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IStorageProgressManager;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.AbstractSmallFileFacade;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Mock class to test S3Glacier locks with each tasks.
@@ -77,11 +80,6 @@ public class S3GlacierMock extends S3Glacier {
     }
 
     @Override
-    protected long getFileSize(URL sourceUrl) {
-        return fileSize;
-    }
-
-    @Override
     protected S3HighLevelReactiveClient createS3Client() {
         S3HighLevelReactiveClient s3clientMock = Mockito.mock(S3HighLevelReactiveClient.class);
         Mockito.when(s3clientMock.write(Mockito.any()))
@@ -100,9 +98,21 @@ public class S3GlacierMock extends S3Glacier {
     }
 
     @Override
+    public AbstractSmallFileFacade getSmallFilesFacade(S3HighLevelReactiveClient client) {
+        return new S3SmallFilesFacade(client) {
+
+            @Override
+            protected long getFileSize(URL sourceUrl, List<S3Server> storages) {
+                return fileSize;
+            }
+        };
+    }
+
+    @Override
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
                                       S3HighLevelReactiveClient client,
-                                      IStorageProgressManager progressManager) {
+                                      IStorageProgressManager progressManager,
+                                      String s3RootPath) {
         // Nothing to do
     }
 }

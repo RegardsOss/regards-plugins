@@ -23,7 +23,7 @@ import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.test.report.annotation.Purpose;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.IPeriodicActionProgressManager;
-import fr.cnes.regards.modules.storage.plugin.s3.utils.S3GlacierUtils;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.utils.SmallFilesUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.Durations;
 import org.junit.Assert;
@@ -95,7 +95,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
                                 "there should have been a AllPendingActionSucceed sent to the progress manager");
         List<String> expectedReport = files.stream()
                                            .map(f -> createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       SmallFilesUtils.removePrefix(dirName),
                                                                        f).toString())
                                            .toList();
         Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
@@ -108,7 +108,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         try {
             List<String> savedFiles = new ArrayList<>();
             InputStream inputStream = downloadFromS3(createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName)
+                                                                       SmallFilesUtils.removePrefix(dirName)
                                                                        + S3Glacier.ARCHIVE_EXTENSION).toString());
             Assert.assertNotNull(inputStream);
             ZipInputStream zipStream = new ZipInputStream(inputStream);
@@ -172,11 +172,11 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         Assertions.assertEquals(1,
                                 periodicActionProgressManager.getStorageAllPendingActionSucceed().size(),
                                 "there should have been a AllPendingActionSucceed sent to the progress manager");
-        String dirName = S3GlacierUtils.removeSuffix(oldCurrentDirName);
+        String dirName = SmallFilesUtils.removeSuffix(oldCurrentDirName);
 
         List<String> expectedReport = files.stream()
                                            .map(f -> createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       SmallFilesUtils.removePrefix(dirName),
                                                                        f).toString())
                                            .toList();
         Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
@@ -189,7 +189,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         try {
             List<String> savedFiles = new ArrayList<>();
             InputStream inputStream = downloadFromS3(createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName)
+                                                                       SmallFilesUtils.removePrefix(dirName)
                                                                        + S3Glacier.ARCHIVE_EXTENSION).toString());
             Assert.assertNotNull(inputStream);
             ZipInputStream zipStream = new ZipInputStream(inputStream);
@@ -334,7 +334,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
                                 "there should have been a AllPendingActionSucceed sent to the progress manager");
         List<String> expectedReport = files.stream()
                                            .map(f -> createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName),
+                                                                       SmallFilesUtils.removePrefix(dirName),
                                                                        f).toString())
                                            .toList();
         Assertions.assertTrue(expectedReport.containsAll(periodicActionProgressManager.getStoragePendingActionSucceed()),
@@ -347,7 +347,7 @@ public class S3GlacierSendArchiveIT extends AbstractS3GlacierIT {
         try {
             List<String> savedFiles = new ArrayList<>();
             InputStream inputStream = downloadFromS3(createExpectedURL(nodeName,
-                                                                       S3GlacierUtils.removePrefix(dirName)
+                                                                       SmallFilesUtils.removePrefix(dirName)
                                                                        + S3Glacier.ARCHIVE_EXTENSION).toString());
             Assert.assertNotNull(inputStream);
             ZipInputStream zipStream = new ZipInputStream(inputStream);

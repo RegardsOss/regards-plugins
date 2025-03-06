@@ -9,7 +9,7 @@ import fr.cnes.regards.framework.utils.file.DownloadUtils;
 import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
-import fr.cnes.regards.modules.storage.plugin.s3.dto.S3StorageConfigurationDTO;
+import fr.cnes.regards.modules.storage.plugin.smallfiles.dto.S3StorageConfigurationDTO;
 import fr.cnes.regards.modules.storage.s3.common.AbstractS3Storage;
 import fr.cnes.regards.modules.storage.s3.common.dto.AbstractS3ConfigurationDto;
 
@@ -44,7 +44,7 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
         try (S3HighLevelReactiveClient client = createS3Client()) {
             workingSet.getFileReferenceRequests().forEach(request -> {
                 runtimeTenantResolver.forceTenant(tenant);
-                handleStoreRequest(request, client, progressManager);
+                handleStoreRequest(request, client, progressManager, rootPath);
             });
         }
     }
