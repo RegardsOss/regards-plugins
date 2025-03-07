@@ -319,6 +319,7 @@ public abstract class AbstractS3GlacierIT {
         ReflectionTestUtils.setField(s3Glacier, "workspaceService", workspaceService);
         ReflectionTestUtils.setField(s3Glacier, "s3ClientService", s3ClientService);
 
+        ReflectionTestUtils.setField(s3Glacier, "fileSizeThresholdStreamWithoutTmpFileInMb", 150L);
     }
 
     private S3Server createInputS3Server() {

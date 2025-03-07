@@ -197,6 +197,8 @@ public class S3OnlineStorageIT {
                .thenCallRealMethod();
 
         ReflectionTestUtils.setField(s3OnlineStorage, "s3ClientService", s3ClientService);
+
+        ReflectionTestUtils.setField(s3OnlineStorage, "fileSizeThresholdStreamWithoutTmpFileInMb", 150L);
     }
 
     @Test

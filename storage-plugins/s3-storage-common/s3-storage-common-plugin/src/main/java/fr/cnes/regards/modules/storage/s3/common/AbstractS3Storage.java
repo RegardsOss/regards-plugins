@@ -46,6 +46,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -165,6 +166,13 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                      description = "Determines file name on target storage. List of possible values : CHECKSUM, FILENAME.",
                      defaultValue = FileNamingStrategy.Constants.CHECKSUM)
     protected String fileNamingStrategy;
+
+    /**
+     * If the stored file is bigger than this threshold in a stream to stream storage (online to online), a tmp file
+     * will be used
+     */
+    @Value("${regards.s3.online.to.online.tmp.file.threshold.in.mb:150}")
+    protected Long fileSizeThresholdStreamWithoutTmpFileInMb;
 
     /**
      * Configuration of S3 server
@@ -303,7 +311,9 @@ public abstract class AbstractS3Storage implements IStorageLocation {
                 return DownloadUtils.getInputStream(sourceUrl,
                                                     s3StorageSettings.getStorages(),
                                                     new DownloadTmpConfigDto(false,
-                                                                             multipartThresholdMb * 1024 * 1024L,
+                                                                             fileSizeThresholdStreamWithoutTmpFileInMb
+                                                                             * 1024
+                                                                             * 1024L,
                                                                              workspaceService.getMicroserviceWorkspace()
                                                                                              .resolve(request.getMetaInfo()
                                                                                                              .getChecksum()),
