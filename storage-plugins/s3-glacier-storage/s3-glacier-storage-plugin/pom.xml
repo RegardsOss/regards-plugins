@@ -154,7 +154,7 @@
                                     <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common</include>
                                     <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin</include>
                                     <include>fr.cnes.regards.modules.storage.plugins:s3-storage-common-plugin-dto</include>
-                                    <include>fr.cnes.regards.modules.storage.plugins:common-smallfiles-storage</include>
+                                    <include>fr.cnes.regards.modules.storage.plugins:common-smallfiles-storage-plugin</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
