@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.cnes.regards.modules.storage.plugin.smallfiles.dto;
+package fr.cnes.regards.modules.storage.plugin.s3.dto;
 
 import fr.cnes.regards.framework.s3.dto.StorageConfigDto;
 import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
