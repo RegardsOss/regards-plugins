@@ -413,7 +413,10 @@ public class SmallFilesUtils {
             // Build path to lock for locking a building archive
             Path relativizedPath = zipBuildingRootPath.relativize(nodePath);
             String fileName = removePrefix(relativizedPath.getFileName().toString());
-            pathToLock = relativizedPath.getParent().resolve(fileName).toString();
+            // The relativizedPath might not have a parent if there's no configured root path and subdirectory
+            pathToLock = relativizedPath.getParent() != null ?
+                relativizedPath.getParent().resolve(fileName).toString() :
+                "";
             // If lock type is RESTORE we need to lock the zip archive name with zip extension.
             // Else for STORE lock we lock only the node (no zip extension)
             if (lockType == LockTypeEnum.LOCK_RESTORE) {

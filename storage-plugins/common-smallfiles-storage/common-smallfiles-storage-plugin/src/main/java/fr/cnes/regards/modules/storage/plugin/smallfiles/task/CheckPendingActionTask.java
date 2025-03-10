@@ -59,15 +59,17 @@ public class CheckPendingActionTask implements LockServiceTask<Void> {
         String dirName = SmallFilesUtils.computePathOfBuildDirectoryFromArchiveName(configuration.archivePath()
                                                                                                  .getFileName()
                                                                                                  .toString());
+        String dirPath = configuration.archivePath().getParent() != null ?
+            configuration.archivePath().getParent().resolve(dirName).toString() :
+            dirName;
         Path localFilePath = Path.of(configuration.workspacePath(),
                                      ISmallFilesStorage.ZIP_DIR,
-                                     configuration.archivePath().getParent().resolve(dirName).toString(),
+                                     dirPath,
                                      configuration.fileName());
 
         Path localCurrentFilePath = Path.of(configuration.workspacePath(),
                                             ISmallFilesStorage.ZIP_DIR,
-                                            configuration.archivePath().getParent().resolve(dirName).toString()
-                                            + ISmallFilesStorage.CURRENT_ARCHIVE_SUFFIX,
+                                            dirPath + ISmallFilesStorage.CURRENT_ARCHIVE_SUFFIX,
                                             configuration.fileName());
 
         boolean localExists = Files.exists(localFilePath);
