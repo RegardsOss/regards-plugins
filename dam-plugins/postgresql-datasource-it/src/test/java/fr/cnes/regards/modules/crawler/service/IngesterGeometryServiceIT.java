@@ -30,6 +30,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
+import fr.cnes.regards.modules.crawler.service.service.IngesterService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -105,12 +106,6 @@ public class IngesterGeometryServiceIT {
     private PluginConfiguration dataSourcePluginConf;
 
     private PluginConfiguration dBConnectionConf;
-
-    @Autowired
-    private ICrawlerAndIngesterService crawlerService;
-
-    @Autowired
-    private IDatasetCrawlerService datasetCrawlerService;
 
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
@@ -193,8 +188,6 @@ public class IngesterGeometryServiceIT {
         } else {
             esRepository.createIndex(TENANT);
         }
-        crawlerService.setConsumeOnlyMode(true);
-        datasetCrawlerService.setConsumeOnlyMode(true);
         ingesterService.setConsumeOnlyMode(true);
 
         dsIngestionRepos.deleteAll();

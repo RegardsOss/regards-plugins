@@ -42,6 +42,8 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
 import fr.cnes.regards.modules.crawler.service.exception.FirstFindException;
 import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
+import fr.cnes.regards.modules.crawler.service.service.DatasourceIngestionService;
+import fr.cnes.regards.modules.crawler.service.service.IngesterService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -51,8 +53,6 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginCo
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
-import fr.cnes.regards.modules.dam.domain.entities.event.DatasetEvent;
-import fr.cnes.regards.modules.dam.domain.entities.event.NotDatasetEntityEvent;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
@@ -135,7 +135,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     private ISearchService searchService;
 
     @Autowired
-    private ICrawlerAndIngesterService crawlerService;
+    private DatasourceIngestionService dsIngestionService;
 
     @Autowired
     private IngesterService ingesterService;
@@ -204,12 +204,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
             esRepos.createIndex(getDefaultTenant());
         }
 
-        crawlerService.setConsumeOnlyMode(false);
         ingesterService.setConsumeOnlyMode(true);
-
-        publisher.purgeQueue(DatasetEvent.class);
-        publisher.purgeQueue(NotDatasetEntityEvent.class);
-
         tenantResolver.forceTenant(getDefaultTenant());
 
         attrAssocRepos.deleteAll();
@@ -330,12 +325,11 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
 
         // Ingest from scratch
         DatasourceIngestion dsi = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
-        IngestionResult summary = crawlerService.ingest(dsi.getId())
-                                                .orElseThrow(() -> new RuntimeException(
-                                                    "There was some issue while ingesting test datasource"));
+        IngestionResult summary = dsIngestionService.ingest(dsi.getId())
+                                                    .orElseThrow(() -> new RuntimeException(
+                                                        "There was some issue while ingesting test datasource"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
-        crawlerService.startWork();
         // Dataset on all objects
         dataset = new Dataset(datasetModel, tenant, "DS1", "dataset label 1");
         dataset.setDataModel(dataModel.getName());
@@ -349,7 +343,6 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         LOGGER.info("Dataset created in DB....");
 
         LOGGER.info("Waiting for end of crawler work");
-        crawlerService.waitForEndOfWork();
         LOGGER.info("Sleeping 10 s....");
         Thread.sleep(10_000);
         LOGGER.info("...Waking");
@@ -382,8 +375,8 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         // Ingest from 2000/01/01 (strictly after)
         DatasourceIngestion dsi2 = new DatasourceIngestion(dataSourcePluginConf.getBusinessId());
         dsi.setLastIngestDate(OffsetDateTime.of(2000, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC));
-        summary = crawlerService.ingest(dsi2.getId())
-                                .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi2"));
+        summary = dsIngestionService.ingest(dsi2.getId())
+                                    .orElseThrow(() -> new RuntimeException("There was some issues while ingesting dsi2"));
         Assert.assertEquals(1, summary.getSavedObjectsCount());
 
         // Search for DataObjects tagging dataset1
