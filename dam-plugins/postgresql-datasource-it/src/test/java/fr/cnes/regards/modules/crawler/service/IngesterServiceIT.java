@@ -33,6 +33,7 @@ import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
 import fr.cnes.regards.modules.crawler.service.ds.*;
+import fr.cnes.regards.modules.crawler.service.service.IngesterService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -134,12 +135,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Autowired
     private ExternalData3Repository extData3Repos;
-
-    @Autowired
-    private ICrawlerAndIngesterService crawlerService;
-
-    @Autowired
-    private IDatasetCrawlerService datasetCrawlerService;
 
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
@@ -277,8 +272,6 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             esRepository.createIndex(getDefaultTenant());
         }
 
-        crawlerService.setConsumeOnlyMode(true);
-        datasetCrawlerService.setConsumeOnlyMode(true);
         ingesterService.setConsumeOnlyMode(true);
 
         dsIngestionRepos.deleteAll();

@@ -105,15 +105,17 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
     @Override
     public boolean testConnection() {
         boolean isConnected = false;
-        try (Connection conn = pooledDataSource.getConnection()) {
-            try (Statement statement = conn.createStatement()) {
-                // Execute a simple SQL request
-                try (ResultSet rs = statement.executeQuery(getSqlRequestTestConnection())) {
-                    isConnected = true;
+        if (pooledDataSource != null) {
+            try (Connection conn = pooledDataSource.getConnection()) {
+                try (Statement statement = conn.createStatement()) {
+                    // Execute a simple SQL request
+                    try (ResultSet rs = statement.executeQuery(getSqlRequestTestConnection())) {
+                        isConnected = true;
+                    }
                 }
+            } catch (SQLException | HikariPool.PoolInitializationException e) {
+                LOG.error("Unable to connect to the database", e);
             }
-        } catch (SQLException | HikariPool.PoolInitializationException e) {
-            LOG.error("Unable to connect to the database", e);
         }
         return isConnected;
     }
@@ -128,19 +130,26 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
      */
     protected void createPoolConnection(String user, String password, Integer maxPoolSize, Integer minPoolSize) {
         String url = buildUrl();
-        LOG.info("Create data source pool (url : {})", url);
+        LOG.info("Create data source pool (url : {}, maxPoolSize : {}, minPoolSize : {})",
+                 url,
+                 maxPoolSize,
+                 minPoolSize);
 
-        HikariConfig config = new HikariConfig(new Properties());
-        config.setJdbcUrl(url);
-        config.setUsername(user);
-        config.setPassword(password);
-        // For maximum performance, HikariCP does not recommend setting this value so minimumIdle = maximumPoolSize
-        config.setMinimumIdle(minPoolSize);
-        config.setMaximumPoolSize(maxPoolSize);
-        config.setIdleTimeout(30000L);
-        config.setDriverClassName(getJdbcDriver());
-        // Postgres schema configuration
-        pooledDataSource = new HikariDataSource(config);
+        try {
+            HikariConfig config = new HikariConfig(new Properties());
+            config.setJdbcUrl(url);
+            config.setUsername(user);
+            config.setPassword(password);
+            // For maximum performance, HikariCP does not recommend setting this value so minimumIdle = maximumPoolSize
+            config.setMinimumIdle(minPoolSize);
+            config.setMaximumPoolSize(maxPoolSize);
+            config.setIdleTimeout(30000L);
+            config.setDriverClassName(getJdbcDriver());
+            // Postgres schema configuration
+            pooledDataSource = new HikariDataSource(config);
+        } catch (HikariPool.PoolInitializationException e) {
+            LOG.error("Error during data source pool creation (url : {}) : {}", url, e.getMessage());
+        }
     }
 
     /**
@@ -160,6 +169,11 @@ public abstract class AbstractDBConnection implements IDBConnectionPlugin {
      */
     @Override
     public Connection getConnection() throws SQLException {
+        if (pooledDataSource == null) {
+            String message = "Database pool connection not initialized.";
+            LOG.error(message);
+            throw new SQLException(message);
+        }
         try {
             return pooledDataSource.getConnection();
         } catch (SQLException e) {

@@ -29,9 +29,7 @@ import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
 import fr.cnes.regards.framework.oais.dto.urn.OaisUniformResourceName;
-import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.notifier.domain.NotificationRequest;
 import fr.cnes.regards.modules.notifier.domain.plugin.IRecipientNotifier;
@@ -80,6 +78,10 @@ public class DisseminationAckSender implements IRecipientNotifier {
     public static final String FEATURE_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME = "featureDisseminationUseDedicatedDlq";
 
     public static final String AIP_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME = "aipDisseminationUseDedicatedDlq";
+
+    public static final String DESCRIPTION_PARAM_NAME = "description";
+
+    public static final String DIRECT_NOTIFICATION_ENABLED_PARAM_NAME = "directNotificationEnabled";
 
     /**
      * Path to feature origin urn in notification payload (used for GeoJson notified products).
@@ -139,6 +141,16 @@ public class DisseminationAckSender implements IRecipientNotifier {
                      name = AIP_DISSEMINATION_USE_DEDICATED_DLQ_PARAM_NAME,
                      optional = true)
     private boolean aipUseDedicatedDlq;
+
+    @PluginParameter(label = "Plugin description", name = DESCRIPTION_PARAM_NAME, optional = true)
+    private String description;
+
+    @PluginParameter(label = "Direct notification enabled",
+                     description = "When true, indicates this plugin can be used to send to the recipient directly without checking product content against notifier rules",
+                     name = DIRECT_NOTIFICATION_ENABLED_PARAM_NAME,
+                     optional = true,
+                     defaultValue = "false")
+    private boolean directNotificationEnabled;
 
     /**
      * Check configuration before start. One cohesive couple exchange-queue must be defined
@@ -304,5 +316,18 @@ public class DisseminationAckSender implements IRecipientNotifier {
     @Override
     public boolean isAckRequired() {
         return false;
+    }
+
+    @Override
+    public String getDescription() {
+        if (this.description != null) {
+            return this.description;
+        }
+        return "Ack dissemination sender";
+    }
+
+    @Override
+    public boolean isDirectNotificationEnabled() {
+        return this.directNotificationEnabled;
     }
 }
