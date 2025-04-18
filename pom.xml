@@ -243,6 +243,11 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <groupId>fr.cnes.regards.modules.storage</groupId>
+                <artifactId>storage-client</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
                 <groupId>fr.cnes.regards.modules.storage.plugins</groupId>
                 <artifactId>local-storage-location</artifactId>
                 <version>${revision}</version>

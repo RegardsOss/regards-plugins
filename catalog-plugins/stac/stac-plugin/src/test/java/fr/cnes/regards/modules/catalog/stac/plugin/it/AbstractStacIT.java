@@ -62,6 +62,7 @@ import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.search.dao.ISearchEngineConfRepository;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineMappings;
 import fr.cnes.regards.modules.search.service.ISearchEngineConfigurationService;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.junit.Assert;
 import org.junit.Before;
@@ -181,6 +182,9 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
 
     @MockBean
     protected IStorageRestClient storageRestClient;
+
+    @MockBean
+    protected IStorageLocationRestClient storageLocationRestClient;
 
     protected void cleanDatabase() {
         modelAttrAssocRepository.deleteAllInBatch();

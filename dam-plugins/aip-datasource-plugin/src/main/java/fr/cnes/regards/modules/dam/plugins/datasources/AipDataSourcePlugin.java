@@ -61,7 +61,7 @@ import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.project.domain.ProjectUpdateEvent;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import jakarta.annotation.Nullable;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -215,7 +215,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     private IAIPRestClient aipClient;
 
     @Autowired
-    private IStorageRestClient storageRestClient;
+    private IStorageLocationRestClient storageLocationRestClient;
 
     @Autowired
     private IProjectsClient projectClient;
@@ -415,7 +415,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      * @throws DataSourceException in case locations could not be retrieved
      */
     private Storages getStorageLocations() throws DataSourceException {
-        ResponseEntity<List<EntityModel<StorageLocationDto>>> storageResponse = storageRestClient.retrieve();
+        ResponseEntity<List<EntityModel<StorageLocationDto>>> storageResponse = storageLocationRestClient.retrieve();
 
         if (!storageResponse.getStatusCode().is2xxSuccessful() || !storageResponse.hasBody()) {
             throw new DataSourceException(String.format(

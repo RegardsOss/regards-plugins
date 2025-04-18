@@ -23,6 +23,7 @@ import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -78,6 +79,11 @@ public class TestConfiguration {
     @Bean
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IStorageLocationRestClient storageLocationRestClient() {
+        return Mockito.mock(IStorageLocationRestClient.class);
     }
 
     @Bean

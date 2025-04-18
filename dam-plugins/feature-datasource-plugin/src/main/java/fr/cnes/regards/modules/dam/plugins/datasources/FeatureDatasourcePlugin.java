@@ -37,7 +37,7 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -159,7 +159,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
      * May not be useful if no file is managed!
      */
     @Autowired(required = false)
-    private IStorageRestClient storageRestClient;
+    private IStorageLocationRestClient storageLocationRestClient;
 
     /**
      * May not be useful if no file is managed!
@@ -368,7 +368,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
             // Remote request to STORAGE
             try {
                 FeignSecurityManager.asSystem();
-                ResponseEntity<List<EntityModel<StorageLocationDto>>> response = storageRestClient.retrieve();
+                ResponseEntity<List<EntityModel<StorageLocationDto>>> response = storageLocationRestClient.retrieve();
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
