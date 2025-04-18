@@ -114,7 +114,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
                      label = "Refresh rate",
                      description = "Harvesting refresh rate in second (minimum delay between two consecutive harvesting)",
-                     defaultValue = "1000")
+                     defaultValue = "60")
     private int refreshRate;
 
     /**
@@ -128,7 +128,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     @PluginParameter(name = "overlap",
                      label = "Overlap",
                      description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
-                     defaultValue = "120")
+                     defaultValue = "0")
     private long overlap;
 
     /**
@@ -139,7 +139,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
                      label = "Search date limit in seconds",
                      description = "Duration in seconds to retrieve entities by maximum date limit to avoid "
                                    + "retrieving entities too close with the current aspiration date",
-                     defaultValue = "600")
+                     defaultValue = "0")
     private long searchLimitFromNowInSeconds;
 
     @PluginParameter(name = "date-range-histogram",
