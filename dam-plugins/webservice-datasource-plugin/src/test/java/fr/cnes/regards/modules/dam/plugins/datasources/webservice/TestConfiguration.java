@@ -3,6 +3,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources.webservice;
 import fr.cnes.regards.modules.accessrights.client.IProjectUsersClient;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
@@ -35,5 +36,10 @@ public class TestConfiguration {
     @Bean
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IStorageLocationRestClient storageLocationRestClient() {
+        return Mockito.mock(IStorageLocationRestClient.class);
     }
 }

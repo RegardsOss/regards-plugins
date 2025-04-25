@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.security.autoconfigure.MethodAuthorizationServi
 import fr.cnes.regards.framework.security.autoconfigure.MethodSecurityAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.SecurityVoterAutoConfiguration;
 import fr.cnes.regards.framework.security.autoconfigure.WebSecurityAutoConfiguration;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -81,6 +82,11 @@ public class ValidationConfiguration {
     @Bean
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
+    }
+
+    @Bean
+    public IStorageLocationRestClient storageLocationRestClient() {
+        return Mockito.mock(IStorageLocationRestClient.class);
     }
 
 }

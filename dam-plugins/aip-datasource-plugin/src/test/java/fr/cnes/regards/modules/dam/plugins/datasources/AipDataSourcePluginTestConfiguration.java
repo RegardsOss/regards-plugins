@@ -19,7 +19,7 @@ import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfiguration;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
 import org.mockito.Mockito;
@@ -138,8 +138,8 @@ public class AipDataSourcePluginTestConfiguration {
     }
 
     @Bean
-    public IStorageRestClient storageRestClient() {
-        IStorageRestClient mock = Mockito.mock(IStorageRestClient.class);
+    public IStorageLocationRestClient storageLocationRestClient() {
+        IStorageLocationRestClient mock = Mockito.mock(IStorageLocationRestClient.class);
         StorageLocationConfiguration storageLocationConfiguration = new StorageLocationConfiguration("AWS", null, 1L);
         storageLocationConfiguration.setStorageType(StorageType.ONLINE);
         StorageLocationDto dto = StorageLocationDto.build("AWS", storageLocationConfiguration.toDto())

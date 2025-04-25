@@ -37,7 +37,7 @@ import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
-import fr.cnes.regards.modules.storage.client.IStorageRestClient;
+import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -114,7 +114,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     @PluginParameter(name = DataSourcePluginConstants.REFRESH_RATE,
                      label = "Refresh rate",
                      description = "Harvesting refresh rate in second (minimum delay between two consecutive harvesting)",
-                     defaultValue = "1000")
+                     defaultValue = "60")
     private int refreshRate;
 
     /**
@@ -128,7 +128,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     @PluginParameter(name = "overlap",
                      label = "Overlap",
                      description = "For active datasource, harvest data since latest harvesting date minus this overlap to prevent data loss",
-                     defaultValue = "120")
+                     defaultValue = "0")
     private long overlap;
 
     /**
@@ -139,7 +139,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
                      label = "Search date limit in seconds",
                      description = "Duration in seconds to retrieve entities by maximum date limit to avoid "
                                    + "retrieving entities too close with the current aspiration date",
-                     defaultValue = "600")
+                     defaultValue = "0")
     private long searchLimitFromNowInSeconds;
 
     @PluginParameter(name = "date-range-histogram",
@@ -159,7 +159,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
      * May not be useful if no file is managed!
      */
     @Autowired(required = false)
-    private IStorageRestClient storageRestClient;
+    private IStorageLocationRestClient storageLocationRestClient;
 
     /**
      * May not be useful if no file is managed!
@@ -368,7 +368,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
             // Remote request to STORAGE
             try {
                 FeignSecurityManager.asSystem();
-                ResponseEntity<List<EntityModel<StorageLocationDto>>> response = storageRestClient.retrieve();
+                ResponseEntity<List<EntityModel<StorageLocationDto>>> response = storageLocationRestClient.retrieve();
 
                 // Manage request error
                 if (!response.getStatusCode().is2xxSuccessful()) {
