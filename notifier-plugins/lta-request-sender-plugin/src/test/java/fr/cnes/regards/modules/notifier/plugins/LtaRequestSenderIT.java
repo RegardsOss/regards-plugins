@@ -326,6 +326,7 @@ public class LtaRequestSenderIT {
                                                                                            20480L,
                                                                                            "MD5",
                                                                                            "824cacd0b51c11594bc91cb9f6eb1114"),
+                                                               null,
                                                                FeatureFileLocation.build("http://./file2.txt")));
         featuresSamples.add((JsonObject) gson.toJsonTree(request2));
 
