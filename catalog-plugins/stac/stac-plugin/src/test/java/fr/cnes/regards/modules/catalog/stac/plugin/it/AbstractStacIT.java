@@ -432,6 +432,7 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
                 dataFile.setFilesize(ff.getAttributes().getFilesize());
                 dataFile.setCrc32(ff.getAttributes().getCrc32());
                 dataFile.setChecksum(ff.getAttributes().getChecksum());
+                dataFile.setDigestAlgorithm(ff.getAttributes().getAlgorithm());
                 dataFile.setTypes(Sets.newHashSet("Netcdf"));
                 files.put(dataFile.getDataType(), dataFile);
             }

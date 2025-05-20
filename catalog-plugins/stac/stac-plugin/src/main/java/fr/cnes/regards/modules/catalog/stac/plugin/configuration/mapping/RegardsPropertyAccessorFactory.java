@@ -28,7 +28,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ParseContext;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.RegardsConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.DefaultSourceProperties;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
@@ -79,7 +79,7 @@ public class RegardsPropertyAccessorFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T extractValue(Class<T> valueType, StacPropertyType sPropType, IProperty<?> property) {
+    private static <T> T extractValue(IProperty<?> property) {
         return property == null ? null : (T) property.getValue();
     }
 
@@ -90,7 +90,7 @@ public class RegardsPropertyAccessorFactory {
     public RegardsPropertyAccessor makeRegardsPropertyAccessor(StacSourcePropertyConfiguration sPropConfig,
                                                                StacPropertyType sPropType) {
         String attrName = sPropConfig.getSourcePropertyPath();
-        AttributeModel attr = loadAttribute(attrName, sPropConfig, sPropType);
+        AttributeModel attr = loadAttribute(attrName, sPropType);
         Option<String> jsonPath = Option.of(sPropConfig.getSourceJsonPropertyPath()).filter(StringUtils::isNotBlank);
 
         Tuple2<Class<?>, Function<AbstractEntity<? extends EntityFeature>, Try<?>>> classFunctionTuple2 = makeValueTypeAndExtractionFn(
@@ -123,15 +123,13 @@ public class RegardsPropertyAccessorFactory {
                   .getOrElse(List.empty());
     }
 
-    private AttributeModel loadAttribute(String attrName,
-                                         StacSourcePropertyConfiguration sPropConfig,
-                                         StacPropertyType sPropType) {
+    private AttributeModel loadAttribute(String attrName, StacPropertyType sPropType) {
         return finder.findByNameOptional(attrName).orElseGet(() -> {
             AttributeModel result = new AttributeModel();
             result.setName(attrName);
             result.setType(sPropType.getPropertyType());
             result.setAlterable(false);
-            result.setInternal(RegardsConstants.INTERNAL_PROPERTIES.contains(attrName));
+            result.setInternal(DefaultSourceProperties.INTERNAL_PROPERTIES.contains(attrName));
             return result;
         });
     }
@@ -147,17 +145,13 @@ public class RegardsPropertyAccessorFactory {
             extractFn = makeJsonExtractFn(sPropType, attr.getJsonPropertyPath(), jsonPath.get());
         } else {
             // Extract from well known property
-            extractFn = makeExtractFn(sPropType, attr.getJsonPropertyPath(), attr.isDynamic());
+            extractFn = makeExtractFn(attr.getJsonPropertyPath(), attr.isDynamic());
         }
         return Tuple.of(valueType, extractFn);
     }
 
-    private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(StacPropertyType sPropType,
-                                                                                    String attrName,
-                                                                                    boolean dynamic) {
-        return entity -> trying(() -> extractValue(sPropType.getValueType(),
-                                                   sPropType,
-                                                   getProperty(attrName, dynamic, entity.getFeature()))).mapFailure(
+    private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeExtractFn(String attrName, boolean dynamic) {
+        return entity -> trying(() -> extractValue(getProperty(attrName, dynamic, entity.getFeature()))).mapFailure(
             ENTITY_ATTRIBUTE_VALUE_EXTRACTION,
             () -> format("Failed to extract value for %s in data object %s", attrName, entity.getIpId()));
     }
@@ -172,45 +166,41 @@ public class RegardsPropertyAccessorFactory {
     private Function<AbstractEntity<? extends EntityFeature>, Try<?>> makeJsonExtractFn(StacPropertyType sPropType,
                                                                                         String attrName,
                                                                                         String jsonPath) {
-        return entity -> trying(() -> JsonObject.class.cast(entity.getFeature().getProperty(attrName).getValue())).map(
-                                                                                                                      jsonObject -> jsonPathParseContext.parse(jsonObject).read(jsonPath, JsonElement.class))
-                                                                                                                  .map(
-                                                                                                                      value -> extractJsonValue(
-                                                                                                                          sPropType,
-                                                                                                                          (JsonPrimitive) value))
-                                                                                                                  .mapFailure(
-                                                                                                                      ENTITY_JSON_EXTRACTION,
-                                                                                                                      () -> format(
-                                                                                                                          "Failed to extract JSON value at %s in data object %s",
-                                                                                                                          jsonPath,
-                                                                                                                          entity.getIpId()));
+        return entity -> trying(() -> (JsonObject) entity.getFeature()
+                                                         .getProperty(attrName)
+                                                         .getValue()).map(jsonObject -> jsonPathParseContext.parse(
+                                                                         jsonObject).read(jsonPath, JsonElement.class))
+                                                                     .map(value -> extractJsonValue(sPropType,
+                                                                                                    (JsonPrimitive) value))
+                                                                     .mapFailure(ENTITY_JSON_EXTRACTION,
+                                                                                 () -> format(
+                                                                                     "Failed to extract JSON value at %s in data object %s",
+                                                                                     jsonPath,
+                                                                                     entity.getIpId()));
     }
 
     @SuppressWarnings("unchecked")
     private <T> T extractJsonValue(StacPropertyType sPropType, JsonPrimitive value) {
-        switch (sPropType) {
-            case NUMBER:
-            case ANGLE:
-            case LENGTH:
-            case PERCENTAGE:
-                return (T) Double.valueOf(value.getAsDouble());
-            case BOOLEAN:
-                return (T) Boolean.valueOf(value.getAsBoolean());
-            case URL:
-                return (T) url(value.getAsString());
-            case DATETIME:
-                return (T) OffsetDateTimeAdapter.parse(value.getAsString());
-            case STRING:
-            default:
-                return (T) value.getAsString();
-        }
+        return switch (sPropType) {
+            case NUMBER, ANGLE, LENGTH, PERCENTAGE -> (T) Double.valueOf(value.getAsDouble());
+            case BOOLEAN -> (T) Boolean.valueOf(value.getAsBoolean());
+            case URL -> (T) url(value.getAsString());
+            case DATETIME -> (T) OffsetDateTimeAdapter.parse(value.getAsString());
+            default -> (T) value.getAsString();
+        };
     }
 
-    private URL url(String repr) {
+    /**
+     * Convert a string to a URL
+     *
+     * @param value the string to convert
+     * @return the URL
+     */
+    private URL url(String value) {
         try {
-            return new URL(repr);
+            return new URL(value);
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 

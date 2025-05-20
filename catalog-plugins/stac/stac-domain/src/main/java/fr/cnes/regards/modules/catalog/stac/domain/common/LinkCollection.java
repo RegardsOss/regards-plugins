@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.common;
 
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
 import io.vavr.collection.List;
 import io.vavr.collection.Stream;
 

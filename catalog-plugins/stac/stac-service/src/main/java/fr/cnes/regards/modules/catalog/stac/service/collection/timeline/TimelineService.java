@@ -18,8 +18,8 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineByCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineFiltersByCollection;
 
 public interface TimelineService {
 

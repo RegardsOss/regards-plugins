@@ -32,6 +32,10 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
+/**
+ * Workaround for EasyRandom not supporting records.
+ * See <a href="https://github.com/j-easy/easy-random/issues/397">Record issue</a>
+ */
 public interface RandomAwareTest {
 
     default void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
@@ -56,6 +60,7 @@ public interface RandomAwareTest {
         EasyRandomParameters parameters = new EasyRandomParameters();
         parameters.randomizerRegistry(vavrWrappersRegistry);
         parameters.randomizerRegistry(vavrRandomizerRegistry);
+        parameters.objectFactory(new RecordFactory());
 
         EasyRandom generator = new EasyRandom(parameters);
         vavrRandomizerRegistry.setEasyRandom(generator);

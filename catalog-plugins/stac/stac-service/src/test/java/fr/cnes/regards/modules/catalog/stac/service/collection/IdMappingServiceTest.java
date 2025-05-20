@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.oais.dto.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -65,7 +66,7 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
 
         try {
             repository.deleteIndex(ITEMS_TENANT);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
 
@@ -170,5 +171,18 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
         Assert.assertEquals("DAT", stacIdDataset);
         Assert.assertTrue(StringUtils.isBlank(unknownStacId));
         Assert.assertTrue(StringUtils.isBlank(unknownUrn));
+    }
+
+    @Test
+    public void testItemIdMapping() {
+        String providerId = "SWOT_L2_HR_RiverSP_Node_004_322_AF_20231003T072453_20231003T072456_PIB0_01";
+        String urn = "URN:FEATURE:DATA:swot:4c46ed8c-f57f-3cb5-bb77-7365a7b01496:V1";
+
+        String stacId = idMappingService.getItemId(FeatureUniformResourceName.fromString(urn), providerId, true);
+        Assert.assertNotNull(stacId);
+
+        String rebuiltUrn = idMappingService.geItemUrnFromId(stacId);
+        Assert.assertNotNull(rebuiltUrn);
+        Assert.assertEquals(urn, rebuiltUrn);
     }
 }

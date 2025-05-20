@@ -1,14 +1,14 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.indexer.domain.criterion.AndCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.domain.criterion.OrCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchCriterion;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.junit.Test;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.TAGS_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.TAGS_PROPERTY_NAME;
 import static fr.cnes.regards.modules.indexer.domain.criterion.MatchType.CONTAINS;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,10 +59,10 @@ public class CollectionsCriterionBuilderTest {
         Option<ICriterion> criterion = new CollectionsCriterionBuilder().buildCriterion(properties, collections);
         // THEN
         assertThat(criterion).isNotEmpty();
-        assertThat(criterion.get()).isInstanceOf(AndCriterion.class);
+        assertThat(criterion.get()).isInstanceOf(OrCriterion.class);
 
-        AndCriterion andCrit = (AndCriterion) criterion.get();
-        java.util.List<ICriterion> andCrits = andCrit.getCriterions();
+        OrCriterion orCriterion = (OrCriterion) criterion.get();
+        java.util.List<ICriterion> andCrits = orCriterion.getCriterions();
         assertThat(andCrits).hasSize(2);
 
         assertThat(andCrits.get(0)).isInstanceOf(StringMatchCriterion.class);

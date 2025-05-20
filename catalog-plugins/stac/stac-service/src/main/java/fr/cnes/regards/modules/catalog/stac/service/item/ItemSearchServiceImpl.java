@@ -20,11 +20,13 @@
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.*;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
+import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -61,7 +63,7 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemSearchServiceImpl.class);
 
-    private final StacSearchCriterionBuilder critBuilder;
+    private final StacSearchCriterionBuilder searchCriterionBuilder;
 
     private final CatalogSearchService catalogSearchService;
 
@@ -69,84 +71,104 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
 
     private final RegardsFeatureToStacItemConverter itemConverter;
 
-    // @formatter:off
+    private final IdMappingService idMappingService;
 
     @Autowired
-    public ItemSearchServiceImpl(
-            StacSearchCriterionBuilder critBuilder,
-            CatalogSearchService catalogSearchService,
-            ConfigurationAccessorFactory configurationAccessorFactory,
-            RegardsFeatureToStacItemConverter itemConverter
-    ) {
-        this.critBuilder = critBuilder;
+    public ItemSearchServiceImpl(StacSearchCriterionBuilder critBuilder,
+                                 CatalogSearchService catalogSearchService,
+                                 ConfigurationAccessorFactory configurationAccessorFactory,
+                                 RegardsFeatureToStacItemConverter itemConverter,
+                                 IdMappingService idMappingService) {
+        this.searchCriterionBuilder = critBuilder;
         this.catalogSearchService = catalogSearchService;
         this.configurationAccessorFactory = configurationAccessorFactory;
         this.itemConverter = itemConverter;
+        this.idMappingService = idMappingService;
     }
 
     @Override
-    public Try<ItemCollectionResponse> search(
-        ItemSearchBody itemSearchBody,
-        Integer page,
-        OGCFeatLinkCreator featLinkCreator,
-        SearchPageLinkCreator searchPageLinkCreator
-    ) {
-        List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
-        ICriterion crit = critBuilder.buildCriterion(stacProperties, itemSearchBody).getOrElse(ICriterion.all());
-        debug(LOGGER, "Search request: {}\n\tCriterion: {}", itemSearchBody, crit);
+    public Try<ItemCollectionResponse> search(ItemSearchBody itemSearchBody,
+                                              Integer page,
+                                              OGCFeatLinkCreator featLinkCreator,
+                                              SearchPageLinkCreator searchPageLinkCreator) {
+        List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor()
+                                                                        .getStacProperties();
+        ICriterion criterion = searchCriterionBuilder.buildCriterion(stacProperties, itemSearchBody)
+                                                     .getOrElse(ICriterion.all());
+        debug(LOGGER, "Search request: {}\n\tCriterion: {}", itemSearchBody, criterion);
 
-        Pageable pageable = pageable(itemSearchBody.getLimit(), page, itemSearchBody.getSortBy(),stacProperties);
-        return trying(() -> catalogSearchService.<AbstractEntity<? extends EntityFeature>>search(crit, SearchType.DATAOBJECTS, null, pageable))
-            .mapFailure(SEARCH, () -> format("Search failure for page %d of %s", page, itemSearchBody))
-            .flatMap(facetPage -> extractItemCollection(facetPage, stacProperties, featLinkCreator, searchPageLinkCreator));
+        Pageable pageable = pageable(itemSearchBody.getLimit(), page, itemSearchBody.getSortBy(), stacProperties);
+        return trying(() -> catalogSearchService.<AbstractEntity<? extends EntityFeature>>search(criterion,
+                                                                                                 SearchType.DATAOBJECTS,
+                                                                                                 null,
+                                                                                                 pageable)).mapFailure(
+                                                                                                               SEARCH,
+                                                                                                               () -> format("Search failure for page %d of %s", page, itemSearchBody))
+                                                                                                           .flatMap(
+                                                                                                               facetPage -> extractItemCollection(
+                                                                                                                   facetPage,
+                                                                                                                   stacProperties,
+                                                                                                                   itemSearchBody.getFields(),
+                                                                                                                   featLinkCreator,
+                                                                                                                   searchPageLinkCreator));
     }
 
     @Override
-    public Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator) {
-        List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor().getStacProperties();
-        return trying(() -> UniformResourceName.fromString(itemId))
-            .map(urn -> (AbstractEntity<? extends EntityFeature>)catalogSearchService.get(urn))
-            .mapFailure(SEARCH_ITEM, () -> format("Search failure on item id %s", itemId))
-            .flatMap(entity -> itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, entity));
+    public Try<Item> searchById(String featureId, OGCFeatLinkCreator featLinkCreator) {
+        String itemId = idMappingService.geItemUrnFromId(featureId);
+        List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor()
+                                                                        .getStacProperties();
+        return trying(() -> UniformResourceName.fromString(itemId)).map(urn -> (AbstractEntity<? extends EntityFeature>) catalogSearchService.get(
+                                                                       urn))
+                                                                   .mapFailure(SEARCH_ITEM,
+                                                                               () -> format(
+                                                                                   "Search failure on item id %s",
+                                                                                   itemId))
+                                                                   .flatMap(entity -> itemConverter.convertFeatureToItem(
+                                                                       stacProperties,
+                                                                       null,
+                                                                       featLinkCreator,
+                                                                       entity));
     }
 
-    private Try<ItemCollectionResponse> extractItemCollection(
-            FacetPage<AbstractEntity<? extends EntityFeature>> facetPage,
-            List<StacProperty> stacProperties,
-            OGCFeatLinkCreator featLinkCreator,
-            SearchPageLinkCreator searchPageLinkCreator
-    ) {
+    private Try<ItemCollectionResponse> extractItemCollection(FacetPage<AbstractEntity<? extends EntityFeature>> facetPage,
+                                                              List<StacProperty> stacProperties,
+                                                              Fields fields,
+                                                              OGCFeatLinkCreator featLinkCreator,
+                                                              SearchPageLinkCreator searchPageLinkCreator) {
         return trying(() -> {
-            Context context = new Context(
-                facetPage.getNumberOfElements(),
-                facetPage.getPageable().getPageSize(),
-                facetPage.getTotalElements()
-            );
-            ItemCollectionResponse response = new ItemCollectionResponse(
-                SEARCH_EXTENSIONS,
-                extractStacItems(Stream.ofAll(facetPage.get()), stacProperties, featLinkCreator),
-                List.empty(), // resolved later
-                context
-            );
-            return response.withLinks(extractLinks(searchPageLinkCreator, facetPage));
-        })
-        .mapFailure(
-            ITEMCOLLECTIONRESPONSE_CONSTRUCTION,
-            () -> "Failed to create ItemCollectionResponse"
-        );
+            Context context = new Context(facetPage.getNumberOfElements(),
+                                          facetPage.getPageable().getPageSize(),
+                                          facetPage.getTotalElements());
+            return new ItemCollectionResponse(SEARCH_EXTENSIONS,
+                                              extractStacItems(Stream.ofAll(facetPage.get()),
+                                                               stacProperties,
+                                                               fields,
+                                                               featLinkCreator),
+                                              extractItemsLinks(featLinkCreator, searchPageLinkCreator, facetPage),
+                                              context,
+                                              facetPage.getTotalElements(),
+                                              (long) facetPage.getNumberOfElements());
+        }).mapFailure(ITEMCOLLECTIONRESPONSE_CONSTRUCTION, () -> "Failed to create ItemCollectionResponse");
     }
 
-    private List<Item> extractStacItems(
-            Stream<AbstractEntity<? extends EntityFeature>> entityStream,
-            List<StacProperty> stacProperties,
-            OGCFeatLinkCreator featLinkCreator
-    ) {
-        return entityStream
-            .flatMap(entity ->
-                itemConverter.convertFeatureToItem(stacProperties, featLinkCreator, entity)
-            )
-            .toList();
+    private List<Link> extractItemsLinks(OGCFeatLinkCreator featLinkCreator,
+                                         SearchPageLinkCreator searchPageLinkCreator,
+                                         FacetPage<AbstractEntity<? extends EntityFeature>> facetPage) {
+        return List.of(featLinkCreator.createSearchLink(Relation.ROOT))
+                   .flatMap(t -> t)
+                   .appendAll(extractLinks(searchPageLinkCreator,
+                                           facetPage,
+                                           StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE));
     }
 
-    // @formatter:on
+    private List<Item> extractStacItems(Stream<AbstractEntity<? extends EntityFeature>> entityStream,
+                                        List<StacProperty> stacProperties,
+                                        Fields fields,
+                                        OGCFeatLinkCreator featLinkCreator) {
+        return entityStream.flatMap(entity -> itemConverter.convertFeatureToItem(stacProperties,
+                                                                                 fields,
+                                                                                 featLinkCreator,
+                                                                                 entity)).toList();
+    }
 }

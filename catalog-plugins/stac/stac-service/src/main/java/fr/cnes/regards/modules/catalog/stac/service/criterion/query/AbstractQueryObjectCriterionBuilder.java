@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.QueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody.QueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.CriterionBuilder;

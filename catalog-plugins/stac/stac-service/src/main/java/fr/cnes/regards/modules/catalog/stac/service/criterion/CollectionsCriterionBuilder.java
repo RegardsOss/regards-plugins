@@ -27,7 +27,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.TAGS_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.TAGS_PROPERTY_NAME;
 
 /**
  * Build criteria for list of collections.
@@ -42,7 +42,7 @@ public class CollectionsCriterionBuilder implements CriterionBuilder<List<String
             Option.none() :
             collections.size() == 1 ?
                 Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD)) :
-                Option.of(ICriterion.and(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME,
+                Option.of(ICriterion.or(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME,
                                                                                   c,
                                                                                   StringMatchType.KEYWORD))));
     }

@@ -23,10 +23,11 @@ import com.google.common.collect.Lists;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.*;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping.ConfigurationAccessorFactoryImpl;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -120,10 +121,31 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
     private EODAGConfiguration eodagConfiguration;
 
     @PluginParameter(name = "histogram-property-path",
-        label = "Histogram JSON property path",
-        description = "Fully qualified property path from data model",
-        optional = true)
+                     label = "Histogram JSON property path",
+                     description = "Fully qualified property path from data model",
+                     optional = true)
     private String histogramPropertyPath;
+
+    @PluginParameter(name = "enable-human-readable-ids",
+                     label = "Enable human-readable IDs",
+                     description = "Enable human-readable IDs",
+                     optional = true,
+                     defaultValue = "false")
+    private boolean enableHumanReadableIds;
+
+    @PluginParameter(name = "disable-auth-param",
+                     label = "Disable authentication parameter",
+                     description = "Disable authentication parameter in links",
+                     optional = true,
+                     defaultValue = "false")
+    private boolean disableAuthParam;
+
+    @PluginParameter(name = "use-collection-configuration",
+                     label = "Use collection configuration",
+                     description = "Use collection configuration for collection instead of this configuration",
+                     optional = true,
+                     defaultValue = "false")
+    private boolean useCollectionConfiguration;
 
     @Override
     public boolean supports(SearchType searchType) {
@@ -168,21 +190,24 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
      */
     @Override
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
-        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator();
+        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(true);
         SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(0,
                                                                                             ItemSearchBody.builder()
                                                                                                           .limit(100)
-                                                                                                          .build());
-        Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink().map(l -> l.getHref().toString());
+                                                                                                          .build(),
+                                                                                            true);
+        Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink(Relation.DATA)
+                                                           .map(l -> l.href().toString());
         return io.vavr.collection.List.of(collectionsLink.map(href -> Link.of(href, "search-collections")),
                                           collectionsLink.map(href -> Link.of(href, "search-datasets")),
                                           searchPageLinkCreator.searchAll()
                                                                .map(URI::toString)
                                                                .map(href -> Link.of(href, "search-objects")),
-                                          ogcFeatLinkCreator.createRootLink()
-                                                            .map(l -> l.getHref().toString())
+                                          ogcFeatLinkCreator.createLandingPageLink(Relation.ROOT)
+                                                            .map(l -> l.href().toString())
                                                             .map(href -> Link.of(href, "search")))
                                       .flatMap(vl -> vl)
                                       .toJavaList();
     }
+
 }

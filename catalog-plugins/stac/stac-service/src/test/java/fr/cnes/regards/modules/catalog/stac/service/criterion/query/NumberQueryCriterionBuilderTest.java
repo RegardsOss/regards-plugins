@@ -1,6 +1,6 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.NumberQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody.NumberQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;

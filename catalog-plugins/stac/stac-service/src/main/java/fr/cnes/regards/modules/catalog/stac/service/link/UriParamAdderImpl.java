@@ -61,11 +61,6 @@ public class UriParamAdderImpl implements UriParamAdder {
     }
 
     @Override
-    public CheckedFunction1<URI, Try<URI>> appendAuthParams() {
-        return this.appendAuthParams(true);
-    }
-
-    @Override
     public CheckedFunction1<URI, Try<URI>> appendAuthParams(boolean appendAuthParams) {
         LOGGER.trace("Append authentication parameters >>> {}", appendAuthParams);
         if (appendAuthParams) {

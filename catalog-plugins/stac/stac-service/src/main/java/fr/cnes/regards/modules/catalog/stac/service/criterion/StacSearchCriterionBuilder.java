@@ -19,8 +19,8 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.CollectionSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;

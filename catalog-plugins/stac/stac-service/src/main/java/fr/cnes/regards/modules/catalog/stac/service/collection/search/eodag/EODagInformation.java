@@ -34,7 +34,7 @@ public class EODagInformation {
     private String projectName;
 
     /**
-     * EODAG extension provider
+     * EODAG extensions provider
      */
     private String provider = "EODAG provider";
 

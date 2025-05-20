@@ -19,8 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
 
 import java.net.URI;
 import java.util.function.Function;
@@ -30,12 +31,12 @@ import java.util.function.Function;
  */
 public interface StacLinkCreator {
 
-    default Function<URI, Link> createLink(String rel, String title) {
-        return uri -> createLink(uri, rel, title);
+    default Function<URI, Link> createLink(Relation rel, String title, String type) {
+        return uri -> createLink(uri, rel, title, type);
     }
 
-    default Link createLink(URI uri, String rel, String title) {
-        return new Link(uri, rel, Asset.MediaType.APPLICATION_JSON, title);
+    default Link createLink(URI uri, Relation rel, String title, String type) {
+        return new Link(uri, rel.getValue(), type, title);
     }
 
 }

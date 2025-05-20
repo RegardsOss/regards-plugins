@@ -19,10 +19,11 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration.mapping;
 
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.DefaultSourceProperties;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Provider;
 import fr.cnes.regards.modules.catalog.stac.plugin.StacSearchEngine;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfiguration;
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.EODAGConfiguration;
@@ -84,22 +85,22 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
 
     @Override
     public StacProperty getLinksStacProperty() {
-        String stacPropertyName = StacSpecConstants.PropertyName.STAC_LINKS_PROPERTY_NAME;
+        String stacPropertyName = StacProperties.STAC_LINKS_PROPERTY_NAME;
         return plugin.map(p -> configurationAccessorFactoryImpl.makeStacProperty(p.getStacLinksProperty(),
                                                                                  stacPropertyName,
                                                                                  StacPropertyType.JSON_OBJECT))
-                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_LINKS_SOURCE_PROPERTY_NAME,
+                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(DefaultSourceProperties.STAC_LINKS_SOURCE_PROPERTY_NAME,
                                                                                          stacPropertyName,
                                                                                          StacPropertyType.JSON_OBJECT));
     }
 
     @Override
     public StacProperty getAssetsStacProperty() {
-        String stacPropertyName = StacSpecConstants.PropertyName.STAC_ASSETS_PROPERTY_NAME;
+        String stacPropertyName = StacProperties.STAC_ASSETS_PROPERTY_NAME;
         return plugin.map(p -> configurationAccessorFactoryImpl.makeStacProperty(p.getStacAssetsProperty(),
                                                                                  stacPropertyName,
                                                                                  StacPropertyType.JSON_OBJECT))
-                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(StacSpecConstants.SourcePropertyName.STAC_ASSETS_SOURCE_PROPERTY_NAME,
+                     .getOrElse(configurationAccessorFactoryImpl.makeDefaultStacProperty(DefaultSourceProperties.STAC_ASSETS_SOURCE_PROPERTY_NAME,
                                                                                          stacPropertyName,
                                                                                          StacPropertyType.JSON_OBJECT));
     }
@@ -168,5 +169,20 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
     @Override
     public String getHistogramProperyPath() {
         return plugin.map(StacSearchEngine::getHistogramPropertyPath).getOrNull();
+    }
+
+    @Override
+    public boolean isHumanReadableIdsEnabled() {
+        return plugin.map(StacSearchEngine::isEnableHumanReadableIds).getOrElse(false);
+    }
+
+    @Override
+    public boolean useCollectionConfiguration() {
+        return plugin.map(StacSearchEngine::isUseCollectionConfiguration).getOrElse(false);
+    }
+
+    @Override
+    public boolean isDisableauthParam() {
+        return plugin.map(StacSearchEngine::isDisableAuthParam).getOrElse(false);
     }
 }

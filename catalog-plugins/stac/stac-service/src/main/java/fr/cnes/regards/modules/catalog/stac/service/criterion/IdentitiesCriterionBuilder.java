@@ -27,7 +27,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.ID_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.ID_PROPERTY_NAME;
 
 /**
  * Build criteria for list of IDs.

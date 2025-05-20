@@ -20,10 +20,10 @@ package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder
 
 import com.google.common.collect.Sets;
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.FiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineByCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -69,9 +69,9 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
 
     private long twoManyResultsThreshold = 30000;
 
-    public AbstractLegacyTimelineBuilder(ICatalogSearchService catalogSearchService,
-                                         PropertyExtractionService propertyExtractionService,
-                                         TimelineCriteriaHelper timelineCriteriaHelper) {
+    protected AbstractLegacyTimelineBuilder(ICatalogSearchService catalogSearchService,
+                                            PropertyExtractionService propertyExtractionService,
+                                            TimelineCriteriaHelper timelineCriteriaHelper) {
         this.catalogSearchService = catalogSearchService;
         this.propertyExtractionService = propertyExtractionService;
         this.timelineCriteriaHelper = timelineCriteriaHelper;
@@ -94,9 +94,9 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
 
         // Define STAC properties to extract
         List<StacProperty> datetimeStacProperties = itemStacProperties.filter(p -> p.getStacPropertyName()
-                                                                                    .equals(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
+                                                                                    .equals(StacProperties.START_DATETIME_PROPERTY_NAME)
                                                                                    || p.getStacPropertyName()
-                                                                                       .equals(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME));
+                                                                                       .equals(StacProperties.END_DATETIME_PROPERTY_NAME));
 
         // Build timeline
         // Enhancement : inject from/to criterion to only search on the requested period
@@ -142,7 +142,6 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
                         twoManyResultsThreshold);
             // Get collection temporal extent
             Option<Tuple2<OffsetDateTime, OffsetDateTime>> temporalExtent = getCollectionTemporalExtent(itemCriteria,
-                                                                                                        collectionId,
                                                                                                         datetimeStacProperties);
             if (temporalExtent.isDefined()) {
                 // Report collection temporal extent into timeline
@@ -164,12 +163,12 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
                     entity,
                     datetimeStacProperties);
                 // Check both properties are defined
-                if (datetimeExtent.get(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME).isDefined()
-                    && datetimeExtent.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME).isDefined()) {
+                if (datetimeExtent.get(StacProperties.START_DATETIME_PROPERTY_NAME).isDefined() && datetimeExtent.get(
+                    StacProperties.END_DATETIME_PROPERTY_NAME).isDefined()) {
                     // Get datetime properties
-                    OffsetDateTime itemStart = (OffsetDateTime) datetimeExtent.get(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
+                    OffsetDateTime itemStart = (OffsetDateTime) datetimeExtent.get(StacProperties.START_DATETIME_PROPERTY_NAME)
                                                                               .get();
-                    OffsetDateTime itemEnd = (OffsetDateTime) datetimeExtent.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME)
+                    OffsetDateTime itemEnd = (OffsetDateTime) datetimeExtent.get(StacProperties.END_DATETIME_PROPERTY_NAME)
                                                                             .get();
                     // Report item temporal extent into timeline
                     reportTemporalExtent(timelineStart, timelineEnd, itemStart, itemEnd, zoneId, timeline);
@@ -212,9 +211,8 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
     }
 
     private Option<Tuple2<OffsetDateTime, OffsetDateTime>> getCollectionTemporalExtent(ICriterion itemCriteria,
-                                                                                       String collectionId,
                                                                                        List<StacProperty> datetimeStacProperties) {
-        return getPropertyBound(itemCriteria, collectionId, datetimeStacProperties);
+        return getPropertyBound(itemCriteria, datetimeStacProperties);
     }
 
     private Option<Tuple2<OffsetDateTime, OffsetDateTime>> getIntersection(OffsetDateTime timelineStart,
@@ -243,7 +241,6 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
             // Locate the bounds to 00:00:00.
             OffsetDateTime start = intersection.get()._1.with(LocalTime.MIDNIGHT);
             OffsetDateTime end = intersection.get()._2.with(LocalTime.MIDNIGHT);
-            // LOGGER.trace("Reporting intersection for item with temporal extent : {} -> {}", start, end);
             long timelineNbDays = ChronoUnit.DAYS.between(start, end);
 
             java.util.stream.Stream.iterate(start, currentDate -> currentDate.plusDays(1))
@@ -265,7 +262,6 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
     }
 
     protected Option<Tuple2<OffsetDateTime, OffsetDateTime>> getPropertyBound(ICriterion itemCriteria,
-                                                                              String collectionId,
                                                                               io.vavr.collection.List<StacProperty> datetimeStacProperties) {
         return (Option<Tuple2<OffsetDateTime, OffsetDateTime>>) Try.of(() -> {
 
@@ -274,11 +270,11 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
                 Map<String, StacProperty> stacPropertyMap = datetimeStacProperties.toJavaMap(HashMap::new,
                                                                                              StacProperty::getStacPropertyName,
                                                                                              s -> s);
-                String startPropertyName = stacPropertyMap.get(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME)
+                String startPropertyName = stacPropertyMap.get(StacProperties.START_DATETIME_PROPERTY_NAME)
                                                           .getRegardsPropertyAccessor()
                                                           .getAttributeModel()
                                                           .getJsonPath();
-                String endPropertyName = stacPropertyMap.get(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME)
+                String endPropertyName = stacPropertyMap.get(StacProperties.END_DATETIME_PROPERTY_NAME)
                                                         .getRegardsPropertyAccessor()
                                                         .getAttributeModel()
                                                         .getJsonPath();
@@ -307,7 +303,7 @@ public abstract class AbstractLegacyTimelineBuilder implements TimelineBuilder {
         return this;
     }
 
-    abstract protected void doTimelineReport(java.util.Map<String, Long> timeline, String key);
+    protected abstract void doTimelineReport(java.util.Map<String, Long> timeline, String key);
 
-    abstract protected boolean continueReporting(java.util.Map<String, Long> timeline);
+    protected abstract boolean continueReporting(java.util.Map<String, Long> timeline);
 }

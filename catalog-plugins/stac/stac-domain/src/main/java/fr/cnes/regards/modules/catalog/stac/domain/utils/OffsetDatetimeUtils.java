@@ -19,7 +19,7 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -35,30 +35,30 @@ import static java.time.Instant.ofEpochMilli;
 import static java.time.ZoneOffset.UTC;
 
 /**
- * TODO: OffsetDatetimeUtils description
+ * Utility class for OffsetDateTime.
  *
  * @author gandrieu
  */
-public class OffsetDatetimeUtils {
+public final class OffsetDatetimeUtils {
 
     @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(OffsetDatetimeUtils.class);
 
     public static final OffsetDateTime EPOCH = OffsetDateTime.ofInstant(Instant.EPOCH, UTC);
 
-    public static final OffsetDateTime lowestBound() {
+    public static OffsetDateTime lowestBound() {
         return EPOCH;
     }
 
-    public static final OffsetDateTime uppestBound() {
+    public static OffsetDateTime upperBound() {
         return OffsetDateTime.now(UTC).plusDays(10);
     }
 
-    public static final Option<OffsetDateTime> extractTemporalBound(Option<Double> timestamp) {
+    public static Option<OffsetDateTime> extractTemporalBound(Option<Double> timestamp) {
         return timestamp.map(Double::longValue).flatMap(l -> parseDatetime(l).toOption());
     }
 
-    public static final Try<OffsetDateTime> parseDatetime(Long ts) {
+    public static Try<OffsetDateTime> parseDatetime(Long ts) {
         return trying(() -> OffsetDateTime.ofInstant(ofEpochMilli(ts), UTC)).mapFailure(OFFSETDATETIME_PARSING,
                                                                                         () -> format(
                                                                                             "Could not parse instant from timestamp %s",
@@ -66,9 +66,12 @@ public class OffsetDatetimeUtils {
     }
 
     public static Try<OffsetDateTime> parseStacDatetime(String repr) {
-        return trying(() -> OffsetDateTime.from(StacSpecConstants.ISO_DATE_TIME_UTC.parse(repr))).mapFailure(
+        return trying(() -> OffsetDateTime.from(StacConstants.ISO_DATE_TIME_UTC.parse(repr))).mapFailure(
             OFFSETDATETIME_PARSING,
             () -> format("Failed to parse datetime from %s", repr));
     }
 
+    private OffsetDatetimeUtils() {
+        // Utility class
+    }
 }

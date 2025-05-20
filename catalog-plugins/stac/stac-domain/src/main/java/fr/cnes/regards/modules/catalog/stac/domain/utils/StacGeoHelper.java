@@ -21,15 +21,13 @@ package fr.cnes.regards.modules.catalog.stac.domain.utils;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import io.vavr.Tuple;
-import io.vavr.Tuple3;
+import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
-import org.locationtech.spatial4j.shape.Point;
 import org.locationtech.spatial4j.shape.Rectangle;
 import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.jts.JtsShapeFactory;
@@ -72,7 +70,7 @@ public class StacGeoHelper {
         return new GeoJSONReader(new JtsSpatialContext(factory), factory);
     }
 
-    public Option<Tuple3<IGeometry, BBox, Centroid>> computeBBoxCentroid(IGeometry geometry, GeoJSONReader reader) {
+    public Option<Tuple2<IGeometry, BBox>> computeBBox(IGeometry geometry, GeoJSONReader reader) {
         return trying(() -> {
             String json = putTypeInFirstPosition(gson.toJson(geometry));
             debug(LOGGER, "\n\tGeometry: {}\n\tJSON: {}", geometry, json);
@@ -85,10 +83,7 @@ public class StacGeoHelper {
                                  boundingBox.getMaxX(),
                                  boundingBox.getMaxY());
 
-            Point center = shape.getCenter();
-            Centroid centroid = new Centroid(center.getX(), center.getY());
-
-            return Tuple.of(geometry, bbox, centroid);
+            return Tuple.of(geometry, bbox);
         }).onFailure(t -> warn(LOGGER, "Could not create BBox for geometry {}", geometry, t)).toOption();
     }
 

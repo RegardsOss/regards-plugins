@@ -16,15 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with REGARDS. If not, see `<http://www.gnu.org/licenses/>`.
  */
-
-/**
- *
- */
 package fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.link;
 
 import com.google.gson.Gson;
 import fr.cnes.regards.framework.authentication.IAuthenticationResolver;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
+import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorServiceImpl;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdderImpl;
@@ -65,13 +63,15 @@ public class LinkCreatorServicePaginationTest {
      */
     @Test
     public void test_pagination_search_page_link_creators() {
-        SearchPageLinkCreator pageLinkCreator = linkCreatorService.makeSearchPageLinkCreator(2, null);
+        SearchPageLinkCreator pageLinkCreator = linkCreatorService.makeSearchPageLinkCreator(2, null, true);
 
         SearchPageLinkCreator collectionItemsPageLinkCreator = linkCreatorService.makeCollectionItemsPageLinkCreator(2,
-                                                                                                                     "URN:FEATURE:toto:123-123-123:V1");
+                                                                                                                     "URN:FEATURE:toto:123-123-123:V1",
+                                                                                                                     true);
 
         SearchPageLinkCreator collectionPageLinkCreator = linkCreatorService.makeSearchCollectionPageLinkCreation(2,
-                                                                                                                  null);
+                                                                                                                  null,
+                                                                                                                  true);
         test_next_previous_self_pages(pageLinkCreator);
         test_next_previous_self_pages(collectionItemsPageLinkCreator);
         test_next_previous_self_pages(collectionPageLinkCreator);

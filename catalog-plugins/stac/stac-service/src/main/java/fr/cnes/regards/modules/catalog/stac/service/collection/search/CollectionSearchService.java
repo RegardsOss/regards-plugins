@@ -18,11 +18,9 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.search;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.*;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
 
@@ -36,8 +34,18 @@ public interface CollectionSearchService {
     Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody,
                                           Integer page,
                                           SearchPageLinkCreator searchCollectionPageLinkCreator,
-                                          SearchPageLinkCreator searchItemPageLinkCreator);
+                                          OGCFeatLinkCreator ogcFeatLinkCreator);
 
     Try<DownloadPreparationResponse> prepareZipDownload(FiltersByCollection filtersByCollection,
+                                                        DownloadLinkCreator downloadLinkCreator);
+
+    /**
+     * Get collection information
+     *
+     * @param filtersByCollection filters by collection
+     * @param downloadLinkCreator download link creator
+     * @return collection information
+     */
+    Try<CollectionInformation> getCollectionInformation(FiltersByCollection filtersByCollection,
                                                         DownloadLinkCreator downloadLinkCreator);
 }

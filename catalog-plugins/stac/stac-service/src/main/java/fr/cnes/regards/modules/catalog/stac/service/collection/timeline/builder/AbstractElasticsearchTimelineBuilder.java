@@ -19,9 +19,9 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder;
 
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.FiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineByCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;

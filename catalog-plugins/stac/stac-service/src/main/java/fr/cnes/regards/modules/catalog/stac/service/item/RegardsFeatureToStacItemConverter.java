@@ -19,8 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
+import fr.cnes.regards.modules.catalog.stac.domain.api.Fields;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
@@ -33,6 +34,7 @@ import io.vavr.control.Try;
 public interface RegardsFeatureToStacItemConverter {
 
     Try<Item> convertFeatureToItem(List<StacProperty> properties,
+                                   Fields fields,
                                    OGCFeatLinkCreator linkCreator,
                                    AbstractEntity<? extends EntityFeature> feature);
 

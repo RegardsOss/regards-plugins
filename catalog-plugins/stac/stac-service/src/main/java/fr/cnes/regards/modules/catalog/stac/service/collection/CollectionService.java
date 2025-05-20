@@ -19,14 +19,15 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.CollectionsResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.CollectionsResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
+import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.CollectionConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.collection.List;
@@ -45,9 +46,14 @@ public interface CollectionService {
 
     Collection buildRootStaticCollection(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
 
-    Try<CollectionsResponse> buildRootCollectionsResponse(OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
+    Try<CollectionsResponse> buildRootCollectionsResponse(OGCFeatLinkCreator linkCreator,
+                                                          ConfigurationAccessor config,
+                                                          CollectionConfigurationAccessor collectionConfigurationAccessor);
 
-    Try<Collection> buildCollection(String collectionId, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config);
+    Try<Collection> buildCollection(String collectionId,
+                                    OGCFeatLinkCreator linkCreator,
+                                    ConfigurationAccessor config,
+                                    CollectionConfigurationAccessor collectionConfigurationAccessor);
 
     Try<ItemCollectionResponse> getItemsForCollection(String collectionId,
                                                       Integer limit,
@@ -57,5 +63,5 @@ public interface CollectionService {
                                                       OGCFeatLinkCreator ogcFeatLinkCreator,
                                                       Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker);
 
-    List<Link> buildRootLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator);
+    java.util.List<Link> buildLandingPageLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator);
 }

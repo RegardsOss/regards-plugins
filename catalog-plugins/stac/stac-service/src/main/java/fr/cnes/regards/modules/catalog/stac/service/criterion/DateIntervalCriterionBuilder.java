@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
+import fr.cnes.regards.modules.catalog.stac.domain.api.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.dam.domain.entities.criterion.IFeatureCriterion;
@@ -29,7 +29,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.springframework.stereotype.Component;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.DATETIME_PROPERTY_NAME;
 
 /**
  * Builds criteria for datetime fields.

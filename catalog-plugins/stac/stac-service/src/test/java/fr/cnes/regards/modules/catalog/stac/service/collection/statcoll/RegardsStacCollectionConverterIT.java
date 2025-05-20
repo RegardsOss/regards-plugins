@@ -7,8 +7,9 @@ import fr.cnes.regards.framework.jpa.multitenant.test.AbstractMultitenantService
 import fr.cnes.regards.framework.oais.dto.urn.OAISIdentifier;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
@@ -41,7 +42,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ import static org.mockito.Mockito.when;
                     properties = { "spring.jpa.properties.hibernate.default_schema=public", })
 public class RegardsStacCollectionConverterIT extends AbstractMultitenantServiceIT {
 
-    public static final String ITEMSTENANT = "PROJECT";
+    public static final String ITEMS_TENANT = "PROJECT";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegardsStacCollectionConverterIT.class);
 
@@ -80,15 +81,15 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     public void initMethod() {
 
         try {
-            repository.deleteIndex(ITEMSTENANT);
+            repository.deleteIndex(ITEMS_TENANT);
         } catch (Exception e) {
 
         }
-        Assert.assertTrue(repository.createIndex(ITEMSTENANT));
+        Assert.assertTrue(repository.createIndex(ITEMS_TENANT));
 
         UniformResourceName urnParentCollection = UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                                             EntityType.COLLECTION,
-                                                                            ITEMSTENANT,
+                                                                            ITEMS_TENANT,
                                                                             UUID.fromString(
                                                                                 "74f2c965-0136-47f0-93e1-4fd098db5680"),
                                                                             1,
@@ -104,7 +105,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         model1.setType(EntityType.COLLECTION);
         fr.cnes.regards.modules.dam.domain.entities.Collection collection = new fr.cnes.regards.modules.dam.domain.entities.Collection(
             collectionModel,
-            ITEMSTENANT,
+            ITEMS_TENANT,
             "COL",
             "collection");
 
@@ -113,7 +114,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         collection.setLabel("toto");
         UniformResourceName collectionUniformResourceName = UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                                                       EntityType.COLLECTION,
-                                                                                      ITEMSTENANT,
+                                                                                      ITEMS_TENANT,
                                                                                       UUID.fromString(
                                                                                           "80282ac5-1b01-4e9d-a356-123456789012"),
                                                                                       1,
@@ -123,13 +124,13 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
         Point point = IGeometry.point(1.3747632, 43.524768);
 
-        DataObject dataObject1 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+        DataObject dataObject1 = new DataObject(new Model(), ITEMS_TENANT, "provider", "label");
         GeoPoint do1SePoint = new GeoPoint(43.4461681, -0.0369283);
         GeoPoint do1NwPoint = new GeoPoint(43.7695852, -0.5334374);
         dataObject1.setId(2L);
         dataObject1.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                       EntityType.DATA,
-                                                      ITEMSTENANT,
+                                                      ITEMS_TENANT,
                                                       UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db1234"),
                                                       1,
                                                       null,
@@ -146,14 +147,14 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject1.getFeature().setGeometry(GeoHelper.normalize(point1));
         dataObject1.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
-        DataObject dataObject2 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+        DataObject dataObject2 = new DataObject(new Model(), ITEMS_TENANT, "provider", "label");
 
         GeoPoint do2SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
         GeoPoint do2NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
         dataObject2.setId(2L);
         dataObject2.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                       EntityType.DATA,
-                                                      ITEMSTENANT,
+                                                      ITEMS_TENANT,
                                                       UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5678"),
                                                       1,
                                                       null,
@@ -169,14 +170,14 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject2.getFeature().setGeometry(GeoHelper.normalize(point2));
         dataObject2.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
-        DataObject dataObject3 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+        DataObject dataObject3 = new DataObject(new Model(), ITEMS_TENANT, "provider", "label");
 
         GeoPoint do3SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
         GeoPoint do3NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
         dataObject3.setId(2L);
         dataObject3.setIpId(UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                       EntityType.COLLECTION,
-                                                      ITEMSTENANT,
+                                                      ITEMS_TENANT,
                                                       UUID.fromString("74f2c965-0136-47f0-93e1-4fd098db5679"),
                                                       1,
                                                       null,
@@ -191,7 +192,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject3.setNormalizedGeometry(GeoHelper.normalize(point3));
         dataObject3.getFeature().setGeometry(GeoHelper.normalize(point3));
         dataObject3.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
-        DataObject dataObject4 = new DataObject(new Model(), ITEMSTENANT, "provider", "label");
+        DataObject dataObject4 = new DataObject(new Model(), ITEMS_TENANT, "provider", "label");
 
         GeoPoint do4SePoint = new GeoPoint(42.95009340967441, 17.138151798412633);
         GeoPoint do4NwPoint = new GeoPoint(42.963693206490134, 17.112059269965048);
@@ -209,51 +210,40 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         dataObject4.getFeature().setGeometry(GeoHelper.normalize(point4));
         dataObject4.getFeature().setNormalizedGeometry(GeoHelper.normalize(point));
 
-        when(linkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root"))
-                                                                 .map(uri -> new Link(uri, ROOT, "", "")));
-        when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option.of(uri("/collection/"
-                                                                                                       + i.getArgument(0)))
-                                                                                               .map(uri -> new Link(uri,
-                                                                                                                    COLLECTION,
-                                                                                                                    "",
-                                                                                                                    "")));
-        when(linkCreator.createItemLink(anyString(), anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
-                                                                                                     + i.getArgument(0)
-                                                                                                     + "/item/"
-                                                                                                     + i.getArgument(1)))
-                                                                                         .map(uri -> new Link(uri,
-                                                                                                              SELF,
-                                                                                                              "",
-                                                                                                              "")));
-        when(linkCreator.createCollectionItemsLinkWithRel(anyString(), anyString())).thenAnswer(i -> Option.of(new URI(
-                                                                                                               "/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
-                                                                                                           .map(uri -> new Link(
-                                                                                                               uri,
-                                                                                                               SELF,
-                                                                                                               "",
-                                                                                                               ""))
-                                                                                                           .map(x -> x.withRel(
-                                                                                                               "item")));
+        when(linkCreator.createLandingPageLink(Relation.ROOT)).thenAnswer(i -> Option.of(uri("/root"))
+                                                                                     .map(uri -> new Link(uri,
+                                                                                                          Relation.ROOT.getValue(),
+                                                                                                          "",
+                                                                                                          "")));
+        when(linkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
+            uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, (Relation) i.getArgument(0), "", "")));
+        when(linkCreator.createItemLink(any(Relation.class),
+                                        anyString(),
+                                        anyString())).thenAnswer(i -> Option.of(new URI("/collection"
+                                                                                        + "/"
+                                                                                        + i.getArgument(1)
+                                                                                        + "/item/"
+                                                                                        + i.getArgument(2)))
+                                                                            .map(uri -> new Link(uri,
+                                                                                                 (Relation) i.getArgument(
+                                                                                                     0),
+                                                                                                 "",
+                                                                                                 "")));
+        when(linkCreator.createCollectionItemsLink(any(Relation.class), anyString())).thenAnswer(i -> Option.of(new URI(
+                                                                                                                "/collection/" + i.getArgument(1) + "/items/" + "anItem"))
+                                                                                                            .map(uri -> new Link(
+                                                                                                                uri,
+                                                                                                                (Relation) i.getArgument(
+                                                                                                                    0),
+                                                                                                                "",
+                                                                                                                "")));
 
-        when(linkCreator.createCollectionLinkWithRel(anyString(), anyString(), anyString())).thenAnswer(i -> {
-            if (i.getArgument(2).equals("child")) {
-                return Option.of(uri("/collection/" + i.getArgument(0)))
-                             .map(uri -> new Link(uri, COLLECTION, "", ""))
-                             .map(l -> l.withRel("child"));
-            }
-
-            return Option.of(uri("/collection/" + i.getArgument(0)))
-                         .map(uri -> new Link(uri, COLLECTION, "", ""))
-                         .map(l -> l.withRel("parent"));
-
-        });
-
-        repository.save(ITEMSTENANT, collection);
-        repository.save(ITEMSTENANT, dataObject1);
-        repository.save(ITEMSTENANT, dataObject2);
-        repository.save(ITEMSTENANT, dataObject3);
-        repository.save(ITEMSTENANT, dataObject4);
-        repository.refresh(ITEMSTENANT);
+        repository.save(ITEMS_TENANT, collection);
+        repository.save(ITEMS_TENANT, dataObject1);
+        repository.save(ITEMS_TENANT, dataObject2);
+        repository.save(ITEMS_TENANT, dataObject3);
+        repository.save(ITEMS_TENANT, dataObject4);
+        repository.refresh(ITEMS_TENANT);
 
     }
 
@@ -267,7 +257,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
     @After
     public void cleanUp() {
-        repository.deleteIndex(ITEMSTENANT);
+        repository.deleteIndex(ITEMS_TENANT);
     }
 
     @Test
@@ -275,7 +265,7 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         when(projectGeoSettings.getCrs()).thenReturn(Crs.WGS_84);
         when(idMappingService.getStacIdByUrn(anyString())).thenReturn("stacId");
 
-        String urn = "URN:AIP:COLLECTION:" + ITEMSTENANT + ":80282ac5-1b01-4e9d-a356-123456789012:V1";
+        String urn = "URN:AIP:COLLECTION:" + ITEMS_TENANT + ":80282ac5-1b01-4e9d-a356-123456789012:V1";
         Try<Collection> result = converter.convertRequest(urn,
                                                           linkCreator,
                                                           configurationAccessorFactory.makeConfigurationAccessor())
@@ -285,10 +275,10 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                                           });
 
         Assert.assertTrue(result.isSuccess());
-        Assert.assertEquals(-0.5334374, result.get().getExtent().getSpatial().getBbox().get(0).getMinX(), 0.0000001);
-        Assert.assertEquals(43.7695852, result.get().getExtent().getSpatial().getBbox().get(0).getMaxY(), 0.0000001);
-        Assert.assertEquals(17.1381517, result.get().getExtent().getSpatial().getBbox().get(0).getMaxX(), 0.0000001);
-        Assert.assertEquals(42.9500934, result.get().getExtent().getSpatial().getBbox().get(0).getMinY(), 0.0000001);
+        Assert.assertEquals(-0.5334374, result.get().getExtent().getSpatial().getBbox().get(0).minX(), 0.0000001);
+        Assert.assertEquals(43.7695852, result.get().getExtent().getSpatial().getBbox().get(0).maxY(), 0.0000001);
+        Assert.assertEquals(17.1381517, result.get().getExtent().getSpatial().getBbox().get(0).maxX(), 0.0000001);
+        Assert.assertEquals(42.9500934, result.get().getExtent().getSpatial().getBbox().get(0).minY(), 0.0000001);
 
         Assert.assertEquals(offsetDateTimeFrom.toInstant().truncatedTo(ChronoUnit.MILLIS),
                             result.get().getExtent().getTemporal().getInterval().get()._1.toInstant());
@@ -298,11 +288,11 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
         Assert.assertEquals("toto", result.get().getTitle());
         Assert.assertEquals("stacId", result.get().getId());
 
-        Assert.assertEquals(3, result.get().getLinks().length());
-        //        Assert.assertEquals(1, result.get().getLinks().count(x -> "child".equals(x.getRel())));
-        Assert.assertEquals(1, result.get().getLinks().count(x -> "item".equals(x.getRel())));
-        Assert.assertEquals(1, result.get().getLinks().count(x -> "root".equals(x.getRel())));
-        Assert.assertEquals(1, result.get().getLinks().count(x -> "parent".equals(x.getRel())));
+        Assert.assertEquals(4, result.get().getLinks().length());
+        Assert.assertEquals(1, result.get().getLinks().count(x -> Relation.SELF.getValue().equals(x.rel())));
+        Assert.assertEquals(1, result.get().getLinks().count(x -> Relation.ITEMS.getValue().equals(x.rel())));
+        Assert.assertEquals(1, result.get().getLinks().count(x -> Relation.ROOT.getValue().equals(x.rel())));
+        Assert.assertEquals(1, result.get().getLinks().count(x -> Relation.PARENT.getValue().equals(x.rel())));
 
     }
 

@@ -20,8 +20,8 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion.query;
 
 import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody.DatetimeQueryObject;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody.DatetimeQueryObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
@@ -37,7 +37,6 @@ import static fr.cnes.regards.modules.indexer.domain.criterion.ICriterion.not;
 /**
  * Criterion builder for a {@link DatetimeQueryObject}
  * <p>
- * TODO: convert this class to the same model as for NumberQueryCriterionBuilder, using custom datetime intervals
  */
 public class DatetimeQueryCriterionBuilder extends AbstractQueryObjectCriterionBuilder<DatetimeQueryObject> {
 
@@ -74,8 +73,8 @@ public class DatetimeQueryCriterionBuilder extends AbstractQueryObjectCriterionB
                                      EODagParameters parameters,
                                      List<StacProperty> properties,
                                      DatetimeQueryObject queryObject) {
-        if (StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME.equals(stacPropName)
-            || StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME.equals(stacPropName)) {
+        if (StacProperties.START_DATETIME_PROPERTY_NAME.equals(stacPropName)
+            || StacProperties.END_DATETIME_PROPERTY_NAME.equals(stacPropName)) {
             if (queryObject.getLt() != null) {
                 parameters.setEnd(OffsetDateTimeAdapter.format(queryObject.getLt()));
             } else if (queryObject.getLte() != null) {

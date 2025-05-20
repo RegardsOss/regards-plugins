@@ -28,7 +28,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public interface Base64Codec {
 
-    Base64.Encoder ENCODER = Base64.getEncoder();
+    // Remove trailing '=' as a workaround for bad url encoding of links
+    Base64.Encoder ENCODER = Base64.getEncoder().withoutPadding();
     Base64.Decoder DECODER = Base64.getDecoder();
 
     default String toBase64(String content) {
@@ -36,6 +37,9 @@ public interface Base64Codec {
     }
 
     default String fromBase64(String b64) {
+        // Reset trailing '=' as a workaround for bad url encoding of links
+        int paddingNeeded = (4 - (b64.length() % 4)) % 4;
+        b64 = b64 + "=".repeat(paddingNeeded);
         return new String(DECODER.decode(b64), UTF_8);
     }
 

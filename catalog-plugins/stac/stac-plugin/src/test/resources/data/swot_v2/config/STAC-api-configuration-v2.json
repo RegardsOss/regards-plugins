@@ -176,6 +176,7 @@
           {
             "sourcePropertyPath": "spatial.cycle_id",
             "stacPropertyName": "spatial:cycle_id",
+            "stacPropertyExtension": "https://stac-extensions.github.io/spatial/1.O.O/noschema.json",
             "stacPropertyType": "NUMBER",
             "stacComputeSummary": false
           },
@@ -245,6 +246,16 @@
         "name": "histogram-property-path",
         "type": "STRING",
         "value": "temporal_extent"
+      },
+      {
+        "name": "enable-human-readable-ids",
+        "type": "BOOLEAN",
+        "value": "true"
+      },
+      {
+        "name": "use-collection-configuration",
+        "type": "BOOLEAN",
+        "value": "true"
       }
     ]
   }

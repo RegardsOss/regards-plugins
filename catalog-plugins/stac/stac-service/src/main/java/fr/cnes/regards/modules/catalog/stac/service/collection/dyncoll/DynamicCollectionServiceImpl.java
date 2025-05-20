@@ -19,16 +19,17 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.level.DynCollLevelDef;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll.helpers.DynCollLevelDefParser;
@@ -52,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTION_CONSTRUCTION;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
@@ -141,19 +141,17 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
                                            ConfigurationAccessor config) {
         return trying(() -> {
             String selfUrn = representDynamicCollectionsValueAsURN(val);
-            List<Link> baseLinks = List.of(linkCreator.createRootLink(),
-                                           linkCreator.createCollectionLinkWithRel(DEFAULT_DYNAMIC_ID,
-                                                                                   config.getRootDynamicCollectionName(),
-                                                                                   ANCESTOR),
-                                           linkCreator.createCollectionLinkWithRel(selfUrn, val.toLabel(), SELF),
-                                           getParentLink(val, linkCreator)).flatMap(t -> t);
+            List<Link> baseLinks = List.of(linkCreator.createLandingPageLink(Relation.ROOT),
+                                           linkCreator.createCollectionLink(Relation.SELF, selfUrn, val.toLabel()),
+                                           getParentLink(val, linkCreator, config)).flatMap(t -> t);
 
             ItemSearchBody itemSearchBody = toItemSearchBody(val);
             ICriterion criterion = criterionBuilder.toCriterion(config.getStacProperties(), itemSearchBody);
-            List<AggregationBuilder> aggDefs = extentSummaryService.extentSummaryAggregationBuilders(config.getDatetimeStacProperty(),
-                                                                                                     config.getStacProperties());
-            List<Aggregation> aggVals = List.ofAll(aggregagtionHelper.getAggregationsFor(criterion, aggDefs, 1000)
-                                                                     .asList());
+            List<AggregationBuilder> aggregationBuilders = extentSummaryService.extentSummaryAggregationBuilders(config.getDatetimeStacProperty(),
+                                                                                                                 config.getStacProperties());
+            List<Aggregation> aggVals = List.ofAll(aggregagtionHelper.getAggregationsFor(criterion,
+                                                                                         aggregationBuilders,
+                                                                                         1000).asList());
             Map<StacProperty, Aggregation> aggsMap = extentSummaryService.toAggregationMap(config.getStacProperties(),
                                                                                            aggVals);
             Extent extent = extentSummaryService.extractExtent(aggsMap);
@@ -178,36 +176,41 @@ public class DynamicCollectionServiceImpl implements DynamicCollectionService {
         String license = "";
         List<Provider> providers = List.empty();
 
-        return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
+        return new Collection(StacConstants.STAC_SPEC_VERSION,
                               extensions,
-                              val.getLowestLevelLabel(),
                               representDynamicCollectionsValueAsURN(val),
+                              val.getLowestLevelLabel(),
                               val.toLabel(),
-                              baseLinks.appendAll(childLinks),
                               keywords,
                               license,
                               providers,
                               extent,
                               summary,
+                              baseLinks.appendAll(childLinks),
+                              null,
                               null,
                               null);
     }
 
     private List<Link> createChildLinks(List<DynCollVal> nextVals, OGCFeatLinkCreator linkCreator) {
-        return nextVals.flatMap(val -> linkCreator.createCollectionLinkWithRel(representDynamicCollectionsValueAsURN(val),
-                                                                               val.toLabel(),
-                                                                               CHILD));
+        return nextVals.flatMap(val -> linkCreator.createCollectionLink(Relation.CHILD,
+                                                                        representDynamicCollectionsValueAsURN(val),
+                                                                        val.toLabel()));
     }
 
     private List<Link> createItemsLink(String selfUrn, OGCFeatLinkCreator linkCreator) {
-        return List.of(linkCreator.createCollectionItemsLinkWithRel(selfUrn, ITEMS)).flatMap(t -> t);
+        return List.of(linkCreator.createCollectionItemsLink(Relation.ITEMS, selfUrn)).flatMap(t -> t);
     }
 
-    private Option<Link> getParentLink(DynCollVal val, OGCFeatLinkCreator linkCreator) {
-        return val.parentValue().flatMap(parent -> {
-            String parentUrn = representDynamicCollectionsValueAsURN(parent);
-            return linkCreator.createCollectionLinkWithRel(parentUrn, parent.toLabel(), PARENT).toOption();
-        });
+    private Option<Link> getParentLink(DynCollVal val, OGCFeatLinkCreator linkCreator, ConfigurationAccessor config) {
+        return val.parentValue()
+                  .flatMap(parent -> {
+                      String parentUrn = representDynamicCollectionsValueAsURN(parent);
+                      return linkCreator.createCollectionLink(Relation.PARENT, parentUrn, parent.toLabel()).toOption();
+                  })
+                  .orElse(() -> linkCreator.createCollectionLink(Relation.PARENT,
+                                                                 DEFAULT_DYNAMIC_ID,
+                                                                 config.getRootDynamicCollectionName()));
     }
 
 }

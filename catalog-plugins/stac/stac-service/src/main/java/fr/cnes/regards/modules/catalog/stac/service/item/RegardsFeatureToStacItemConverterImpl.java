@@ -21,23 +21,28 @@ package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.geojson.GeoJsonType;
 import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.Fields;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.STACType;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.extensions.FileInfoExtension;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.item.extensions.FieldExtension;
 import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.StacLinkCreator;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import io.vavr.Tuple;
-import io.vavr.Tuple3;
+import io.vavr.Tuple2;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
@@ -68,7 +73,7 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     private final PropertyExtractionService propertyExtractionService;
 
-    private IdMappingService idMappingService;
+    private final IdMappingService idMappingService;
 
     public RegardsFeatureToStacItemConverterImpl(StacGeoHelper geoHelper,
                                                  ConfigurationAccessorFactory configurationAccessorFactory,
@@ -82,44 +87,96 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
 
     @Override
     public Try<Item> convertFeatureToItem(List<StacProperty> properties,
+                                          Fields fields,
                                           OGCFeatLinkCreator linkCreator,
                                           AbstractEntity<? extends EntityFeature> feature) {
+
         debug(LOGGER, "Converting to item: Feature={}\n\twith Properties={}", feature, properties);
         return trying(() -> {
+            // Initialize field extensions
+            FieldExtension fieldExtension = FieldExtension.build(fields, properties.toJavaList());
             ConfigurationAccessor configurationAccessor = configurationAccessorFactory.makeConfigurationAccessor();
             Map<String, Object> featureStacProperties = propertyExtractionService.extractStacProperties(feature,
-                                                                                                        properties);
-            List<Link> staticFeatureLinks = propertyExtractionService.extractStaticLinks(feature,
-                                                                                         configurationAccessor.getLinksStacProperty());
-            Map<String, Asset> staticFeatureAssets = propertyExtractionService.extractStaticAssets(feature,
-                                                                                                   configurationAccessor.getAssetsStacProperty());
-            Set<String> extensions = propertyExtractionService.extractExtensionsFromConfiguration(properties);
-            Tuple3<IGeometry, BBox, Centroid> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader());
-            String collection = extractCollection(feature).getOrNull();
-            String itemId = feature.getIpId().toString();
+                                                                                                        properties,
+                                                                                                        fieldExtension);
 
-            Item result = new Item(extensions,
+            // Links from feature properties
+            List<Link> staticFeatureLinks = propertyExtractionService.extractStaticLinks(feature,
+                                                                                         configurationAccessor.getLinksStacProperty(),
+                                                                                         fieldExtension);
+            Map<String, Asset> staticFeatureAssets = propertyExtractionService.extractStaticAssets(feature,
+                                                                                                   configurationAccessor.getAssetsStacProperty(),
+                                                                                                   fieldExtension);
+            Set<String> extensions = propertyExtractionService.extractExtensionsFromConfiguration(properties,
+                                                                                                  HashSet.of(
+                                                                                                      FileInfoExtension.EXTENSION_ID),
+                                                                                                  fieldExtension);
+            Tuple2<IGeometry, BBox> geo = extractGeo(feature, configurationAccessor.getGeoJSONReader(), fieldExtension);
+            String collection = extractCollection(feature, fieldExtension).getOrNull();
+            String itemId = extractItemId(feature, configurationAccessor, fieldExtension);
+
+            Item result = new Item(fieldExtension.isTypeIncluded() ? STACType.FEATURE : null,
+                                   fieldExtension.isStacVersionIncluded() ? StacConstants.STAC_SPEC_VERSION : null,
+                                   extensions,
                                    itemId,
-                                   geo._2,
                                    geo._1,
-                                   geo._3,
-                                   collection,
+                                   geo._2,
                                    featureStacProperties,
-                                   extractLinks(itemId, collection, linkCreator).appendAll(staticFeatureLinks),
-                                   propertyExtractionService.extractAssets(feature).merge(staticFeatureAssets));
+                                   extractItemLinks(itemId,
+                                                    collection,
+                                                    linkCreator,
+                                                    staticFeatureLinks,
+                                                    fieldExtension),
+                                   propertyExtractionService.extractAssets(feature,
+                                                                           staticFeatureAssets,
+                                                                           fieldExtension),
+                                   collection);
             debug(LOGGER, "Result Item={}", result);
             return result;
         }).mapFailure(ENTITY_TO_ITEM_CONVERSION,
                       () -> format("Failed to convert data object %s to item", feature.getIpId()));
     }
 
-    private List<Link> extractLinks(String itemId, String collection, OGCFeatLinkCreator linkCreator) {
-        return List.of(linkCreator.createRootLink(),
-                       linkCreator.createCollectionLink(collection, "Item collection"),
-                       linkCreator.createItemLink(collection, itemId)).flatMap(tl -> tl);
+    private String extractItemId(AbstractEntity<? extends EntityFeature> feature,
+                                 ConfigurationAccessor configurationAccessor,
+                                 FieldExtension fieldExtension) {
+
+        // Skip id extraction according to field extension
+        if (!fieldExtension.isIdIncluded()) {
+            return null;
+        }
+
+        return idMappingService.getItemId(feature.getIpId(),
+                                          feature.getProviderId(),
+                                          configurationAccessor.isHumanReadableIdsEnabled());
     }
 
-    private Option<String> extractCollection(AbstractEntity<? extends EntityFeature> feature) {
+    private List<Link> extractItemLinks(String itemId,
+                                        String collection,
+                                        OGCFeatLinkCreator linkCreator,
+                                        List<Link> staticFeatureLinks,
+                                        FieldExtension fieldExtension) {
+
+        // Skip links extraction according to field extension
+        if (!fieldExtension.isLinksIncluded()) {
+            return null;
+        }
+
+        return List.of(linkCreator.createLandingPageLink(Relation.ROOT),
+                       linkCreator.createCollectionLink(Relation.COLLECTION, collection, "Item collection"),
+                       linkCreator.createCollectionLink(Relation.PARENT, collection, "Parent collection"),
+                       linkCreator.createItemLink(Relation.SELF, collection, itemId))
+                   .flatMap(tl -> tl)
+                   .appendAll(staticFeatureLinks);
+    }
+
+    private Option<String> extractCollection(AbstractEntity<? extends EntityFeature> feature,
+                                             FieldExtension fieldExtension) {
+        // Skip collection extraction according to field extension
+        if (!fieldExtension.isCollectionIncluded()) {
+            return Option.none();
+        }
+
         Option<String> urn = HashSet.ofAll(feature.getTags())
                                     .filter(tag -> tag.startsWith("URN:"))
                                     .filter(tag -> tag.contains(":DATASET:"))
@@ -128,17 +185,24 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
         return Option.of(idMappingService.getStacIdByUrn(urn.get()));
     }
 
-    private Tuple3<IGeometry, BBox, Centroid> extractGeo(AbstractEntity<? extends EntityFeature> feature,
-                                                         GeoJSONReader geoJSONReader) {
+    private Tuple2<IGeometry, BBox> extractGeo(AbstractEntity<? extends EntityFeature> feature,
+                                               GeoJSONReader geoJSONReader,
+                                               FieldExtension fieldExtension) {
+
+        // Skip geometry extraction according to field extension
+        if (!fieldExtension.isGeometryIncluded()) {
+            return new Tuple2<>(IGeometry.unlocated(), null);
+        }
+
         Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry());
         if (geometry.isDefined() && !GeoJsonType.UNLOCATED.equals(geometry.get().getType())) {
             Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
-            return geometry.flatMap(g -> bbox.map(b -> Tuple.of(g, b, b.centroid()))
-                                             .orElse(geoHelper.computeBBoxCentroid(g, geoJSONReader)))
-                           .orElse(bbox.map(bb -> Tuple.of(null, bb, bb.centroid())))
-                           .getOrElse(() -> Tuple.of(null, null, null));
+            // Compute the bounding box if not provided by the feature using the geometry
+            // If no geometry is provided, the bounding box will be null as the stac spec requires that
+            return geometry.flatMap(g -> bbox.map(b -> Tuple.of(g, b)).orElse(geoHelper.computeBBox(g, geoJSONReader)))
+                           .getOrElse(() -> Tuple.of(null, null));
         } else {
-            return new Tuple3<>(IGeometry.unlocated(), null, null);
+            return new Tuple2<>(IGeometry.unlocated(), null);
         }
     }
 

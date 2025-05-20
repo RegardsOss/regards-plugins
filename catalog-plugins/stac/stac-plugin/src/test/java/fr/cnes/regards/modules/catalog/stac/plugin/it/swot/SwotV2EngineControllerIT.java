@@ -25,15 +25,16 @@ import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.security.utils.HttpConstants;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
+import fr.cnes.regards.modules.catalog.stac.domain.api.DateInterval;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.FiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.plugin.it.AbstractStacIT;
-import fr.cnes.regards.modules.catalog.stac.rest.v1_0_0_beta1.utils.StacApiConstants;
+import fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
@@ -53,7 +54,8 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Cross layer integration test : from RESTful API to Elasticsearch index
@@ -97,12 +99,6 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         searchEngineService.createConf(collectionConf);
     }
 
-    @Test
-    @Ignore
-    public void loadTest() {
-        // Test initialization
-    }
-
     /**
      * Basic COLLECTION search without criterion
      */
@@ -117,12 +113,51 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     }
 
     /**
+     * Get items from a collection
+     */
+    @Test
+    public void searchItemsAsGet() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("collections", "SWOT_L2_HR_Raster_100m");
+        customizer.addParameter("limit", "1");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Get items from a collection
+     */
+    @Test
+    public void searchItemsAsGetWithoutAuthParams() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        //TODO : change this header with plugin config
+        customizer.addHeader(StacConstants.DISABLE_AUTH_PARAMS, "true");
+        customizer.addParameter("collections", "SWOT_L2_HR_Raster_100m");
+        customizer.addParameter("limit", "1");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
+     * Get items from a collection and a specific datetime
+     */
+    @Test
+    public void searchItemsWithDatetimeAsGet() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("collections", "SWOT_L2_HR_Raster_100m");
+        customizer.addParameter("datetime", "2000-09-29T08:00:00.000Z/2024-10-29T17:00:00.000Z");
+        performDefaultGet(StacApiConstants.STAC_SEARCH_PATH, customizer, "Cannot search STAC items");
+    }
+
+    /**
      * Basic ITEM search without criterion
      */
     @Test
     public void searchItemsAsPost() {
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
-        ItemSearchBody body = ItemSearchBody.builder().build();
+        Map<String, SearchBody.QueryObject> iq = HashMap.of("hydro:data_type",
+                                                            SearchBody.StringQueryObject.builder()
+                                                                                        .eq("L2_HR_RASTER_100m")
+                                                                                        .build());
+        ItemSearchBody body = ItemSearchBody.builder().query(iq).limit(1).build();
         performDefaultPost(StacApiConstants.STAC_SEARCH_PATH, body, customizer, "Cannot search STAC items");
     }
 
@@ -355,6 +390,44 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     }
 
     @Test
+    public void given_oneCollection_when_getCollectionInformation_then_successfulRequest() {
+        ResultActions resultActions = getCollectionInformation(HashMap.of("L2_HR_RASTER_100m", null));
+        String json = payload(resultActions);
+        Assert.assertNotNull("Payload is required", json);
+
+        // Check that the collection information is present
+        java.util.Map<String, Object> collection = JsonPath.read(json, "$.collections[0]");
+        Assert.assertNotNull("Collection information is required", collection);
+        Assert.assertEquals(351000, collection.get("size"));
+        Assert.assertEquals(2, collection.get("items"));
+        Assert.assertEquals(3, collection.get("files"));
+        Assert.assertNotNull("Sample is required", collection.get("sample"));
+    }
+
+    @Test
+    public void given_unknownCollection_when_getCollectionInformation_then_errorRequest() {
+
+        // Body
+        FiltersByCollection.CollectionFilters downloadCollectionPreparationBody = FiltersByCollection.CollectionFilters.builder()
+                                                                                                                       .collectionId(
+                                                                                                                           "unknown")
+                                                                                                                       .build();
+
+        FiltersByCollection filtersByCollection = FiltersByCollection.builder()
+                                                                     .collections(List.of(
+                                                                         downloadCollectionPreparationBody))
+                                                                     .build();
+
+        // Assertions
+        RequestBuilderCustomizer customizer = customizer().expectStatusBadRequest();
+
+        performDefaultPost(StacApiConstants.STAC_COLLECTION_INFORMATION_PATH,
+                           filtersByCollection,
+                           customizer,
+                           "Cannot get collection information");
+    }
+
+    @Test
     public void given_oneCollection_when_prepareDownloadWithAppendAuthParams_then_token_is_in_download_link() {
         ResultActions resultActions = prepareDownload(HashMap.of("L2_HR_RASTER_100m", null), 351000, 2, 3, true);
 
@@ -362,7 +435,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAll");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
+        String token = pairs.stream()
+                            .filter(pair -> "token".equals(pair.getName()))
+                            .findFirst()
+                            .orElseThrow(() -> new AssertionError("Token is required"))
+                            .getValue();
 
         // Expect not null token
         Assert.assertNotNull(token);
@@ -376,15 +453,10 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAll");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String token = null;
-        try {
-            token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
-        } catch (NoSuchElementException exception) {
-            // We want to be sure that no token is present in download links
-        }
 
+        Optional<NameValuePair> tokenPair = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst();
         // No token should be found
-        Assert.assertNull(token);
+        Assert.assertTrue("Token should not be found", tokenPair.isEmpty());
     }
 
     @Test
@@ -397,7 +469,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAll");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String token = pairs.stream().filter(pair -> "token".equals(pair.getName())).findFirst().get().getValue();
+        String token = pairs.stream()
+                            .filter(pair -> "token".equals(pair.getName()))
+                            .findFirst()
+                            .orElseThrow(() -> new AssertionError("Token is required"))
+                            .getValue();
 
         // Expect not null token
         Assert.assertNotNull(token);
@@ -414,7 +490,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -438,7 +518,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -468,7 +552,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -514,7 +602,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -546,7 +638,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl not found"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -576,7 +672,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -607,7 +707,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -623,12 +727,12 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
      */
     @Test
     public void given_oneCollection_when_prepareDownloadWithFilter6_then_successfulRequest_And_DownloadScript() {
-        Map<String, SearchBody.QueryObject> iq = HashMap.of(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
+        Map<String, SearchBody.QueryObject> iq = HashMap.of(StacProperties.START_DATETIME_PROPERTY_NAME,
                                                             SearchBody.DatetimeQueryObject.builder()
                                                                                           .lte(OffsetDateTimeAdapter.parse(
                                                                                               "2020-04-02T23:59:59Z"))
                                                                                           .build(),
-                                                            StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME,
+                                                            StacProperties.END_DATETIME_PROPERTY_NAME,
                                                             SearchBody.DatetimeQueryObject.builder()
                                                                                           .gte(OffsetDateTimeAdapter.parse(
                                                                                               "2020-04-02T00:00:00Z"))
@@ -647,7 +751,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAllScript");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -675,7 +783,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
     }
 
     /**
-     * See https://docs.spring.io/spring-framework/docs/current/reference/html/testing.html#spring-mvc-test-async-requests
+     * See <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/testing.html#spring-mvc-test-async-requests">...</a>
      * for testing asynchronous endpoints
      */
     @Test
@@ -689,7 +797,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.downloadAll");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         // Get mod_zip file
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
@@ -709,7 +821,11 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         String json = payload(resultActions);
         String downloadAll = JsonPath.read(json, "$.collections[0].sample.download");
         java.util.List<NameValuePair> pairs = URLEncodedUtils.parse(URI.create(downloadAll), Charset.defaultCharset());
-        String tinyurl = pairs.stream().filter(pair -> "tinyurl".equals(pair.getName())).findFirst().get().getValue();
+        String tinyurl = pairs.stream()
+                              .filter(pair -> "tinyurl".equals(pair.getName()))
+                              .findFirst()
+                              .orElseThrow(() -> new AssertionError("Tinyurl is required"))
+                              .getValue();
 
         RequestBuilderCustomizer downloadCustomizer = customizer().expectStatusOk();
         downloadCustomizer.addParameter("tinyurl", tinyurl);
@@ -769,6 +885,66 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                           long totalFiles,
                                           Boolean appendAuthParameters) {
 
+        java.util.List<FiltersByCollection.CollectionFilters> collectionFilters = prepareCollectionFilters(
+            itemSearchBodies);
+
+        FiltersByCollection downloadPreparationBody = null;
+        if (appendAuthParameters == null) {
+            downloadPreparationBody = FiltersByCollection.builder().collections(List.ofAll(collectionFilters)).build();
+        } else {
+            downloadPreparationBody = FiltersByCollection.builder()
+                                                         .collections(List.ofAll(collectionFilters))
+                                                         .appendAuthParameters(appendAuthParameters)
+                                                         .build();
+        }
+
+        // Assertions
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectValue("totalSize", totalSize);
+        customizer.expectValue("totalItems", totalItems);
+        customizer.expectValue("totalFiles", totalFiles);
+        customizer.expectToHaveSize("collections", downloadPreparationBody.getCollections().size());
+
+        return performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
+                                  + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
+                                  downloadPreparationBody,
+                                  customizer,
+                                  "Download preparation failed");
+    }
+
+    /**
+     * Get collection information
+     *
+     * @param itemSearchBodies item search bodies
+     * @return result actions
+     */
+    private ResultActions getCollectionInformation(Map<String, CollectionSearchBody.CollectionItemSearchBody> itemSearchBodies) {
+
+        java.util.List<FiltersByCollection.CollectionFilters> collectionFilters = prepareCollectionFilters(
+            itemSearchBodies);
+
+        FiltersByCollection filtersByCollection = FiltersByCollection.builder()
+                                                                     .collections(List.ofAll(collectionFilters))
+                                                                     .build();
+
+        // Assertions
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.expectToHaveSize("collections", filtersByCollection.getCollections().size());
+
+        return performDefaultPost(StacApiConstants.STAC_COLLECTION_INFORMATION_PATH,
+                                  filtersByCollection,
+                                  customizer,
+                                  "Cannot get collection information");
+    }
+
+    /**
+     * Prepare collection filters
+     *
+     * @param itemSearchBodies item search bodies
+     * @return collection filters
+     */
+    private java.util.List<FiltersByCollection.CollectionFilters> prepareCollectionFilters(Map<String, CollectionSearchBody.CollectionItemSearchBody> itemSearchBodies) {
+
         // Search all collections
         RequestBuilderCustomizer customizer = customizer().expectStatusOk();
         CollectionSearchBody body = CollectionSearchBody.builder().build();
@@ -780,7 +956,7 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
         // Get urn from catalog
         String json = payload(resultActions);
         // Get collection length
-        java.util.List<FiltersByCollection.CollectionFilters> downloadCollectionPreparationBodies = new ArrayList<>();
+        java.util.List<FiltersByCollection.CollectionFilters> collectionFilters = new ArrayList<>();
         int collectionNb = JsonPath.read(json, "$.collections.length()");
         for (int i = 0; i < collectionNb; i++) {
             String collectionDataType = JsonPath.read(json, "$.collections[" + i + "].summaries.hydro:data_type");
@@ -792,36 +968,14 @@ public class SwotV2EngineControllerIT extends AbstractStacIT {
                                                                                          .isDefined() ?
                     itemSearchBodies.get(collectionDataType).get() :
                     CollectionSearchBody.CollectionItemSearchBody.builder().build();
-                downloadCollectionPreparationBodies.add(FiltersByCollection.CollectionFilters.builder()
-                                                                                             .collectionId(collectionId)
-                                                                                             .filters(itemBody)
-                                                                                             .build());
+                collectionFilters.add(FiltersByCollection.CollectionFilters.builder()
+                                                                           .collectionId(collectionId)
+                                                                           .correlationId(UUID.randomUUID().toString())
+                                                                           .filters(itemBody)
+                                                                           .build());
             }
         }
 
-        FiltersByCollection downloadPreparationBody = null;
-        if (appendAuthParameters == null) {
-            downloadPreparationBody = FiltersByCollection.builder()
-                                                         .collections(List.ofAll(downloadCollectionPreparationBodies))
-                                                         .build();
-        } else {
-            downloadPreparationBody = FiltersByCollection.builder()
-                                                         .collections(List.ofAll(downloadCollectionPreparationBodies))
-                                                         .appendAuthParameters(appendAuthParameters)
-                                                         .build();
-        }
-
-        // Assertions
-        customizer = customizer().expectStatusOk();
-        customizer.expectValue("totalSize", totalSize);
-        customizer.expectValue("totalItems", totalItems);
-        customizer.expectValue("totalFiles", totalFiles);
-        customizer.expectToHaveSize("collections", downloadPreparationBody.getCollections().size());
-
-        return performDefaultPost(StacApiConstants.STAC_DOWNLOAD_BY_COLLECTION_PATH
-                                  + StacApiConstants.STAC_DOWNLOAD_AS_ZIP_PREPARE_PATH_SUFFIX,
-                                  downloadPreparationBody,
-                                  customizer,
-                                  "Download preparation failed");
+        return collectionFilters;
     }
 }

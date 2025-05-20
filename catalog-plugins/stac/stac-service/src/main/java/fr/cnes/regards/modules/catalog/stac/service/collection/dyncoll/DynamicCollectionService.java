@@ -19,11 +19,11 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.collection.dyncoll;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollDef;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.dyncoll.DynCollVal;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import io.vavr.collection.List;

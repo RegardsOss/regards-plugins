@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.plugin.configuration;
 
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginParameter;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Option;
 import lombok.AllArgsConstructor;
@@ -73,7 +73,7 @@ public class StacDatetimePropertyConfiguration {
                                              sourceJsonPropertyPath,
                                              null,
                                              null,
-                                             StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME,
+                                             StacProperties.DATETIME_PROPERTY_NAME,
                                              "",
                                              StacPropertyType.DATETIME.name(),
                                              null,

@@ -20,13 +20,13 @@
 package fr.cnes.regards.modules.catalog.stac.domain;
 
 import com.google.gson.GsonBuilder;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.DateInterval;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.BBoxTypeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.DateIntervalTypeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.gson.QueryObjectTypeAdapter;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.api.DateInterval;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.gson.BBoxTypeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.gson.DateIntervalTypeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.api.gson.QueryObjectTypeAdapter;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.testutils.serde.AbstractGsonSerdeTest;
 import io.vavr.Tuple;
 import io.vavr.collection.List;

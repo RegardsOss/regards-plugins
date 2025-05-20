@@ -23,20 +23,14 @@ import fr.cnes.regards.framework.modules.tinyurl.domain.TinyUrl;
 import fr.cnes.regards.framework.modules.tinyurl.service.TinyUrlService;
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.UniformResourceName;
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.Context;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.DownloadPreparationResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.SearchCollectionsResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
+import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
+import fr.cnes.regards.modules.catalog.stac.domain.api.Context;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.*;
+import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
 import fr.cnes.regards.modules.catalog.stac.service.collection.EsAggregationHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.common.CollectionMapper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
@@ -44,8 +38,8 @@ import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.Col
 import fr.cnes.regards.modules.catalog.stac.service.configuration.collection.CollectionConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.IdentitiesCriterionBuilder;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.StacSearchCriterionBuilder;
-import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
 import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.dam.domain.entities.DataObject;
@@ -55,7 +49,6 @@ import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.indexer.domain.summary.DocFilesSummary;
-import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.search.domain.plugin.SearchType;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import fr.cnes.regards.modules.search.service.accessright.AccessRightFilterException;
@@ -68,7 +61,6 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
@@ -79,7 +71,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.ID_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.ID_PROPERTY_NAME;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
@@ -95,43 +87,53 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
 
     private static final String DATASET_AGG_NAME = "datasetIds";
 
-    private static final String PROPRIETARY_LICENSING = "proprietary";
+    private final StacSearchCriterionBuilder searchCriterionBuilder;
 
-    @Autowired
-    private StacSearchCriterionBuilder searchCriterionBuilder;
+    private final ICatalogSearchService catalogSearchService;
 
-    @Autowired
-    private ICatalogSearchService catalogSearchService;
+    private final ConfigurationAccessorFactory configurationAccessorFactory;
 
-    @Autowired
-    private ConfigurationAccessorFactory configurationAccessorFactory;
+    private final CollectionConfigurationAccessorFactory collectionConfigurationAccessorFactory;
 
-    @Autowired
-    private CollectionConfigurationAccessorFactory collectionConfigurationAccessorFactory;
+    private final IdentitiesCriterionBuilder identitiesCriterionBuilder;
 
-    @Autowired
-    private IdentitiesCriterionBuilder identitiesCriterionBuilder;
+    private final EsAggregationHelper aggregationHelper;
 
-    @Autowired
-    private EsAggregationHelper aggregationHelper;
+    private final IAccessRightFilter accessRightFilter;
 
-    @Autowired
-    private IAccessRightFilter accessRightFilter;
+    private final TinyUrlService tinyUrlService;
 
-    @Autowired
-    private PropertyExtractionService propertyExtractionService;
+    private final IdMappingService idMappingService;
 
-    @Autowired
-    private TinyUrlService tinyUrlService;
+    private final CollectionMapper collectionMapper;
 
-    @Autowired
-    private IdMappingService idMappingService;
+    public CollectionSearchServiceImpl(StacSearchCriterionBuilder searchCriterionBuilder,
+                                       ICatalogSearchService catalogSearchService,
+                                       ConfigurationAccessorFactory configurationAccessorFactory,
+                                       CollectionConfigurationAccessorFactory collectionConfigurationAccessorFactory,
+                                       IdentitiesCriterionBuilder identitiesCriterionBuilder,
+                                       EsAggregationHelper aggregationHelper,
+                                       IAccessRightFilter accessRightFilter,
+                                       TinyUrlService tinyUrlService,
+                                       IdMappingService idMappingService,
+                                       CollectionMapper collectionMapper) {
+        this.searchCriterionBuilder = searchCriterionBuilder;
+        this.catalogSearchService = catalogSearchService;
+        this.configurationAccessorFactory = configurationAccessorFactory;
+        this.collectionConfigurationAccessorFactory = collectionConfigurationAccessorFactory;
+        this.identitiesCriterionBuilder = identitiesCriterionBuilder;
+        this.aggregationHelper = aggregationHelper;
+        this.accessRightFilter = accessRightFilter;
+        this.tinyUrlService = tinyUrlService;
+        this.idMappingService = idMappingService;
+        this.collectionMapper = collectionMapper;
+    }
 
     @Override
     public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody,
                                                  Integer page,
                                                  SearchPageLinkCreator searchCollectionPageLinkCreator,
-                                                 SearchPageLinkCreator searchItemPageLinkCreator) {
+                                                 OGCFeatLinkCreator ogcFeatLinkCreator) {
 
         // Retrieve configured collection properties
         CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory.makeConfigurationAccessor();
@@ -171,7 +173,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                 return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
                                          collectionStacProperties,
                                          searchCollectionPageLinkCreator,
-                                         searchItemPageLinkCreator,
+                                         ogcFeatLinkCreator,
                                          HashMap.empty(),
                                          collectionConfigurationAccessor);
             }
@@ -202,7 +204,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                facetPage,
                                                                                collectionStacProperties,
                                                                                searchCollectionPageLinkCreator,
-                                                                               searchItemPageLinkCreator,
+                                                                               ogcFeatLinkCreator,
                                                                                finalDatasetCount,
                                                                                collectionConfigurationAccessor));
     }
@@ -221,7 +223,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     private Try<SearchCollectionsResponse> extractCollection(FacetPage<Dataset> facetPage,
                                                              List<StacProperty> stacProperties,
                                                              SearchPageLinkCreator searchCollectionPageLinkCreator,
-                                                             SearchPageLinkCreator searchItemPageLinkCreator,
+                                                             OGCFeatLinkCreator ogcFeatLinkCreator,
                                                              Map<String, Long> datasetCount,
                                                              CollectionConfigurationAccessor collectionConfigurationAccessor) {
         return trying(() -> {
@@ -229,183 +231,19 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                           facetPage.getPageable().getPageSize(),
                                           facetPage.getTotalElements());
             return new SearchCollectionsResponse(HashSet.empty(),
-                                                 buildCollections(Stream.ofAll(facetPage.get()),
-                                                                  stacProperties,
-                                                                  datasetCount,
-                                                                  collectionConfigurationAccessor,
-                                                                  searchItemPageLinkCreator),
-                                                 extractLinks(searchCollectionPageLinkCreator, facetPage),
-                                                 context);
+                                                 collectionMapper.buildCollections(Stream.ofAll(facetPage.get()),
+                                                                                   stacProperties,
+                                                                                   ogcFeatLinkCreator,
+                                                                                   datasetCount,
+                                                                                   collectionConfigurationAccessor,
+                                                                                   true),
+                                                 extractLinks(searchCollectionPageLinkCreator,
+                                                              facetPage,
+                                                              StacConstants.APPLICATION_JSON_MEDIA_TYPE),
+                                                 context,
+                                                 facetPage.getTotalElements(),
+                                                 (long) facetPage.getNumberOfElements());
         }).mapFailure(COLLECTIONSRESPONSE_CONSTRUCTION, () -> "Failed to build founded collection response");
-    }
-
-    private List<Collection> buildCollections(Stream<Dataset> datasetStream,
-                                              List<StacProperty> stacProperties,
-                                              Map<String, Long> datasetCount,
-                                              CollectionConfigurationAccessor collectionConfigurationAccessor,
-                                              SearchPageLinkCreator searchItemPageLinkCreator) {
-        return datasetStream.flatMap(dataset -> buildFromDataset(dataset,
-                                                                 stacProperties,
-                                                                 datasetCount,
-                                                                 collectionConfigurationAccessor,
-                                                                 searchItemPageLinkCreator)).toList();
-    }
-
-    private Try<Collection> buildFromDataset(Dataset dataset,
-                                             List<StacProperty> stacProperties,
-                                             Map<String, Long> datasetCount,
-                                             CollectionConfigurationAccessor collectionConfigurationAccessor,
-                                             SearchPageLinkCreator searchItemPageLinkCreator) {
-        return trying(() -> {
-
-            // Retrieve information from dataset properties
-            Map<String, Object> summaries = extractSummaries(dataset,
-                                                             collectionConfigurationAccessor.getSummariesProperties());
-            Set<String> extensions = extractExtensions(stacProperties);
-
-            return new Collection(StacSpecConstants.Version.STAC_SPEC_VERSION,
-                                  extensions,
-                                  extractTitle(dataset, collectionConfigurationAccessor.getTitleProperty()),
-                                  idMappingService.getStacIdByUrn(dataset.getIpId().toString()),
-                                  extractDescription(dataset, collectionConfigurationAccessor.getDescriptionProperty()),
-                                  extractLinks(searchItemPageLinkCreator,
-                                               dataset,
-                                               collectionConfigurationAccessor.getLinksProperty()),
-                                  extractKeywords(dataset, collectionConfigurationAccessor.getKeywordsProperty()),
-                                  extractLicense(dataset, collectionConfigurationAccessor.getLicenseProperty()),
-                                  extractProviders(dataset, collectionConfigurationAccessor.getProvidersProperty()),
-                                  extractExtent(dataset,
-                                                collectionConfigurationAccessor.getLowerTemporalExtentProperty(),
-                                                collectionConfigurationAccessor.getUpperTemporalExtentProperty()),
-                                  summaries,
-                                  extractAssets(dataset, collectionConfigurationAccessor.getAssetsProperty()),
-                                  buildContext(dataset, datasetCount));
-
-        }).mapFailure(COLLECTION_CONSTRUCTION,
-                      () -> String.format("Failed to build collection for URN %s", dataset.getIpId()));
-    }
-
-    /**
-     * @return optional title
-     */
-    private String extractTitle(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        return stacCollectionProperty.getRegardsPropertyAccessor()
-                                     .getGenericExtractValueFn()
-                                     .apply(dataset)
-                                     .map(Object::toString)
-                                     .getOrNull();
-    }
-
-    /**
-     * @return required description (fallback to @{@link Dataset#getLabel()})
-     */
-    private String extractDescription(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        return stacCollectionProperty.getRegardsPropertyAccessor()
-                                     .getGenericExtractValueFn()
-                                     .apply(dataset)
-                                     .map(Object::toString)
-                                     .getOrElse(dataset.getLabel());
-    }
-
-    /**
-     * @return required links appended with feature ones
-     */
-    private List<Link> extractLinks(SearchPageLinkCreator searchItemPageLinkCreator,
-                                    Dataset dataset,
-                                    StacCollectionProperty stacCollectionProperty) {
-        return List.of(searchItemPageLinkCreator.createSelfPageLink()
-                                                .map(uri -> new Link(uri,
-                                                                     Link.Relations.SELF,
-                                                                     Asset.MediaType.APPLICATION_JSON,
-                                                                     "this search page")))
-                   .flatMap(l -> l)
-                   .appendAll(propertyExtractionService.extractStaticLinks(dataset,
-                                                                           stacCollectionProperty.toStacProperty()));
-    }
-
-    /**
-     * @return optional keywords
-     */
-    private List<String> extractKeywords(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        Option<PropertyType> propertyType = Try.of(() -> stacCollectionProperty.getRegardsPropertyAccessor()
-                                                                               .getAttributeModel()
-                                                                               .getType()).toOption();
-        return stacCollectionProperty.getRegardsPropertyAccessor().getGenericExtractValueFn().apply(dataset).map(o -> {
-            LOGGER.debug("Property type : {}", propertyType);
-            if (propertyType.isDefined()) {
-                switch (propertyType.get()) {
-                    case STRING:
-                        return List.of((String) o);
-                    case STRING_ARRAY:
-                        return List.of((String[]) o);
-                    default:
-                        // Skip
-                }
-            }
-            return List.<String>empty();
-        }).getOrNull();
-    }
-
-    /**
-     * @return required license (fallback to PROPRIETARY_LICENSING)
-     */
-    private String extractLicense(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        return stacCollectionProperty.getRegardsPropertyAccessor()
-                                     .getGenericExtractValueFn()
-                                     .apply(dataset)
-                                     .map(Object::toString)
-                                     .getOrElse(PROPRIETARY_LICENSING);
-    }
-
-    /**
-     * @return optional providers
-     */
-    private Object extractProviders(Dataset dataset, StacCollectionProperty stacCollectionProperty) {
-        return stacCollectionProperty.getRegardsPropertyAccessor()
-                                     .getGenericExtractValueFn()
-                                     .apply(dataset)
-                                     .getOrNull();
-    }
-
-    /**
-     * @return required extent
-     */
-    private Extent extractExtent(Dataset dataset,
-                                 StacCollectionProperty lowerTemporalExtent,
-                                 StacCollectionProperty upperTemporalExtent) {
-        if (lowerTemporalExtent != null && upperTemporalExtent != null) {
-            return Extent.maximalExtent()
-                         .withTemporal(propertyExtractionService.extractTemporalExtent(dataset,
-                                                                                       lowerTemporalExtent,
-                                                                                       upperTemporalExtent));
-        }
-        return Extent.maximalExtent();
-    }
-
-    /**
-     * @return strongly recommended summaries (but not required)
-     */
-    private Map<String, Object> extractSummaries(Dataset dataset, List<StacProperty> stacProperties) {
-        return propertyExtractionService.extractStacProperties(dataset, stacProperties);
-    }
-
-    private Set<String> extractExtensions(List<StacProperty> stacProperties) {
-        return propertyExtractionService.extractExtensionsFromConfiguration(stacProperties);
-    }
-
-    private Map<String, Asset> extractAssets(Dataset dataset, StacCollectionProperty stacAssetsProperty) {
-        return propertyExtractionService.extractAssets(dataset)
-                                        .merge(propertyExtractionService.extractStaticAssets(dataset,
-                                                                                             stacAssetsProperty.toStacProperty()));
-    }
-
-    /**
-     * @return collection context
-     */
-    private Context buildContext(Dataset dataset, Map<String, Long> datasetCount) {
-        return new Context(null,
-                           null,
-                           datasetCount == null ? null : datasetCount.get(dataset.getIpId().toString()).getOrNull());
     }
 
     @Override
@@ -428,7 +266,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                                                      .toList();
 
             // Compute total
-            Long totalSize = 0L, totalItems = 0L, totalFiles = 0L;
+            Long totalSize = 0L;
+            Long totalItems = 0L;
+            Long totalFiles = 0L;
             for (DownloadPreparationResponse.DownloadCollectionPreparationResponse c : collections) {
                 if (c.getErrors().isEmpty()) {
                     totalSize += c.getSize();
@@ -445,6 +285,81 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                          scriptTinyUrls),
                                                    collections);
         }).mapFailure(DOWNLOAD_PREPARATION, () -> "Download preparation failure");
+    }
+
+    @Override
+    public Try<CollectionInformation> getCollectionInformation(FiltersByCollection filtersByCollection,
+                                                               DownloadLinkCreator downloadLinkCreator) {
+        return trying(() -> {
+
+            // Store all tiny url ids to build global download link for script
+            java.util.List<TinyUrl> scriptTinyUrls = new ArrayList<>();
+
+            // Get information by collection
+            List<CollectionInformation.SingleCollectionInformation> collections = filtersByCollection.getCollections()
+                                                                                                     .flatMap(collection -> getSingleCollectionInformation(
+                                                                                                         collection,
+                                                                                                         downloadLinkCreator,
+                                                                                                         scriptTinyUrls).onFailure(
+                                                                                                         e -> handleCollectionInformationError(
+                                                                                                             collection,
+                                                                                                             e)))
+                                                                                                     .toList();
+
+            return new CollectionInformation(buildAllCollectionsScriptDownloadLink(downloadLinkCreator, scriptTinyUrls),
+                                             collections);
+        }).mapFailure(COLLECTION_INFORMATION, () -> "Collection information aggregation failure");
+    }
+
+    /**
+     * Handle error while getting collection information
+     *
+     * @param collectionFilters collection filters
+     * @param e                 error
+     */
+    private void handleCollectionInformationError(FiltersByCollection.CollectionFilters collectionFilters,
+                                                  Throwable e) {
+        if (e instanceof StacException stacException) {
+            // Propagate error
+            throw stacException;
+        } else {
+            LOGGER.error("Error while getting collection information for {}", collectionFilters.getCollectionId(), e);
+            throw new StacException("Error while getting collection information", e, COLLECTION_INFORMATION);
+        }
+    }
+
+    private Try<CollectionInformation.SingleCollectionInformation> getSingleCollectionInformation(FiltersByCollection.CollectionFilters collectionFilters,
+                                                                                                  DownloadLinkCreator downloadLinkCreator,
+                                                                                                  java.util.List<TinyUrl> scriptTinyUrls) {
+
+        // Reuse existing method to prepare download collection response
+        return prepareDownloadCollectionResponse(collectionFilters,
+                                                 downloadLinkCreator,
+                                                 new ArrayList<>(),
+                                                 scriptTinyUrls).map(downloadCollectionPreparationResponse -> {
+            if (downloadCollectionPreparationResponse.getErrors().isEmpty()) {
+                return new CollectionInformation.SingleCollectionInformation(collectionFilters.getCollectionId(),
+                                                                             collectionFilters.getCorrelationId(),
+                                                                             downloadCollectionPreparationResponse.getSize(),
+                                                                             downloadCollectionPreparationResponse.getItems(),
+                                                                             downloadCollectionPreparationResponse.getFiles(),
+                                                                             new CollectionInformation.SampleInformation(
+                                                                                 downloadCollectionPreparationResponse.getSample()
+                                                                                                                      .getSize(),
+                                                                                 downloadCollectionPreparationResponse.getSample()
+                                                                                                                      .getFiles(),
+                                                                                 downloadCollectionPreparationResponse.getSample()
+                                                                                                                      .getDownload()));
+            } else {
+                String errorMessage = String.format(
+                    "Error while getting collection information for %s (and correlation %s) : %s",
+                    collectionFilters.getCollectionId(),
+                    collectionFilters.getCorrelationId(),
+                    downloadCollectionPreparationResponse.getErrors().mkString(", "));
+                LOGGER.error(errorMessage, collectionFilters.getCollectionId());
+                throw new StacException(errorMessage, null, COLLECTION_INFORMATION);
+            }
+        });
     }
 
     private Try<DownloadPreparationResponse.DownloadCollectionPreparationResponse> prepareDownloadCollectionResponse(
@@ -510,9 +425,6 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                                        downloadLinkCreator,
                                                                                                        sampleDocFilesSummary.getFilesSize(),
                                                                                                        sampleDocFilesSummary.getFilesCount()),
-                                                                                                   docFilesSummary.getDocumentsCount()
-                                                                                                   == 0 ?
-                                                                                                       List.of("No item found") :
                                                                                                        List.empty());
                   })
                   .recover(throwable -> new DownloadPreparationResponse.DownloadCollectionPreparationResponse(

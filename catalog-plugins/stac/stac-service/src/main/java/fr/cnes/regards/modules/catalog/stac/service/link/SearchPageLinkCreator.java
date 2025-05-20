@@ -37,4 +37,11 @@ public interface SearchPageLinkCreator {
     Option<URI> createPrevPageLink();
 
     Option<URI> createSelfPageLink();
+
+    /**
+     * @return the link to the containing collection for items search only
+     */
+    default Option<URI> createCollectionLink() {
+        return Option.none();
+    }
 }

@@ -20,9 +20,10 @@ package fr.cnes.regards.modules.catalog.stac.service.item.properties;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacCollectionProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Asset;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Asset;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.service.item.extensions.FieldExtension;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
@@ -38,24 +39,53 @@ import io.vavr.collection.Set;
 public interface PropertyExtractionService {
 
     Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
-                                              List<StacProperty> stacProperties);
+                                              List<StacProperty> stacProperties,
+                                              FieldExtension fieldExtension);
 
-    Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature);
+    default Map<String, Object> extractStacProperties(AbstractEntity<? extends EntityFeature> feature,
+                                                      List<StacProperty> stacProperties) {
+        return this.extractStacProperties(feature, stacProperties, FieldExtension.disable());
+    }
+
+    Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature,
+                                     Map<String, Asset> staticFeatureAssets,
+                                     FieldExtension fieldExtension);
+
+    default Map<String, Asset> extractAssets(AbstractEntity<? extends EntityFeature> feature,
+                                             Map<String, Asset> staticFeatureAssets) {
+        return this.extractAssets(feature, staticFeatureAssets, FieldExtension.disable());
+    }
 
     /**
      * Static assets if directly available in the feature with the proper structure
      */
     Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature,
-                                           StacProperty stacAssetsProperty);
+                                           StacProperty stacAssetsProperty,
+                                           FieldExtension fieldExtension);
+
+    default Map<String, Asset> extractStaticAssets(AbstractEntity<? extends EntityFeature> feature,
+                                                   StacProperty stacAssetsProperty) {
+        return this.extractStaticAssets(feature, stacAssetsProperty, FieldExtension.disable());
+    }
 
     /**
      * Static links if directly available in the feature with the proper structure
      */
-    List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature, StacProperty stacLinksProperty);
+    List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature,
+                                  StacProperty stacLinksProperty,
+                                  FieldExtension fieldExtension);
 
-    Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties);
+    default List<Link> extractStaticLinks(AbstractEntity<? extends EntityFeature> feature,
+                                          StacProperty stacLinksProperty) {
+        return this.extractStaticLinks(feature, stacLinksProperty, FieldExtension.disable());
+    }
 
-    Extent.Temporal extractTemporalExtent(Dataset dataset,
-                                          StacCollectionProperty lowerTemporalExtent,
-                                          StacCollectionProperty upperTemporalExtent);
+    Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties,
+                                                   Set<String> internalExtensions,
+                                                   FieldExtension fieldExtension);
+
+    default Set<String> extractExtensionsFromConfiguration(List<StacProperty> stacProperties,
+                                                           Set<String> internalExtensions) {
+        return this.extractExtensionsFromConfiguration(stacProperties, internalExtensions, FieldExtension.disable());
+    }
 }

@@ -32,8 +32,6 @@ import java.net.URI;
  */
 public interface UriParamAdder {
 
-    CheckedFunction1<URI, Try<URI>> appendAuthParams();
-
     CheckedFunction1<URI, Try<URI>> appendAuthParams(boolean appendAuthParams);
 
     CheckedFunction1<URI, Try<URI>> appendParams(Map<String, String> params);

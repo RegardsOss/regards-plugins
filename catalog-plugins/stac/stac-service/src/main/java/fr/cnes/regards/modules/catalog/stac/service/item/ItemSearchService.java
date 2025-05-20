@@ -19,9 +19,9 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.item;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.ItemSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
@@ -31,11 +31,27 @@ import io.vavr.control.Try;
  */
 public interface ItemSearchService {
 
+    /**
+     * Search for items.
+     *
+     * @param itemSearchBody        the search body
+     * @param page                  the page number
+     * @param featLinkCreator       the link creator
+     * @param searchPageLinkCreator the search page link creator
+     * @return a page of items
+     */
     Try<ItemCollectionResponse> search(ItemSearchBody itemSearchBody,
                                        Integer page,
                                        OGCFeatLinkCreator featLinkCreator,
                                        SearchPageLinkCreator searchPageLinkCreator);
 
-    Try<Item> searchById(String itemId, OGCFeatLinkCreator featLinkCreator);
+    /**
+     * Search for an item by its id.
+     *
+     * @param featureId       the feature id
+     * @param featLinkCreator the link creator
+     * @return a single item
+     */
+    Try<Item> searchById(String featureId, OGCFeatLinkCreator featLinkCreator);
 
 }

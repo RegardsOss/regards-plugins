@@ -8,7 +8,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import org.junit.Test;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.ID_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.ID_PROPERTY_NAME;
 import static fr.cnes.regards.modules.indexer.domain.criterion.MatchType.EQUALS;
 import static org.assertj.core.api.Assertions.assertThat;
 

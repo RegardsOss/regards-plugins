@@ -45,7 +45,7 @@ import java.time.OffsetDateTime;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.lowestBound;
-import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.uppestBound;
+import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUtils.upperBound;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
@@ -92,10 +92,10 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
             OffsetDateTime dateTimeFrom = Option.of(esRepository.minDate(searchKey, criterion, attrPath))
                                                 .getOrElse(lowestBound());
             OffsetDateTime dateTimeTo = Option.of(esRepository.maxDate(searchKey, criterion, attrPath))
-                                              .getOrElse(uppestBound());
+                                              .getOrElse(upperBound());
             return Tuple.of(dateTimeFrom, dateTimeTo);
         }).onFailure(t -> info(LOGGER, "Failed to load min/max date for {}", attrPath, t))
-          .getOrElse(() -> Tuple.of(lowestBound(), uppestBound()));
+          .getOrElse(() -> Tuple.of(lowestBound(), upperBound()));
     }
 
     @Override

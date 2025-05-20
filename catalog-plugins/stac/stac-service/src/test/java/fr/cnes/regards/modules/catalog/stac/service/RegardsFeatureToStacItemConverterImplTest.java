@@ -10,10 +10,10 @@ import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.IdentityPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Item;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.Centroid;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.domain.utils.StacGeoHelper;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
@@ -37,6 +37,7 @@ import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -48,10 +49,8 @@ import java.util.UUID;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.info;
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,22 +91,23 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         when(configurationAccessor.getGeoJSONReader()).thenAnswer(i -> stacGeoHelper.makeGeoJSONReader(stacGeoHelper.updateFactory(
             true)));
 
-        when(linkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root"))
-                                                                 .map(uri -> new Link(uri, ROOT, "", "")));
-        when(linkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option.of(uri("/collection/"
-                                                                                                       + i.getArgument(0)))
-                                                                                               .map(uri -> new Link(uri,
-                                                                                                                    COLLECTION,
-                                                                                                                    "",
-                                                                                                                    "")));
-        when(linkCreator.createItemLink(anyString(), anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
-                                                                                                     + i.getArgument(0)
-                                                                                                     + "/item/"
-                                                                                                     + i.getArgument(1)))
-                                                                                         .map(uri -> new Link(uri,
-                                                                                                              SELF,
-                                                                                                              "",
-                                                                                                              "")));
+        when(linkCreator.createLandingPageLink(Relation.ROOT)).thenAnswer(i -> Option.of(uri("/root"))
+                                                                                     .map(uri -> new Link(uri,
+                                                                                                          Relation.ROOT.getValue(),
+                                                                                                          "",
+                                                                                                          "")));
+        when(linkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
+            uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, (Relation) i.getArgument(0), "", "")));
+        when(linkCreator.createItemLink(any(Relation.class),
+                                        anyString(),
+                                        anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
+                                                                                        + i.getArgument(1)
+                                                                                        + "/item/"
+                                                                                        + i.getArgument(2)))
+                                                                            .map(uri -> new Link(uri,
+                                                                                                 Relation.SELF.getValue(),
+                                                                                                 "",
+                                                                                                 "")));
 
         when(idMappingService.getStacIdByUrn(any())).thenReturn("stacId");
 
@@ -135,6 +135,9 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                                                       "theSession",
                                                       "theModelName");
         DataObject feature = DataObject.wrap(model, dof, true);
+
+        Mockito.when(idMappingService.getItemId(any(), anyString(), anyBoolean())).thenReturn(itemIpId.toString());
+
         String parentDatasetIpId = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE,
                                                                     EntityType.DATASET,
                                                                     tenant,
@@ -146,7 +149,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         feature.addProperty(IProperty.buildDate("regardsAttr", OffsetDateTime.now().minusYears(1L)));
         feature.getFeature().setFiles(createDataFiles());
 
-        Try<Item> result = service.convertFeatureToItem(stacProperties, linkCreator, feature)
+        Try<Item> result = service.convertFeatureToItem(stacProperties, null, linkCreator, feature)
                                   .onFailure(t -> error(LOGGER, t.getMessage(), t));
         info(LOGGER, "result: {}", result);
         assertThat(result).isNotEmpty();
@@ -155,16 +158,14 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         assertThat(item.getId()).isEqualTo(itemIpId.toString());
         assertThat(item.getBbox()).isEqualTo(new BBox(0d, 0d, 3d, 3d));
         assertThat(item.getGeometry()).isEqualTo(polygon);
-        assertThat(item.getCentroid()).isEqualTo(new Centroid(1d, 1d));
         assertThat(item.getCollection()).isEqualTo("stacId");
-        assertThat(item.getLinks()).hasSize(3)
-                                   .anyMatch(l -> l.getHref().equals(uri("/root")) && l.getRel()
-                                                                                       .equals(Link.Relations.ROOT))
-                                   .anyMatch(l -> l.getHref().equals(uri("/collection/" + "stacId")) && l.getRel()
-                                                                                                         .equals(Link.Relations.COLLECTION))
-                                   .anyMatch(l -> l.getHref()
-                                                   .equals(uri("/collection/" + "stacId" + "/item/" + itemIpId))
-                                                  && l.getRel().equals(Link.Relations.SELF));
+        assertThat(item.getLinks()).hasSize(4)
+                                   .anyMatch(l -> l.href().equals(uri("/root")) && l.rel()
+                                                                                    .equals(Relation.ROOT.getValue()))
+                                   .anyMatch(l -> l.href().equals(uri("/collection/" + "stacId")) && l.rel()
+                                                                                                      .equals(Relation.COLLECTION.getValue()))
+                                   .anyMatch(l -> l.href().equals(uri("/collection/" + "stacId" + "/item/" + itemIpId))
+                                                  && l.rel().equals(Relation.SELF.getValue()));
         assertThat(item.getAssets()).hasSize(2);
         assertThat(item.getAssets().head()._2.getHref()).matches(uri -> uri.getQuery().contains("token=theJwtToken"));
 
@@ -178,7 +179,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         }
     }
 
-    private Multimap<DataType, DataFile> createDataFiles() throws Exception {
+    private Multimap<DataType, DataFile> createDataFiles() {
         Multimap<DataType, DataFile> fileMultimapF2 = ArrayListMultimap.create();
 
         DataFile feat1File1 = new DataFile();

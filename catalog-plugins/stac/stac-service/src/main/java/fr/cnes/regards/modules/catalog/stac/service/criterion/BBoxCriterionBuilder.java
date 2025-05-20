@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;
@@ -45,7 +45,7 @@ public class BBoxCriterionBuilder implements CriterionBuilder<BBox> {
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, BBox bbox) {
         return Option.of(bbox)
-                     .map(bb -> ICriterion.intersectsBbox(bb.getMinX(), bb.getMinY(), bb.getMaxX(), bb.getMaxY()));
+                     .map(bb -> ICriterion.intersectsBbox(bb.minX(), bb.minY(), bb.maxX(), bb.maxY()));
     }
 
     @Override
@@ -54,14 +54,14 @@ public class BBoxCriterionBuilder implements CriterionBuilder<BBox> {
             // Propagate value as WKT
             StringJoiner joiner = new StringJoiner(COMMA, "POLYGON ((", "))");
             // 1 - min long / min lat
-            String first = String.format(POINT_LONG_LAT_FORMAT, bbox.getMinX(), bbox.getMinY());
+            String first = String.format(POINT_LONG_LAT_FORMAT, bbox.minX(), bbox.minY());
             joiner.add(first);
             // 2 - max long / min lat
-            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.getMaxX(), bbox.getMinY()));
+            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.maxX(), bbox.minY()));
             // 3 - max long / max lat
-            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.getMaxX(), bbox.getMaxY()));
+            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.maxX(), bbox.maxY()));
             // 4 - min long / max lat
-            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.getMinX(), bbox.getMaxY()));
+            joiner.add(String.format(POINT_LONG_LAT_FORMAT, bbox.minX(), bbox.maxY()));
             // Close polygon with first point
             joiner.add(first);
 

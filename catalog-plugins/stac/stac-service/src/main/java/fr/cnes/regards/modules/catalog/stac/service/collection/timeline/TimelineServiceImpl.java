@@ -18,10 +18,10 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline;
 
-import fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineByCollectionResponse;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.TimelineFiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.StacProperties;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineByCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.TimelineFiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
@@ -32,7 +32,6 @@ import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtr
 import fr.cnes.regards.modules.catalog.stac.service.search.AbstractSearchService;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import io.vavr.collection.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,17 +47,23 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
     @Value("${regards.timeline.two.many.results.threshold:30000}")
     private long twoManyResultsThreshold;
 
-    @Autowired
-    private ConfigurationAccessorFactory configurationAccessorFactory;
+    private final ConfigurationAccessorFactory configurationAccessorFactory;
 
-    @Autowired
-    private ICatalogSearchService catalogSearchService;
+    private final ICatalogSearchService catalogSearchService;
 
-    @Autowired
-    private PropertyExtractionService propertyExtractionService;
+    private final PropertyExtractionService propertyExtractionService;
 
-    @Autowired
-    private TimelineCriteriaHelper timelineCriteriaHelper;
+    private final TimelineCriteriaHelper timelineCriteriaHelper;
+
+    public TimelineServiceImpl(ConfigurationAccessorFactory configurationAccessorFactory,
+                               ICatalogSearchService catalogSearchService,
+                               PropertyExtractionService propertyExtractionService,
+                               TimelineCriteriaHelper timelineCriteriaHelper) {
+        this.configurationAccessorFactory = configurationAccessorFactory;
+        this.catalogSearchService = catalogSearchService;
+        this.propertyExtractionService = propertyExtractionService;
+        this.timelineCriteriaHelper = timelineCriteriaHelper;
+    }
 
     @Override
     public TimelineByCollectionResponse buildCollectionTimelines(TimelineFiltersByCollection timelineFiltersByCollection) {
@@ -87,9 +92,9 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
             List<StacProperty> itemStacProperties = configurationAccessor.getStacProperties();
 
             // Set pagination context (considering first page, index 1 in STAC paradigm)
-            List<SearchBody.SortBy> sortBy = List.of(new SearchBody.SortBy(StacSpecConstants.PropertyName.START_DATETIME_PROPERTY_NAME,
+            List<SearchBody.SortBy> sortBy = List.of(new SearchBody.SortBy(StacProperties.START_DATETIME_PROPERTY_NAME,
                                                                            SearchBody.SortBy.Direction.ASC),
-                                                     new SearchBody.SortBy(StacSpecConstants.PropertyName.END_DATETIME_PROPERTY_NAME,
+                                                     new SearchBody.SortBy(StacProperties.END_DATETIME_PROPERTY_NAME,
                                                                            SearchBody.SortBy.Direction.ASC));
             Pageable pageable = pageable(1000, 1, sortBy, itemStacProperties);
 
@@ -155,13 +160,12 @@ public class TimelineServiceImpl extends AbstractSearchService implements Timeli
         };
 
         // Delegate aggregation
-        return timelineBuilder.buildTimelines(
-            timelineFiltersByCollection.getMode(),
-            timelineFiltersByCollection.getCollections(),
-            itemStacProperties,
-            expandDatetime(timelineFiltersByCollection.getFrom()),
-            expandDatetime(timelineFiltersByCollection.getTo()),
-            ZoneId.of(timelineFiltersByCollection.getTimezone()));
+        return timelineBuilder.buildTimelines(timelineFiltersByCollection.getMode(),
+                                              timelineFiltersByCollection.getCollections(),
+                                              itemStacProperties,
+                                              expandDatetime(timelineFiltersByCollection.getFrom()),
+                                              expandDatetime(timelineFiltersByCollection.getTo()),
+                                              ZoneId.of(timelineFiltersByCollection.getTimezone()));
     }
 
     private String expandDatetime(String param) {

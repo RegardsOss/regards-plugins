@@ -1,0 +1,62 @@
+/*
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ *
+ * This file is part of REGARDS.
+ *
+ * REGARDS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * REGARDS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with REGARDS. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package fr.cnes.regards.modules.catalog.stac.domain.api;
+
+import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.framework.geojson.geometry.IGeometry;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
+import io.vavr.collection.List;
+import io.vavr.collection.Map;
+import lombok.Builder;
+import lombok.Value;
+import lombok.With;
+
+/**
+ * Describes the body of "POST /search" request.
+ *
+ * @see <a href="">Description</a>
+ */
+@Value
+@With
+@Builder
+public class ItemSearchBody {
+
+    BBox bbox;
+
+    DateInterval datetime;
+
+    IGeometry intersects;
+
+    List<String> collections;
+
+    List<String> ids;
+
+    Integer page; //NOSONAR
+
+    Integer limit; //NOSONAR
+
+    Fields fields;
+
+    Map<String, SearchBody.QueryObject> query;
+
+    @SerializedName(value = "sortby", alternate = { "sortBy" })
+    List<SearchBody.SortBy> sortBy;
+
+}

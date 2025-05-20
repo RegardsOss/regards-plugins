@@ -8,14 +8,18 @@ import fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAcc
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.conversion.AbstractPropertyConverter;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.Collection;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
 import fr.cnes.regards.modules.catalog.stac.service.collection.ExtentSummaryService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.IdMappingService;
+import fr.cnes.regards.modules.catalog.stac.service.collection.common.CatalogSearchProxyService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
+import fr.cnes.regards.modules.catalog.stac.service.item.properties.PropertyExtractionService;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
+import fr.cnes.regards.modules.catalog.stac.service.link.UriParamAdder;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
@@ -56,9 +60,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.common.Link.Relations.*;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,10 +75,15 @@ import static org.mockito.Mockito.*;
 public class RegardsStacCollectionConverterTest {
 
     @Configuration
-    @ComponentScan(basePackageClasses = { StaticCollectionService.class })
+    @ComponentScan(basePackageClasses = { StaticCollectionService.class,
+                                          CatalogSearchProxyService.class,
+                                          PropertyExtractionService.class })
     public static class ScanningConfiguration {
 
     }
+
+    @MockBean
+    private UriParamAdder uriParamAdder;
 
     @Autowired
     StaticCollectionService converter;
@@ -127,7 +134,7 @@ public class RegardsStacCollectionConverterTest {
         doReturn(Mockito.mock(Range.Bucket.class)).when(arrayListMock).get(anyInt());
         when(parsedDateRange.getBuckets().get(anyInt()).getFrom()).thenReturn(0L);
         when(parsedDateRange.getBuckets().get(anyInt()).getTo()).thenReturn(Long.MAX_VALUE);
-        java.util.List<Aggregation> parsedStats = Arrays.asList(parsedDateRange);
+        java.util.List<Aggregation> parsedStats = java.util.List.of(parsedDateRange);
         CollectionWithStats damCollection = new CollectionWithStats(collection, parsedStats);
 
         TreeSet<String> tags = TreeSet.of("URN:AIP:COLLECTION:perf:80282ac5-1b01-4e9d-a356-123456789012:V1");
@@ -137,7 +144,7 @@ public class RegardsStacCollectionConverterTest {
                                                                     any(java.util.Collection.class))).thenReturn(
             damCollection);
 
-        when(facetPage.getContent()).thenReturn(List.of(collectResult).asJava());
+        when(facetPage.getContent()).thenReturn(java.util.List.of(collectResult));
 
         when(catalogSearchService.search(any(ICriterion.class),
                                          any(SearchType.class),
@@ -161,37 +168,32 @@ public class RegardsStacCollectionConverterTest {
                                                                                               List.of(Provider.ProviderRole.HOST))));
         when(configurationAccessor.getLicense(anyString())).thenReturn("licence");
 
-        when(featLinkCreator.createRootLink()).thenAnswer(i -> Option.of(uri("/root"))
-                                                                     .map(uri -> new Link(uri, ROOT, "", "")));
-        when(featLinkCreator.createCollectionLink(anyString(), anyString())).thenAnswer(i -> Option.of(uri(
-            "/collection/" + i.getArgument(0))).map(uri -> new Link(uri, COLLECTION, "", "")));
-        when(featLinkCreator.createItemLink(anyString(), anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
-                                                                                                         + i.getArgument(
-            0)
-                                                                                                         + "/item/"
-                                                                                                         + i.getArgument(
-            1))).map(uri -> new Link(uri, SELF, "", "")));
-        when(featLinkCreator.createCollectionItemsLinkWithRel(anyString(),
-                                                              anyString())).thenAnswer(i -> Option.of(new URI(
-                                                                                                      "/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
-                                                                                                  .map(uri -> new Link(
-                                                                                                      uri,
-                                                                                                      SELF,
-                                                                                                      "",
-                                                                                                      ""))
-                                                                                                  .map(x -> x.withRel(
-                                                                                                      "items")));
+        when(featLinkCreator.createLandingPageLink(Relation.ROOT)).thenAnswer(i -> Option.of(uri("/root"))
+                                                                                         .map(uri -> new Link(uri,
+                                                                                                              Relation.ROOT,
+                                                                                                              "",
+                                                                                                              "")));
+        when(featLinkCreator.createItemLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
+                                                                                                                      new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
+                                                                                                                  .map(
+                                                                                                                      uri -> new Link(
+                                                                                                                          uri,
+                                                                                                                          Relation.SELF,
+                                                                                                                          "",
+                                                                                                                          "")));
+        when(featLinkCreator.createCollectionItemsLink(any(Relation.class),
+                                                       anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
+                                                                                                       + i.getArgument(0)
+                                                                                                       + "/item/"
+                                                                                                       + i.getArgument(1)))
+                                                                                           .map(uri -> new Link(uri,
+                                                                                                                Relation.ITEMS,
+                                                                                                                "",
+                                                                                                                "")));
 
-        when(featLinkCreator.createCollectionLinkWithRel(anyString(), anyString(), anyString())).thenAnswer(i -> {
-            if (i.getArgument(2).equals("child")) {
-                return Option.of(uri("/collection/" + i.getArgument(0)))
-                             .map(uri -> new Link(uri, COLLECTION, "", ""))
-                             .map(l -> l.withRel("child"));
-            }
-
-            return Option.of(uri("/collection/" + i.getArgument(0)))
-                         .map(uri -> new Link(uri, COLLECTION, "", ""))
-                         .map(l -> l.withRel("parent"));
+        when(featLinkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> {
+            Relation rel = i.getArgument(0);
+            return Option.of(uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, rel, "", ""));
 
         });
 
@@ -235,8 +237,7 @@ public class RegardsStacCollectionConverterTest {
         assertEquals("stacId", collections.get().getId());
 
         Assert.assertFalse(collections.get().getLinks().isEmpty());
-        Assert.assertEquals(1, collections.get().getLinks().map(Link::getRel).count(x -> x.equals("parent")));
-
+        Assert.assertEquals(1, collections.get().getLinks().map(Link::rel).count(x -> x.equals("parent")));
     }
 
     public URI uri(String s) {
@@ -246,5 +247,4 @@ public class RegardsStacCollectionConverterTest {
             throw new RuntimeException(e);
         }
     }
-
 }

@@ -20,8 +20,8 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import io.vavr.Function2;
 import io.vavr.Tuple;
@@ -44,7 +44,7 @@ import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static fr.cnes.regards.modules.catalog.stac.domain.StacSpecConstants.PropertyName.DATETIME_PROPERTY_NAME;
+import static fr.cnes.regards.modules.catalog.stac.domain.StacProperties.DATETIME_PROPERTY_NAME;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.warn;
 import static fr.cnes.regards.modules.catalog.stac.domain.properties.RegardsPropertyAccessor.accessor;

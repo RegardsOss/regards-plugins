@@ -18,8 +18,8 @@
  */
 package fr.cnes.regards.modules.catalog.stac.service.collection.timeline.builder;
 
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.CollectionSearchBody;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.extension.searchcol.FiltersByCollection;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.CollectionSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.FiltersByCollection;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacException;
 import fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;

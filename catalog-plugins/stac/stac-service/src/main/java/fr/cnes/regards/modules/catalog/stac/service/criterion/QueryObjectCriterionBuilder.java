@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import fr.cnes.regards.modules.catalog.stac.domain.api.v1_0_0_beta1.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.eodag.EODagParameters;
 import fr.cnes.regards.modules.catalog.stac.service.criterion.query.*;

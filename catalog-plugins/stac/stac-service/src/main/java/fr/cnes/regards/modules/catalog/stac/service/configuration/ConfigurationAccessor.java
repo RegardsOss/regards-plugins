@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.configuration;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Provider;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Provider;
 import io.vavr.collection.List;
 import org.locationtech.spatial4j.io.GeoJSONReader;
 
@@ -64,4 +64,10 @@ public interface ConfigurationAccessor {
     String getEODAGApiKey();
 
     String getHistogramProperyPath();
+
+    boolean isHumanReadableIdsEnabled();
+
+    boolean useCollectionConfiguration();
+
+    boolean isDisableauthParam();
 }

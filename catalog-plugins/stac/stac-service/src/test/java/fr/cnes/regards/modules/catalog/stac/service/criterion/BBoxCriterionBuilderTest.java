@@ -1,7 +1,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.criterion;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.geo.BBox;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.indexer.domain.criterion.BoundaryBoxCriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import io.vavr.collection.List;

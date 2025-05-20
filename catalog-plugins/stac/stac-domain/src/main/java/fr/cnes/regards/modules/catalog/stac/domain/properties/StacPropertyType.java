@@ -38,7 +38,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  * because there are no such properties defined in the standard.
  * <p>
  * The standard recommends avoiding arrays because arrays are not easily queryable.
- * See <a href="https://github.com/radiantearth/stac-spec/tree/v1.0.0-beta.2/extensions#use-of-arrays-and-objects">
+ * See <a href="https://github.com/radiantearth/stac-spec/tree/v1.0.0/extensions#use-of-arrays-and-objects">
  * this paragraph in the standard
  * </a>.
  */

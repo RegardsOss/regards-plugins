@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.collection;
 import fr.cnes.regards.framework.multitenant.IRuntimeTenantResolver;
 import fr.cnes.regards.framework.multitenant.ITenantResolver;
 import fr.cnes.regards.framework.urn.EntityType;
+import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.dam.domain.entities.AbstractEntity;
 import fr.cnes.regards.modules.indexer.dao.FacetPage;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
@@ -32,7 +33,6 @@ import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -48,19 +48,30 @@ public class IdMappingServiceImpl implements IdMappingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdMappingServiceImpl.class);
 
+    protected static final String URN_PREFIX = "URN:";
+
+    protected static final String FEATURE_URN_PREFIX = "URN:FEATURE:DATA:";
+
+    private static final String ID_SEPARATOR = "@";
+
     private final ConcurrentMap<String, BidiMap<String, String>> idMappingsByTenant = new ConcurrentHashMap<>();
 
-    @Autowired
-    private ISearchService searchService;
+    private final ISearchService searchService;
 
-    @Autowired
-    private ITenantResolver tenantResolver;
+    private final ITenantResolver tenantResolver;
 
     /**
      * Runtime tenant resolver
      */
-    @Autowired
-    private IRuntimeTenantResolver runtimeTenantResolver;
+    private final IRuntimeTenantResolver runtimeTenantResolver;
+
+    public IdMappingServiceImpl(ISearchService searchService,
+                                ITenantResolver tenantResolver,
+                                IRuntimeTenantResolver runtimeTenantResolver) {
+        this.searchService = searchService;
+        this.tenantResolver = tenantResolver;
+        this.runtimeTenantResolver = runtimeTenantResolver;
+    }
 
     @Override
     public String getUrnByStacId(String stacId) {
@@ -161,5 +172,41 @@ public class IdMappingServiceImpl implements IdMappingService {
             facetPage.forEach(consumer);
         }
         return mappings;
+    }
+
+    @Override
+    public String getItemId(UniformResourceName urn, String providerId, boolean humanReadable) {
+        // If deprecated properties not set and humanReadable flag is true
+        if (humanReadable && urn.getOrder() == null && urn.getRevision() == null) {
+            String urnString = urn.toString();
+            String discriminator = urnString.startsWith(FEATURE_URN_PREFIX) ?
+                urnString.substring(FEATURE_URN_PREFIX.length()) :
+                urnString;
+
+            return providerId + ID_SEPARATOR + discriminator;
+        } else {
+            // Fall back to the old way of building the item id if deprecated properties are set
+            return urn.toString();
+        }
+    }
+
+    @Override
+    public String geItemUrnFromId(String itemId) {
+        if (itemId.startsWith(URN_PREFIX)) {
+            // Handle fallback to old way of building the item id
+            return itemId;
+        } else {
+            // Rebuild the URN from the item id
+            String discriminator = itemId.substring(itemId.lastIndexOf(ID_SEPARATOR) + 1);
+            return FEATURE_URN_PREFIX + discriminator;
+        }
+    }
+
+    @Override
+    public List<String> getItemUrnsFromIds(List<String> itemIds) {
+        if (itemIds == null || itemIds.isEmpty()) {
+            return null;
+        }
+        return itemIds.map(this::geItemUrnFromId);
     }
 }

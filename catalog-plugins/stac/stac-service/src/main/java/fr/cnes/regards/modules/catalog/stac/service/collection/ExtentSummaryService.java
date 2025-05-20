@@ -20,7 +20,7 @@
 package fr.cnes.regards.modules.catalog.stac.service.collection;
 
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
-import fr.cnes.regards.modules.catalog.stac.domain.spec.v1_0_0_beta2.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
 import fr.cnes.regards.modules.indexer.domain.aggregation.QueryableAttribute;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
