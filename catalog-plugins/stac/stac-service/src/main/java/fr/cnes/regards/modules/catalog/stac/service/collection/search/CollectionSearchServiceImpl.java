@@ -133,7 +133,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
     public Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody,
                                                  Integer page,
                                                  SearchPageLinkCreator searchCollectionPageLinkCreator,
-                                                 OGCFeatLinkCreator ogcFeatLinkCreator) {
+                                                 OGCFeatLinkCreator ogcFeatLinkCreator,
+                                                 java.util.Map<String, String> headers) {
 
         // Retrieve configured collection properties
         CollectionConfigurationAccessor collectionConfigurationAccessor = collectionConfigurationAccessorFactory.makeConfigurationAccessor();
@@ -175,7 +176,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                          searchCollectionPageLinkCreator,
                                          ogcFeatLinkCreator,
                                          HashMap.empty(),
-                                         collectionConfigurationAccessor);
+                                         collectionConfigurationAccessor,
+                                         headers);
             }
         } else {
             idCriterion = Option.none();
@@ -206,7 +208,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                searchCollectionPageLinkCreator,
                                                                                ogcFeatLinkCreator,
                                                                                finalDatasetCount,
-                                                                               collectionConfigurationAccessor));
+                                                                               collectionConfigurationAccessor,
+                                                                               headers));
     }
 
     private Map<String, Long> getDatasetIds(ICriterion itemCriteria, Long size) throws AccessRightFilterException {
@@ -225,7 +228,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                              SearchPageLinkCreator searchCollectionPageLinkCreator,
                                                              OGCFeatLinkCreator ogcFeatLinkCreator,
                                                              Map<String, Long> datasetCount,
-                                                             CollectionConfigurationAccessor collectionConfigurationAccessor) {
+                                                             CollectionConfigurationAccessor collectionConfigurationAccessor,
+                                                             java.util.Map<String, String> headers) {
         return trying(() -> {
             Context context = new Context(facetPage.getNumberOfElements(),
                                           facetPage.getPageable().getPageSize(),
@@ -239,7 +243,8 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                    true),
                                                  extractLinks(searchCollectionPageLinkCreator,
                                                               facetPage,
-                                                              StacConstants.APPLICATION_JSON_MEDIA_TYPE),
+                                                              StacConstants.APPLICATION_JSON_MEDIA_TYPE,
+                                                              headers),
                                                  context,
                                                  facetPage.getTotalElements(),
                                                  (long) facetPage.getNumberOfElements());
@@ -425,7 +430,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
                                                                                                        downloadLinkCreator,
                                                                                                        sampleDocFilesSummary.getFilesSize(),
                                                                                                        sampleDocFilesSummary.getFilesCount()),
-                                                                                                       List.empty());
+                                                                                                   List.empty());
                   })
                   .recover(throwable -> new DownloadPreparationResponse.DownloadCollectionPreparationResponse(
                       collectionFilters.getCollectionId(),

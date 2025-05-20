@@ -46,9 +46,17 @@ public class FileInfoExtension {
     @SerializedName(PREFIX + "size")
     private final long size;
 
-    public FileInfoExtension(String checksum, String algorithm, long size) {
-        this.checksum = getMultihashChecksum(checksum, algorithm);
+    protected FileInfoExtension(String checksum, long size) {
+        this.checksum = checksum;
         this.size = size;
+    }
+
+    public static FileInfoExtension fromRawChecksum(String checksum, String algorithm, long size) {
+        return new FileInfoExtension(getMultihashChecksum(checksum, algorithm), size);
+    }
+
+    public static FileInfoExtension fromMultihash(String multihash, long size) {
+        return new FileInfoExtension(multihash, size);
     }
 
     /**
@@ -64,7 +72,7 @@ public class FileInfoExtension {
      *     <ul>hash value</ul>
      * </p>
      */
-    private String getMultihashChecksum(String checksum, String algorithm) {
+    protected static String getMultihashChecksum(String checksum, String algorithm) {
         if (algorithm == null) {
             // Fall back to unknown algorithm
             return "0000" + checksum;

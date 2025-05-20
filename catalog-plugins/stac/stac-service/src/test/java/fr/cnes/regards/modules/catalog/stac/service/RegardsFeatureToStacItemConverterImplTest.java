@@ -40,11 +40,15 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.error;
@@ -93,11 +97,22 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
 
         when(linkCreator.createLandingPageLink(Relation.ROOT)).thenAnswer(i -> Option.of(uri("/root"))
                                                                                      .map(uri -> new Link(uri,
-                                                                                                          Relation.ROOT.getValue(),
+                                                                                                          Relation.ROOT,
                                                                                                           "",
-                                                                                                          "")));
+                                                                                                          "",
+                                                                                                          HttpMethod.GET,
+                                                                                                          null)));
         when(linkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
-            uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, (Relation) i.getArgument(0), "", "")));
+                                                                                                                        uri("/collection/" + i.getArgument(1)))
+                                                                                                                    .map(
+                                                                                                                        uri -> new Link(
+                                                                                                                            uri,
+                                                                                                                            (Relation) i.getArgument(
+                                                                                                                                0),
+                                                                                                                            "",
+                                                                                                                            "",
+                                                                                                                            HttpMethod.GET,
+                                                                                                                            null)));
         when(linkCreator.createItemLink(any(Relation.class),
                                         anyString(),
                                         anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
@@ -105,9 +120,11 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                                                                                         + "/item/"
                                                                                         + i.getArgument(2)))
                                                                             .map(uri -> new Link(uri,
-                                                                                                 Relation.SELF.getValue(),
+                                                                                                 Relation.SELF,
                                                                                                  "",
-                                                                                                 "")));
+                                                                                                 "",
+                                                                                                 HttpMethod.GET,
+                                                                                                 null)));
 
         when(idMappingService.getStacIdByUrn(any())).thenReturn("stacId");
 
@@ -168,7 +185,10 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
                                                   && l.rel().equals(Relation.SELF.getValue()));
         assertThat(item.getAssets()).hasSize(2);
         assertThat(item.getAssets().head()._2.getHref()).matches(uri -> uri.getQuery().contains("token=theJwtToken"));
-
+        assertThat(item.getAssets().head()._2.getAdditionalFields()).isNotNull();
+        assertThat(item.getAssets().head()._2.getAdditionalFields().size()).isEqualTo(3);
+        assertThat(item.getAssets().head()._2.getAdditionalFields().get("key3")).isNotNull();
+        assertThat(item.getAssets().head()._2.getAdditionalFields().get("key3").getAsJsonObject().size()).isEqualTo(2);
     }
 
     public URI uri(String s) {
@@ -193,6 +213,15 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         feat1File1.setMimeType(MediaType.TEXT_PLAIN);
         feat1File1.setDataType(DataType.QUICKLOOK_SD);
 
+        Map<String, Object> innerObject = new HashMap<>();
+        innerObject.put("innerKey1", 123);
+        innerObject.put("innerKey2", Arrays.asList("a", "b", "c"));
+
+        Map<String, Object> outerObject = new HashMap<>();
+        outerObject.put("key1", "value1");
+        outerObject.put("key2", 42);
+        outerObject.put("key3", innerObject);
+
         DataFile feat2File2 = new DataFile();
         feat2File2.setOnline(true);
         feat2File2.setUri("file:///test/feat2_file2.txt");
@@ -203,6 +232,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         feat2File2.setDigestAlgorithm("MD5");
         feat2File2.setMimeType(MediaType.TEXT_PLAIN);
         feat2File2.setDataType(DataType.RAWDATA);
+        feat2File2.setAdditionalFields(outerObject);
 
         fileMultimapF2.put(DataType.QUICKLOOK_SD, feat1File1);
         fileMultimapF2.put(DataType.RAWDATA, feat2File2);

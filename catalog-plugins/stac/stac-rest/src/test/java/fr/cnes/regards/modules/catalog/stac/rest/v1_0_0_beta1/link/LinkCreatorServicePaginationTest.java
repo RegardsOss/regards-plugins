@@ -63,15 +63,17 @@ public class LinkCreatorServicePaginationTest {
      */
     @Test
     public void test_pagination_search_page_link_creators() {
-        SearchPageLinkCreator pageLinkCreator = linkCreatorService.makeSearchPageLinkCreator(2, null, true);
+        SearchPageLinkCreator pageLinkCreator = linkCreatorService.makeSearchPageLinkCreator(2, null, true, null);
 
         SearchPageLinkCreator collectionItemsPageLinkCreator = linkCreatorService.makeCollectionItemsPageLinkCreator(2,
                                                                                                                      "URN:FEATURE:toto:123-123-123:V1",
-                                                                                                                     true);
+                                                                                                                     true,
+                                                                                                                     null);
 
         SearchPageLinkCreator collectionPageLinkCreator = linkCreatorService.makeSearchCollectionPageLinkCreation(2,
                                                                                                                   null,
-                                                                                                                  true);
+                                                                                                                  true,
+                                                                                                                  null);
         test_next_previous_self_pages(pageLinkCreator);
         test_next_previous_self_pages(collectionItemsPageLinkCreator);
         test_next_previous_self_pages(collectionPageLinkCreator);

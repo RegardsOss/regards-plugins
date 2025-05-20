@@ -19,7 +19,10 @@
 
 package fr.cnes.regards.modules.catalog.stac.domain.spec.common;
 
+import org.springframework.http.HttpMethod;
+
 import java.net.URI;
+import java.util.Map;
 
 /**
  * This object describes a relationship with another entity. Data providers are advised
@@ -32,9 +35,23 @@ import java.net.URI;
 public record Link(URI href,
                    String rel,
                    String type,
-                   String title) {
+                   String title,
+                   String method,
+                   Map<String, String> headers,
+                   String body) {
 
-    public Link(URI href, Relation rel, String type, String title) {
-        this(href, rel.getValue(), type, title);
+    public Link(URI href, Relation rel, String type, String title, HttpMethod method, Map<String, String> headers) {
+        this(href, rel.getValue(), type, title, method.name(), headers, null);
     }
+
+    public Link(URI href,
+                Relation rel,
+                String type,
+                String title,
+                HttpMethod method,
+                Map<String, String> headers,
+                String body) {
+        this(href, rel.getValue(), type, title, method.name(), headers, body);
+    }
+
 }

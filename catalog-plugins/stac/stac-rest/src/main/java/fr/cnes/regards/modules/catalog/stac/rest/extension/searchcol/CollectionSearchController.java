@@ -25,6 +25,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.extension.searchcol.*;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.pagination.SearchOtherPageCollectionBodySerdeService;
+import fr.cnes.regards.modules.catalog.stac.rest.utils.HeaderUtils;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.search.CollectionSearchService;
 import fr.cnes.regards.modules.catalog.stac.service.collection.timeline.TimelineService;
@@ -39,6 +40,8 @@ import io.vavr.control.Try;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants.*;
 
@@ -113,7 +116,8 @@ public class CollectionSearchController implements TryToResponseEntity {
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + IDS_QUERY_PARAM, required = false)
         List<String> itemIds,
         @RequestParam(name = STAC_COLLECTION_ITEM_QUERY_PARAM_PREFIX + QUERY_QUERY_PARAM, required = false)
-        String itemQuery) {
+        String itemQuery,
+        @RequestHeader Map<String, String> headers) {
         CollectionSearchBody collectionSearchBody = collectionSearchBodyFactory.parseCollectionSearch(page,
                                                                                                       limit,
                                                                                                       bbox,
@@ -132,13 +136,17 @@ public class CollectionSearchController implements TryToResponseEntity {
                                                                                    itemIds,
                                                                                    itemQuery).getOrNull());
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
                                                                page,
                                                                linkCreatorService.makeSearchCollectionPageLinkCreation(
                                                                    page,
                                                                    collectionSearchBody,
-                                                                   appendAuthParam),
-                                                               linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam)));
+                                                                   appendAuthParam,
+                                                                   stacHeaders),
+                                                               linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                                                         stacHeaders),
+                                                               stacHeaders));
     }
 
     @Operation(summary = "Search collections with complex filtering using both collection and item query parameters",
@@ -148,8 +156,10 @@ public class CollectionSearchController implements TryToResponseEntity {
     @PostMapping
     public ResponseEntity<SearchCollectionsResponse> postCollectionSearch(
         @RequestBody CollectionSearchBody collectionSearchBody,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
+        @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(collectionSearchService.search(collectionSearchBody,
                                                                collectionSearchBody.getPage() == null ?
                                                                    page :
@@ -157,8 +167,11 @@ public class CollectionSearchController implements TryToResponseEntity {
                                                                linkCreatorService.makeSearchCollectionPageLinkCreation(
                                                                    page,
                                                                    collectionSearchBody,
-                                                                   appendAuthParam),
-                                                               linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam)));
+                                                                   appendAuthParam,
+                                                                   stacHeaders),
+                                                               linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                                                         stacHeaders),
+                                                               stacHeaders));
     }
 
     @Operation(summary = "continue to next/previous search collection page",
@@ -170,14 +183,20 @@ public class CollectionSearchController implements TryToResponseEntity {
     @GetMapping("paginate")
     public ResponseEntity<SearchCollectionsResponse> otherPage(
         @RequestParam(name = SEARCH_COLLECTION_BODY_QUERY_PARAM) String collectionBodyBase64,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
+        @RequestHeader Map<String, String> headers) {
         Try<CollectionSearchBody> tryCollectionSearchBody = searchTokenSerde.deserialize(collectionBodyBase64);
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(tryCollectionSearchBody.flatMap(collectionSearchBody -> collectionSearchService.search(
             collectionSearchBody,
             page,
-            linkCreatorService.makeSearchCollectionPageLinkCreation(page, collectionSearchBody, appendAuthParam),
-            linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam))));
+            linkCreatorService.makeSearchCollectionPageLinkCreation(page,
+                                                                    collectionSearchBody,
+                                                                    appendAuthParam,
+                                                                    stacHeaders),
+            linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam, stacHeaders),
+            stacHeaders)));
     }
 
     @Operation(summary = "Return the collections timeline",

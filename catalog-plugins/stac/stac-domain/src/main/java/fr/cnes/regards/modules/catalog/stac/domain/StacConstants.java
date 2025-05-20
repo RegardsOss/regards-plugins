@@ -28,10 +28,10 @@ import java.time.format.DateTimeFormatterBuilder;
  */
 public final class StacConstants {
 
-    // Since 2024/09/10
+    // Current stable version of STAC core since 2024/09/10
     public static final String STAC_SPEC_VERSION = "1.1.0";
 
-    // Since 2023/04/24
+    // Current stable version of STAC API since 2023/04/24
     public static final String STAC_API_VERSION = "1.0.0";
 
     public static final DateTimeFormatter ISO_DATE_TIME_UTC = new DateTimeFormatterBuilder().parseCaseInsensitive()
@@ -48,6 +48,8 @@ public final class StacConstants {
     public static final String APPLICATION_JSON_MEDIA_TYPE = "application/json";
 
     public static final String DISABLE_AUTH_PARAMS = "disable-auth-params";
+
+    public static final String AUTHORIZATION_PARAMS = "Authorization";
 
     private StacConstants() {
         // Utility class

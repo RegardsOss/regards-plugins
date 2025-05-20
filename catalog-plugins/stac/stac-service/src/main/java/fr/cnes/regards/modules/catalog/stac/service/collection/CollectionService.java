@@ -33,6 +33,7 @@ import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -61,7 +62,8 @@ public interface CollectionService {
                                                       BBox bbox,
                                                       String datetime,
                                                       OGCFeatLinkCreator ogcFeatLinkCreator,
-                                                      Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker);
+                                                      Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
+                                                      Map<String, String> headers);
 
     java.util.List<Link> buildLandingPageLinks(ConfigurationAccessor config, OGCFeatLinkCreator linkCreator);
 }

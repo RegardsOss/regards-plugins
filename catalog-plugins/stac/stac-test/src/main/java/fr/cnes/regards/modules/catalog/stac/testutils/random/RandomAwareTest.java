@@ -56,10 +56,12 @@ public interface RandomAwareTest {
     default EasyRandom easyRandom() {
         VavrWrappersRegistry vavrWrappersRegistry = new VavrWrappersRegistry();
         VavrRandomizerRegistry vavrRandomizerRegistry = new VavrRandomizerRegistry();
+        AdditionalFieldsRegistry additionalFieldsRegistry = new AdditionalFieldsRegistry();
 
         EasyRandomParameters parameters = new EasyRandomParameters();
         parameters.randomizerRegistry(vavrWrappersRegistry);
         parameters.randomizerRegistry(vavrRandomizerRegistry);
+        parameters.randomizerRegistry(additionalFieldsRegistry);
         parameters.objectFactory(new RecordFactory());
 
         EasyRandom generator = new EasyRandom(parameters);

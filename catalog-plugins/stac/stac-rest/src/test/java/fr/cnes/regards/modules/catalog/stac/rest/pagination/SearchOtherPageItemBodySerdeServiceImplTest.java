@@ -4,10 +4,12 @@ import com.google.gson.GsonBuilder;
 import fr.cnes.regards.modules.catalog.stac.domain.api.DateInterval;
 import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.gson.AssetAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.gson.BBoxTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.gson.DateIntervalTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.api.gson.QueryObjectTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.collection.Extent;
+import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Asset;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.service.utils.Base64Codec;
 import fr.cnes.regards.modules.catalog.stac.testutils.gson.GsonAwareTest;
@@ -22,7 +24,6 @@ import org.junit.Test;
 import java.time.OffsetDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 
 public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTest, RandomAwareTest {
 
@@ -72,6 +73,7 @@ public class SearchOtherPageItemBodySerdeServiceImplTest implements GsonAwareTes
     // TODO: factorize somehow this method, also in AbstractDomainSerdeTest
     @Override
     public GsonBuilder updateGsonBuilder(GsonBuilder builder) {
+        builder.registerTypeAdapter(Asset.class, new AssetAdapter());
         builder.registerTypeAdapter(BBox.class, new BBoxTypeAdapter());
         builder.registerTypeAdapter(SearchBody.QueryObject.class, new QueryObjectTypeAdapter());
         builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());

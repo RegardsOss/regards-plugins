@@ -190,12 +190,13 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
      */
     @Override
     public List<Link> extraLinks(Class<?> searchEngineControllerClass, SearchEngineConfiguration element) {
-        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(true);
+        OGCFeatLinkCreator ogcFeatLinkCreator = linkCreator.makeOGCFeatLinkCreator(true, null);
         SearchPageLinkCreator searchPageLinkCreator = linkCreator.makeSearchPageLinkCreator(0,
                                                                                             ItemSearchBody.builder()
                                                                                                           .limit(100)
                                                                                                           .build(),
-                                                                                            true);
+                                                                                            true,
+                                                                                            null);
         Option<String> collectionsLink = ogcFeatLinkCreator.createCollectionsLink(Relation.DATA)
                                                            .map(l -> l.href().toString());
         return io.vavr.collection.List.of(collectionsLink.map(href -> Link.of(href, "search-collections")),

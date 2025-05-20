@@ -26,24 +26,29 @@ import fr.cnes.regards.modules.catalog.stac.service.link.DownloadLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 
+import java.util.Map;
+
 /**
  * This interface allows to create link creators used in the stac-service services.
  */
 public interface LinkCreatorService {
 
-    OGCFeatLinkCreator makeOGCFeatLinkCreator(boolean appendAuthParams);
+    OGCFeatLinkCreator makeOGCFeatLinkCreator(boolean appendAuthParams, Map<String, String> headers);
 
     SearchPageLinkCreator makeSearchPageLinkCreator(Integer page,
                                                     ItemSearchBody itemSearchBody,
-                                                    boolean appendAuthParams);
+                                                    boolean appendAuthParams,
+                                                    Map<String, String> headers);
 
     SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page,
                                                                CollectionSearchBody collectionSearchBody,
-                                                               boolean appendAuthParams);
+                                                               boolean appendAuthParams,
+                                                               Map<String, String> headers);
 
     SearchPageLinkCreator makeCollectionItemsPageLinkCreator(Integer page,
                                                              String collectionId,
-                                                             boolean appendAuthParams);
+                                                             boolean appendAuthParams,
+                                                             Map<String, String> headers);
 
     DownloadLinkCreator makeDownloadLinkCreator(FeignSecurityManager feignSecurityManager, boolean appendAuthParams);
 }

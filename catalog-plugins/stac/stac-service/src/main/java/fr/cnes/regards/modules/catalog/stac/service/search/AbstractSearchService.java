@@ -31,6 +31,9 @@ import io.vavr.control.Option;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpMethod;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody.SortBy.Direction.ASC;
 import static org.springframework.data.domain.Sort.Order.asc;
@@ -70,40 +73,67 @@ public abstract class AbstractSearchService {
                              .getOrElse(field);
     }
 
-    protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page, String type) {
-        return List.of(extractSelfPage(searchPageLinkCreator, type),
-                       extractCollectionLink(searchPageLinkCreator),
-                       extractNextPage(searchPageLinkCreator, page, type),
-                       extractPreviousPage(searchPageLinkCreator, page, type)).flatMap(l -> l);
+    protected List<Link> extractLinks(SearchPageLinkCreator searchPageLinkCreator,
+                                      FacetPage<?> page,
+                                      String type,
+                                      Map<String, String> headers) {
+        return List.of(extractSelfPage(searchPageLinkCreator, type, headers),
+                       extractCollectionLink(searchPageLinkCreator, headers),
+                       extractNextPage(searchPageLinkCreator, page, type, headers),
+                       extractPreviousPage(searchPageLinkCreator, page, type, headers)).flatMap(l -> l);
     }
 
-    private Option<Link> extractSelfPage(SearchPageLinkCreator searchPageLinkCreator, String type) {
+    private Option<Link> extractSelfPage(SearchPageLinkCreator searchPageLinkCreator,
+                                         String type,
+                                         Map<String, String> headers) {
         return searchPageLinkCreator.createSelfPageLink()
-                                    .map(uri -> new Link(uri, Relation.SELF.getValue(), type, "this search page"));
+                                    .map(uri -> new Link(uri,
+                                                         Relation.SELF,
+                                                         type,
+                                                         "this search page",
+                                                         HttpMethod.GET,
+                                                         headers));
     }
 
-    private Option<Link> extractCollectionLink(SearchPageLinkCreator searchPageLinkCreator) {
+    private Option<Link> extractCollectionLink(SearchPageLinkCreator searchPageLinkCreator,
+                                               Map<String, String> headers) {
         return searchPageLinkCreator.createCollectionLink()
                                     .map(uri -> new Link(uri,
-                                                         Relation.COLLECTION.getValue(),
+                                                         Relation.COLLECTION,
                                                          StacConstants.APPLICATION_JSON_MEDIA_TYPE,
-                                                         "this search " + "page"));
+                                                         "this search " + "page",
+                                                         HttpMethod.GET,
+                                                         headers));
     }
 
-    private Option<Link> extractNextPage(SearchPageLinkCreator searchPageLinkCreator, FacetPage<?> page, String type) {
+    private Option<Link> extractNextPage(SearchPageLinkCreator searchPageLinkCreator,
+                                         FacetPage<?> page,
+                                         String type,
+                                         Map<String, String> headers) {
         if (page.getTotalElements() - (long) page.getNumber() * page.getSize() - page.getNumberOfElements() > 0) {
             return searchPageLinkCreator.createNextPageLink()
-                                        .map(uri -> new Link(uri, Relation.NEXT.getValue(), type, "next search page"));
+                                        .map(uri -> new Link(uri,
+                                                             Relation.NEXT,
+                                                             type,
+                                                             "next search page",
+                                                             HttpMethod.GET,
+                                                             headers));
         }
         return Option.none();
     }
 
     private Option<Link> extractPreviousPage(SearchPageLinkCreator searchPageLinkCreator,
                                              FacetPage<?> page,
-                                             String type) {
+                                             String type,
+                                             Map<String, String> headers) {
         if (page.getPageable().hasPrevious()) {
             return searchPageLinkCreator.createPrevPageLink()
-                                        .map(uri -> new Link(uri, Relation.PREV.getValue(), type, "prev search page"));
+                                        .map(uri -> new Link(uri,
+                                                             Relation.PREV,
+                                                             type,
+                                                             "previous search page",
+                                                             HttpMethod.GET,
+                                                             headers));
         }
         return Option.none();
     }

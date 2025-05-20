@@ -26,6 +26,8 @@ import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
 
+import java.util.Map;
+
 /**
  * STAC item searching methods.
  */
@@ -43,7 +45,8 @@ public interface ItemSearchService {
     Try<ItemCollectionResponse> search(ItemSearchBody itemSearchBody,
                                        Integer page,
                                        OGCFeatLinkCreator featLinkCreator,
-                                       SearchPageLinkCreator searchPageLinkCreator);
+                                       SearchPageLinkCreator searchPageLinkCreator,
+                                       Map<String, String> headers);
 
     /**
      * Search for an item by its id.

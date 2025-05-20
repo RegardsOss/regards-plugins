@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -212,11 +213,22 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
 
         when(linkCreator.createLandingPageLink(Relation.ROOT)).thenAnswer(i -> Option.of(uri("/root"))
                                                                                      .map(uri -> new Link(uri,
-                                                                                                          Relation.ROOT.getValue(),
+                                                                                                          Relation.ROOT,
                                                                                                           "",
-                                                                                                          "")));
+                                                                                                          "",
+                                                                                                          HttpMethod.GET,
+                                                                                                          null)));
         when(linkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
-            uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, (Relation) i.getArgument(0), "", "")));
+                                                                                                                        uri("/collection/" + i.getArgument(1)))
+                                                                                                                    .map(
+                                                                                                                        uri -> new Link(
+                                                                                                                            uri,
+                                                                                                                            (Relation) i.getArgument(
+                                                                                                                                0),
+                                                                                                                            "",
+                                                                                                                            "",
+                                                                                                                            HttpMethod.GET,
+                                                                                                                            null)));
         when(linkCreator.createItemLink(any(Relation.class),
                                         anyString(),
                                         anyString())).thenAnswer(i -> Option.of(new URI("/collection"
@@ -228,7 +240,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                                                                                                  (Relation) i.getArgument(
                                                                                                      0),
                                                                                                  "",
-                                                                                                 "")));
+                                                                                                 "",
+                                                                                                 HttpMethod.GET,
+                                                                                                 null)));
         when(linkCreator.createCollectionItemsLink(any(Relation.class), anyString())).thenAnswer(i -> Option.of(new URI(
                                                                                                                 "/collection/" + i.getArgument(1) + "/items/" + "anItem"))
                                                                                                             .map(uri -> new Link(
@@ -236,7 +250,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
                                                                                                                 (Relation) i.getArgument(
                                                                                                                     0),
                                                                                                                 "",
-                                                                                                                "")));
+                                                                                                                "",
+                                                                                                                HttpMethod.GET,
+                                                                                                                null)));
 
         repository.save(ITEMS_TENANT, collection);
         repository.save(ITEMS_TENANT, dataObject1);

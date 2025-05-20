@@ -24,6 +24,8 @@ import fr.cnes.regards.modules.catalog.stac.service.link.OGCFeatLinkCreator;
 import fr.cnes.regards.modules.catalog.stac.service.link.SearchPageLinkCreator;
 import io.vavr.control.Try;
 
+import java.util.Map;
+
 /**
  * Extension service for searching collection
  *
@@ -34,7 +36,8 @@ public interface CollectionSearchService {
     Try<SearchCollectionsResponse> search(CollectionSearchBody collectionSearchBody,
                                           Integer page,
                                           SearchPageLinkCreator searchCollectionPageLinkCreator,
-                                          OGCFeatLinkCreator ogcFeatLinkCreator);
+                                          OGCFeatLinkCreator ogcFeatLinkCreator,
+                                          Map<String, String> headers);
 
     Try<DownloadPreparationResponse> prepareZipDownload(FiltersByCollection filtersByCollection,
                                                         DownloadLinkCreator downloadLinkCreator);

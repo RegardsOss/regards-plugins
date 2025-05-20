@@ -19,11 +19,13 @@
 
 package fr.cnes.regards.modules.catalog.stac.service.link;
 
-import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Relation;
+import jakarta.annotation.Nullable;
+import org.springframework.http.HttpMethod;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -31,12 +33,23 @@ import java.util.function.Function;
  */
 public interface StacLinkCreator {
 
-    default Function<URI, Link> createLink(Relation rel, String title, String type) {
-        return uri -> createLink(uri, rel, title, type);
+    default Function<URI, Link> createLink(Relation rel,
+                                           String title,
+                                           String type,
+                                           HttpMethod method,
+                                           Map<String, String> headers,
+                                           String body) {
+        return uri -> createLink(uri, rel, title, type, method, headers, body);
     }
 
-    default Link createLink(URI uri, Relation rel, String title, String type) {
-        return new Link(uri, rel.getValue(), type, title);
+    default Link createLink(URI uri,
+                            Relation rel,
+                            String title,
+                            String type,
+                            HttpMethod method,
+                            @Nullable Map<String, String> headers,
+                            @Nullable String body) {
+        return new Link(uri, rel, type, title, method, headers, body);
     }
 
 }

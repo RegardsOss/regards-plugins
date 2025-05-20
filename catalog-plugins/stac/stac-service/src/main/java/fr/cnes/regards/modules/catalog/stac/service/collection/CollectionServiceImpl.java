@@ -49,6 +49,7 @@ import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.COLLECTIONSRESPONSE_CONSTRUCTION;
@@ -256,7 +257,8 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                                                              BBox bbox,
                                                              String datetime,
                                                              OGCFeatLinkCreator ogcFeatLinkCreator,
-                                                             Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker) {
+                                                             Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
+                                                             Map<String, String> headers) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
         final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId) ?
@@ -266,7 +268,8 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
         return tryIsb.flatMap(isb -> itemSearchService.search(isb,
                                                               page,
                                                               ogcFeatLinkCreator,
-                                                              searchPageLinkCreatorMaker.apply(isb)));
+                                                              searchPageLinkCreatorMaker.apply(isb),
+                                                              headers));
     }
 
     private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId,

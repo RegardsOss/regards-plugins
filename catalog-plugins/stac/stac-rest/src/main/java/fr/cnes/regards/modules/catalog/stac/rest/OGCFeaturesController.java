@@ -28,6 +28,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.utils.HeaderUtils;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.CollectionService;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
@@ -43,6 +44,8 @@ import io.vavr.control.Try;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants.*;
 
@@ -85,11 +88,12 @@ public class OGCFeaturesController implements TryToResponseEntity {
                                          description = "The feature collections shared by this API.") })
     @ResourceAccess(description = "the feature collections in the dataset", role = DefaultRole.PUBLIC)
     @GetMapping
-    public ResponseEntity<CollectionsResponse> getCollections() {
+    public ResponseEntity<CollectionsResponse> getCollections(@RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         CollectionConfigurationAccessor collectionConfig = collectionConfigFactory.makeConfigurationAccessor();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                       HeaderUtils.getStacHeaders(headers));
         return toResponseEntity(collectionService.buildRootCollectionsResponse(linkCreator, config, collectionConfig));
     }
 
@@ -106,11 +110,13 @@ public class OGCFeaturesController implements TryToResponseEntity {
                             @ApiResponse(responseCode = "404", description = "Collection not found.") })
     @ResourceAccess(description = "describe the feature collection with id `collectionId`", role = DefaultRole.PUBLIC)
     @GetMapping(STAC_COLLECTION_PATH_SUFFIX)
-    public ResponseEntity<Collection> describeCollection(@PathVariable(COLLECTION_ID_PARAM) String collectionId) {
+    public ResponseEntity<Collection> describeCollection(@PathVariable(COLLECTION_ID_PARAM) String collectionId,
+                                                         @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         CollectionConfigurationAccessor collectionConfig = collectionConfigFactory.makeConfigurationAccessor();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                       HeaderUtils.getStacHeaders(headers));
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config, collectionConfig));
     }
 
@@ -127,18 +133,23 @@ public class OGCFeaturesController implements TryToResponseEntity {
         @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
         @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
         @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
+        @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(collectionService.getItemsForCollection(collectionId,
                                                                         limit,
                                                                         page,
                                                                         bbox,
                                                                         datetime,
-                                                                        linker.makeOGCFeatLinkCreator(appendAuthParam),
+                                                                        linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                                                      stacHeaders),
                                                                         isb -> linker.makeCollectionItemsPageLinkCreator(
                                                                             page,
                                                                             collectionId,
-                                                                            appendAuthParam)));
+                                                                            appendAuthParam,
+                                                                            stacHeaders),
+                                                                        stacHeaders));
     }
 
     @Operation(summary = "fetch a single feature",
@@ -148,9 +159,11 @@ public class OGCFeaturesController implements TryToResponseEntity {
     @ResourceAccess(description = "fetch a single feature", role = DefaultRole.PUBLIC)
     @GetMapping(STAC_ITEM_PATH_SUFFIX)
     public ResponseEntity<Item> getFeature(@PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
-                                           @PathVariable(name = ITEM_ID_PARAM) String featureId) {
+                                           @PathVariable(name = ITEM_ID_PARAM) String featureId,
+                                           @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                       HeaderUtils.getStacHeaders(headers));
         Try<Item> result = itemSearchService.searchById(featureId, linkCreator);
         return toResponseEntity(result);
     }

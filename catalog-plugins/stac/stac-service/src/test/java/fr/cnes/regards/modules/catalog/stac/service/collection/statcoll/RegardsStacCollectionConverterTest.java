@@ -51,6 +51,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -172,7 +173,9 @@ public class RegardsStacCollectionConverterTest {
                                                                                          .map(uri -> new Link(uri,
                                                                                                               Relation.ROOT,
                                                                                                               "",
-                                                                                                              "")));
+                                                                                                              "",
+                                                                                                              HttpMethod.GET,
+                                                                                                              null)));
         when(featLinkCreator.createItemLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> Option.of(
                                                                                                                       new URI("/collection/" + i.getArgument(0) + "/item/" + i.getArgument(1)))
                                                                                                                   .map(
@@ -180,7 +183,9 @@ public class RegardsStacCollectionConverterTest {
                                                                                                                           uri,
                                                                                                                           Relation.SELF,
                                                                                                                           "",
-                                                                                                                          "")));
+                                                                                                                          "",
+                                                                                                                          HttpMethod.GET,
+                                                                                                                          null)));
         when(featLinkCreator.createCollectionItemsLink(any(Relation.class),
                                                        anyString())).thenAnswer(i -> Option.of(new URI("/collection/"
                                                                                                        + i.getArgument(0)
@@ -189,11 +194,14 @@ public class RegardsStacCollectionConverterTest {
                                                                                            .map(uri -> new Link(uri,
                                                                                                                 Relation.ITEMS,
                                                                                                                 "",
-                                                                                                                "")));
+                                                                                                                "",
+                                                                                                                HttpMethod.GET,
+                                                                                                                null)));
 
         when(featLinkCreator.createCollectionLink(any(Relation.class), anyString(), anyString())).thenAnswer(i -> {
             Relation rel = i.getArgument(0);
-            return Option.of(uri("/collection/" + i.getArgument(1))).map(uri -> new Link(uri, rel, "", ""));
+            return Option.of(uri("/collection/" + i.getArgument(1)))
+                         .map(uri -> new Link(uri, rel, "", "", HttpMethod.GET, null));
 
         });
 

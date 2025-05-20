@@ -25,6 +25,7 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Catalog;
 import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
+import fr.cnes.regards.modules.catalog.stac.rest.utils.HeaderUtils;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.collection.CollectionService;
@@ -39,8 +40,11 @@ import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.CORERESPONSE_CONSTRUCTION;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
@@ -81,11 +85,12 @@ public class CoreController implements TryToResponseEntity {
                                          description = "Links to the API definition and Feature Collections") })
     @ResourceAccess(description = "landing page", role = DefaultRole.PUBLIC)
     @GetMapping
-    public ResponseEntity<Catalog> getLandingPage() {
+    public ResponseEntity<Catalog> getLandingPage(@RequestHeader Map<String, String> headers) {
         ConfigurationAccessor config = configFactory.makeConfigurationAccessor();
         String title = config.getTitle();
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
-        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam);
+        OGCFeatLinkCreator linkCreator = linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                       HeaderUtils.getStacHeaders(headers));
         return toResponseEntity(trying(() -> new Catalog(StacConstants.STAC_API_VERSION,
                                                          HashSet.empty(),
                                                          runtimeTenantResolver.getTenant(),

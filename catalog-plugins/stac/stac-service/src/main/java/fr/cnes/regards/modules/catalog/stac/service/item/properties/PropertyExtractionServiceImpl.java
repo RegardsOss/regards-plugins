@@ -21,6 +21,7 @@ package fr.cnes.regards.modules.catalog.stac.service.item.properties;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Asset;
@@ -149,25 +150,31 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
     }
 
     private Tuple2<String, Asset> extractAsset(DataFile value, Tuple2<String, String> authParam) {
+        JsonObject additionnalFields = null;
+        JsonElement jsonElement = gson.toJsonTree(value.getAdditionalFields());
+        if (jsonElement != null && jsonElement.isJsonObject()) {
+            additionnalFields = jsonElement.getAsJsonObject();
+        }
         Tuple2<String, Asset> result = Tuple.of(value.getFilename(),
-                                                new Asset(value.getChecksum(),
-                                                          value.getDigestAlgorithm(),
-                                                          value.getFilesize(),
-                                                          authdUri(value.asUri(), authParam),
-                                                          value.getFilename(),
-                                                          format("File size: %d bytes"
-                                                                 + "\n\nIs reference: %b"
-                                                                 + "\n\nIs online: %b"
-                                                                 + "\n\nDatatype: %s"
-                                                                 + "\n\nChecksum %s: %s",
-                                                                 value.getFilesize(),
-                                                                 value.isReference(),
-                                                                 value.isOnline(),
-                                                                 value.getDataType(),
-                                                                 value.getDigestAlgorithm(),
-                                                                 value.getChecksum()),
-                                                          value.getMimeType().toString(),
-                                                          HashSet.of(Asset.fromDataType(value.getDataType()))));
+                                                Asset.fromRawChecksum(value.getChecksum(),
+                                                                      value.getDigestAlgorithm(),
+                                                                      value.getFilesize(),
+                                                                      authdUri(value.asUri(), authParam),
+                                                                      value.getFilename(),
+                                                                      format("File size: %d bytes"
+                                                                             + "\n\nIs reference: %b"
+                                                                             + "\n\nIs online: %b"
+                                                                             + "\n\nDatatype: %s"
+                                                                             + "\n\nChecksum %s: %s",
+                                                                             value.getFilesize(),
+                                                                             value.isReference(),
+                                                                             value.isOnline(),
+                                                                             value.getDataType(),
+                                                                             value.getDigestAlgorithm(),
+                                                                             value.getChecksum()),
+                                                                      value.getMimeType().toString(),
+                                                                      HashSet.of(Asset.fromDataType(value.getDataType())),
+                                                                      additionnalFields));
         debug(LOGGER, "Found asset: \n\tDataFile={} ; \n\tAsset={}", value.getChecksum(), result);
         return result;
     }

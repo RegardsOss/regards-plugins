@@ -45,9 +45,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.tryOf;
@@ -86,7 +88,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     }
 
     @Override
-    public OGCFeatLinkCreator makeOGCFeatLinkCreator(boolean appendAuthParams) {
+    public OGCFeatLinkCreator makeOGCFeatLinkCreator(boolean appendAuthParams, Map<String, String> headers) {
         String tenant = tenantResolver.getTenant();
 
         return new OGCFeatLinkCreator() {
@@ -94,13 +96,13 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             @Override
             public Option<Link> createLandingPageLink(Relation rel) {
                 return tryOf(() ->
-                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(CoreController.class).getLandingPage()).toUri()
+                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(CoreController.class).getLandingPage(headers)).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create root link", t))
                 .toOption()
                 .map(createLink(rel, String.format("STAC %s landing page", tenant),
-                                StacConstants.APPLICATION_JSON_MEDIA_TYPE));
+                                StacConstants.APPLICATION_JSON_MEDIA_TYPE, HttpMethod.GET, headers, null));
             }
 
             @Override public Option<Link> createConformanceLink(Relation rel) {
@@ -111,30 +113,31 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                     .onFailure(t -> warn(LOGGER, "Failed to create root link", t))
                     .toOption()
                     .map(createLink(rel, String.format("STAC %s conformance page", tenant),
-                                    StacConstants.APPLICATION_JSON_MEDIA_TYPE));
+                                    StacConstants.APPLICATION_JSON_MEDIA_TYPE, HttpMethod.GET, headers, null));
             }
 
             @Override
             public Option<Link> createCollectionsLink(Relation rel) {
                 return tryOf(() ->
-                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class).getCollections()).toUri()
+                        WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class).getCollections(headers)).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create collections link", t))
                 .toOption()
                 .map(createLink(rel, String.format("STAC %s collections", tenant),
-                                StacConstants.APPLICATION_JSON_MEDIA_TYPE));
+                                StacConstants.APPLICATION_JSON_MEDIA_TYPE, HttpMethod.GET, headers, null));
             }
 
             @Override
             public Option<Link> createCollectionLink(Relation rel, String collectionId, String collectionTitle) {
                 return tryOf(() ->
-                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class).describeCollection(collectionId)).toUri()
+                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class).describeCollection(collectionId, headers)).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create collection link: {}", collectionId, t))
                 .toOption()
-                .map(createLink(rel, collectionTitle, StacConstants.APPLICATION_JSON_MEDIA_TYPE));
+                .map(createLink(rel, collectionTitle, StacConstants.APPLICATION_JSON_MEDIA_TYPE, HttpMethod.GET,
+                                headers, null));
             }
 
             @Override
@@ -147,7 +150,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create collection items link: {}", collectionId, t))
                 .toOption()
-                .map(createLink(rel, "Collections items", StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE));
+                .map(createLink(rel, "Collections items", StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE,
+                                HttpMethod.GET, headers, null));
             }
 
             @Override
@@ -160,12 +164,13 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             public Option<Link> createItemLink(Relation rel, String collectionId, String itemId) {
                 return tryOf(() ->
                     WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class)
-                                                                           .getFeature(collectionId, itemId))
+                                                                           .getFeature(collectionId, itemId, headers))
                                                                            .toUri())
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create item link: {}", itemId, t))
                 .toOption()
-                .map(createLink(rel, itemId, StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE));
+                .map(createLink(rel, itemId, StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE, HttpMethod.GET, headers,
+                                null));
             }
 
             @Override
@@ -176,12 +181,13 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             @Override
             public Option<Link> createSearchLink(Relation rel) {
                 return tryOf(() ->
-                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class).getItemSearch(null, null, null, null, null, null, null, null, null)).toUri()
+                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class).getItemSearch(null, null, null, null, null, null, null, null, null, headers)).toUri()
                 )
                 .flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                 .onFailure(t -> warn(LOGGER, "Failed to create search link", t))
                 .toOption()
-                .map(createLink(rel, "Search", StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE));
+                .map(createLink(rel, "Search", StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE, HttpMethod.GET, headers
+                    , null));
             }
         };
     }
@@ -191,7 +197,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     @Override
     public SearchPageLinkCreator makeSearchPageLinkCreator(Integer page,
                                                            ItemSearchBody itemSearchBody,
-                                                           boolean appendAuthParams) {
+                                                           boolean appendAuthParams,
+                                                           Map<String, String> headers) {
         return new SearchPageLinkCreator() {
 
             @Override
@@ -205,7 +212,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                             null,
                                                                                             null,
                                                                                             null,
-                                                                                            null))
+                                                                                            null,
+                                                                                            headers))
                                                     .toUri()).onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create search all",
                                                                                   t)).toOption();
@@ -222,19 +230,19 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                             null,
                                                                                             null,
                                                                                             null,
-                                                                                            null)).toUri()).flatMapTry(
-                                                                                                               uriParamAdder.appendAuthParams(appendAuthParams))
-                                                                                                           .onFailure(t -> warn(
-                                                                                                               LOGGER,
-                                                                                                               "Failed to create search all",
-                                                                                                               t))
-                                                                                                           .toOption();
+                                                                                            null,
+                                                                                            headers))
+                                                    .toUri()).flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
+                                                             .onFailure(t -> warn(LOGGER,
+                                                                                  "Failed to create search all",
+                                                                                  t))
+                                                             .toOption();
             }
 
             private Option<URI> createPageLink(int i, ItemSearchBody itemSearchBody) {
                 String itemBodyB64 = toBase64(gson.toJson(itemSearchBody));
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(ItemSearchController.class)
-                                                                             .otherPage(itemBodyB64, i))
+                                                                             .otherPage(itemBodyB64, i, headers))
                                                     .toUri()).flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
                                                              .onFailure(t -> error(LOGGER,
@@ -264,7 +272,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     @Override
     public SearchPageLinkCreator makeCollectionItemsPageLinkCreator(Integer page,
                                                                     String collectionId,
-                                                                    boolean appendAuthParams) {
+                                                                    boolean appendAuthParams,
+                                                                    Map<String, String> headers) {
         return new SearchPageLinkCreator() {
 
             @Override
@@ -283,18 +292,19 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                           null,
                                                                                           null,
                                                                                           null,
-                                                                                          i)).toUri()).flatMapTry(
-                                                                                                          uriParamAdder.appendAuthParams(appendAuthParams))
-                                                                                                      .onSuccess(u -> debug(
-                                                                                                          LOGGER,
-                                                                                                          URI_PATTERN_MESSAGE,
-                                                                                                          u))
-                                                                                                      .onFailure(t -> error(
-                                                                                                          LOGGER,
-                                                                                                          FAILURE_PATTERN_MESSAGE,
-                                                                                                          t.getMessage(),
-                                                                                                          t))
-                                                                                                      .toOption();
+                                                                                          i,
+                                                                                          headers)).toUri()).flatMapTry(
+                                                                                                                uriParamAdder.appendAuthParams(appendAuthParams))
+                                                                                                            .onSuccess(u -> debug(
+                                                                                                                LOGGER,
+                                                                                                                URI_PATTERN_MESSAGE,
+                                                                                                                u))
+                                                                                                            .onFailure(t -> error(
+                                                                                                                LOGGER,
+                                                                                                                FAILURE_PATTERN_MESSAGE,
+                                                                                                                t.getMessage(),
+                                                                                                                t))
+                                                                                                            .toOption();
             }
 
             @Override
@@ -315,7 +325,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             @Override
             public Option<URI> createCollectionLink() {
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(OGCFeaturesController.class)
-                                                                             .describeCollection(collectionId))
+                                                                             .describeCollection(collectionId, headers))
                                                     .toUri()).flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onFailure(t -> warn(LOGGER,
                                                                                   "Failed to create collection link: {}",
@@ -329,7 +339,8 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
     @Override
     public SearchPageLinkCreator makeSearchCollectionPageLinkCreation(Integer page,
                                                                       CollectionSearchBody collectionSearchBody,
-                                                                      boolean appendAuthParams) {
+                                                                      boolean appendAuthParams,
+                                                                      Map<String, String> headers) {
         return new SearchPageLinkCreator() {
 
             @Override
@@ -354,7 +365,7 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
             private Option<URI> createPageLink(int i, CollectionSearchBody collectionSearchBody) {
                 String collectionBodyB64 = toBase64(gson.toJson(collectionSearchBody));
                 return tryOf(() -> WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(CollectionSearchController.class)
-                                                                             .otherPage(collectionBodyB64, i))
+                                                                             .otherPage(collectionBodyB64, i, headers))
                                                     .toUri()).flatMapTry(uriParamAdder.appendAuthParams(appendAuthParams))
                                                              .onSuccess(u -> debug(LOGGER, URI_PATTERN_MESSAGE, u))
                                                              .onFailure(t -> error(LOGGER,

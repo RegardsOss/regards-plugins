@@ -28,6 +28,7 @@ import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBodyFactory;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
 import fr.cnes.regards.modules.catalog.stac.rest.link.LinkCreatorService;
 import fr.cnes.regards.modules.catalog.stac.rest.pagination.SearchOtherPageItemBodySerdeService;
+import fr.cnes.regards.modules.catalog.stac.rest.utils.HeaderUtils;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.TryToResponseEntity;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessorFactory;
 import fr.cnes.regards.modules.catalog.stac.service.item.ItemSearchService;
@@ -38,6 +39,8 @@ import io.vavr.collection.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants.*;
 
@@ -91,8 +94,10 @@ public class ItemSearchController implements TryToResponseEntity {
         @RequestParam(name = IDS_QUERY_PARAM, required = false) List<String> ids,
         @RequestParam(name = FIELDS_QUERY_PARAM, required = false) String fields,
         @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
-        @RequestParam(name = SORT_BY_QUERY_PARAM, required = false) String sortBy) {
+        @RequestParam(name = SORT_BY_QUERY_PARAM, required = false) String sortBy,
+        @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(itemSearchBodyFactory.parseItemSearch(page,
                                                                       limit,
                                                                       bbox,
@@ -105,11 +110,14 @@ public class ItemSearchController implements TryToResponseEntity {
                                                      .flatMap(itemSearchBody -> itemSearchService.search(itemSearchBody,
                                                                                                          page,
                                                                                                          linkCreatorService.makeOGCFeatLinkCreator(
-                                                                                                             appendAuthParam),
+                                                                                                             appendAuthParam,
+                                                                                                             stacHeaders),
                                                                                                          linkCreatorService.makeSearchPageLinkCreator(
                                                                                                              page,
                                                                                                              itemSearchBody,
-                                                                                                             appendAuthParam))));
+                                                                                                             appendAuthParam,
+                                                                                                             stacHeaders),
+                                                                                                         stacHeaders)));
     }
 
     @Operation(summary = "search with complex filtering",
@@ -120,16 +128,21 @@ public class ItemSearchController implements TryToResponseEntity {
     public ResponseEntity<ItemCollectionResponse> postItemSearch(@RequestBody ItemSearchBody itemSearchBody,
                                                                  @RequestParam(name = PAGE_QUERY_PARAM,
                                                                                required = false,
-                                                                               defaultValue = "1") Integer page) {
+                                                                               defaultValue = "1") Integer page,
+                                                                 @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(itemSearchService.search(itemSearchBody,
                                                          itemSearchBody.getPage() == null ?
                                                              page :
                                                              itemSearchBody.getPage(),
-                                                         linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam),
+                                                         linkCreatorService.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                                                   stacHeaders),
                                                          linkCreatorService.makeSearchPageLinkCreator(page,
                                                                                                       itemSearchBody,
-                                                                                                      appendAuthParam)));
+                                                                                                      appendAuthParam,
+                                                                                                      stacHeaders),
+                                                         stacHeaders));
     }
 
     @Operation(summary = "continue to next/previous search page",
@@ -141,17 +154,22 @@ public class ItemSearchController implements TryToResponseEntity {
     @GetMapping("paginate")
     public ResponseEntity<ItemCollectionResponse> otherPage(
         @RequestParam(name = SEARCH_ITEM_BODY_QUERY_PARAM) String itemBodyBase64,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
+        @RequestHeader Map<String, String> headers) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(searchTokenSerde.deserialize(itemBodyBase64)
                                                 .flatMap(itemSearchBody -> itemSearchService.search(itemSearchBody,
                                                                                                     page,
                                                                                                     linkCreatorService.makeOGCFeatLinkCreator(
-                                                                                                        appendAuthParam),
+                                                                                                        appendAuthParam,
+                                                                                                        stacHeaders),
                                                                                                     linkCreatorService.makeSearchPageLinkCreator(
                                                                                                         page,
                                                                                                         itemSearchBody,
-                                                                                                        appendAuthParam))));
+                                                                                                        appendAuthParam,
+                                                                                                        stacHeaders),
+                                                                                                    stacHeaders)));
     }
 
 }

@@ -21,7 +21,10 @@ package fr.cnes.regards.modules.catalog.stac.service.item;
 
 import fr.cnes.regards.framework.urn.UniformResourceName;
 import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
-import fr.cnes.regards.modules.catalog.stac.domain.api.*;
+import fr.cnes.regards.modules.catalog.stac.domain.api.Context;
+import fr.cnes.regards.modules.catalog.stac.domain.api.Fields;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacProperty;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.common.Link;
@@ -47,6 +50,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.*;
 import static fr.cnes.regards.modules.catalog.stac.domain.error.StacRequestCorrelationId.debug;
@@ -90,7 +95,8 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
     public Try<ItemCollectionResponse> search(ItemSearchBody itemSearchBody,
                                               Integer page,
                                               OGCFeatLinkCreator featLinkCreator,
-                                              SearchPageLinkCreator searchPageLinkCreator) {
+                                              SearchPageLinkCreator searchPageLinkCreator,
+                                              Map<String, String> headers) {
         List<StacProperty> stacProperties = configurationAccessorFactory.makeConfigurationAccessor()
                                                                         .getStacProperties();
         ICriterion criterion = searchCriterionBuilder.buildCriterion(stacProperties, itemSearchBody)
@@ -110,7 +116,8 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
                                                                                                                    stacProperties,
                                                                                                                    itemSearchBody.getFields(),
                                                                                                                    featLinkCreator,
-                                                                                                                   searchPageLinkCreator));
+                                                                                                                   searchPageLinkCreator,
+                                                                                                                   headers));
     }
 
     @Override
@@ -135,7 +142,8 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
                                                               List<StacProperty> stacProperties,
                                                               Fields fields,
                                                               OGCFeatLinkCreator featLinkCreator,
-                                                              SearchPageLinkCreator searchPageLinkCreator) {
+                                                              SearchPageLinkCreator searchPageLinkCreator,
+                                                              Map<String, String> headers) {
         return trying(() -> {
             Context context = new Context(facetPage.getNumberOfElements(),
                                           facetPage.getPageable().getPageSize(),
@@ -145,7 +153,10 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
                                                                stacProperties,
                                                                fields,
                                                                featLinkCreator),
-                                              extractItemsLinks(featLinkCreator, searchPageLinkCreator, facetPage),
+                                              extractItemsLinks(featLinkCreator,
+                                                                searchPageLinkCreator,
+                                                                facetPage,
+                                                                headers),
                                               context,
                                               facetPage.getTotalElements(),
                                               (long) facetPage.getNumberOfElements());
@@ -154,12 +165,14 @@ public class ItemSearchServiceImpl extends AbstractSearchService implements Item
 
     private List<Link> extractItemsLinks(OGCFeatLinkCreator featLinkCreator,
                                          SearchPageLinkCreator searchPageLinkCreator,
-                                         FacetPage<AbstractEntity<? extends EntityFeature>> facetPage) {
+                                         FacetPage<AbstractEntity<? extends EntityFeature>> facetPage,
+                                         Map<String, String> headers) {
         return List.of(featLinkCreator.createSearchLink(Relation.ROOT))
                    .flatMap(t -> t)
                    .appendAll(extractLinks(searchPageLinkCreator,
                                            facetPage,
-                                           StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE));
+                                           StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE,
+                                           headers));
     }
 
     private List<Item> extractStacItems(Stream<AbstractEntity<? extends EntityFeature>> entityStream,
