@@ -254,6 +254,9 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
 
         Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().getTypes().contains("type1"));
         Assert.assertTrue(feature.getFiles().get(DataType.RAWDATA).iterator().next().getTypes().contains("type2"));
+
+        Assert.assertEquals(new AipDataSourcePluginTestConfiguration.AdditionalFieldRecord("totoValue"),
+                            feature.getFiles().get(DataType.RAWDATA).iterator().next().getAdditionalFields());
     }
 
     @After

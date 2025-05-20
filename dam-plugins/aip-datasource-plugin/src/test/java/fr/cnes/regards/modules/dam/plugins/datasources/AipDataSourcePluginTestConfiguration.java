@@ -1,6 +1,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import com.google.common.collect.Sets;
+import fr.cnes.regards.framework.oais.dto.ContentInformationDto;
 import fr.cnes.regards.framework.oais.dto.OAISDataObjectLocationDto;
 import fr.cnes.regards.framework.oais.dto.aip.AIPDto;
 import fr.cnes.regards.framework.oais.dto.sip.SIPDto;
@@ -110,6 +111,11 @@ public class AipDataSourcePluginTestConfiguration {
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
                                                     Sets.newHashSet("type1", "type2"));
                 aip.registerContentInformation();
+                aip.getProperties()
+                   .getContentInformations()
+                   .stream()
+                   .map(ContentInformationDto::getDataObject)
+                   .forEach(dataObject -> dataObject.setAdditionalFields(new AdditionalFieldRecord("totoValue")));
 
                 SIPDto sip = SIPDto.build(EntityType.DATA, "sipId");
                 SIPEntity sipEntity = SIPEntity.build("PROJECT1",
@@ -154,4 +160,7 @@ public class AipDataSourcePluginTestConfiguration {
         return mock;
     }
 
+    public record AdditionalFieldRecord(String totoKey) {
+        // NOSONAR
+    }
 }

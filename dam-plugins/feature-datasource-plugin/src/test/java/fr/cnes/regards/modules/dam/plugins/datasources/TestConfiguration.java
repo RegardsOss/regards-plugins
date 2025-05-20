@@ -18,11 +18,19 @@
  */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
+import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
 import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
+import fr.cnes.regards.modules.feature.dto.FeatureFile;
+import fr.cnes.regards.modules.feature.dto.FeatureFileAttributes;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
+import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
+import fr.cnes.regards.modules.fileaccess.dto.StorageLocationConfigurationDto;
+import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
+import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.client.IStorageRestClient;
 import org.mockito.Mockito;
@@ -32,17 +40,22 @@ import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeType;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Sébastien Binda
  **/
 @Configuration
 public class TestConfiguration {
+
+    public static final FeatureUniformResourceName URN = FeatureUniformResourceName.build(FeatureIdentifier.FEATURE,
+                                                                                          EntityType.DATA,
+                                                                                          "tenantTest",
+                                                                                          UUID.randomUUID(),
+                                                                                          1);
 
     @Bean
     public IFeatureEntityClient featureEntityClient() {
@@ -53,7 +66,7 @@ public class TestConfiguration {
                                                                "session",
                                                                Feature.build(String.format("id_%d", i),
                                                                              "owner",
-                                                                             null,
+                                                                             URN,
                                                                              null,
                                                                              EntityType.DATA,
                                                                              "model"),
@@ -61,6 +74,7 @@ public class TestConfiguration {
                                                                1,
                                                                OffsetDateTime.now())));
         }
+        attachAdditionalFieldsToEntities(entities);
         PagedModel<EntityModel<FeatureEntityDto>> pagedModel = PagedModel.of(entities,
                                                                              new PagedModel.PageMetadata(10,
                                                                                                          10,
@@ -76,6 +90,20 @@ public class TestConfiguration {
         return mock;
     }
 
+    private void attachAdditionalFieldsToEntities(List<EntityModel<FeatureEntityDto>> entities) {
+        FeatureFile featureFile = FeatureFile.build(FeatureFileAttributes.build(DataType.RAWDATA,
+                                                                                MimeType.valueOf(
+                                                                                    "application/octet-stream"),
+                                                                                "filename",
+                                                                                1L,
+                                                                                "algorithm",
+                                                                                "checksum"),
+                                                    new AdditionalFieldRecord("totoValue"));
+        entities.stream().map(EntityModel::getContent).filter(Objects::nonNull).forEach(entity -> {
+            entity.getFeature().withFiles(featureFile);
+        });
+    }
+
     @Bean
     public IStorageRestClient storageRestClient() {
         return Mockito.mock(IStorageRestClient.class);
@@ -83,12 +111,27 @@ public class TestConfiguration {
 
     @Bean
     public IStorageLocationRestClient storageLocationRestClient() {
-        return Mockito.mock(IStorageLocationRestClient.class);
+        IStorageLocationRestClient mock = Mockito.mock(IStorageLocationRestClient.class);
+        List<EntityModel<StorageLocationDto>> list = List.of(EntityModel.of(StorageLocationDto.build("location",
+                                                                                                     new StorageLocationConfigurationDto(
+                                                                                                         "location",
+                                                                                                         null,
+                                                                                                         1L))));
+        ResponseEntity<List<EntityModel<StorageLocationDto>>> response = ResponseEntity.of(Optional.of(list));
+        Mockito.when(mock.retrieve()).thenReturn(response);
+        return mock;
     }
 
     @Bean
     public IProjectsClient projectsClient() {
-        return Mockito.mock(IProjectsClient.class);
+        IProjectsClient mock = Mockito.mock(IProjectsClient.class);
+        Project project = new Project("desc", "icon", true, "name");
+        ResponseEntity<EntityModel<Project>> response = ResponseEntity.of(Optional.of(EntityModel.of(project)));
+        Mockito.when(mock.retrieveProject(Mockito.anyString())).thenReturn(response);
+        return mock;
     }
 
+    public record AdditionalFieldRecord(String totoKey) {
+        // NOSONAR
+    }
 }

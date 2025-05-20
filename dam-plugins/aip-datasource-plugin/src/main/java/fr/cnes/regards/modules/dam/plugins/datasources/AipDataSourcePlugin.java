@@ -663,6 +663,9 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         dataFile.setChecksum(oaisDo.getChecksum());
         dataFile.setImageHeight(ci.getRepresentationInformation().getSyntax().getHeight());
         dataFile.setImageWidth(ci.getRepresentationInformation().getSyntax().getWidth());
+        if (ci.getDataObject() != null) {
+            dataFile.setAdditionalFields(ci.getDataObject().getAdditionalFields());
+        }
 
         return dataFile;
     }

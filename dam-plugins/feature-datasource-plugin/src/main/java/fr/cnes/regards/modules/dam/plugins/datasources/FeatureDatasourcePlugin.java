@@ -299,6 +299,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
                 dataFile.setChecksum(atts.getChecksum());
                 dataFile.setCrc32(atts.getCrc32());
                 dataObject.getFiles().put(dataFile.getDataType(), dataFile);
+                dataFile.setAdditionalFields(file.getAdditionalFields());
             }
         }
         return dataObject;

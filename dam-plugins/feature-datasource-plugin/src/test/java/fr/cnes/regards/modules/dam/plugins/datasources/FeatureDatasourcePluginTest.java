@@ -20,6 +20,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
+import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.utils.plugins.PluginUtils;
 import fr.cnes.regards.framework.utils.plugins.bean.PluginUtilsBean;
 import fr.cnes.regards.framework.utils.plugins.exception.NotAvailablePluginConfigurationException;
@@ -72,6 +73,14 @@ public class FeatureDatasourcePluginTest {
         // Results based on mock return see TestConfiguration#featureEntityClient
         Assert.assertEquals(10L, result.size());
         Assert.assertTrue(result.stream().allMatch(dataObjectFeature -> dataObjectFeature.getProviderId() != null));
+        Assert.assertEquals(new TestConfiguration.AdditionalFieldRecord("totoValue"),
+                            result.iterator()
+                                  .next()
+                                  .getFiles()
+                                  .get(DataType.RAWDATA)
+                                  .iterator()
+                                  .next()
+                                  .getAdditionalFields());
     }
 
 }
