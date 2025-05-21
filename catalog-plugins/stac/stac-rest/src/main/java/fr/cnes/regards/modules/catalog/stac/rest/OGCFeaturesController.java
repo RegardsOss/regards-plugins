@@ -24,6 +24,7 @@ import fr.cnes.regards.framework.security.role.DefaultRole;
 import fr.cnes.regards.modules.catalog.stac.domain.StacConstants;
 import fr.cnes.regards.modules.catalog.stac.domain.api.CollectionsResponse;
 import fr.cnes.regards.modules.catalog.stac.domain.api.ItemCollectionResponse;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Collection;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.geo.BBox;
@@ -103,7 +104,7 @@ public class OGCFeaturesController implements TryToResponseEntity {
      * @param collectionId this is the urn
      */
     @Operation(summary = "describe the feature collection with id `collectionId`",
-               description = "A single Feature Collection for the given if collectionId. "
+               description = "A single Feature Collection for the given collectionId. "
                              + "Request this endpoint to get a full list of metadata for the Feature Collection.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200",
                                          description = "Information about the feature collection with id collectionId."),
@@ -120,8 +121,8 @@ public class OGCFeaturesController implements TryToResponseEntity {
         return toResponseEntity(collectionService.buildCollection(collectionId, linkCreator, config, collectionConfig));
     }
 
-    @Operation(summary = "fetch features",
-               description = "Fetch features of the feature collection with id collectionId.")
+    @Operation(summary = "fetch features with get",
+               description = "Fetch features of the collection with the given collectionId.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200",
                                          description = "The response is a document consisting of features in the collection."),
                             @ApiResponse(responseCode = "404", description = "Collection not found.") })
@@ -133,8 +134,10 @@ public class OGCFeaturesController implements TryToResponseEntity {
         @RequestParam(name = LIMIT_QUERY_PARAM, required = false) Integer limit,
         @RequestParam(name = BBOX_QUERY_PARAM, required = false) BBox bbox,
         @RequestParam(name = DATETIME_QUERY_PARAM, required = false) String datetime,
-        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page,
-        @RequestHeader Map<String, String> headers) {
+        @RequestHeader Map<String, String> headers,
+        @RequestParam(name = QUERY_QUERY_PARAM, required = false) String query,
+        @RequestParam(name = SORT_BY_QUERY_PARAM, required = false) String sortBy,
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
         boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
         Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
         return toResponseEntity(collectionService.getItemsForCollection(collectionId,
@@ -142,6 +145,40 @@ public class OGCFeaturesController implements TryToResponseEntity {
                                                                         page,
                                                                         bbox,
                                                                         datetime,
+                                                                        query,
+                                                                        sortBy,
+                                                                        linker.makeOGCFeatLinkCreator(appendAuthParam,
+                                                                                                      stacHeaders),
+                                                                        isb -> linker.makeCollectionItemsPageLinkCreator(
+                                                                            page,
+                                                                            collectionId,
+                                                                            appendAuthParam,
+                                                                            stacHeaders),
+                                                                        stacHeaders));
+    }
+
+    @Operation(summary = "fetch features with post",
+               description = "Fetch features of the feature collection with the given collectionId."
+                             + "sort and query params have to be in the body of the request")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200",
+                                         description = "The response is a document consisting of features in the collection."),
+                            @ApiResponse(responseCode = "404", description = "Collection not found.") })
+    @ResourceAccess(description = "fetch features", role = DefaultRole.PUBLIC)
+    @PostMapping(value = STAC_ITEMS_PATH_SUFFIX,
+                 produces = { StacConstants.APPLICATION_GEO_JSON_MEDIA_TYPE,
+                              StacConstants.APPLICATION_JSON_MEDIA_TYPE })
+    public ResponseEntity<ItemCollectionResponse> postGetFeatures(
+        @PathVariable(name = COLLECTION_ID_PARAM) String collectionId,
+        @RequestBody ItemSearchBody itemSearchBody,
+        @RequestHeader Map<String, String> headers,
+        @RequestParam(name = PAGE_QUERY_PARAM, required = false, defaultValue = "1") Integer page) {
+        boolean appendAuthParam = !configFactory.makeConfigurationAccessor().isDisableauthParam();
+        Map<String, String> stacHeaders = HeaderUtils.getStacHeaders(headers);
+        return toResponseEntity(collectionService.getItemsForCollection(collectionId,
+                                                                        itemSearchBody.getPage() == null ?
+                                                                            page :
+                                                                            itemSearchBody.getPage(),
+                                                                        itemSearchBody,
                                                                         linker.makeOGCFeatLinkCreator(appendAuthParam,
                                                                                                       stacHeaders),
                                                                         isb -> linker.makeCollectionItemsPageLinkCreator(

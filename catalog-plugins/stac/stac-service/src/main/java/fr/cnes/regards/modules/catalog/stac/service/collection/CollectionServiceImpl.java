@@ -256,14 +256,36 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                                                              Integer page,
                                                              BBox bbox,
                                                              String datetime,
+                                                             String query,
+                                                             String sortBy,
                                                              OGCFeatLinkCreator ogcFeatLinkCreator,
                                                              Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
                                                              Map<String, String> headers) {
         ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
 
         final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId) ?
-            getDynCollItemSearchBody(collectionId, page, limit, bbox, datetime, config) :
-            getCollectionItemSearchBody(page, limit, bbox, datetime, List.of(collectionId));
+            getDynCollItemSearchBody(collectionId, page, limit, bbox, datetime, query, sortBy, config) :
+            getCollectionItemSearchBody(page, limit, bbox, datetime, query, sortBy, List.of(collectionId));
+
+        return tryIsb.flatMap(isb -> itemSearchService.search(isb,
+                                                              page,
+                                                              ogcFeatLinkCreator,
+                                                              searchPageLinkCreatorMaker.apply(isb),
+                                                              headers));
+    }
+
+    @Override
+    public Try<ItemCollectionResponse> getItemsForCollection(String collectionId,
+                                                             Integer page,
+                                                             ItemSearchBody itemSearchBody,
+                                                             OGCFeatLinkCreator ogcFeatLinkCreator,
+                                                             Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
+                                                             Map<String, String> headers) {
+        ConfigurationAccessor config = configurationAccessorFactory.makeConfigurationAccessor();
+
+        final Try<ItemSearchBody> tryIsb = dynCollService.isDynamicCollectionValueURN(collectionId) ?
+            getDynCollItemSearchBody(collectionId, itemSearchBody, config) :
+            Try.of(() -> itemSearchBody.withCollections(List.of(collectionId)));
 
         return tryIsb.flatMap(isb -> itemSearchService.search(isb,
                                                               page,
@@ -273,16 +295,28 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
     }
 
     private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId,
+                                                         ItemSearchBody itemSearchBody,
+                                                         ConfigurationAccessor config) {
+        return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
+                             .flatMap(val -> Try.of(() -> itemSearchBody.withQuery(dynCollService.toItemSearchBody(val)
+                                                                                                 .getQuery())));
+    }
+
+    private Try<ItemSearchBody> getDynCollItemSearchBody(String collectionId,
                                                          Integer page,
                                                          Integer limit,
                                                          BBox bbox,
                                                          String datetime,
+                                                         String query,
+                                                         String sortBy,
                                                          ConfigurationAccessor config) {
         return dynCollService.parseDynamicCollectionsValueFromURN(collectionId, config)
                              .flatMap(val -> getCollectionItemSearchBody(page,
                                                                          limit,
                                                                          bbox,
                                                                          datetime,
+                                                                         query,
+                                                                         sortBy,
                                                                          null).map(isb -> isb.withQuery(dynCollService.toItemSearchBody(
                                  val).getQuery())));
     }
@@ -291,8 +325,18 @@ public class CollectionServiceImpl implements CollectionService, StacLinkCreator
                                                             Integer limit,
                                                             BBox bbox,
                                                             String datetime,
+                                                            String query,
+                                                            String sortBy,
                                                             List<String> collections) {
-        return itemSearchBodyFactory.parseItemSearch(page, limit, bbox, datetime, collections, null, null, null, null);
+        return itemSearchBodyFactory.parseItemSearch(page,
+                                                     limit,
+                                                     bbox,
+                                                     datetime,
+                                                     collections,
+                                                     null,
+                                                     null,
+                                                     query,
+                                                     sortBy);
     }
 
     @Override

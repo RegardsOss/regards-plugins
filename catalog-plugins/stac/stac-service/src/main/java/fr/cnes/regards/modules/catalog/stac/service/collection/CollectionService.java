@@ -61,6 +61,15 @@ public interface CollectionService {
                                                       Integer page,
                                                       BBox bbox,
                                                       String datetime,
+                                                      String query,
+                                                      String sortBy,
+                                                      OGCFeatLinkCreator ogcFeatLinkCreator,
+                                                      Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
+                                                      Map<String, String> headers);
+
+    Try<ItemCollectionResponse> getItemsForCollection(String collectionId,
+                                                      Integer page,
+                                                      ItemSearchBody itemSearchBody,
                                                       OGCFeatLinkCreator ogcFeatLinkCreator,
                                                       Function<ItemSearchBody, SearchPageLinkCreator> searchPageLinkCreatorMaker,
                                                       Map<String, String> headers);

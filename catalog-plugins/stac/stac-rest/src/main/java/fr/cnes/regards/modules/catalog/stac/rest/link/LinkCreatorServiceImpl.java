@@ -292,19 +292,21 @@ public class LinkCreatorServiceImpl implements LinkCreatorService, Base64Codec {
                                                                                           null,
                                                                                           null,
                                                                                           null,
-                                                                                          i,
-                                                                                          headers)).toUri()).flatMapTry(
-                                                                                                                uriParamAdder.appendAuthParams(appendAuthParams))
-                                                                                                            .onSuccess(u -> debug(
-                                                                                                                LOGGER,
-                                                                                                                URI_PATTERN_MESSAGE,
-                                                                                                                u))
-                                                                                                            .onFailure(t -> error(
-                                                                                                                LOGGER,
-                                                                                                                FAILURE_PATTERN_MESSAGE,
-                                                                                                                t.getMessage(),
-                                                                                                                t))
-                                                                                                            .toOption();
+                                                                                          headers,
+                                                                                          null,
+                                                                                          null,
+                                                                                          i)).toUri()).flatMapTry(
+                                                                                                          uriParamAdder.appendAuthParams(appendAuthParams))
+                                                                                                      .onSuccess(u -> debug(
+                                                                                                          LOGGER,
+                                                                                                          URI_PATTERN_MESSAGE,
+                                                                                                          u))
+                                                                                                      .onFailure(t -> error(
+                                                                                                          LOGGER,
+                                                                                                          FAILURE_PATTERN_MESSAGE,
+                                                                                                          t.getMessage(),
+                                                                                                          t))
+                                                                                                      .toOption();
             }
 
             @Override

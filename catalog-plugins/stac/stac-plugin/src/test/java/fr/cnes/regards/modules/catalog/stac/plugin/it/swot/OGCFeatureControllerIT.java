@@ -20,9 +20,12 @@ package fr.cnes.regards.modules.catalog.stac.plugin.it.swot;
 
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.test.integration.RequestBuilderCustomizer;
+import fr.cnes.regards.modules.catalog.stac.domain.api.ItemSearchBody;
+import fr.cnes.regards.modules.catalog.stac.domain.api.SearchBody;
 import fr.cnes.regards.modules.catalog.stac.plugin.it.AbstractStacIT;
 import fr.cnes.regards.modules.catalog.stac.rest.utils.StacApiConstants;
 import fr.cnes.regards.modules.search.domain.plugin.SearchEngineConfiguration;
+import io.vavr.collection.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
@@ -88,4 +91,53 @@ public class OGCFeatureControllerIT extends AbstractStacIT {
                           customizer,
                           "Cannot get STAC collection items");
     }
+
+    @Test
+    public void getCollectionItemsSortAsc() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("sortby", "version");
+        customizer.expectValue("features[0].properties.version", "012");
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + "/SWOT_L2_HR_Raster_250m/items",
+                          customizer,
+                          "Cannot get STAC collection items");
+    }
+
+    @Test
+    public void getCollectionItemsSortDesc() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("sortby", "-version");
+        customizer.expectValue("features[0].properties.version", "014");
+        customizer.expectToHaveSize("features", 4);
+
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + "/SWOT_L2_HR_Raster_250m_timeline/items",
+                          customizer,
+                          "Cannot get STAC collection items");
+    }
+
+    @Test
+    public void getCollectionItemsQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        customizer.addParameter("query", "{\"version\":{\"eq\":\"013\"}}");
+        customizer.expectToHaveSize("features", 1);
+        customizer.expectValue("features[0].properties.version", "013");
+        performDefaultGet(StacApiConstants.STAC_COLLECTIONS_PATH + "/SWOT_L2_HR_Raster_250m_timeline/items",
+                          customizer,
+                          "Cannot get STAC items");
+    }
+
+    @Test
+    public void postCollectionItemsQuery() {
+        RequestBuilderCustomizer customizer = customizer().expectStatusOk();
+        ItemSearchBody body = ItemSearchBody.builder()
+                                            .query(HashMap.of("version",
+                                                              SearchBody.StringQueryObject.builder().eq("013").build()))
+                                            .build();
+        customizer.expectToHaveSize("features", 1);
+        customizer.expectValue("features[0].properties.version", "013");
+        performDefaultPost(StacApiConstants.STAC_COLLECTIONS_PATH + "/SWOT_L2_HR_Raster_250m_timeline/items",
+                           body,
+                           customizer,
+                           "Cannot get STAC items");
+    }
+
 }
