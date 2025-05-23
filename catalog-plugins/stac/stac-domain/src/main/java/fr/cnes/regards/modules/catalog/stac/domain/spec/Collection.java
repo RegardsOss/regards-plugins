@@ -44,7 +44,6 @@ import lombok.With;
  * @see <a href="https://schemas.stacspec.org/v1.1.0/collection-spec/json-schema/collection.json">JSON schema</a>
  */
 @Value
-@With
 public class Collection implements LinkCollection<Collection> {
 
     /**
@@ -107,6 +106,7 @@ public class Collection implements LinkCollection<Collection> {
     /**
      * Required link objects
      */
+    @With
     List<Link> links;
 
     /**

@@ -35,11 +35,11 @@ import lombok.With;
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/item-search">definition</a>
  */
 @Value
-@With
 public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
 
     @SerializedName("stac_version")
-    String stacVersion = StacConstants.STAC_API_VERSION;
+    // Used for serialization, must remain non-static despite Sonar's suggestion
+    String stacVersion = StacConstants.STAC_API_VERSION; //NOSONAR
 
     @SerializedName("stac_extensions")
     Set<String> stacExtensions;
@@ -52,6 +52,7 @@ public class ItemCollectionResponse implements LinkCollection<ItemCollectionResp
 
     List<Item> features;
 
+    @With
     List<Link> links;
 
     /**

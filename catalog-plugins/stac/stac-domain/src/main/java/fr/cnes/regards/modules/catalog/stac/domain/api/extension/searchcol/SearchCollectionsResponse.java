@@ -33,9 +33,9 @@ import io.vavr.collection.Set;
  * @see <a href="https://github.com/radiantearth/stac-api-spec/tree/release/v1.0.0/ogcapi-features">Definition</a>
  */
 @lombok.Value
-@lombok.With
 public class SearchCollectionsResponse {
 
+    @SuppressWarnings("unused") // field only used for serialization
     @SerializedName("stac_version")
     String stacVersion = StacConstants.STAC_API_VERSION + ".extended";
 
@@ -44,6 +44,7 @@ public class SearchCollectionsResponse {
 
     List<Collection> collections;
 
+    @lombok.With
     List<Link> links;
 
     Context context;
