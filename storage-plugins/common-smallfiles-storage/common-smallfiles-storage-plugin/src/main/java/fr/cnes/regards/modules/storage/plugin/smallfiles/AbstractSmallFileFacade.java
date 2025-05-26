@@ -154,14 +154,33 @@ public abstract class AbstractSmallFileFacade implements ISmallFilesStorage {
                 }
             } catch (MalformedURLException e) {
                 LOGGER.error(e.getMessage(), e);
-                progressManager.storageFailed(request, String.format("Invalid source url %s", request.getOriginUrl()));
+                storageFailedWithMalformedUrlException(request, progressManager);
             } catch (InterruptedException e) {
                 LOGGER.error(e.getMessage(), e);
                 progressManager.storageFailed(request, "The storage task was interrupted before completion.");
                 Thread.currentThread().interrupt();
+            } catch (RuntimeException e) {
+                //The MalformedURLException can be encapsulated in a RuntimeException
+                LOGGER.error(e.getMessage(), e);
+                if (e.getCause() instanceof MalformedURLException) {
+                    storageFailedWithMalformedUrlException(request, progressManager);
+                } else {
+                    progressManager.storageFailed(request,
+                                                  String.format("Unexpected exception occurred : %s : %s",
+                                                                e.getClass(),
+                                                                e.getMessage()));
+                }
             }
             return null;
         };
+    }
+
+    private static void storageFailedWithMalformedUrlException(FileStorageRequestAggregationDto request,
+                                                               IStorageProgressManager progressManager) {
+        progressManager.storageFailed(request,
+                                      String.format("Invalid url, check storage endpoint for %s and source " + "url %s",
+                                                    request.getStorage(),
+                                                    request.getOriginUrl()));
     }
 
     public void retrieve(FileRestorationWorkingSubset workingSubset,
