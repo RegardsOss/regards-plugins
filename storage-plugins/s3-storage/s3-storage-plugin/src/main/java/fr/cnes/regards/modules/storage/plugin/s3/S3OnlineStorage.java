@@ -59,7 +59,7 @@ public class S3OnlineStorage extends AbstractS3Storage implements IOnlineStorage
     public InputStream retrieve(FileReferenceWithoutOwnersDto fileReference)
         throws ModuleException, FileNotFoundException {
         try {
-            return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference),
+            return DownloadUtils.getInputStreamFromS3Source(getEntryKey(fileReference.getLocation().getUrl()),
                                                             storageConfiguration,
                                                             new StorageCommandID(String.format("%d",
                                                                                                fileReference.getId()),

@@ -32,7 +32,6 @@ import fr.cnes.regards.framework.s3.exception.ChecksumDoesntMatchException;
 import fr.cnes.regards.framework.s3.utils.StorageConfigUtils;
 import fr.cnes.regards.framework.utils.file.DownloadTmpConfigDto;
 import fr.cnes.regards.framework.utils.file.DownloadUtils;
-import fr.cnes.regards.modules.fileaccess.dto.FileReferenceWithoutOwnersDto;
 import fr.cnes.regards.modules.fileaccess.dto.output.worker.FileNamingStrategy;
 import fr.cnes.regards.modules.fileaccess.dto.request.FileStorageRequestAggregationDto;
 import fr.cnes.regards.modules.fileaccess.plugin.domain.*;
@@ -259,9 +258,12 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         try {
             deleteCmd = new StorageCommand.Delete.Impl(storageConfiguration,
                                                        cmdId,
-                                                       getEntryKey(request.getFileReference()));
+                                                       getEntryKey(request.getFileReference().getLocation().getUrl()));
         } catch (MalformedURLException e) {
-            progressManager.deletionFailed(request, "Impossible to delete the file because its url is invalid");
+            progressManager.deletionFailed(request,
+                                           "Impossible to delete the file because its url is invalid: "
+                                           + request.getFileReference().getLocation().getUrl());
+            return;
         }
         long start = Instant.now().toEpochMilli();
         client.delete(deleteCmd)
@@ -403,16 +405,6 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         } else {
             return entryKey + "?" + urlAsURL.getQuery();
         }
-    }
-
-    /**
-     * Return the "entry key" from a file reference
-     * Note that if the given url is a small file one (endpoint/bucket/path/to/archive.zip?fileName=smallFile.txt), the
-     * return entryKey will contain the query ?fileName=... which is not a valid S3 entry key and need further
-     * processing from the plugin (/path/to/archive.zip?fileName=smallFile.txt)
-     */
-    protected String getEntryKey(FileReferenceWithoutOwnersDto fileReference) throws MalformedURLException {
-        return getEntryKey(fileReference.getLocation().getUrl());
     }
 
     /**

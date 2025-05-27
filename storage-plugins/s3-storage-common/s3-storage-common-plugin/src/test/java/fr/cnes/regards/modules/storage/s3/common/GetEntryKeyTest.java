@@ -33,7 +33,7 @@ import java.net.MalformedURLException;
 import java.time.OffsetDateTime;
 
 /**
- * Test for {@link AbstractS3Storage#getEntryKey(FileReferenceWithoutOwnersDto)}
+ * Test for {@link AbstractS3Storage#getEntryKey(String)}
  *
  * @author Thibaud Michaudel
  **/
@@ -59,7 +59,7 @@ public class GetEntryKeyTest {
                                                                                         new FileLocationDto("storage",
                                                                                                             url));
         // When, then
-        Assertions.assertEquals(resource, storage.getEntryKey(fileReference));
+        Assertions.assertEquals(resource, storage.getEntryKey(fileReference.getLocation().getUrl()));
     }
 
     @Test
@@ -74,7 +74,7 @@ public class GetEntryKeyTest {
                                                                                                             url));
         // When, then
         Assertions.assertThrows(MalformedURLException.class, () -> {
-            storage.getEntryKey(fileReference);
+            storage.getEntryKey(fileReference.getLocation().getUrl());
         });
     }
 
@@ -89,7 +89,7 @@ public class GetEntryKeyTest {
                                                                                         new FileLocationDto("storage",
                                                                                                             url));
         // When, then
-        Assertions.assertEquals(resource, storage.getEntryKey(fileReference));
+        Assertions.assertEquals(resource, storage.getEntryKey(fileReference.getLocation().getUrl()));
     }
 
     private static class TestS3Storage extends AbstractS3Storage {

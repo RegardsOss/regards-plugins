@@ -384,7 +384,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         }
 
         try {
-            String entryKey = getEntryKey(fileReference);
+            String entryKey = getEntryKey(fileReference.getLocation().getUrl());
             Optional<Path> smallFilePathInWorkspace = findSmallFilePathInWorkspace(fileReference);
             if (smallFilePathInWorkspace.isPresent()) {
                 // download small file
@@ -478,10 +478,10 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
             long start = Instant.now().toEpochMilli();
 
             fileAvailable = client.isFileAvailable(storageConfiguration,
-                                                   getEntryKey(fileReference),
+                                                   getEntryKey(fileReference.getLocation().getUrl()),
                                                    standardStorageClassName).block();
             LOGGER.trace("[S3 Monitoring] Checking availability of {} took {} ms",
-                         getEntryKey(fileReference),
+                         getEntryKey(fileReference.getLocation().getUrl()),
                          Instant.now().toEpochMilli() - start);
         } catch (MalformedURLException e) {
             return new NearlineFileStatusDto(fileReference.getChecksum(),
