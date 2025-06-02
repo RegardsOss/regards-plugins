@@ -21,7 +21,8 @@ public class IdentitiesCriterionBuilderTest {
         // WHEN
         Option<ICriterion> criterion = new IdentitiesCriterionBuilder().buildCriterion(properties, List.empty());
         // THEN
-        assertThat(criterion).isEmpty();
+        assertThat(criterion).isNotEmpty();
+        assertThat(criterion.get()).isEqualTo(ICriterion.not(ICriterion.all()));
     }
 
     @Test

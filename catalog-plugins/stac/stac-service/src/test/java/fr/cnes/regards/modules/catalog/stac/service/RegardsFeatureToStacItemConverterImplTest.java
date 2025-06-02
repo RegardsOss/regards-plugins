@@ -208,7 +208,7 @@ public class RegardsFeatureToStacItemConverterImplTest implements GsonAwareTest,
         feat1File1.setFilename("quicklook.jpg");
         feat1File1.setFilesize(42000L);
         feat1File1.setReference(false);
-        feat1File1.setChecksum("feat1_file1");
+        feat1File1.setChecksum("0123456789abcdef");
         feat1File1.setDigestAlgorithm("MD5");
         feat1File1.setMimeType(MediaType.TEXT_PLAIN);
         feat1File1.setDataType(DataType.QUICKLOOK_SD);

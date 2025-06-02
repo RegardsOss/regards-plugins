@@ -19,6 +19,7 @@
 package fr.cnes.regards.modules.catalog.stac.domain.spec.extensions;
 
 import com.google.gson.annotations.SerializedName;
+import fr.cnes.regards.modules.catalog.stac.domain.utils.MultihashUtils;
 
 /**
  * File info extensions. This extensions only implements checksum and size for now and is available for assets.
@@ -49,41 +50,6 @@ public class FileInfoExtension {
     protected FileInfoExtension(String checksum, long size) {
         this.checksum = checksum;
         this.size = size;
-    }
-
-    public static FileInfoExtension fromRawChecksum(String checksum, String algorithm, long size) {
-        return new FileInfoExtension(getMultihashChecksum(checksum, algorithm), size);
-    }
-
-    public static FileInfoExtension fromMultihash(String multihash, long size) {
-        return new FileInfoExtension(multihash, size);
-    }
-
-    /**
-     * Get the checksum value with the multihash format
-     *
-     * @param checksum  the checksum value
-     * @param algorithm the algorithm used to compute the checksum
-     * @return the checksum value with the multihash format
-     * <p>
-     * Format:
-     *     <ul>2 first digits : hash function code (e.g. D5 for MD5)</ul>
-     *     <ul>third and fourth digits : hash size (e.g. 10 for 16 bytes)</ul>
-     *     <ul>hash value</ul>
-     * </p>
-     */
-    protected static String getMultihashChecksum(String checksum, String algorithm) {
-        if (algorithm == null) {
-            // Fall back to unknown algorithm
-            return "0000" + checksum;
-        }
-        return switch (algorithm) {
-            case "sha1", "SHA-1" -> "1114" + checksum;
-            case "sha256", "SHA-256" -> "1220" + checksum;
-            case "sha512", "SHA-512" -> "1340" + checksum;
-            case "md5", "MD5" -> "D510" + checksum;
-            default -> checksum;
-        };
     }
 
     public String getChecksum() {

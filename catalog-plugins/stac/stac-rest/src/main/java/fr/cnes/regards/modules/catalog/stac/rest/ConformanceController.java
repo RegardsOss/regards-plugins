@@ -59,6 +59,13 @@ public class ConformanceController implements TryToResponseEntity {
                                                            "https://api.stacspec.org/v1.0.0/item-search#query",
                                                            "https://api.stacspec.org/v1.0.0/item-search#sort",
                                                            "https://api.stacspec.org/v1.0.0-rc.2/item-search#context",
+                                                           "https://api.stacspec.org/v1.0.0-rc.1/collection-search",
+                                                           "https://api.stacspec.org/v1.0.0-rc"
+                                                           + ".1/collection-search#fields",
+                                                           "https://api.stacspec.org/v1.0.0-rc"
+                                                           + ".1/collection-search#query",
+                                                           "https://api.stacspec.org/v1.0.0-rc"
+                                                           + ".1/collection-search#sort",
                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
                                                            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson");

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
@@ -84,7 +85,7 @@ public class IdMappingServiceImpl implements IdMappingService {
     public List<String> getUrnsByStacIds(List<String> stacIds) {
         return stacIds == null || stacIds.isEmpty() ?
             null :
-            stacIds.map(idMappingsByTenant.get(runtimeTenantResolver.getTenant())::get);
+            stacIds.map(idMappingsByTenant.get(runtimeTenantResolver.getTenant())::get).filter(Objects::nonNull);
     }
 
     @Override

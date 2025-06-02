@@ -30,17 +30,17 @@ import java.util.List;
 @Value
 public class Fields {
 
-    List<String> includes;
+    List<String> include;
 
-    List<String> excludes;
+    List<String> exclude;
 
     public Fields addInclude(String include) {
-        this.includes.add(include);
+        this.include.add(include);
         return this;
     }
 
     public Fields addExclude(String exclude) {
-        this.excludes.add(exclude);
+        this.exclude.add(exclude);
         return this;
     }
 }

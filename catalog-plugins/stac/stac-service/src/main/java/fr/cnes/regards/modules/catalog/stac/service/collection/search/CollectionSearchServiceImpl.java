@@ -170,7 +170,7 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             idCriterion = identitiesCriterionBuilder.buildCriterion(itemStacProperties,
                                                                     List.ofAll(datasetCount.get().keySet()));
             // No dataset matches!
-            if (!idCriterion.isDefined()) {
+            if (idCriterion.equals(ICriterion.not(ICriterion.all()))) {
                 return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
                                          collectionStacProperties,
                                          searchCollectionPageLinkCreator,

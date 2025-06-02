@@ -37,8 +37,15 @@ public class IdentitiesCriterionBuilder implements CriterionBuilder<List<String>
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> ids) {
-        if (ids == null || ids.isEmpty()) {
+        // If no condition has been set: no criterion
+        if (ids == null) {
             return Option.none();
+        }
+        // If no IDs should be matched: return a criterion that never matches
+        // (this can happen if the ID parameter refers to items/collections that do not exist:
+        // the resolved list of URNs is empty), and no item should be returned at all.
+        if (ids.isEmpty()) {
+            return Option.of(ICriterion.not(ICriterion.all()));
         }
         return withAll(ids.map(id -> ICriterion.eq(ID_PROPERTY_NAME, id, StringMatchType.KEYWORD)), ICriterion::or);
     }

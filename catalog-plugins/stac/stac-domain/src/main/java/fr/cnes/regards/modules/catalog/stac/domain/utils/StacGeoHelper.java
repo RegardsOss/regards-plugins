@@ -70,7 +70,7 @@ public class StacGeoHelper {
         return new GeoJSONReader(new JtsSpatialContext(factory), factory);
     }
 
-    public Option<Tuple2<IGeometry, BBox>> computeBBox(IGeometry geometry, GeoJSONReader reader) {
+    public Option<BBox> computeBBox(IGeometry geometry, GeoJSONReader reader) {
         return trying(() -> {
             String json = putTypeInFirstPosition(gson.toJson(geometry));
             debug(LOGGER, "\n\tGeometry: {}\n\tJSON: {}", geometry, json);
@@ -78,12 +78,8 @@ public class StacGeoHelper {
             Shape shape = reader.read(json);
 
             Rectangle boundingBox = shape.getBoundingBox();
-            BBox bbox = new BBox(boundingBox.getMinX(),
-                                 boundingBox.getMinY(),
-                                 boundingBox.getMaxX(),
-                                 boundingBox.getMaxY());
+            return new BBox(boundingBox.getMinX(), boundingBox.getMinY(), boundingBox.getMaxX(), boundingBox.getMaxY());
 
-            return Tuple.of(geometry, bbox);
         }).onFailure(t -> warn(LOGGER, "Could not create BBox for geometry {}", geometry, t)).toOption();
     }
 

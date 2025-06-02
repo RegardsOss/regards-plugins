@@ -50,16 +50,16 @@ public class ItemCollectionResponseAdapterFactory implements TypeAdapterFactory 
 
             @Override
             public void write(JsonWriter out, T value) throws IOException {
+                boolean oldSerializeNulls = out.getSerializeNulls();
                 out.setSerializeNulls(true);
                 // Delegate item serialization
                 Streams.write(typeAdapter.toJsonTree(value), out);
-                out.setSerializeNulls(false);
+                out.setSerializeNulls(oldSerializeNulls);
             }
 
             @Override
             public T read(JsonReader in) throws IOException {
-                // Nothing to do : only serialization
-                return null;
+                return typeAdapter.fromJsonTree(Streams.parse(in));
             }
         };
     }

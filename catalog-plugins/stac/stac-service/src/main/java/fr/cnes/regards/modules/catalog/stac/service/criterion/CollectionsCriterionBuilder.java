@@ -37,14 +37,22 @@ public class CollectionsCriterionBuilder implements CriterionBuilder<List<String
 
     @Override
     public Option<ICriterion> buildCriterion(List<StacProperty> properties, List<String> collections) {
+        // If no condition has been set: no criterion
+        if (collections == null) {
+            return Option.none();
+        }
+        // If no collection should be matched: return a criterion that never matches
+        // (this can happen if the collection parameter refers to a collection that does not exist:
+        // the resolved list of URNs is empty), and no item should be returned at all.
+        if (collections.isEmpty()) {
+            return Option.of(ICriterion.not(ICriterion.all()));
+        }
         // In the index, collections / dataset a feature belongs to is stored in the "tags" attribute.
-        return collections == null || collections.isEmpty() ?
-            Option.none() :
-            collections.size() == 1 ?
-                Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD)) :
-                Option.of(ICriterion.or(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME,
-                                                                                  c,
-                                                                                  StringMatchType.KEYWORD))));
+        return collections.size() == 1 ?
+            Option.of(ICriterion.contains(TAGS_PROPERTY_NAME, collections.get(0), StringMatchType.KEYWORD)) :
+            Option.of(ICriterion.or(collections.map(c -> ICriterion.contains(TAGS_PROPERTY_NAME,
+                                                                             c,
+                                                                             StringMatchType.KEYWORD))));
     }
 
     @Override

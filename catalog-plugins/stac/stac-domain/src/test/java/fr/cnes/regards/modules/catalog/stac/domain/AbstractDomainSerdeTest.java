@@ -37,7 +37,7 @@ import org.jeasy.random.EasyRandomParameters;
 
 import java.time.OffsetDateTime;
 
-public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T> {
+public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T> implements DomainGsonAwareTest {
 
     @Override
     public void updateRandomParameters(EasyRandom generator, EasyRandomParameters params) {
@@ -68,12 +68,4 @@ public abstract class AbstractDomainSerdeTest<T> extends AbstractGsonSerdeTest<T
               });
     }
 
-    @Override
-    public GsonBuilder updateGsonBuilder(GsonBuilder builder) {
-        builder.registerTypeAdapter(Asset.class, new AssetAdapter());
-        builder.registerTypeAdapter(BBox.class, new BBoxTypeAdapter());
-        builder.registerTypeAdapter(SearchBody.QueryObject.class, new QueryObjectTypeAdapter());
-        builder.registerTypeAdapter(DateInterval.class, new DateIntervalTypeAdapter());
-        return builder;
-    }
 }

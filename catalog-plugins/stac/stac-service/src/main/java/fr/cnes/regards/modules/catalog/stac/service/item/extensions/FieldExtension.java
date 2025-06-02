@@ -136,13 +136,13 @@ public class FieldExtension {
 
         FieldExtension extension;
         // If at least one excluded or included field is provided, manage them
-        if (!fields.getIncludes().isEmpty() || !fields.getExcludes().isEmpty()) {
+        if (!fields.getInclude().isEmpty() || !fields.getExclude().isEmpty()) {
             // Initialize extension
             extension = new FieldExtension(false);
             // Manage use cases
-            if (fields.getIncludes().isEmpty()) {
+            if (fields.getInclude().isEmpty()) {
                 extension.buildWithOnlyExcludes(fields, properties);
-            } else if (fields.getExcludes().isEmpty()) {
+            } else if (fields.getExclude().isEmpty()) {
                 extension.buildWithOnlyIncludes(fields, properties);
             } else {
                 extension.buildWithBothIncludesAndExcludes(fields, properties);
@@ -218,8 +218,8 @@ public class FieldExtension {
         if (fields == null) {
             return new Fields(List.of(), List.of());
         } else {
-            return new Fields(fields.getIncludes() == null ? List.of() : fields.getIncludes(),
-                              fields.getExcludes() == null ? List.of() : fields.getExcludes());
+            return new Fields(fields.getInclude() == null ? List.of() : fields.getInclude(),
+                              fields.getExclude() == null ? List.of() : fields.getExclude());
         }
     }
 
@@ -230,9 +230,9 @@ public class FieldExtension {
      */
     private Fields makeFieldsDisjoint(Fields fields) {
         // If a field is both included and excluded, included wins
-        List<String> newExcludes = new ArrayList<>(fields.getExcludes());
-        newExcludes.removeAll(fields.getIncludes());
-        return new Fields(fields.getIncludes(), newExcludes);
+        List<String> newExcludes = new ArrayList<>(fields.getExclude());
+        newExcludes.removeAll(fields.getInclude());
+        return new Fields(fields.getInclude(), newExcludes);
     }
 
     /**
@@ -269,16 +269,16 @@ public class FieldExtension {
     }
 
     private void excludeAllProperties(Fields fields) {
-        this.typeIncluded = !fields.getExcludes().contains(ITEM_TYPE_FIELD);
-        this.stacVersionIncluded = !fields.getExcludes().contains(ITEM_STAC_VERSION);
-        this.stacExtensionsIncluded = !fields.getExcludes().contains(ITEM_STAC_EXTENSION);
-        this.idIncluded = !fields.getExcludes().contains(ITEM_ID_FIELD);
-        this.geometryIncluded = !fields.getExcludes().contains(ITEM_GEOMETRY_FIELD);
-        this.bboxIncluded = !fields.getExcludes().contains(ITEM_BBOX_FIELD);
-        this.propertiesIncluded = !fields.getExcludes().contains(ITEM_PROPERTIES_FIELD);
-        this.linksIncluded = !fields.getExcludes().contains(ITEM_LINKS_FIELD);
-        this.assetsIncluded = !fields.getExcludes().contains(ITEM_ASSETS_FIELD);
-        this.collectionIncluded = !fields.getExcludes().contains(ITEM_COLLECTION_FIELD);
+        this.typeIncluded = !fields.getExclude().contains(ITEM_TYPE_FIELD);
+        this.stacVersionIncluded = !fields.getExclude().contains(ITEM_STAC_VERSION);
+        this.stacExtensionsIncluded = !fields.getExclude().contains(ITEM_STAC_EXTENSION);
+        this.idIncluded = !fields.getExclude().contains(ITEM_ID_FIELD);
+        this.geometryIncluded = !fields.getExclude().contains(ITEM_GEOMETRY_FIELD);
+        this.bboxIncluded = !fields.getExclude().contains(ITEM_BBOX_FIELD);
+        this.propertiesIncluded = !fields.getExclude().contains(ITEM_PROPERTIES_FIELD);
+        this.linksIncluded = !fields.getExclude().contains(ITEM_LINKS_FIELD);
+        this.assetsIncluded = !fields.getExclude().contains(ITEM_ASSETS_FIELD);
+        this.collectionIncluded = !fields.getExclude().contains(ITEM_COLLECTION_FIELD);
         excludeStacProperties(fields);
     }
 
@@ -289,7 +289,7 @@ public class FieldExtension {
      */
     private void excludeStacProperties(Fields fields) {
         // Manage STAC properties
-        for (String exclude : fields.getExcludes()) {
+        for (String exclude : fields.getExclude()) {
             if (exclude.startsWith(ITEM_PROPERTY_PREFIX)) {
                 this.includedStacProperties.put(exclude.substring(ITEM_PROPERTY_PREFIX.length()), false);
             }
@@ -303,19 +303,19 @@ public class FieldExtension {
      * @return true if at least one STAC property is included, false otherwise
      */
     private boolean includeAllProperties(Fields fields) {
-        this.typeIncluded = fields.getIncludes().contains(ITEM_TYPE_FIELD);
-        this.stacVersionIncluded = fields.getIncludes().contains(ITEM_STAC_VERSION);
-        this.stacExtensionsIncluded = fields.getIncludes().contains(ITEM_STAC_EXTENSION);
-        this.idIncluded = fields.getIncludes().contains(ITEM_ID_FIELD);
-        this.geometryIncluded = fields.getIncludes().contains(ITEM_GEOMETRY_FIELD);
-        this.bboxIncluded = fields.getIncludes().contains(ITEM_BBOX_FIELD);
-        this.propertiesIncluded = fields.getIncludes().contains(ITEM_PROPERTIES_FIELD);
-        this.linksIncluded = fields.getIncludes().contains(ITEM_LINKS_FIELD);
-        this.assetsIncluded = fields.getIncludes().contains(ITEM_ASSETS_FIELD);
-        this.collectionIncluded = fields.getIncludes().contains(ITEM_COLLECTION_FIELD);
+        this.typeIncluded = fields.getInclude().contains(ITEM_TYPE_FIELD);
+        this.stacVersionIncluded = fields.getInclude().contains(ITEM_STAC_VERSION);
+        this.stacExtensionsIncluded = fields.getInclude().contains(ITEM_STAC_EXTENSION);
+        this.idIncluded = fields.getInclude().contains(ITEM_ID_FIELD);
+        this.geometryIncluded = fields.getInclude().contains(ITEM_GEOMETRY_FIELD);
+        this.bboxIncluded = fields.getInclude().contains(ITEM_BBOX_FIELD);
+        this.propertiesIncluded = fields.getInclude().contains(ITEM_PROPERTIES_FIELD);
+        this.linksIncluded = fields.getInclude().contains(ITEM_LINKS_FIELD);
+        this.assetsIncluded = fields.getInclude().contains(ITEM_ASSETS_FIELD);
+        this.collectionIncluded = fields.getInclude().contains(ITEM_COLLECTION_FIELD);
         // Manage STAC properties
         boolean hasPropertyIncluded = false;
-        for (String include : fields.getIncludes()) {
+        for (String include : fields.getInclude()) {
             if (include.startsWith(ITEM_PROPERTY_PREFIX)) {
                 this.includedStacProperties.put(include.substring(ITEM_PROPERTY_PREFIX.length()), true);
                 hasPropertyIncluded = true;

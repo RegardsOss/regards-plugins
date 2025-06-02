@@ -25,10 +25,14 @@ import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.modules.catalog.stac.domain.api.gson.RoleTypeAdapter;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.Item;
 import fr.cnes.regards.modules.catalog.stac.domain.spec.extensions.FileInfoExtension;
+import fr.cnes.regards.modules.catalog.stac.domain.utils.MultihashUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.vavr.collection.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.DecoderException;
 
 import java.net.URI;
+import java.text.MessageFormat;
 
 /**
  * An asset is an object that contains a link to data associated with the Item that can be downloaded or streamed.
@@ -38,6 +42,7 @@ import java.net.URI;
  *
  * @author Marc Sordi
  */
+@Slf4j
 public class Asset extends FileInfoExtension {
 
     private static final String ROLE_THUMBNAIL = "thumbnail";
@@ -95,7 +100,15 @@ public class Asset extends FileInfoExtension {
                                         String type,
                                         Set<String> roles,
                                         JsonObject additionalFields) {
-        String multihash = getMultihashChecksum(checksum, algorithm);
+        String multihash = null;
+        try {
+            multihash = MultihashUtils.encode(algorithm, checksum);
+        } catch (DecoderException | UnsupportedOperationException e) {
+            log.error(String.format("Unsupported checksum %s %s on asset %s. Multihash cannot be computed",
+                                    algorithm,
+                                    checksum,
+                                    href), e);
+        }
         return new Asset(multihash, size, href, title, description, type, roles, additionalFields);
     }
 

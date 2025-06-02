@@ -189,21 +189,25 @@ public class RegardsFeatureToStacItemConverterImpl implements RegardsFeatureToSt
                                                GeoJSONReader geoJSONReader,
                                                FieldExtension fieldExtension) {
 
-        // Skip geometry extraction according to field extension
-        if (!fieldExtension.isGeometryIncluded()) {
-            return new Tuple2<>(IGeometry.unlocated(), null);
+        IGeometry geometry = feature.getFeature().getGeometry();
+        IGeometry normalizedGeometry = geometry == null ? IGeometry.unlocated() : geometry;
+        boolean isUnlocated = GeoJsonType.UNLOCATED.equals(normalizedGeometry.getType());
+
+        // If bbox is not required do not bother computing bbox, and if geometry is unlocated,
+        // bbox must null per stac spec
+        if (!fieldExtension.isBboxIncluded() || isUnlocated) {
+            if (fieldExtension.isGeometryIncluded()) {
+                return new Tuple2<>(normalizedGeometry, null);
+            }
+            return new Tuple2<>(null, null);
         }
 
-        Option<IGeometry> geometry = Option.of(feature.getFeature().getGeometry());
-        if (geometry.isDefined() && !GeoJsonType.UNLOCATED.equals(geometry.get().getType())) {
-            Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox);
-            // Compute the bounding box if not provided by the feature using the geometry
-            // If no geometry is provided, the bounding box will be null as the stac spec requires that
-            return geometry.flatMap(g -> bbox.map(b -> Tuple.of(g, b)).orElse(geoHelper.computeBBox(g, geoJSONReader)))
-                           .getOrElse(() -> Tuple.of(null, null));
-        } else {
-            return new Tuple2<>(IGeometry.unlocated(), null);
-        }
+        // Otherwise we have a geometry and bbox must be included
+        Option<BBox> bbox = Option.ofOptional(feature.getFeature().getBbox()).flatMap(this::extractBBox)
+                                  // Compute the bounding box if not provided by the feature using the geometry
+                                  .<BBox>orElse(() -> geoHelper.computeBBox(geometry, geoJSONReader));
+        IGeometry actualGeometry = fieldExtension.isGeometryIncluded() ? geometry : null;
+        return new Tuple2<>(actualGeometry, bbox.getOrNull());
     }
 
     private Option<BBox> extractBBox(Double[] doubles) {

@@ -11,7 +11,7 @@ import org.locationtech.spatial4j.io.GeoJSONReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class    StacGeoHelperTest implements GsonAwareTest {
+public class StacGeoHelperTest implements GsonAwareTest {
 
     StacGeoHelper helper = new StacGeoHelper(gson());
 
@@ -19,38 +19,35 @@ public class    StacGeoHelperTest implements GsonAwareTest {
 
     @Test
     public void testComputeBBoxUnlocated() {
-        Option<Tuple2<IGeometry, BBox>> result = helper.computeBBox(IGeometry.unlocated(), reader);
+        Option<BBox> result = helper.computeBBox(IGeometry.unlocated(), reader);
         assertThat(result).isEmpty();
     }
 
     @Test
     public void testComputeBBoxPolygon() {
         Polygon polygon = IGeometry.simplePolygon(0d, 0d, 0d, 3d, 3d, 0d);
-        Option<Tuple2<IGeometry, BBox>> result = helper.computeBBox(polygon, reader);
+        Option<BBox> result = helper.computeBBox(polygon, reader);
         System.out.println(result);
         assertThat(result).isNotEmpty();
-        assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(0d, 0d, 3d, 3d));
+        assertThat(result.get()).isEqualTo(new BBox(0d, 0d, 3d, 3d));
     }
 
     @Test
     public void testComputeBBoxPolygonAntemeridian() {
         Polygon polygon = IGeometry.simplePolygon(178d, 1d, -178d, 1d, -178d, -1d, 178d, -1d);
-        Option<Tuple2<IGeometry, BBox>> result = helper.computeBBox(polygon, reader);
+        Option<BBox> result = helper.computeBBox(polygon, reader);
         System.out.println(result);
         assertThat(result).isNotEmpty();
-        assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(178d, -1d, -178d, 1d));
+        assertThat(result.get()).isEqualTo(new BBox(178d, -1d, -178d, 1d));
     }
 
     @Test
     public void testComputeBBoxPolygonAntemeridianCcw() {
         Polygon polygon = IGeometry.simplePolygon(178d, -1d, -178d, -1d, -178d, 1d, 178d, 1d);
-        Option<Tuple2<IGeometry, BBox>> result = helper.computeBBox(polygon, reader);
+        Option<BBox> result = helper.computeBBox(polygon, reader);
         System.out.println(result);
         assertThat(result).isNotEmpty();
-        assertThat(result.get()._1).isSameAs(polygon);
-        assertThat(result.get()._2).isEqualTo(new BBox(178d, -1d, -178d, 1d));
+        assertThat(result.get()).isEqualTo(new BBox(178d, -1d, -178d, 1d));
     }
 
 }
