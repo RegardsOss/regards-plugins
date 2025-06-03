@@ -169,8 +169,9 @@ public class CollectionSearchServiceImpl extends AbstractSearchService implement
             // Add it to the collection search criteria
             idCriterion = identitiesCriterionBuilder.buildCriterion(itemStacProperties,
                                                                     List.ofAll(datasetCount.get().keySet()));
+            // idCriterion (as an Option) cannot be empty because the second argument to buildCriterion was not null
             // No dataset matches!
-            if (idCriterion.equals(ICriterion.not(ICriterion.all()))) {
+            if (idCriterion.get().equals(ICriterion.not(ICriterion.all()))) {
                 return extractCollection(new FacetPage<>(new ArrayList<>(), new java.util.HashSet<>(), pageable, 0),
                                          collectionStacProperties,
                                          searchCollectionPageLinkCreator,

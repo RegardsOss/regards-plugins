@@ -29,7 +29,9 @@ import fr.cnes.regards.modules.catalog.stac.plugin.configuration.CollectionConfi
 import fr.cnes.regards.modules.catalog.stac.plugin.configuration.EODAGConfiguration;
 import fr.cnes.regards.modules.catalog.stac.service.configuration.ConfigurationAccessor;
 import io.vavr.collection.List;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
+import jakarta.annotation.Nullable;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.GeoJSONReader;
@@ -107,25 +109,41 @@ public class CustomConfigurationAccessor implements ConfigurationAccessor {
 
     @Override
     public List<Provider> getProviders(String datasetUrn) {
-        return getCollectionConfigs(datasetUrn).flatMap(CollectionConfiguration::getProviders)
-                                               .map(configurationAccessorFactoryImpl::getProvider);
+        return getCollectionConfig(datasetUrn).map(cc -> List.ofAll(cc.getProviders()))
+                                              .getOrElse(List.empty())
+                                              .map(configurationAccessorFactoryImpl::getProvider);
     }
 
     @Override
     public List<String> getKeywords(String datasetUrn) {
-        return getCollectionConfigs(datasetUrn).flatMap(cc -> List.ofAll(cc.getKeywords()));
+        return getCollectionConfig(datasetUrn).map(cc -> List.ofAll(cc.getKeywords())).getOrElse(List.empty());
     }
 
     @Override
     public String getLicense(String datasetUrn) {
-        return getCollectionConfigs(datasetUrn).headOption().map(CollectionConfiguration::getLicense).getOrNull();
+        return getCollectionConfig(datasetUrn).map(CollectionConfiguration::getLicense).getOrNull();
     }
 
-    private List<CollectionConfiguration> getCollectionConfigs(String datasetUrn) {
-        return plugin.map(StacSearchEngine::getStacCollectionDatasetProperties)
-                     .map(List::ofAll)
-                     .getOrElse(List.empty())
-                     .filter(cc -> cc.getDatasetUrns().contains(datasetUrn));
+    /**
+     * Returns the first collection configuration that matches the dataset URN. It is either
+     * a collection configuration that specifically targets this dataset URN, or a collection
+     * configuration that has "*" in their URN list. If a collection configuration has zero
+     * dataset URNs configuration, it is just ignored.
+     */
+    private Option<CollectionConfiguration> getCollectionConfig(String datasetUrn) {
+        return plugin.toOption().flatMap(p -> {
+            java.util.List<CollectionConfiguration> confs = p.getStacCollectionDatasetProperties();
+            if (confs != null) {
+                for (CollectionConfiguration conf : confs) {
+                    java.util.List<String> datasetUrns = conf.getDatasetUrns();
+                    // datasetUrns == null means the collection was ill-configured, so we ignore it
+                    if (datasetUrns != null && (datasetUrns.contains(datasetUrn) || datasetUrns.contains("*"))) {
+                        return Option.some(conf);
+                    }
+                }
+            }
+            return Option.none();
+        });
     }
 
     @Override

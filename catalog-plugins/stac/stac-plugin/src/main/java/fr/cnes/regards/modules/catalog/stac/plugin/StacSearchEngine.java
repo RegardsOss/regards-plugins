@@ -111,7 +111,9 @@ public class StacSearchEngine implements ISearchEngine<Object, ItemSearchBody, O
 
     @PluginParameter(name = "stac-collection-dataset-properties",
                      label = "STAC dataset properties",
-                     description = "Configure STAC collection properties for selected datasets.")
+                     description = "Configure STAC collection properties for selected datasets. This section is "
+                                   + "ignored if `Use collection configuration` is checked.",
+                     optional = true)
     private List<CollectionConfiguration> stacCollectionDatasetProperties;
 
     @PluginParameter(name = "eodag-properties",

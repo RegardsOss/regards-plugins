@@ -35,7 +35,7 @@ import io.vavr.collection.Set;
 @lombok.Value
 public class SearchCollectionsResponse {
 
-    @SuppressWarnings("unused") // field only used for serialization
+    @SuppressWarnings({ "unused", "findbugs:SS_SHOULD_BE_STATIC" }) // field only used for serialization
     @SerializedName("stac_version")
     String stacVersion = StacConstants.STAC_API_VERSION + ".extended";
 
