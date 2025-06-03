@@ -19,7 +19,7 @@
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import com.google.common.collect.Lists;
-import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
+import fr.cnes.regards.framework.gson.adapters.LocalDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.domain.PluginConfiguration;
 import fr.cnes.regards.framework.modules.plugins.dto.parameter.parameter.IPluginParam;
@@ -165,11 +165,11 @@ public class AipDataSourcePluginTest extends AbstractRegardsServiceIT {
             dateBounds.put(DataSourcePluginConstants.LOWER_BOUND,
                            OffsetDateTime.now()
                                          .atZoneSameInstant(ZoneOffset.UTC)
-                                         .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
+                                         .format(LocalDateTimeAdapter.ISO_DATE_TIME_UTC));
             dateBounds.put(DataSourcePluginConstants.UPPER_BOUND,
                            OffsetDateTime.now()
                                          .atZoneSameInstant(ZoneOffset.UTC)
-                                         .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC));
+                                         .format(LocalDateTimeAdapter.ISO_DATE_TIME_UTC));
             aip.withDescriptiveInformation("range", dateBounds);
 
             Map<String, Integer> intBounds = new HashMap<>();

@@ -21,7 +21,7 @@ package fr.cnes.regards.modules.storage.plugin.local.service;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import fr.cnes.regards.framework.gson.adapters.OffsetDateTimeAdapter;
+import fr.cnes.regards.framework.gson.adapters.LocalDateTimeAdapter;
 import fr.cnes.regards.framework.module.rest.exception.ModuleException;
 import fr.cnes.regards.framework.modules.plugins.annotations.Plugin;
 import fr.cnes.regards.framework.modules.plugins.annotations.PluginInit;
@@ -150,8 +150,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
 
     @PluginParameter(name = FILE_NAMING_STRATEGY,
                      label = "File naming strategy",
-                     description =
-                         "Determines file name on target storage. List of possible values : CHECKSUM, FILENAME." ,
+                     description = "Determines file name on target storage. List of possible values : CHECKSUM, FILENAME.",
                      defaultValue = FileNamingStrategy.Constants.CHECKSUM)
     protected String fileNamingStrategy;
 
@@ -424,7 +423,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             env.put(CREATE_ENV_FS, "true");
             Path zipPath = storageLocation.resolve("regards_"
                                                    + OffsetDateTime.now()
-                                                                   .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
+                                                                   .format(LocalDateTimeAdapter.ISO_DATE_TIME_UTC)
                                                    + ".zip");
             try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL + zipPath.toAbsolutePath()),
                                                               env)) {
@@ -450,7 +449,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                             env.put(CREATE_ENV_FS, "true");
                             Path newZipPath = storageLocation.resolve("regards_"
                                                                       + OffsetDateTime.now()
-                                                                                      .format(OffsetDateTimeAdapter.ISO_DATE_TIME_UTC)
+                                                                                      .format(LocalDateTimeAdapter.ISO_DATE_TIME_UTC)
                                                                       + ".zip");
                             try (FileSystem zipFs = FileSystems.newFileSystem(URI.create(ZIP_PROTOCOL
                                                                                          + newZipPath.toAbsolutePath()),
