@@ -70,7 +70,8 @@ public class CollectionLinksMapper {
                             getItemsLinks(urn, linkCreator),
                             // items link may not be accurate here
                             children.flatMap(child -> linkCreator.createCollectionLink(Relation.CHILD,
-                                                                                       child.getIpId().toString(),
+                                                                                       idMappingService.getStacIdByUrn(
+                                                                                           child.getIpId().toString()),
                                                                                        child.getLabel())))
                         .flatMap(t -> t);
 

@@ -133,9 +133,9 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
         Terms termsAgg = aggs.get(termsAggName);
         return List.ofAll(termsAgg.getBuckets()).sortBy(MultiBucketsAggregation.Bucket::getKeyAsString).map(bucket -> {
             String keyString = bucket.getKeyAsString();
-
+            Object normalizedValue = prop.normalizeValue(bucket.getKey());
             Try<String> tryConvertedValue = prop.getConverter()
-                                                .convertRegardsToStac(bucket.getKey())
+                                                .convertRegardsToStac(normalizedValue)
                                                 .map(Object.class::cast)
                                                 .map(Object::toString);
             String exactValue = tryConvertedValue.getOrElse(keyString);

@@ -57,4 +57,17 @@ public class StacProperty {
     public boolean isDynamicCollectionLevel() {
         return dynamicCollectionLevel != null && dynamicCollectionLevel >= 0;
     }
+
+    /**
+     * Normalize the input value according to the expected STAC property type
+     * In some cases, a STAC property of type PERCENTAGE may be created from an Integer model attribute
+     * Since percentages are expected to be represented as Double values in STAC, this method
+     * converts the value to Double if applicable.
+     */
+    public Object normalizeValue(Object value) {
+        if (StacPropertyType.PERCENTAGE.equals(stacType) && value instanceof Integer intValue) {
+            return intValue.doubleValue();
+        }
+        return value;
+    }
 }

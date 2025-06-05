@@ -93,7 +93,7 @@ public class Asset extends FileInfoExtension {
      */
     public static Asset fromRawChecksum(String checksum,
                                         String algorithm,
-                                        long size,
+                                        Long size,
                                         URI href,
                                         String title,
                                         String description,
@@ -117,7 +117,7 @@ public class Asset extends FileInfoExtension {
      * Used when deserializing an asset from JSON
      */
     public static Asset fromMultihash(String multihash,
-                                      long size,
+                                      Long size,
                                       URI href,
                                       String title,
                                       String description,

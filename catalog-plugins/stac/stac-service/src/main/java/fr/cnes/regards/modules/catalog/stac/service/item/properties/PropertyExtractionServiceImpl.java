@@ -123,13 +123,14 @@ public class PropertyExtractionServiceImpl implements PropertyExtractionService 
 
     @SuppressWarnings("unchecked")
     private Object convertStacProperty(Object value, StacProperty sp) {
+        Object normalizedValue = sp.normalizeValue(value);
         return sp.getConverter()
-                 .convertRegardsToStac(value)
+                 .convertRegardsToStac(normalizedValue)
                  .onFailure(t -> warn(LOGGER,
                                       "Could not convert regards property value {} using stac property {} converter",
-                                      value,
+                                      normalizedValue,
                                       sp.getStacPropertyName()))
-                 .getOrElse(value);
+                 .getOrElse(normalizedValue);
     }
 
     @Override

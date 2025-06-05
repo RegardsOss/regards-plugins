@@ -22,6 +22,7 @@ package fr.cnes.regards.modules.catalog.stac.domain.properties.conversion;
 import fr.cnes.regards.modules.catalog.stac.domain.properties.StacPropertyType;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.NotImplementedException;
+import org.elasticsearch.common.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class PercentagePropertyConverter extends AbstractPropertyConverter<Doubl
         ;
 
         public static PercentageBase parsePercentageBase(String format) {
-            if (format == null) {
+            if (Strings.isNullOrEmpty(format)) {
                 return HUNDRED;
             }
             return trying(() -> PercentageBase.valueOf(format.trim())).onFailure(t -> warn(LOGGER,
