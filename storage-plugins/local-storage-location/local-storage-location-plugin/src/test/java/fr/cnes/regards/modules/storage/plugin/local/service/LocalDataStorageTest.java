@@ -62,7 +62,7 @@ public class LocalDataStorageTest {
 
     private final IDeletionProgressManager deletionProgress = Mockito.mock(IDeletionProgressManager.class);
 
-    private final String baseStorageLocation = "target/local-storage";
+    private static final String baseStorageLocation = "target/local-storage";
 
     @Mock
     private S3StorageConfiguration knownS3Storages;

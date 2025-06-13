@@ -37,9 +37,9 @@ import lombok.With;
 @Value
 public class ItemCollectionResponse implements LinkCollection<ItemCollectionResponse> {
 
-    @SerializedName("stac_version")
+    @SerializedName("stac_version") //NOSONAR
     // Used for serialization, must remain non-static despite Sonar's suggestion
-    String stacVersion = StacConstants.STAC_API_VERSION; //NOSONAR
+    String stacVersion = StacConstants.STAC_API_VERSION;
 
     @SerializedName("stac_extensions")
     Set<String> stacExtensions;

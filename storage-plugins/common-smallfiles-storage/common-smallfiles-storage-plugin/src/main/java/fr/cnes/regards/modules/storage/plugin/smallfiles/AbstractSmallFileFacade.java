@@ -76,8 +76,10 @@ public abstract class AbstractSmallFileFacade implements ISmallFilesStorage {
 
     private final BasicThreadFactory factory;
 
-    public AbstractSmallFileFacade(IRuntimeTenantResolver runtimeTenantResolver, LockService lockService) {
-        factory = new BasicThreadFactory.Builder().namingPattern(getThreadNamingPattern())
+    public AbstractSmallFileFacade(IRuntimeTenantResolver runtimeTenantResolver,
+                                   LockService lockService,
+                                   String threadNamingPattern) {
+        factory = new BasicThreadFactory.Builder().namingPattern(threadNamingPattern)
                                                   .priority(Thread.MAX_PRIORITY)
                                                   .build();
         this.runtimeTenantResolver = runtimeTenantResolver;
@@ -796,6 +798,4 @@ public abstract class AbstractSmallFileFacade implements ISmallFilesStorage {
 
     public abstract void handleDeleteFileRequest(FileDeletionRequestDto request,
                                                  IDeletionProgressManager progressManager);
-
-    public abstract String getThreadNamingPattern();
 }

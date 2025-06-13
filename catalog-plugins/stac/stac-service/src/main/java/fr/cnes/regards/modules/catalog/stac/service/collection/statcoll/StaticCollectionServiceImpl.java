@@ -44,6 +44,8 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StaticCollectionServiceImpl.class);
 
+    private static final String FAILED_TO_LOAD_STATIC_COLLECTIONS = "Failed to load the static collections";
+
     private final ExtentSummaryService extentSummaryService;
 
     private final IdMappingService idMappingService;
@@ -94,7 +96,7 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
             List<AbstractEntity<?>> datasets = List.ofAll(catalogSearchProxyService.getEntitiesByType(EntityType.DATASET));
             List<AbstractEntity<?>> entities = collections.appendAll(datasets);
             return entities.map(e -> Tuple.of(e.getIpId().toString(), e.getLabel()));
-        }).onFailure(t -> warn(LOGGER, "Failed to load the root static collections", t)).getOrElse(List::empty);
+        }).onFailure(t -> warn(LOGGER, FAILED_TO_LOAD_STATIC_COLLECTIONS, t)).getOrElse(List::empty);
     }
 
     @Override
@@ -104,7 +106,7 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
             List<AbstractEntity<?>> datasets = List.ofAll(catalogSearchProxyService.getEntitiesByType(EntityType.DATASET));
             List<AbstractEntity<?>> entities = collections.appendAll(datasets);
             return entities.flatMap(entity -> convertRequest(entity.getIpId(), linkCreator, config));
-        }).onFailure(t -> warn(LOGGER, "Failed to load the root static collections", t)).getOrElse(List::empty);
+        }).onFailure(t -> warn(LOGGER, FAILED_TO_LOAD_STATIC_COLLECTIONS, t)).getOrElse(List::empty);
     }
 
     @Override
@@ -124,7 +126,7 @@ public class StaticCollectionServiceImpl implements StaticCollectionService {
                                                      null,
                                                      collectionConfigurationAccessor,
                                                      false);
-        }).onFailure(t -> warn(LOGGER, "Failed to load the root static collections", t)).getOrElse(List::empty);
+        }).onFailure(t -> warn(LOGGER, FAILED_TO_LOAD_STATIC_COLLECTIONS, t)).getOrElse(List::empty);
     }
 
     private Try<UniformResourceName> extractURN(String urnStr) {

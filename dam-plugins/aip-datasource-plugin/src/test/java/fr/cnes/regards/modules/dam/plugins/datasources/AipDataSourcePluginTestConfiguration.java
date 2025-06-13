@@ -89,7 +89,7 @@ public class AipDataSourcePluginTestConfiguration {
                                                        handler);
     }
 
-    private class AipClientProxy {
+    private static class AipClientProxy {
 
         @SuppressWarnings("unused")
         public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
