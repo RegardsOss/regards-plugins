@@ -271,7 +271,7 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
     }
 
     @PluginDestroy
-    public void onDestroy() {
+    public synchronized void onDestroy() {
         LOGGER.warn("Shutdown of the plugin, this may cause errors as the currently running tasks will be "
                     + "terminated");
         scheduler.shutdown();
@@ -600,18 +600,13 @@ public class S3Glacier extends AbstractS3Storage implements INearlineStorageLoca
         private final S3HighLevelReactiveClient client;
 
         public S3SmallFilesFacade(S3HighLevelReactiveClient s3Client) {
-            super(runtimeTenantResolver, lockService);
+            super(runtimeTenantResolver, lockService, "s3-glacier-threadpool-thread-%d");
             this.client = s3Client;
         }
 
         @Override
         public void handleDeleteFileRequest(FileDeletionRequestDto request, IDeletionProgressManager progressManager) {
             handleDeleteRequest(request, client, progressManager);
-        }
-
-        @Override
-        public String getThreadNamingPattern() {
-            return "s3-glacier-threadpool-thread-%d";
         }
 
         @Override

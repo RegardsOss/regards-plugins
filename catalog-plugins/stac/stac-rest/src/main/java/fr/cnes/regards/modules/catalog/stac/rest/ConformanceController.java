@@ -45,6 +45,8 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
  */
 @RestController
 @RequestMapping(path = StacApiConstants.STAC_CONFORMANCE_PATH, produces = StacConstants.APPLICATION_JSON_MEDIA_TYPE)
+@SuppressWarnings("java:S1192") // Suppress warning for "String literals should not be duplicated" for URIs.
+// Duplication of string literals is intentional: these URIs come from the STAC API spec and are repeated for clarity and readability.
 public class ConformanceController implements TryToResponseEntity {
 
     public static final List<String> CONFORMS_TO = List.of("https://api.stacspec.org/v1.0.0/core",

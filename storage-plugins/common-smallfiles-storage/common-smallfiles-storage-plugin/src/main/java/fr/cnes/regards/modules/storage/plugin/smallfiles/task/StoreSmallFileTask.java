@@ -280,8 +280,11 @@ public class StoreSmallFileTask implements LockServiceTask<Void> {
         String storedArchivePath = Paths.get(configuration.rootPath(),
                                              request.getSubDirectory() != null ? request.getSubDirectory() : "",
                                              archiveName + ISmallFilesStorage.ARCHIVE_EXTENSION).toString();
+        //We remove the first "/" at the start of the path to avoid a double separator in the final url
         String storedSmallFilePath = SmallFilesUtils.createSmallFilePath(storedArchivePath,
-                                                                         request.getMetaInfo().getFileName());
+                                                                         request.getMetaInfo().getFileName())
+                                                    .replaceFirst("^/*", "");
+
         progressManager.storageSucceedWithPendingActionRemaining(request,
                                                                  urlProvider.apply(storedSmallFilePath),
                                                                  realFileSize,

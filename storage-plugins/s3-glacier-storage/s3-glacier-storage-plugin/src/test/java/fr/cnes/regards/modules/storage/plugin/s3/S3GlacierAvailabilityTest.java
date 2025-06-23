@@ -53,9 +53,9 @@ import java.util.UUID;
 @RunWith(MockitoJUnitRunner.class)
 public class S3GlacierAvailabilityTest {
 
-    private final String END_POINT_S3_GLACIER = "http://minio.cs:80";
+    private static final String END_POINT_S3_GLACIER = "http://minio.cs:80";
 
-    private final String BUCKET_S3_GLACIER = "bucket";
+    private static final String BUCKET_S3_GLACIER = "bucket";
 
     @Mock
     private S3ClientCreatorService s3ClientService;

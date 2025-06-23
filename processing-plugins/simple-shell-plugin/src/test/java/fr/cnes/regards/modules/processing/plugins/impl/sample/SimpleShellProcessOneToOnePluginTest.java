@@ -105,7 +105,8 @@ public class SimpleShellProcessOneToOnePluginTest {
             finalContext.set(c);
         }, e -> LOGGER.error("Failure", e), subscriptionLatch::countDown);
 
-        subscriptionLatch.await(1L, MINUTES);
+        boolean awaitCompleted = subscriptionLatch.await(1L, MINUTES);
+        assertThat(awaitCompleted).as("The test exceeded the timeout").isTrue();
 
         assertThat(finalContext.get()).isNotNull();
         assertThat(finalContext.get().getExec().getSteps()).hasSize(3);
@@ -171,7 +172,8 @@ public class SimpleShellProcessOneToOnePluginTest {
             finalContext.set(c);
         }, e -> LOGGER.error("Failure", e), subscriptionLatch::countDown);
 
-        subscriptionLatch.await(1L, MINUTES);
+        boolean awaitCompleted = subscriptionLatch.await(1L, MINUTES);
+        assertThat(awaitCompleted).as("The test exceeded the timeout").isTrue();
 
         assertThat(finalContext.get()).isNotNull();
         assertThat(finalContext.get().getExec().getSteps()).hasSize(3);

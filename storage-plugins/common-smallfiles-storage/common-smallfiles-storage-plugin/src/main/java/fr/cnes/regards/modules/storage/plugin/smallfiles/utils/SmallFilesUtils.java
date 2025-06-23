@@ -78,6 +78,7 @@ public class SmallFilesUtils {
      * @param key               s3 key of the file to restore
      * @param availabilityHours lifetime of file in hours
      */
+    @SuppressWarnings("java:S2259") // NOSONAR: block() cannot throw NullPointerException here
     public static RestoreResponse restore(S3HighLevelReactiveClient s3Client,
                                           StorageConfigDto config,
                                           String key,
@@ -119,7 +120,7 @@ public class SmallFilesUtils {
                                            .onErrorResume((error) -> Mono.just(new RestoreResponse(RestoreStatus.CLIENT_EXCEPTION,
                                                                                                    glacierFileStatus,
                                                                                                    new Exception(error))))
-                                           .block();
+                                           .block(); // NOSONAR block cannot throw NullPointerException here
         LOGGER.trace("[S3 Monitoring] Requesting restoration of {} took {} ms",
                      key,
                      Instant.now().toEpochMilli() - start);
@@ -164,6 +165,7 @@ public class SmallFilesUtils {
      * @param lockService              lockService handling the lock renewal
      * @return GlacierFileStatus
      */
+    @SuppressWarnings("java:S2259") // NOSONAR: block() cannot throw NullPointerException here
     public static GlacierFileStatus checkRestorationComplete(String key,
                                                              StorageConfigDto s3Configuration,
                                                              int s3AccessTimeoutInSeconds,
