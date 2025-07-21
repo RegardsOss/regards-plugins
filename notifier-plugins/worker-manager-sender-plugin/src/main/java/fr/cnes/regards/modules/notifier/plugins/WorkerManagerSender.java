@@ -126,7 +126,7 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
                                                                                               sessionNamePattern,
                                                                                               tenantName);
             messagesToSend.add(RawMessageBuilder.build(tenantName,
-                                                       contentType,
+                                                       getContentType(notificationRequest),
                                                        sessionNameAndOwner.sessionOwnerName(),
                                                        sessionNameAndOwner.sessionName(),
                                                        UUID.randomUUID().toString(),
@@ -134,5 +134,12 @@ public class WorkerManagerSender extends AbstractRabbitMQSender {
                                                        feature.toString().getBytes(StandardCharsets.UTF_8)));
         }
         return messagesToSend;
+    }
+
+    /**
+     * Subclasses can use the NotificationRequest or its payload to change contentType
+     */
+    protected String getContentType(NotificationRequest notificationRequest) {
+        return contentType;
     }
 }
