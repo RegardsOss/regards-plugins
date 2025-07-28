@@ -20,7 +20,7 @@ package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import fr.cnes.regards.framework.urn.DataType;
 import fr.cnes.regards.framework.urn.EntityType;
-import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityRawClient;
 import fr.cnes.regards.modules.feature.dto.Feature;
 import fr.cnes.regards.modules.feature.dto.FeatureEntityDto;
 import fr.cnes.regards.modules.feature.dto.FeatureFile;
@@ -58,8 +58,8 @@ public class TestConfiguration {
                                                                                           1);
 
     @Bean
-    public IFeatureEntityClient featureEntityClient() {
-        IFeatureEntityClient mock = Mockito.mock(IFeatureEntityClient.class);
+    public IFeatureEntityRawClient featureEntityRawClient() {
+        IFeatureEntityRawClient mock = Mockito.mock(IFeatureEntityRawClient.class);
         List<EntityModel<FeatureEntityDto>> entities = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             entities.add(EntityModel.of(FeatureEntityDto.build("source",
@@ -81,12 +81,12 @@ public class TestConfiguration {
                                                                                                          10,
                                                                                                          1));
         ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = ResponseEntity.of(Optional.of(pagedModel));
-        Mockito.when(mock.findAll(Mockito.anyString(),
-                                  Mockito.any(OffsetDateTime.class),
-                                  Mockito.any(OffsetDateTime.class),
-                                  Mockito.anyInt(),
-                                  Mockito.anyInt(),
-                                  Mockito.any(Sort.class))).thenReturn(response);
+        Mockito.when(mock.findAllRaw(Mockito.anyString(),
+                                     Mockito.any(OffsetDateTime.class),
+                                     Mockito.any(OffsetDateTime.class),
+                                     Mockito.anyInt(),
+                                     Mockito.anyInt(),
+                                     Mockito.any(Sort.class))).thenReturn(response);
         return mock;
     }
 

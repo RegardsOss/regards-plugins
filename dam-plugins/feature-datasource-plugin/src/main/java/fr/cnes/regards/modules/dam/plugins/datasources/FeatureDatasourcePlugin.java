@@ -27,7 +27,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalGeoJsonDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityRawClient;
 import fr.cnes.regards.modules.feature.dto.*;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.fileaccess.dto.StorageType;
@@ -153,7 +153,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     // -------------------------
 
     @Autowired
-    private IFeatureEntityClient featureClient;
+    private IFeatureEntityRawClient featureClient;
 
     /**
      * May not be useful if no file is managed!
@@ -238,12 +238,12 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
         // Features must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
-                                                                                                   searchMinDate,
-                                                                                                   searchMaxDate,
-                                                                                                   cursor.getPosition(),
-                                                                                                   cursor.getSize(),
-                                                                                                   sorting);
+        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAllRaw(modelName,
+                                                                                                      searchMinDate,
+                                                                                                      searchMaxDate,
+                                                                                                      cursor.getPosition(),
+                                                                                                      cursor.getSize(),
+                                                                                                      sorting);
         // Manage request error
         if (!response.getStatusCode().is2xxSuccessful() || !response.hasBody()) {
             throw new DataSourceException(String.format(
