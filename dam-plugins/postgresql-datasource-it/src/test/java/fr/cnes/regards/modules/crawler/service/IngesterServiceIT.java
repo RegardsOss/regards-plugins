@@ -54,6 +54,7 @@ import fr.cnes.regards.modules.model.service.IModelService;
 import fr.cnes.regards.modules.project.client.rest.IProjectsClient;
 import fr.cnes.regards.modules.project.domain.Project;
 import org.assertj.core.util.Lists;
+import org.awaitility.Awaitility;
 import org.junit.*;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
@@ -66,11 +67,13 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-@ActiveProfiles({ "noschedule", "IngesterTest", "test" })
+@ActiveProfiles({ "noscheduler", "IngesterTest", "test" })
 // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
 public class IngesterServiceIT extends AbstractRegardsIT {
@@ -354,9 +357,12 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         Project project = new Project("Desc", "Icon", true, "Name");
         Mockito.when(projectsClient.retrieveProject(tenantResolver.getTenant()))
                .thenReturn(ResponseEntity.ok(EntityModel.of(project)));
-        // Initial Ingestion with no value from datasources
-        ingesterService.manage();
+        // GIVEN Initial Ingestion with no value from datasources
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(10);
 
+        // THEN
         List<DatasourceIngestion> dsIngestions = dsIngestionRepos.findAll();
         for (DatasourceIngestion dsi : dsIngestions) {
             System.out.print(dsi.getStackTrace());
@@ -365,15 +371,18 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             Assert.assertNotNull("Datasource ingest last ingest date should not be null", dsi.getLastIngestDate());
         }
 
-        // Add a ExternalData
-        final LocalDate today = LocalDate.now();
+        // GIVEN Add a ExternalData
+        final LocalDate today = LocalDate.now(ZoneOffset.UTC);
         final ExternalData data1_0 = new ExternalData(today);
         extData1Repos.save(data1_0);
 
         // ExternalData is from a datasource that has a refresh rate of 1 s
         Thread.sleep(1_000);
 
-        ingesterService.manage();
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(10);
+        // THEN
         dsIngestions = dsIngestionRepos.findAll();
         for (DatasourceIngestion dsIngestion : dsIngestions) {
             switch (dsIngestion.getLabel()) {
@@ -383,7 +392,8 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             }
         }
 
-        final OffsetDateTime now = OffsetDateTime.now();
+        // GIVEN add ExternalData1 and 2
+        final OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         final ExternalData2 data2_0 = new ExternalData2(now);
         extData2Repos.save(data2_0);
         final ExternalData3 data3_0 = new ExternalData3(now);
@@ -392,7 +402,10 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // ExternalData2 is from a datasource that has a refresh rate of 1 s
         // ExternalData3 is from a datasource that has a refresh rate of 10 s (so does AipDataSourcePlugin)
         Thread.sleep(1_000);
-        ingesterService.manage();
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(1000);
+        // THEN
         dsIngestions = dsIngestionRepos.findAll();
         // because of refresh rates, only ExternalData2 datasource must be ingested, we should wait 9 more
         // seconds for ExternalData3 one
@@ -404,8 +417,12 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             }
         }
 
+        // GIVEN wait 9 sec more for crawler 3 to run
         Thread.sleep(9_000);
-        ingesterService.manage();
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(10);
+        // THEN
         dsIngestions = dsIngestionRepos.findAll();
         // because of refresh rates, only ExternalData2 datasource must be ingested, we should wait at least 9 more
         // seconds for ExternalData3 one
@@ -417,8 +434,12 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             }
         }
 
+        // GIVEN wait 10 sec more
         Thread.sleep(10_000);
-        ingesterService.manage();
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(10);
+        // THEN
         dsIngestions = dsIngestionRepos.findAll();
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
         for (DatasourceIngestion dsIngestion : dsIngestions) {
@@ -430,8 +451,12 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         }
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getLastIngestDate() != null));
 
+        // GIVEN wait 10 sec more
         Thread.sleep(10_000);
-        ingesterService.manage();
+        // WHEN crawl
+        ingesterService.manageCrawlingForAllTenants();
+        waitForCrawlingTerminationAndReturnTimeElasped(10);
+        // THEN
         dsIngestions = dsIngestionRepos.findAll();
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
         for (DatasourceIngestion dsIngestion : dsIngestions) {
@@ -441,5 +466,31 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                 case PLUGIN_LABEL_3 -> Assertions.assertEquals(0, dsIngestion.getSavedObjectsCount());
             }
         }
+    }
+
+    private int waitForCrawlingTerminationAndReturnTimeElasped(int atMostSeconds) {
+        // previous ingestion may not be started yet, so we wait a little bit
+        long beforeAwait = System.currentTimeMillis();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        Awaitility.await().atMost(atMostSeconds, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(() -> {
+            tenantResolver.forceTenant(getDefaultTenant());
+            return dsIngestionRepos.findAll();
+        }, dsList -> {
+            if (!dsList.isEmpty()) {
+                if (dsList.size() == 3) {
+                    return dsList.stream().map(DatasourceIngestion::getStatus).allMatch(IngestionStatus::isFinal);
+                } else {
+                    // We expect 3 datasource ingestions
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        });
+        return (int) ((System.currentTimeMillis() - beforeAwait));
     }
 }

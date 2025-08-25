@@ -50,6 +50,7 @@ import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.dto.properties.PropertyType;
 import fr.cnes.regards.modules.model.gson.MultitenantFlattenedAttributeAdapterFactoryEventHandler;
 import fr.cnes.regards.modules.model.service.IModelService;
+import org.awaitility.Awaitility;
 import org.junit.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +63,10 @@ import org.springframework.test.context.TestPropertySource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Ignore
-@ActiveProfiles({ "noschedule", "IngesterGeometryTest", "test" })
+@ActiveProfiles({ "noscheduler", "IngesterGeometryTest", "test" })
 // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=projectdb" })
 public class IngesterGeometryServiceIT {
@@ -248,9 +250,13 @@ public class IngesterGeometryServiceIT {
 
     @Test
     public void test() throws InterruptedException {
-        // Ingestion of external data
-        ingesterService.manage();
+        // GIVEN Ingestion of external data (setup)
+        // WHEN crawling
+        ingesterService.manageCrawlingForAllTenants();
+        // THEN I expect crawling done in less than 10 sec
+        waitForCrawlingTermination(10);
 
+        // THEN
         final List<DatasourceIngestion> dsIngestions = dsIngestionRepos.findAll();
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getStatus() == IngestionStatus.FINISHED));
         Assert.assertTrue(dsIngestions.stream().allMatch(dsIngest -> dsIngest.getSavedObjectsCount() == 20_362));
@@ -263,5 +269,23 @@ public class IngesterGeometryServiceIT {
         Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() != null));
         Assert.assertTrue(objects.stream().allMatch(o -> o.getGeometry() instanceof Polygon));
 
+    }
+
+    private void waitForCrawlingTermination(int atMostSeconds) {
+        Awaitility.await().atMost(atMostSeconds, TimeUnit.SECONDS).pollInterval(1, TimeUnit.SECONDS).until(() -> {
+            tenantResolver.forceTenant(TENANT);
+            return dsIngestionRepos.findAll();
+        }, dsList -> {
+            if (!dsList.isEmpty()) {
+                if (dsList.size() == 2) {
+                    return dsList.stream().map(DatasourceIngestion::getStatus).allMatch(IngestionStatus::isFinal);
+                } else {
+                    // We expect 2 datasource ingestions
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        });
     }
 }

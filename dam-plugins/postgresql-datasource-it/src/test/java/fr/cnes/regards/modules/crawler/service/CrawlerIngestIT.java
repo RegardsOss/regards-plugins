@@ -92,7 +92,7 @@ import java.util.Set;
 /**
  * Crawler ingestion tests
  */
-@ActiveProfiles({ "noschedule", "CrawlerTest", "test", "testAmqp" })
+@ActiveProfiles({ "noscheduler", "CrawlerTest", "test", "testAmqp" })
 // Disable scheduling, this will activate IngesterService during all tests
 @TestPropertySource(properties = { "spring.jpa.properties.hibernate.default_schema=public" })
 public class CrawlerIngestIT extends AbstractRegardsIT {
