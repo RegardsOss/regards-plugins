@@ -33,7 +33,7 @@ import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
 import fr.cnes.regards.modules.crawler.service.ds.*;
-import fr.cnes.regards.modules.crawler.service.service.IngesterService;
+import fr.cnes.regards.modules.crawler.service.service.CrawlerCreatorService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -112,7 +112,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private String driver;
 
     @Autowired
-    private IngesterService ingesterService;
+    private CrawlerCreatorService crawlerCreatorService;
 
     private List<AbstractAttributeMapping> modelAttrMapping;
 
@@ -275,7 +275,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
             esRepository.createIndex(getDefaultTenant());
         }
 
-        ingesterService.setConsumeOnlyMode(true);
+        crawlerCreatorService.setConsumeOnlyMode(true);
 
         dsIngestionRepos.deleteAll();
         extData1Repos.deleteAll();
@@ -359,7 +359,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
                .thenReturn(ResponseEntity.ok(EntityModel.of(project)));
         // GIVEN Initial Ingestion with no value from datasources
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(10);
 
         // THEN
@@ -380,7 +380,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         Thread.sleep(1_000);
 
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(10);
         // THEN
         dsIngestions = dsIngestionRepos.findAll();
@@ -403,7 +403,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // ExternalData3 is from a datasource that has a refresh rate of 10 s (so does AipDataSourcePlugin)
         Thread.sleep(1_000);
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(1000);
         // THEN
         dsIngestions = dsIngestionRepos.findAll();
@@ -420,7 +420,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // GIVEN wait 9 sec more for crawler 3 to run
         Thread.sleep(9_000);
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(10);
         // THEN
         dsIngestions = dsIngestionRepos.findAll();
@@ -437,7 +437,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // GIVEN wait 10 sec more
         Thread.sleep(10_000);
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(10);
         // THEN
         dsIngestions = dsIngestionRepos.findAll();
@@ -454,7 +454,7 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // GIVEN wait 10 sec more
         Thread.sleep(10_000);
         // WHEN crawl
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         waitForCrawlingTerminationAndReturnTimeElasped(10);
         // THEN
         dsIngestions = dsIngestionRepos.findAll();

@@ -18,6 +18,7 @@ import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.GeoHelper;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.spatial.Crs;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.model.domain.Model;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -65,6 +66,9 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     IdMappingService idMappingService;
 
     @Autowired
+    protected IndexAliasResolver indexAliasResolver;
+
+    @Autowired
     StaticCollectionService converter;
 
     @Autowired
@@ -81,12 +85,17 @@ public class RegardsStacCollectionConverterIT extends AbstractMultitenantService
     @Before
     public void initMethod() {
 
-        try {
-            repository.deleteIndex(ITEMS_TENANT);
-        } catch (Exception e) {
+        String aliasName = indexAliasResolver.resolveAliasName(ITEMS_TENANT);
 
+        if (repository.indexExists(ITEMS_TENANT)) {
+            repository.deleteIndex(ITEMS_TENANT);
         }
+        if (repository.indexExists(aliasName)) {
+            repository.deleteIndex(aliasName);
+        }
+
         Assert.assertTrue(repository.createIndex(ITEMS_TENANT));
+        Assert.assertTrue(repository.createAlias(ITEMS_TENANT, aliasName));
 
         UniformResourceName urnParentCollection = UniformResourceName.build(OAISIdentifier.AIP.name(),
                                                                             EntityType.COLLECTION,

@@ -30,7 +30,7 @@ import fr.cnes.regards.framework.utils.plugins.PluginParameterTransformer;
 import fr.cnes.regards.modules.crawler.dao.IDatasourceIngestionRepository;
 import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
-import fr.cnes.regards.modules.crawler.service.service.IngesterService;
+import fr.cnes.regards.modules.crawler.service.service.CrawlerCreatorService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -97,7 +97,7 @@ public class IngesterGeometryServiceIT {
     private String driver;
 
     @Autowired
-    private IngesterService ingesterService;
+    private CrawlerCreatorService crawlerCreatorService;
 
     private List<AbstractAttributeMapping> modelAttrMapping;
 
@@ -190,7 +190,7 @@ public class IngesterGeometryServiceIT {
         } else {
             esRepository.createIndex(TENANT);
         }
-        ingesterService.setConsumeOnlyMode(true);
+        crawlerCreatorService.setConsumeOnlyMode(true);
 
         dsIngestionRepos.deleteAll();
 
@@ -252,7 +252,7 @@ public class IngesterGeometryServiceIT {
     public void test() throws InterruptedException {
         // GIVEN Ingestion of external data (setup)
         // WHEN crawling
-        ingesterService.manageCrawlingForAllTenants();
+        crawlerCreatorService.manageCrawlingForAllTenants();
         // THEN I expect crawling done in less than 10 sec
         waitForCrawlingTermination(10);
 

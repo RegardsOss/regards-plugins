@@ -31,6 +31,7 @@ import fr.cnes.regards.modules.feature.dto.urn.FeatureIdentifier;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.model.domain.attributes.AttributeModel;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
@@ -73,6 +74,9 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
 
     @Autowired
     private IRuntimeTenantResolver tenantResolver;
+
+    @Autowired
+    protected IndexAliasResolver indexAliasResolver;
 
     @Autowired
     private IAttributeModelService attributeModelService;
@@ -145,11 +149,17 @@ public abstract class AbstractFemJobTest extends AbstractMultitenantServiceIT {
                                false);
     }
 
-    protected void initIndex(String index) {
-        if (esRepository.indexExists(index)) {
-            esRepository.deleteIndex(index);
+    protected void initIndex(String tenant) {
+        String aliasName = indexAliasResolver.resolveAliasName(tenant);
+
+        if (esRepository.indexExists(tenant)) {
+            esRepository.deleteIndex(tenant);
         }
-        esRepository.createIndex(index);
+        if (esRepository.indexExists(aliasName)) {
+            esRepository.deleteIndex(aliasName);
+        }
+        esRepository.createIndex(tenant);
+        esRepository.createAlias(tenant, aliasName);
     }
 
 }

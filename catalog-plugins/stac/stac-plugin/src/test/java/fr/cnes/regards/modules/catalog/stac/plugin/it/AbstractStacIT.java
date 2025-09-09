@@ -45,6 +45,7 @@ import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.indexer.service.IIndexerService;
 import fr.cnes.regards.modules.indexer.service.IMappingService;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.model.client.IAttributeModelClient;
 import fr.cnes.regards.modules.model.client.IModelAttrAssocClient;
 import fr.cnes.regards.modules.model.dao.IAttributeModelRepository;
@@ -141,6 +142,9 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
     protected IIndexerService indexerService;
 
     @Autowired
+    protected IndexAliasResolver indexAliasResolver;
+
+    @Autowired
     protected ISearchEngineConfigurationService searchEngineService;
 
     @Autowired
@@ -213,11 +217,17 @@ public abstract class AbstractStacIT extends AbstractRegardsTransactionalIT {
         return getDataFolder().resolve("templates");
     }
 
-    protected void initIndex(String index) {
-        if (esRepository.indexExists(index)) {
-            esRepository.deleteIndex(index);
+    protected void initIndex(String tenant) {
+        String aliasName = indexAliasResolver.resolveAliasName(tenant);
+
+        if (esRepository.indexExists(tenant)) {
+            esRepository.deleteIndex(tenant);
         }
-        esRepository.createIndex(index);
+        if (esRepository.indexExists(aliasName)) {
+            esRepository.deleteIndex(aliasName);
+        }
+        esRepository.createIndex(tenant);
+        esRepository.createAlias(tenant, aliasName);
     }
 
     protected void prepareProject() {

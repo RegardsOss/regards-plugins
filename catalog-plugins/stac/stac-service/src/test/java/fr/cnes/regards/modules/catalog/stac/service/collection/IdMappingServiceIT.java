@@ -27,6 +27,7 @@ import fr.cnes.regards.modules.dam.domain.entities.Dataset;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.indexer.dao.EsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.model.domain.Model;
 import fr.cnes.regards.modules.search.service.ICatalogSearchService;
 import org.apache.commons.lang3.StringUtils;
@@ -45,12 +46,15 @@ import java.util.UUID;
 @ActiveProfiles({ "test", "feign" })
 @TestPropertySource(locations = { "classpath:test.properties" },
                     properties = { "spring.jpa.properties.hibernate.default_schema=public" })
-public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
+public class IdMappingServiceIT extends AbstractMultitenantServiceIT {
 
     public static final String ITEMS_TENANT = "PROJECT";
 
     @Autowired
     private EsRepository repository;
+
+    @Autowired
+    protected IndexAliasResolver indexAliasResolver;
 
     @MockBean
     private ProjectGeoSettings projectGeoSettings;
@@ -64,13 +68,17 @@ public class IdMappingServiceTest extends AbstractMultitenantServiceIT {
     @Before
     public void initMethod() {
 
-        try {
-            repository.deleteIndex(ITEMS_TENANT);
-        } catch (Exception ignored) {
+        String aliasName = indexAliasResolver.resolveAliasName(ITEMS_TENANT);
 
+        if (repository.indexExists(ITEMS_TENANT)) {
+            repository.deleteIndex(ITEMS_TENANT);
+        }
+        if (repository.indexExists(aliasName)) {
+            repository.deleteIndex(aliasName);
         }
 
         Assert.assertTrue(repository.createIndex(ITEMS_TENANT));
+        Assert.assertTrue(repository.createAlias(ITEMS_TENANT, aliasName));
 
         // Create one collection
 

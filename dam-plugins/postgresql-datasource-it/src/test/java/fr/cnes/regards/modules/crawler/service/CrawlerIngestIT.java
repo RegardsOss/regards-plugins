@@ -42,8 +42,8 @@ import fr.cnes.regards.modules.crawler.service.ds.ExternalDataRepository;
 import fr.cnes.regards.modules.crawler.service.ds.plugin.TestDsPlugin;
 import fr.cnes.regards.modules.crawler.service.exception.FirstFindException;
 import fr.cnes.regards.modules.crawler.service.exception.NotFinishedException;
+import fr.cnes.regards.modules.crawler.service.service.CrawlerCreatorService;
 import fr.cnes.regards.modules.crawler.service.service.DatasourceIngestionService;
-import fr.cnes.regards.modules.crawler.service.service.IngesterService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -138,7 +138,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
     private DatasourceIngestionService dsIngestionService;
 
     @Autowired
-    private IngesterService ingesterService;
+    private CrawlerCreatorService crawlerCreatorService;
 
     @Autowired
     private IAbstractEntityRepository<AbstractEntity<EntityFeature>> entityRepos;
@@ -204,7 +204,7 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
             esRepos.createIndex(getDefaultTenant());
         }
 
-        ingesterService.setConsumeOnlyMode(true);
+        crawlerCreatorService.setConsumeOnlyMode(true);
         tenantResolver.forceTenant(getDefaultTenant());
 
         attrAssocRepos.deleteAll();
