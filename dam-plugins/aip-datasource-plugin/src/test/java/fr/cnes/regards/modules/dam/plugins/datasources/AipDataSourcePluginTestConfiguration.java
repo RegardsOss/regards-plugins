@@ -14,6 +14,7 @@ import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
 import fr.cnes.regards.modules.ingest.domain.sip.IngestMetadata;
 import fr.cnes.regards.modules.ingest.domain.sip.SIPEntity;
+import fr.cnes.regards.modules.ingest.dto.AIPEntityLightDto;
 import fr.cnes.regards.modules.ingest.dto.SIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.ingest.dto.aip.StorageMetadata;
@@ -23,12 +24,14 @@ import fr.cnes.regards.modules.project.domain.Project;
 import fr.cnes.regards.modules.storage.client.IStorageLocationRestClient;
 import fr.cnes.regards.modules.storage.domain.database.StorageLocationConfiguration;
 import fr.cnes.regards.modules.toponyms.client.IToponymsClient;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.SlicedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeTypeUtils;
@@ -37,11 +40,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Configuration
 public class AipDataSourcePluginTestConfiguration {
@@ -91,11 +90,26 @@ public class AipDataSourcePluginTestConfiguration {
 
     private static class AipClientProxy {
 
+        public ResponseEntity<SlicedModel<EntityModel<AIPEntityLightDto>>> searchAIPsSlice(SearchAIPsParameters filters,
+                                                                                           int page,
+                                                                                           int size,
+                                                                                           Sort sort) {
+            List<EntityModel<AIPEntityLightDto>> result = getSimulateSearch(filters);
+            return ResponseEntity.ok(SlicedModel.of(result, new SlicedModel.SliceMetadata(result.size(), 0)));
+        }
+
         @SuppressWarnings("unused")
-        public ResponseEntity<PagedModel<EntityModel<AIPEntity>>> searchAIPs(SearchAIPsParameters filters,
-                                                                             int page,
-                                                                             int size,
-                                                                             Sort sort) {
+        public ResponseEntity<PagedModel<EntityModel<AIPEntityLightDto>>> searchAIPs(SearchAIPsParameters filters,
+                                                                                     int page,
+                                                                                     int size,
+                                                                                     Sort sort) {
+            List<EntityModel<AIPEntityLightDto>> result = getSimulateSearch(filters);
+            return ResponseEntity.ok(PagedModel.of(result,
+                                                   new PagedModel.PageMetadata(result.size(), 0, result.size(), 1)));
+        }
+
+        @NotNull
+        private List<EntityModel<AIPEntityLightDto>> getSimulateSearch(SearchAIPsParameters filters) {
             Objects.requireNonNull(filters.getAipStates(), "List of states for AIP must not be null");
 
             List<AIPEntity> aipEntities = new ArrayList<>();
@@ -109,7 +123,7 @@ public class AipDataSourcePluginTestConfiguration {
                                    OAISDataObjectLocationDto.build("http://perdu.com", "AWS"));
                 aip.withSyntaxAndDimension(MimeTypeUtils.IMAGE_JPEG, 1000d, 1500d);
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
-                                                    Sets.newHashSet("type1", "type2"));
+                                                    Set.of("type1", "type2"));
                 aip.registerContentInformation();
                 aip.getProperties()
                    .getContentInformations()
@@ -133,12 +147,28 @@ public class AipDataSourcePluginTestConfiguration {
                        .forEach(aipState -> aipEntities.add(AIPEntity.build(sipEntity, aipState, aip)));
             }
 
-            List<EntityModel<AIPEntity>> list = aipEntities.stream().map(EntityModel::of).collect(Collectors.toList());
-            return ResponseEntity.ok(PagedModel.of(list,
-                                                   new PagedModel.PageMetadata(aipEntities.size(),
-                                                                               0,
-                                                                               aipEntities.size(),
-                                                                               1)));
+            return aipEntities.stream().map(this::buildAipEntityLightDto).map(EntityModel::of).toList();
+        }
+
+        private AIPEntityLightDto buildAipEntityLightDto(AIPEntity aipEntity) {
+            return new AIPEntityLightDto(aipEntity.getAip(),
+                                         aipEntity.getAipId(),
+                                         aipEntity.getCategories(),
+                                         aipEntity.getCreationDate(),
+                                         aipEntity.getDisseminationInfos(),
+                                         aipEntity.getDisseminationStatus(),
+                                         aipEntity.getId(),
+                                         aipEntity.getIpType(),
+                                         aipEntity.isLast(),
+                                         aipEntity.getLastUpdate(),
+                                         aipEntity.getOriginUrn() != null ? aipEntity.getOriginUrn().toString() : null,
+                                         aipEntity.getProviderId(),
+                                         aipEntity.getSession(),
+                                         aipEntity.getSessionOwner(),
+                                         aipEntity.getState(),
+                                         aipEntity.getStorages(),
+                                         aipEntity.getTags(),
+                                         aipEntity.getVersion());
         }
 
     }

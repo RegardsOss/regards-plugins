@@ -49,6 +49,7 @@ import fr.cnes.regards.modules.filecatalog.dto.StorageLocationDto;
 import fr.cnes.regards.modules.indexer.domain.DataFile;
 import fr.cnes.regards.modules.ingest.client.IAIPRestClient;
 import fr.cnes.regards.modules.ingest.domain.aip.AIPEntity;
+import fr.cnes.regards.modules.ingest.dto.AIPEntityLightDto;
 import fr.cnes.regards.modules.ingest.dto.AIPState;
 import fr.cnes.regards.modules.ingest.dto.aip.SearchAIPsParameters;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -71,7 +72,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.SlicedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -87,7 +89,7 @@ import java.util.stream.Collectors;
 
 /**
  * Plugin to crawl data from OAIS feature manager (ingest microservice).
- * {@link AIPEntity}s are converted into standard {@link DataObjectFeature} to be inserted in Elasticsearch catalog
+ * {@link AIPEntityLight}s are converted into standard {@link DataObjectFeature} to be inserted in Elasticsearch catalog
  *
  * @author Simon MILHAU
  */
@@ -355,31 +357,32 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
                                            OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         try {
             FeignSecurityManager.asSystem();
-            Storages storages = getStorageLocations();
 
             // 1) Get all storage locations and aipEntities to process
-            PagedModel<EntityModel<AIPEntity>> pageAipEntities = getAipEntities(cursor, currentIngestionStartDate);
-            Collection<EntityModel<AIPEntity>> aipEntities = pageAipEntities.getContent();
+            Storages storages = getStorageLocations();
+            SlicedModel<EntityModel<AIPEntityLightDto>> sliceAipEntities = getAipEntities(cursor,
+                                                                                          currentIngestionStartDate);
+            Collection<EntityModel<AIPEntityLightDto>> aipEntities = sliceAipEntities.getContent();
             if (aipEntities.isEmpty()) {
                 cursor.setHasNext(false);
                 return Collections.emptyList();
             }
-            // 2) Build dataObjectFeatures only from DATA aipEntities
-            List<DataObjectFeature> dataObjects = convertAIPEntitiesToDataObjects(tenant, aipEntities, storages);
+            // 2) Build dataObjectFeatures only from DATA (AipEntityLightDto)
+            List<AIPEntityLightDto> aips = aipEntities.stream().map(EntityModel::getContent).toList();
+            List<DataObjectFeature> dataObjects = convertAIPEntitiesToDataObjects(tenant, aips, storages);
 
             // 3) Update cursor for next iteration
             // determine if there is a next page to search after this one
-            cursor.setHasNext(pageAipEntities.getNextLink().isPresent());
+            cursor.setHasNext(sliceAipEntities.hasLink(IanaLinkRelations.NEXT));
             // set current last update date with the most recent aip entity update.
-            cursor.setCurrentLastEntityDate(aipEntities.stream()
-                                                       .map(entityModel -> Objects.requireNonNull(entityModel.getContent())
-                                                                                  .getLastUpdate())
-                                                       .max(Comparator.comparing(lastUpdate -> lastUpdate))
-                                                       .orElse(null));
+            cursor.setCurrentLastEntityDate(aips.stream()
+                                                .map(AIPEntityLightDto::getLastUpdate)
+                                                .max(Comparator.naturalOrder())
+                                                .orElse(null));
             return dataObjects;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new DataSourceException(String.format(
-                "An error occurred during the processing of aipEntities. Cause %s: ",
+                "An error occurred during the processing of loading for AIP entities. Cause %s: ",
                 e.getMessage()), e);
         } finally {
             FeignSecurityManager.reset();
@@ -389,24 +392,22 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     /**
      * Build {@link DataObjectFeature} features from a {@link AIPEntity}s
      *
-     * @throws DataSourceException      in case call to {@link #getDownloadUrl(OaisUniformResourceName, String, String)} fails
-     * @throws HttpClientErrorException same as above
-     * @throws HttpServerErrorException same as above
+     * @throws DataSourceException in case call to {@link #getDownloadUrl(OaisUniformResourceName, String, String)} fails
      */
     private List<DataObjectFeature> convertAIPEntitiesToDataObjects(String tenant,
-                                                                    Collection<EntityModel<AIPEntity>> aipEntities,
+                                                                    Collection<AIPEntityLightDto> aipEntities,
                                                                     Storages storages) throws DataSourceException {
-        List<DataObjectFeature> dataObjects = new ArrayList<>();
-        for (EntityModel<AIPEntity> entityModel : aipEntities) {
-            AIPEntity aipEntity = entityModel.getContent();
-            multimap.put(tenant, Objects.requireNonNull(aipEntity).getAip().getId().toString());
-            try {
+        try {
+            List<DataObjectFeature> dataObjects = new ArrayList<>();
+            for (AIPEntityLightDto aipEntity : aipEntities) {
+                multimap.put(tenant, aipEntity.getAip().getId().toString());
+
                 dataObjects.add(buildFeature(aipEntity, storages, tenant));
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new PluginUtilsRuntimeException(e);
             }
+            return dataObjects;
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new PluginUtilsRuntimeException(e);
         }
-        return dataObjects;
     }
 
     /**
@@ -436,8 +437,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
      * @param cursor aipEntities should be retrieved with a lastUpdate >= {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case aipEntities could not be retrieved
      */
-    private PagedModel<EntityModel<AIPEntity>> getAipEntities(CrawlingCursor cursor,
-                                                              OffsetDateTime currentIngestionStartDate)
+    private SlicedModel<EntityModel<AIPEntityLightDto>> getAipEntities(CrawlingCursor cursor,
+                                                                       OffsetDateTime currentIngestionStartDate)
         throws DataSourceException {
 
         // /!\ In order to avoid some missing features from ingest service, search for entities
@@ -452,8 +453,8 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         // entities must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        SearchAIPsParameters filters = new SearchAIPsParameters().withAipIpType(Arrays.asList(EntityType.DATA))
-                                                                 .withStatesIncluded(Arrays.asList(AIPState.STORED))
+        SearchAIPsParameters filters = new SearchAIPsParameters().withAipIpType(List.of(EntityType.DATA))
+                                                                 .withStatesIncluded(List.of(AIPState.STORED))
                                                                  .withLastUpdateAfter(searchMinDate)
                                                                  .withLastUpdateBefore(searchMaxDate);
 
@@ -463,10 +464,11 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
         if (!CollectionUtils.isEmpty(categories)) {
             filters.withCategoriesIncluded(categories);
         }
-        ResponseEntity<PagedModel<EntityModel<AIPEntity>>> aipResponseEntity = aipClient.searchAIPs(filters,
-                                                                                                    cursor.getPosition(),
-                                                                                                    cursor.getSize(),
-                                                                                                    sorting);
+        ResponseEntity<SlicedModel<EntityModel<AIPEntityLightDto>>> aipResponseEntity = aipClient.searchAIPsSlice(
+            filters,
+            cursor.getPosition(),
+            cursor.getSize(),
+            sorting);
         if (!aipResponseEntity.getStatusCode().is2xxSuccessful() || !aipResponseEntity.hasBody()) {
             throw new DataSourceException(String.format("Cannot fetch AIP entities. (HTTP STATUS: %s, BODY: %s)",
                                                         aipResponseEntity.getStatusCode(),
@@ -478,7 +480,7 @@ public class AipDataSourcePlugin implements IInternalDataSourcePlugin, IHandler<
     /**
      * Build DataObjectFeature from AIPEntity
      */
-    private DataObjectFeature buildFeature(AIPEntity aipEntity, Storages storages, String tenant)
+    private DataObjectFeature buildFeature(AIPEntityLightDto aipEntity, Storages storages, String tenant)
         throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, DataSourceException {
         AIPDto aip = aipEntity.getAip();
         // Build feature
