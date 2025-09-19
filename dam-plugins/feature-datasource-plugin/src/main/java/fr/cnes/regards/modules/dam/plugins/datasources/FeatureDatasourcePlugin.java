@@ -27,7 +27,7 @@ import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourceExceptio
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.DataSourcePluginConstants;
 import fr.cnes.regards.modules.dam.domain.datasources.plugins.IInternalGeoJsonDataSourcePlugin;
 import fr.cnes.regards.modules.dam.domain.entities.feature.DataObjectFeature;
-import fr.cnes.regards.modules.feature.client.IFeatureEntityClient;
+import fr.cnes.regards.modules.feature.client.IFeatureEntityRawClient;
 import fr.cnes.regards.modules.feature.dto.*;
 import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.fileaccess.dto.StorageType;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.SlicedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -153,7 +153,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
     // -------------------------
 
     @Autowired
-    private IFeatureEntityClient featureClient;
+    private IFeatureEntityRawClient featureClient;
 
     /**
      * May not be useful if no file is managed!
@@ -178,7 +178,7 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
                                            @Nullable OffsetDateTime lastIngestDate,
                                            OffsetDateTime currentIngestionStartDate) throws DataSourceException {
         // 1) Get page of feature entities to process
-        PagedModel<EntityModel<FeatureEntityDto>> pageFeatureEntities;
+        SlicedModel<EntityModel<FeatureEntityDto>> pageFeatureEntities;
 
         // To avoid missing updated or new storages, reset cache of storages
         resetStorages();
@@ -222,8 +222,8 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
      * @param cursor featureEntities should be retrieved from the {@link CrawlingCursor#getLastEntityDate()}
      * @throws DataSourceException in case featureEntities could not be retrieved
      */
-    private PagedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor,
-                                                                         OffsetDateTime currentIngestionStartDate)
+    private SlicedModel<EntityModel<FeatureEntityDto>> getFeatureEntities(CrawlingCursor cursor,
+                                                                          OffsetDateTime currentIngestionStartDate)
         throws DataSourceException {
 
         // /!\ In order to avoid some missing features from fem service, search for entities
@@ -238,12 +238,12 @@ public class FeatureDatasourcePlugin implements IInternalGeoJsonDataSourcePlugin
         // Features must always be sorted by lastUpdate and id ASC. Handles nulls first, otherwise, these entities will never be processed.
         Sort sorting = Sort.by(new Sort.Order(Sort.Direction.ASC, "lastUpdate", Sort.NullHandling.NULLS_FIRST),
                                new Sort.Order(Sort.Direction.ASC, "id"));
-        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAll(modelName,
-                                                                                                   searchMinDate,
-                                                                                                   searchMaxDate,
-                                                                                                   cursor.getPosition(),
-                                                                                                   cursor.getSize(),
-                                                                                                   sorting);
+        ResponseEntity<SlicedModel<EntityModel<FeatureEntityDto>>> response = featureClient.findAllSlice(modelName,
+                                                                                                         searchMinDate,
+                                                                                                         searchMaxDate,
+                                                                                                         cursor.getPosition(),
+                                                                                                         cursor.getSize(),
+                                                                                                         sorting);
         // Manage request error
         if (!response.getStatusCode().is2xxSuccessful() || !response.hasBody()) {
             throw new DataSourceException(String.format(
