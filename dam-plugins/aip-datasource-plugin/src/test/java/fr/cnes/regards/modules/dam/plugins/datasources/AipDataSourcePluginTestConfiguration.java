@@ -1,3 +1,21 @@
+/*
+ * Copyright 2017-2024 CNES - CENTRE NATIONAL d'ETUDES SPATIALES
+ *
+ * This file is part of REGARDS.
+ *
+ * REGARDS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * REGARDS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with REGARDS. If not, see <https://www.gnu.org/licenses/>.
+ */
 package fr.cnes.regards.modules.dam.plugins.datasources;
 
 import com.google.common.collect.Sets;
@@ -64,7 +82,7 @@ public class AipDataSourcePluginTestConfiguration {
     public IProjectsClient projectsClientMock() {
         IProjectsClient client = Mockito.mock(IProjectsClient.class);
         Project project = new Project("desc", null, true, "test-project");
-        project.setHost("http://test.com");
+        project.setHost("https://test.com");
         EntityModel<Project> resource = EntityModel.of(project);
         ResponseEntity<EntityModel<Project>> response = new ResponseEntity<EntityModel<Project>>(resource,
                                                                                                  HttpStatus.OK);
@@ -120,7 +138,7 @@ public class AipDataSourcePluginTestConfiguration {
                                    "SHA",
                                    "Checksum",
                                    1000L,
-                                   OAISDataObjectLocationDto.build("http://perdu.com", "AWS"));
+                                   OAISDataObjectLocationDto.build("https://perdu.com", "AWS"));
                 aip.withSyntaxAndDimension(MimeTypeUtils.IMAGE_JPEG, 1000d, 1500d);
                 aip.withSoftwareEnvironmentProperty(AipDataSourcePlugin.AIP_PROPERTY_DATA_FILES_TYPES,
                                                     Set.of("type1", "type2"));
@@ -137,7 +155,7 @@ public class AipDataSourcePluginTestConfiguration {
                                                                            OffsetDateTime.now().toString(),
                                                                            null,
                                                                            "defaultChain",
-                                                                           Sets.newHashSet("Cat!"),
+                                                                           "Cat!",
                                                                            StorageMetadata.build("AWS")),
                                                       sip,
                                                       1,
@@ -153,7 +171,7 @@ public class AipDataSourcePluginTestConfiguration {
         private AIPEntityLightDto buildAipEntityLightDto(AIPEntity aipEntity) {
             return new AIPEntityLightDto(aipEntity.getAip(),
                                          aipEntity.getAipId(),
-                                         aipEntity.getCategories(),
+                                         aipEntity.getCategory(),
                                          aipEntity.getCreationDate(),
                                          aipEntity.getDisseminationInfos(),
                                          aipEntity.getDisseminationStatus(),
