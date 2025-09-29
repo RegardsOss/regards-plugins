@@ -44,6 +44,7 @@ import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionP
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -185,10 +186,13 @@ public class IngesterGeometryServiceIT {
 
         tenantResolver.forceTenant(TENANT);
 
+        String aliasName = IndexAliasResolver.resolveAliasName(TENANT);
         if (esRepository.indexExists(TENANT)) {
             esRepository.deleteAll(TENANT);
         } else {
             esRepository.createIndex(TENANT);
+            esRepository.createAlias(TENANT, aliasName);
+
         }
         crawlerCreatorService.setConsumeOnlyMode(true);
 

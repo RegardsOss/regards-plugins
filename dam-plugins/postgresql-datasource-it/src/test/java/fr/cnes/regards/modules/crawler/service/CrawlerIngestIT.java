@@ -62,6 +62,7 @@ import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
 import fr.cnes.regards.modules.indexer.domain.criterion.StringMatchType;
 import fr.cnes.regards.modules.indexer.service.ISearchService;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
@@ -196,12 +197,14 @@ public class CrawlerIngestIT extends AbstractRegardsIT {
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(Mockito.mock(ApplicationStartedEvent.class));
 
-        tenantResolver.forceTenant(getDefaultTenant());
-
-        if (esRepos.indexExists(getDefaultTenant())) {
-            esRepos.deleteAll(getDefaultTenant());
+        String tenant = getDefaultTenant();
+        tenantResolver.forceTenant(tenant);
+        String aliasName = IndexAliasResolver.resolveAliasName(tenant);
+        if (esRepos.indexExists(tenant)) {
+            esRepos.deleteAll(tenant);
         } else {
-            esRepos.createIndex(getDefaultTenant());
+            esRepos.createIndex(tenant);
+            esRepos.createAlias(tenant, aliasName);
         }
 
         crawlerCreatorService.setConsumeOnlyMode(true);

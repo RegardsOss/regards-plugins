@@ -34,6 +34,7 @@ import fr.cnes.regards.modules.crawler.domain.DatasourceIngestion;
 import fr.cnes.regards.modules.crawler.domain.IngestionStatus;
 import fr.cnes.regards.modules.crawler.service.ds.*;
 import fr.cnes.regards.modules.crawler.service.service.CrawlerCreatorService;
+import fr.cnes.regards.modules.crawler.service.service.IndexService;
 import fr.cnes.regards.modules.dam.dao.entities.IAbstractEntityRepository;
 import fr.cnes.regards.modules.dam.dao.entities.IDatasetRepository;
 import fr.cnes.regards.modules.dam.domain.datasources.AbstractAttributeMapping;
@@ -45,6 +46,8 @@ import fr.cnes.regards.modules.dam.domain.entities.feature.EntityFeature;
 import fr.cnes.regards.modules.dam.plugins.datasources.DefaultPostgreConnectionPlugin;
 import fr.cnes.regards.modules.dam.plugins.datasources.PostgreDataSourceFromSingleTablePlugin;
 import fr.cnes.regards.modules.indexer.dao.IEsRepository;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
+import fr.cnes.regards.modules.indexer.service.IndexAliasService;
 import fr.cnes.regards.modules.model.dao.IModelAttrAssocRepository;
 import fr.cnes.regards.modules.model.dao.IModelRepository;
 import fr.cnes.regards.modules.model.domain.Model;
@@ -161,6 +164,9 @@ public class IngesterServiceIT extends AbstractRegardsIT {
     private IPluginService pluginService;
 
     @Autowired
+    private IndexService indexService;
+
+    @Autowired
     private IPluginConfigurationRepository pluginConfRepos;
 
     @Autowired
@@ -174,6 +180,9 @@ public class IngesterServiceIT extends AbstractRegardsIT {
 
     @Autowired
     private Gson gson;
+
+    @Autowired
+    private IndexAliasService indexAliasService;
 
     private PluginConfiguration getPostgresDataSource1(final PluginConfiguration pluginConf) {
         Set<IPluginParam> parameters = IPluginParam.set(IPluginParam.plugin(DataSourcePluginConstants.CONNECTION_PARAM,
@@ -267,13 +276,15 @@ public class IngesterServiceIT extends AbstractRegardsIT {
         // Simulate spring boot ApplicationStarted event to start mapping for each tenants.
         gsonAttributeFactoryHandler.onApplicationEvent(null);
 
-        tenantResolver.forceTenant(getDefaultTenant());
+        String tenant = getDefaultTenant();
+        tenantResolver.forceTenant(tenant);
 
-        if (esRepository.indexExists(getDefaultTenant())) {
-            esRepository.deleteAll(getDefaultTenant());
-        } else {
-            esRepository.createIndex(getDefaultTenant());
-        }
+        String aliasName = IndexAliasResolver.resolveAliasName(tenant);
+        indexService.deleteIndex(tenant);
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> !esRepository.indexExists(tenant));
+        indexService.deleteIndex(aliasName);
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> !esRepository.aliasExists(aliasName));
+        indexService.createIndexAndAliasIfNeeded(tenant, false);
 
         crawlerCreatorService.setConsumeOnlyMode(true);
 
