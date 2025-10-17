@@ -28,6 +28,7 @@ import fr.cnes.regards.modules.indexer.dao.IEsRepository;
 import fr.cnes.regards.modules.indexer.dao.spatial.ProjectGeoSettings;
 import fr.cnes.regards.modules.indexer.domain.SimpleSearchKey;
 import fr.cnes.regards.modules.indexer.domain.criterion.ICriterion;
+import fr.cnes.regards.modules.indexer.service.IndexAliasResolver;
 import fr.cnes.regards.modules.indexer.service.Searches;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -49,7 +50,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.utils.OffsetDatetimeUt
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 
 /**
- * TODO: EsAggregationHelperImpl description
+ * Helper implementation to get Elasticsearch aggregations and date range queries
  *
  * @author gandrieu
  */
@@ -59,7 +60,7 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsAggregationHelperImpl.class);
 
     /**
-     * Prefix to identify dataset tags
+     * Regular expression used to match dataset URNs within feature tags.
      */
     private static final String DATASET_REGEXP = "URN:AIP:DATASET.*";
 
@@ -105,7 +106,7 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
 
     private SimpleSearchKey<AbstractEntity<?>> searchDatasetKey() {
         SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATASET);
-        result.setSearchIndex(tenantResolver.getTenant());
+        result.setSearchIndex(IndexAliasResolver.resolveAliasName(tenantResolver.getTenant()));
         result.setCrs(projectGeoSettings.getCrs());
         return result;
     }
@@ -122,7 +123,7 @@ public class EsAggregationHelperImpl implements EsAggregationHelper {
 
     private SimpleSearchKey<AbstractEntity<?>> searchDataKey() {
         SimpleSearchKey<AbstractEntity<?>> result = Searches.onSingleEntity(EntityType.DATA);
-        result.setSearchIndex(tenantResolver.getTenant());
+        result.setSearchIndex(IndexAliasResolver.resolveAliasName(tenantResolver.getTenant()));
         result.setCrs(projectGeoSettings.getCrs());
         return result;
     }
