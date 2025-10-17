@@ -48,7 +48,7 @@ public class BatchRetryTestServiceHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchRetryTestServiceHandler.class);
 
-    private ISubscriber subscriber;
+    private final ISubscriber subscriber;
 
     /**
      * For sending response

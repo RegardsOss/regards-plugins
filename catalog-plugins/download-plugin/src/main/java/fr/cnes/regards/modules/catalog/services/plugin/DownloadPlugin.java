@@ -375,7 +375,7 @@ public class DownloadPlugin extends AbstractCatalogServicePlugin implements IEnt
         String fileName = datafile.getFilename() != null ?
             datafile.getFilename() :
             FilenameUtils.getName(datafile.asUri().getPath());
-        String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replaceAll(" ", "") : "files";
+        String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replace(" ", "") : "files";
         return String.format("%s/%s", dataObjectName, fileName);
     }
 

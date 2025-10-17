@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Build a timeline with a simple flag 0 or 1 for each timeline entry
+ *
+ * @deprecated
  */
 @Deprecated
 public class LegacyBinaryTimelineBuilder extends AbstractLegacyTimelineBuilder implements TimelineBuilder {

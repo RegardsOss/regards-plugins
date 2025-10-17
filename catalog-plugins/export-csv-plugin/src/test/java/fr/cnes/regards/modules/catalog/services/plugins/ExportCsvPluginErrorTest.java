@@ -84,8 +84,7 @@ public class ExportCsvPluginErrorTest {
     }
 
     @Test
-    public void givenProcessingException_whenExportCsv_thenError()
-        throws IOException, ModuleException, NotAvailablePluginConfigurationException {
+    public void givenProcessingException_whenExportCsv_thenError() throws IOException, ModuleException {
         // --- GIVEN ---
         // init plugin with parameters
         Set<IPluginParam> pluginParameters = PluginHelper.initPluginParameters(null, 10000, null, List.of());

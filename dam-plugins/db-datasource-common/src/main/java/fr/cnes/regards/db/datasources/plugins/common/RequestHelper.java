@@ -36,6 +36,9 @@ public final class RequestHelper {
 
     public static final String LIMIT_CLAUSE = " ORDER BY %s LIMIT %d OFFSET %d";
 
+    private RequestHelper() {
+    }
+
     public static String mergeWhereClause(String request, String additionalWhereClause) {
         if (additionalWhereClause != null && !additionalWhereClause.isEmpty()) {
             Optional<String> firstWhereClause = getWhereClauseFromRequest(request);

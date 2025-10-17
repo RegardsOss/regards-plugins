@@ -147,6 +147,7 @@ public class WebserviceDatasourcePlugin implements IDataSourcePlugin {
      * @throws ModuleException any configuration error
      */
     @PluginInit
+    @SuppressWarnings("java:S2221") // See comment
     public void initialize() throws ModuleException {
         // check webservice configuration
         if (webserviceConfiguration == null) {

@@ -33,6 +33,9 @@ public final class StacRequestCorrelationId {
 
     public static final String STAC_REQUEST = "STAC Request ";
 
+    private StacRequestCorrelationId() {
+    }
+
     public static UUID fresh() {
         UUID cid = UUID.randomUUID();
         requestCorrelationId.set(cid);

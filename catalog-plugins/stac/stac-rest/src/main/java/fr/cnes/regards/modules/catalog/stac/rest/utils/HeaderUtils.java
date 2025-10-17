@@ -32,9 +32,12 @@ import java.util.stream.Collectors;
  * Filters a given set of headers to retain only those that should be exposed
  * in the STAC API responses (e.g., authorization information)
  */
-public class HeaderUtils {
+public final class HeaderUtils {
 
     private static final Set<String> USEFUL_KEYS = Set.of(StacConstants.AUTHORIZATION_PARAMS);
+
+    private HeaderUtils() {
+    }
 
     /**
      * Filters the provided headers and returns a map containing only the headers

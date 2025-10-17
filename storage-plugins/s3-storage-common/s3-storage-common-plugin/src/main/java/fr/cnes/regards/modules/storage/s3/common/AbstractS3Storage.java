@@ -299,6 +299,7 @@ public abstract class AbstractS3Storage implements IStorageLocation {
         LOGGER.trace("[S3 Monitoring] Deletion of {} took {} ms", key, Instant.now().toEpochMilli() - start);
     }
 
+    @SuppressWarnings("java:S2221") // Too many possible exceptions, must have a generic handler
     protected void handleStoreRequest(FileStorageRequestAggregationDto request,
                                       S3HighLevelReactiveClient client,
                                       IStorageProgressManager progressManager,

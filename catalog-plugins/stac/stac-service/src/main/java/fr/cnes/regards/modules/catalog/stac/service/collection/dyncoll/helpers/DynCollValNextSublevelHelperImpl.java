@@ -259,21 +259,18 @@ public class DynCollValNextSublevelHelperImpl implements DynCollValNextSublevelH
     }
 
     private List<Integer> getDatepartPossibleValues(DynCollLevelVal lval, DatetimeBased newPartType) {
-        switch (newPartType) {
-            case MONTH:
-                return List.range(1, 13);
-            case HOUR:
-                return List.range(0, 24);
-            case MINUTE:
-                return List.range(0, 60);
-            case DAY:
+        return switch (newPartType) {
+            case MONTH -> List.range(1, 13);
+            case HOUR -> List.range(0, 24);
+            case MINUTE -> List.range(0, 60);
+            case DAY -> {
                 DynCollSublevelVal monthSublevelVal = lval.getSublevels()
                                                           .find(v -> v.getSublevelDefinition().type() == MONTH)
                                                           .getOrElse(() -> lval.getSublevels().get(1));
-                return List.range(1, numberOfDays(monthSublevelVal.getSublevelValue()));
-            default:
-                throw new RuntimeException("Unmanaged date sublevel: " + newPartType);
-        }
+                yield List.range(1, numberOfDays(monthSublevelVal.getSublevelValue()));
+            }
+            default -> throw new UnsupportedOperationException("Unmanaged date sublevel: " + newPartType);
+        };
     }
 
     private int numberOfDays(String sublevelValue) {

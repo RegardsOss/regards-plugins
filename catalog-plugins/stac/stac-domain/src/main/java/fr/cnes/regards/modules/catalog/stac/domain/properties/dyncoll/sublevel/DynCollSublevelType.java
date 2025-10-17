@@ -44,10 +44,6 @@ public interface DynCollSublevelType {
         public List<DatetimeBased> allPrevious() {
             return List.of(values()).takeUntil(t -> t == this).append(this);
         }
-
-        public static void main(String[] args) {
-            System.out.println(HOUR.allPrevious());
-        }
     }
 
     enum NumberBased implements DynCollSublevelType {

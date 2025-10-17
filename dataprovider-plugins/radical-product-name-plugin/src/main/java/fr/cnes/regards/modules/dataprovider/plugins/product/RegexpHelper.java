@@ -36,6 +36,9 @@ import java.util.stream.Collectors;
  */
 public final class RegexpHelper {
 
+    private RegexpHelper() {
+    }
+
     /**
      * Remove given groups number from file name of filePath given parameter based on compiled regexp pattern.
      *

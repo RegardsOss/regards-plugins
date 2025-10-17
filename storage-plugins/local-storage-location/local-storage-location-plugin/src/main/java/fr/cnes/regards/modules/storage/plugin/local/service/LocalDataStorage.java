@@ -239,18 +239,7 @@ public class LocalDataStorage implements IOnlineStorageLocation {
         }
         try {
             URL sourceUrl = new URL(request.getOriginUrl());
-            boolean downloadOk = false;
-            try {
-                downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
-                                                                    fullPathToFile,
-                                                                    request.getMetaInfo().getAlgorithm(),
-                                                                    request.getMetaInfo().getChecksum(),
-                                                                    knownS3Storages.getStorages());
-            } catch (IOException e) {
-                throw new ModuleException(String.format("Download error for file %s. Cause : %s",
-                                                        request.getOriginUrl(),
-                                                        e.getMessage()), e);
-            }
+            boolean downloadOk = doDownloadAndCheckChecksum(request, sourceUrl, fullPathToFile);
             if (downloadOk) {
                 File file = fullPathToFile.toFile();
                 if (file.canWrite()) {
@@ -284,6 +273,24 @@ public class LocalDataStorage implements IOnlineStorageLocation {
             fullPathToFile.toFile().delete();
             progressManager.storageFailed(request, e.getMessage());
         }
+    }
+
+    private boolean doDownloadAndCheckChecksum(FileStorageRequestAggregationDto request,
+                                               URL sourceUrl,
+                                               Path fullPathToFile) throws NoSuchAlgorithmException, ModuleException {
+        boolean downloadOk = false;
+        try {
+            downloadOk = DownloadUtils.downloadAndCheckChecksum(sourceUrl,
+                                                                fullPathToFile,
+                                                                request.getMetaInfo().getAlgorithm(),
+                                                                request.getMetaInfo().getChecksum(),
+                                                                knownS3Storages.getStorages());
+        } catch (IOException e) {
+            throw new ModuleException(String.format("Download error for file %s. Cause : %s",
+                                                    request.getOriginUrl(),
+                                                    e.getMessage()), e);
+        }
+        return downloadOk;
     }
 
     private void doStoreInZip(IStorageProgressManager progressManager,
@@ -661,7 +668,9 @@ public class LocalDataStorage implements IOnlineStorageLocation {
                 LOGGER.error("Error while attempting to close the zip {} you might want to reboot the microservice",
                              fileRef.getLocation().getUrl(),
                              e);
-                throw new ModuleException(errorMessage);
+                ModuleException exception = new ModuleException(errorMessage);
+                exception.addSuppressed(ioE);
+                throw exception;
             } finally {
                 zipAccessSemaphore.release();
                 LOGGER.debug("Semaphore released");

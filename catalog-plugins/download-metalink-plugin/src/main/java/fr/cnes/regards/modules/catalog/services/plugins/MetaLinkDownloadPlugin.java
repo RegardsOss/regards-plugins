@@ -77,7 +77,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     /**
      * Class logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(CatalogPluginResponseFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetaLinkDownloadPlugin.class);
 
     @Autowired
     private IServiceHelper serviceHelper;
@@ -123,7 +123,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
     }
 
     private StreamingResponseBody streamMetalinkXml(SearchRequest searchRequest) {
-        StreamingResponseBody stream = out -> {
+        return out -> {
             LOGGER.debug("Start writting metalink ... ");
             try {
                 Page<DataObject> results;
@@ -155,7 +155,6 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
             }
             LOGGER.debug("Wrtting data done. ");
         };
-        return stream;
     }
 
     /**
@@ -211,7 +210,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
         String fileName = datafile.getFilename() != null ?
             datafile.getFilename() :
             FilenameUtils.getName(datafile.asUri().getPath());
-        String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replaceAll(" ", "") : "files";
+        String dataObjectName = dataobject.getLabel() != null ? dataobject.getLabel().replace(" ", "") : "files";
         return String.format("%s/%s", dataObjectName, fileName);
     }
 
@@ -229,7 +228,7 @@ public class MetaLinkDownloadPlugin extends AbstractCatalogServicePlugin impleme
             } else {
                 fileUri = new URIBuilder(fileUri).addParameter("token", jwtService.getCurrentToken().getJwt()).build();
             }
-            LOGGER.debug(String.format("File url is : %s", fileUri.toString()));
+            LOGGER.debug("File url is : {}", fileUri.toString());
         } catch (JwtException | URISyntaxException e) {
             LOGGER.error("Error generating URI with current security token", e);
         }

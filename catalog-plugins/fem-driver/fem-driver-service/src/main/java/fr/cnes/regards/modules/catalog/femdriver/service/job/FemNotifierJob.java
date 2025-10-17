@@ -36,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,17 +87,9 @@ public class FemNotifierJob extends AbstractJob<Void> {
         do {
             try {
                 results = serviceHelper.getDataObjects(request, page.getPageNumber(), page.getPageSize());
-                List<FeatureUniformResourceName> features = Lists.newArrayList();
+                List<FeatureUniformResourceName> features = new ArrayList<>();
                 for (DataObject dataObject : results.getContent()) {
-                    try {
-                        features.add(FeatureUniformResourceName.fromString(dataObject.getIpId().toString()));
-                    } catch (IllegalArgumentException e) {
-                        logger.error(
-                            "[FEM DRIVER NOTIFICATION JOB] Error trying to notify feature [{}] from FEM microservice. "
-                            + "Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
-                            dataObject.getIpId().toString(),
-                            e.getMessage());
-                    }
+                    addFeature(dataObject, features);
                 }
                 logger.info("[FEM DRIVER NOTIFICATION JOB] Sending {} features notify requests.", features.size());
                 featureClient.notifyFeatures(jobOwner, features, PriorityLevel.NORMAL, recipients);
@@ -107,6 +100,17 @@ public class FemNotifierJob extends AbstractJob<Void> {
             }
         } while (results != null && results.hasNext());
         logger.info("[FEM DRIVER NOTIFICATION JOB] Handled in {}ms.", System.currentTimeMillis() - start);
+    }
+
+    private void addFeature(DataObject dataObject, List<FeatureUniformResourceName> features) {
+        try {
+            features.add(FeatureUniformResourceName.fromString(dataObject.getIpId().toString()));
+        } catch (IllegalArgumentException e) {
+            logger.error("[FEM DRIVER NOTIFICATION JOB] Error trying to notify feature [{}] from FEM microservice. "
+                         + "Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                         dataObject.getIpId().toString(),
+                         e.getMessage());
+        }
     }
 
 }

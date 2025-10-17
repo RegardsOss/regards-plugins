@@ -46,21 +46,19 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynCollLevelDefParserImpl.class);
 
+    private static final Pattern NUMBER_FORMAT_PATTERN = Pattern.compile(
+        "^(?<min>-?\\d*(?:\\.\\d+)?);(?<step>\\d*(?:\\.\\d+)?);(?<max>-?\\d*(?:\\.\\d+)?)?$");
+
+    private static final Pattern STRING_FORMAT_PATTERN = Pattern.compile("^PREFIX\\((?<num>\\d),(?<alphanum>A|9|A9)\\)$");
+
     @Override
     public DynCollLevelDef<?> parse(StacProperty prop) {
-        switch (prop.getStacType()) {
-            case STRING:
-                return parseStringLevelDef(prop);
-            case PERCENTAGE:
-            case ANGLE:
-            case LENGTH:
-            case NUMBER:
-                return parseNumberLevelDef(prop);
-            case DATETIME:
-                return parseDateTimeLevelDef(prop);
-            default:
-                return parseExactLevelDef(prop);
-        }
+        return switch (prop.getStacType()) {
+            case STRING -> parseStringLevelDef(prop);
+            case PERCENTAGE, ANGLE, LENGTH, NUMBER -> parseNumberLevelDef(prop);
+            case DATETIME -> parseDateTimeLevelDef(prop);
+            default -> parseExactLevelDef(prop);
+        };
     }
 
     private DynCollLevelDef<?> parseExactLevelDef(StacProperty prop) {
@@ -80,17 +78,15 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
         return new DatePartsLevelDef(prop, sublevelDeepestType);
     }
 
-    private static final Pattern NUMBER_FORMAT_PATTERN = Pattern.compile(
-        "^(?<min>-?\\d*(?:\\.\\d+)?);(?<step>\\d*(?:\\.\\d+)?);(?<max>-?\\d*(?:\\.\\d+)?)?$");
-
     private DynCollLevelDef<?> parseNumberLevelDef(StacProperty prop) {
         String format = Option.of(prop.getDynamicCollectionFormat()).map(String::trim).getOrElse("");
 
         return trying(() -> {
-            Matcher matcher;
             if (isBlank(format)) {
                 return parseExactLevelDef(prop);
-            } else if ((matcher = NUMBER_FORMAT_PATTERN.matcher(format)).matches()) {
+            }
+            Matcher matcher = NUMBER_FORMAT_PATTERN.matcher(format);
+            if (matcher.matches()) {
                 double min = Double.parseDouble(matcher.group("min"));
                 double step = Double.parseDouble(matcher.group("step"));
                 double max = Double.parseDouble(matcher.group("max"));
@@ -106,16 +102,15 @@ public class DynCollLevelDefParserImpl implements DynCollLevelDefParser {
 
     }
 
-    private static final Pattern STRING_FORMAT_PATTERN = Pattern.compile("^PREFIX\\((?<num>\\d),(?<alphanum>A|9|A9)\\)$");
-
     private DynCollLevelDef<?> parseStringLevelDef(StacProperty prop) {
         String format = Option.of(prop.getDynamicCollectionFormat()).map(String::trim).getOrElse("");
 
         return trying(() -> {
-            Matcher matcher;
             if (isBlank(format)) {
                 return parseExactLevelDef(prop);
-            } else if ((matcher = STRING_FORMAT_PATTERN.matcher(format)).matches()) {
+            }
+            Matcher matcher = STRING_FORMAT_PATTERN.matcher(format);
+            if (matcher.matches()) {
                 Integer length = tryOf(() -> Integer.parseInt(matcher.group("num"))).getOrElse(1);
                 String alphaNum = matcher.group("alphanum");
                 boolean alpha = alphaNum.contains("A");

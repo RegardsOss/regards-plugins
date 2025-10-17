@@ -36,12 +36,12 @@ import fr.cnes.regards.modules.feature.dto.urn.FeatureUniformResourceName;
 import fr.cnes.regards.modules.model.dto.properties.IProperty;
 import fr.cnes.regards.modules.model.dto.properties.StringProperty;
 import fr.cnes.regards.modules.search.dto.SearchRequest;
-import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,31 +89,9 @@ public class FemUpdateJob extends AbstractJob<Void> {
                 if ((page.getPageNumber() == 0) && (results.getTotalPages() > 0)) {
                     completionCount = results.getTotalPages();
                 }
-                List<Feature> features = Lists.newArrayList();
-                for (DataObject dobj : results.getContent()) {
-                    try {
-                        Feature feature = Feature.build(dobj.getProviderId(),
-                                                        null,
-                                                        FeatureUniformResourceName.fromString(dobj.getIpId()
-                                                                                                  .toString()),
-                                                        null,
-                                                        EntityType.DATA,
-                                                        dobj.getModel().getName());
-                        for (IProperty<?> prop : request.getFeature().getProperties()) {
-                            // Hack to allow fem driver to set null value into a string attribute by passing the
-                            // string containing "null".
-                            if (prop instanceof StringProperty stringProp && "null".equals(stringProp.getValue())) {
-                                stringProp.setValue(null);
-                            }
-                            feature.addProperty(prop);
-                        }
-                        features.add(feature);
-                    } catch (IllegalArgumentException e) {
-                        logger.error(
-                            "Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
-                            dobj.getIpId().toString(),
-                            e.getMessage());
-                    }
+                List<Feature> features = new ArrayList<>();
+                for (DataObject dataObject : results.getContent()) {
+                    addFeature(dataObject, features);
                 }
                 logger.info("[FEM DRIVER] Sending {} features update requests.", features.size());
                 featureClient.updateFeatures(jobOwner, features, PriorityLevel.NORMAL);
@@ -125,6 +103,31 @@ public class FemUpdateJob extends AbstractJob<Void> {
                 advanceCompletion();
             }
         } while ((results != null) && results.hasNext());
+    }
+
+    private void addFeature(DataObject dataObject, List<Feature> features) {
+        try {
+            Feature feature = Feature.build(dataObject.getProviderId(),
+                                            null,
+                                            FeatureUniformResourceName.fromString(dataObject.getIpId().toString()),
+                                            null,
+                                            EntityType.DATA,
+                                            dataObject.getModel().getName());
+            for (IProperty<?> prop : request.getFeature().getProperties()) {
+                // Hack to allow fem driver to set null value into a string attribute by passing the
+                // string containing "null".
+                if (prop instanceof StringProperty stringProp && "null".equals(stringProp.getValue())) {
+                    stringProp.setValue(null);
+                }
+                feature.addProperty(prop);
+            }
+            features.add(feature);
+        } catch (IllegalArgumentException e) {
+            logger.error(
+                "Error trying to update feature {} from FEM microservice. Feature identifier is not a valid FeatureUniformResourceName. Cause: {}",
+                dataObject.getIpId().toString(),
+                e.getMessage());
+        }
     }
 
     @Override

@@ -88,7 +88,9 @@ public class StupidDatasource implements IInternalDataSourcePlugin {
         int position = cursor.getPosition();
         if (position < NUMBER_ELEMENT / STEP) {
             cursor.setHasNext(true);
-            return objects.subList(position * STEP, ++position * STEP);
+            int previousPosition = position;
+            position++;
+            return objects.subList(previousPosition * STEP, position * STEP);
         } else if (cursor.getPosition() == NUMBER_ELEMENT / STEP) {
             cursor.setHasNext(false);
             return objects.subList(position * STEP, objects.size());

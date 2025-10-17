@@ -30,7 +30,10 @@ import java.io.OutputStream;
  *
  * @author Julien Canches
  */
-public class MultihashUtils {
+public final class MultihashUtils {
+
+    private MultihashUtils() {
+    }
 
     /**
      * Get the checksum value with the multihash format

@@ -20,7 +20,6 @@ package fr.cnes.regards.modules.catalog.stac.domain.api;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 import io.vavr.collection.Stream;
@@ -37,7 +36,7 @@ import static fr.cnes.regards.modules.catalog.stac.domain.error.StacFailureType.
 import static fr.cnes.regards.modules.catalog.stac.domain.utils.TryDSL.trying;
 import static java.lang.String.format;
 
-public class AbstractSearchBodyFactoryImpl {
+public abstract class AbstractSearchBodyFactoryImpl {
 
     private final Gson gson;
 

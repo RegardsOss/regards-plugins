@@ -53,6 +53,8 @@ public class RecordFactory implements ObjectFactory {
         }
     }
 
+    @SuppressWarnings("java:S2221") // There are at least 5 different exception types, all translated to the same
+    // more user-friendly exception
     private <T> T createRandomRecord(Class<T> recordType) {
         // generate random values for record components
         RecordComponent[] recordComponents = recordType.getRecordComponents();
@@ -68,6 +70,7 @@ public class RecordFactory implements ObjectFactory {
         }
     }
 
+    @SuppressWarnings("java:S112") // See comment
     private <T> Constructor<T> getCanonicalConstructor(Class<T> recordType) {
         RecordComponent[] recordComponents = recordType.getRecordComponents();
         Class<?>[] componentTypes = new Class<?>[recordComponents.length];
@@ -86,6 +89,7 @@ public class RecordFactory implements ObjectFactory {
         }
     }
 
+    @SuppressWarnings("java:S1181") // Translate low-level issue to user-friendly exception
     private <T> T createRandomInstance(Class<T> type, RandomizerContext context) {
         if (context.getParameters().isScanClasspathForConcreteTypes() && ReflectionUtils.isAbstract(type)) {
             Class<?> randomConcreteSubType = CollectionUtils.randomElementOf(ReflectionUtils.getPublicConcreteSubTypesOf(
@@ -100,13 +104,14 @@ public class RecordFactory implements ObjectFactory {
         } else {
             try {
                 return this.createNewInstance(type);
-            } catch (Error var4) {
-                Error e = var4;
+            } catch (Error e) {
                 throw new ObjectCreationException("Unable to create an instance of type: " + type, e);
             }
         }
     }
 
+    @SuppressWarnings("java:S2221") // There are at least 5 different exception types, all translated to the same
+    // fallback
     private <T> T createNewInstance(Class<T> type) {
         try {
             Constructor<T> noArgConstructor = type.getDeclaredConstructor();
@@ -115,7 +120,7 @@ public class RecordFactory implements ObjectFactory {
             }
 
             return noArgConstructor.newInstance();
-        } catch (Exception var3) {
+        } catch (Exception e) {
             return this.objenesis.newInstance(type);
         }
     }

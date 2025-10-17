@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Helper class for generating EODag scripts
  */
-public class EODagGenerator {
+public final class EODagGenerator {
 
     // JINJA templates
 
@@ -50,6 +50,9 @@ public class EODagGenerator {
     private static final String SINGLE_TEMPLATE = "fr/cnes/regards/modules/catalog/stac/service/collection/search/eodag/single_collection_script.py";
 
     private static final String MULTI_TEMPLATE = "fr/cnes/regards/modules/catalog/stac/service/collection/search/eodag/multi_collections_script.py";
+
+    private EODagGenerator() {
+    }
 
     /**
      * Single collection script generation

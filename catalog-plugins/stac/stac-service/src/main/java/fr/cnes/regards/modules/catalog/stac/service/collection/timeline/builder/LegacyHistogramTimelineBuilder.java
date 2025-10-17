@@ -25,6 +25,8 @@ import java.util.Map;
 
 /**
  * Build a timeline with a number of item matching for each timeline entry
+ *
+ * @deprecated
  */
 @Deprecated
 public class LegacyHistogramTimelineBuilder extends AbstractLegacyTimelineBuilder implements TimelineBuilder {
