@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.SlicedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 
@@ -58,7 +58,7 @@ public class TestConfiguration {
                                                                                           1);
 
     @Bean
-    public IFeatureEntityClient featureEntityClient() {
+    public IFeatureEntityClient featureEntityRawClient() {
         IFeatureEntityClient mock = Mockito.mock(IFeatureEntityClient.class);
         List<EntityModel<FeatureEntityDto>> entities = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -75,18 +75,16 @@ public class TestConfiguration {
                                                                OffsetDateTime.now())));
         }
         attachAdditionalFieldsToEntities(entities);
-        PagedModel<EntityModel<FeatureEntityDto>> pagedModel = PagedModel.of(entities,
-                                                                             new PagedModel.PageMetadata(10,
-                                                                                                         10,
-                                                                                                         10,
-                                                                                                         1));
-        ResponseEntity<PagedModel<EntityModel<FeatureEntityDto>>> response = ResponseEntity.of(Optional.of(pagedModel));
-        Mockito.when(mock.findAll(Mockito.anyString(),
-                                  Mockito.any(OffsetDateTime.class),
-                                  Mockito.any(OffsetDateTime.class),
-                                  Mockito.anyInt(),
-                                  Mockito.anyInt(),
-                                  Mockito.any(Sort.class))).thenReturn(response);
+        SlicedModel<EntityModel<FeatureEntityDto>> slicedModel = SlicedModel.of(entities,
+                                                                                new SlicedModel.SliceMetadata(10, 10));
+        ResponseEntity<SlicedModel<EntityModel<FeatureEntityDto>>> response = ResponseEntity.of(Optional.of(slicedModel));
+        Mockito.when(mock.findAllSlice(Mockito.anyString(),
+                                       Mockito.any(OffsetDateTime.class),
+                                       Mockito.any(OffsetDateTime.class),
+                                       Mockito.anyInt(),
+                                       Mockito.anyInt(),
+                                       Mockito.any(Sort.class),
+                                       Mockito.anyBoolean())).thenReturn(response);
         return mock;
     }
 
